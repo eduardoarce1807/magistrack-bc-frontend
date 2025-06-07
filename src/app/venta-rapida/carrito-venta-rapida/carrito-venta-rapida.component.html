@@ -1,0 +1,90 @@
+<div class="container py-3">
+	<h5 class="fw-bold text-center mb-3">CARRITO DE VENTA RÁPIDA</h5>
+	<table class="table table-bordered">
+		<thead>
+			<tr>
+				<th>Producto</th>
+				<th>Cantidad</th>
+				<th>Precio</th>
+				<th>Subtotal</th>
+				<th></th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr *ngFor="let item of carrito; index as i">
+				<td>{{ item.nombre }}</td>
+				<td>{{ item.cantidadSeleccionada }}</td>
+				<td>S/ {{ item.precio.toFixed(2) }}</td>
+				<td>
+					S/
+					{{ (item.precio * item.cantidadSeleccionada).toFixed(2) }}
+				</td>
+				<td>
+					<button
+						class="btn btn-outline-danger btn-sm"
+						(click)="quitar(item.idProducto)"
+					>
+						Quitar
+					</button>
+				</td>
+			</tr>
+		</tbody>
+	</table>
+	<div class="text-end fw-bold mb-3">S/ {{ total.toFixed(2) }}</div>
+
+	<div class="row mb-3">
+		<div class="col-md-6">
+			<label for="tipoPago" class="form-label">Tipo de pago</label>
+			<select [(ngModel)]="idTipoPago" class="form-select" required (change)="efectivoRecibido = 0; vuelto = 0;">
+				<option [value]="0" disabled selected>
+					Seleccione tipo de pago
+				</option>
+				<option
+					*ngFor="let tipo of lstTiposPago"
+					[value]="tipo.idTipoPago"
+				>
+					{{ tipo.descripcion }}
+				</option>
+			</select>
+		</div>
+	</div>
+
+	@if (idTipoPago == 4) {
+	<div class="row mb-3">
+		<div class="col">
+			<label for="efectivoRecibido" class="form-label">Efectivo recibido</label>
+			<input
+				type="number"
+				class="form-control"
+				placeholder="Ingrese efectivo"
+				[(ngModel)]="efectivoRecibido.toFixed"
+				(ngModelChange)="vuelto = (efectivoRecibido - total)"
+			/>
+		</div>
+
+		<div class="col">
+			<label for="vuelto" class="form-label">Vuelto</label>
+			<input
+				type="number"
+				class="form-control"
+				[value]="vuelto.toFixed(2)"
+				disabled=""
+			/>
+		</div>
+		
+	</div>
+
+	}
+
+	<div class="d-flex justify-content-between">
+		<button
+			class="btn btn-outline-secondary w-50 me-2"
+			(click)="router.navigate(['venta-rapida/productos-venta-rapida'])"
+		>
+			Atrás
+		</button>
+		<button class="btn btn-success w-50" (click)="crearPedido()">
+			Finalizar
+		</button>
+	</div>
+</div>

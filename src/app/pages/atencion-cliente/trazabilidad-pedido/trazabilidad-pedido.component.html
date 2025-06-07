@@ -1,0 +1,48 @@
+<div class="container mt-5">
+	<div class="card shadow-lg p-4 rounded-4">
+		<h2 class="mb-4 text-center">Trazabilidad del Pedido</h2>
+
+		<!-- Buscador de Pedido -->
+		<!-- <div class="d-flex justify-content-end mb-4">
+			<div class="input-group w-50">
+				<input
+					type="text"
+					class="form-control"
+					placeholder="Buscar pedido por número"
+					aria-label="Buscar pedido"
+				/>
+				<button class="btn btn-primary" type="button">Buscar</button>
+			</div>
+		</div> -->
+
+		<!-- Tabla de Trazabilidad -->
+		<table
+			class="table table-striped table-hover table-bordered align-middle"
+		>
+			<thead class="table-primary">
+				<tr>
+					<th scope="col">Fecha/Hora</th>
+					<th scope="col">Estado</th>
+					<th scope="col">Acción Realizada</th>
+					<th scope="col">Responsable</th>
+					<th scope="col">Observación</th>
+				</tr>
+			</thead>
+			<tbody>
+				@for (item of trazabilidadPedido; track $index) {
+				<tr>
+					<td>{{item.fecha}}</td>
+					<td>{{item.estadoPedido.descripcion}}</td>
+					<td>{{item.accionRealizada}}</td>
+					<td>{{item.cliente.nombres + ' ' + item.cliente.apellidos}}</td>
+					<td>{{item.observacion}}</td>
+				}
+			</tbody>
+		</table>
+
+		<!-- Botón Imprimir Seguimiento -->
+		<div class="d-flex justify-content-end align-items-center mt-4">
+			<button class="btn btn-primary">Imprimir Seguimiento</button>
+		</div>
+	</div>
+</div>

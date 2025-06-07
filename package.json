@@ -1,9 +1,9 @@
 {
   "name": "magistrack-bc-frontend",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "scripts": {
     "ng": "ng",
-    "start": "ng serve",
+    "start": "ng serve -o",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test"
@@ -18,7 +18,13 @@
     "@angular/platform-browser": "^17.3.0",
     "@angular/platform-browser-dynamic": "^17.3.0",
     "@angular/router": "^17.3.0",
+    "@lyracom/embedded-form-glue": "^1.4.2",
+    "@ng-bootstrap/ng-bootstrap": "^16.0.0",
+    "bootstrap": "^5.3.6",
+    "bootstrap-icons": "^1.13.1",
+    "jsbarcode": "^3.11.6",
     "rxjs": "~7.8.0",
+    "sweetalert2": "^11.21.0",
     "tslib": "^2.3.0",
     "zone.js": "~0.14.3"
   },

@@ -1,0 +1,60 @@
+<div class="container mt-5">
+	<div class="card shadow-lg p-4 rounded-4">
+		<h2 class="mb-4 text-center">Personalización de Producto</h2>
+
+		<div><span style="font-weight: bold;">Pedido:</span> {{idPedido}}</div>
+		<div><span style="font-weight: bold;">Producto:</span> {{idProducto}}</div>
+		<hr>
+		<!-- Información del Producto -->
+		<form>
+			<div class="mb-4">
+				<label for="nombreProducto" class="form-label" style="font-weight: bold;"
+					>Nombre de Producto</label
+				>
+				<input
+					type="text"
+					class="form-control"
+					id="nombreProducto"
+					placeholder="Ingrese el nombre del producto"
+					name="nombrePersonalizado"
+					[(ngModel)]="nombrePersonalizado"
+					required
+				/>
+			</div>
+			<div class="mb-4">
+				<label for="descripcionAmplia" class="form-label" style="font-weight: bold;"
+					>Descripción Amplia</label
+				>
+				<textarea
+					class="form-control"
+					id="descripcionAmplia"
+					rows="4"
+					placeholder="Ingrese una descripción amplia del producto"
+					name="descripcionPersonalizada"
+					[(ngModel)]="descripcionPersonalizada"
+					required
+				></textarea>
+			</div>
+			<div class="mb-4">
+				<label for="detallesPersonalizacion" class="form-label" style="font-weight: bold;"
+					>Detalles de Personalización</label
+				>
+				<textarea
+					class="form-control"
+					id="detallesPersonalizacion"
+					rows="6"
+					placeholder="Ingrese los detalles de personalización"
+					name="detallePersonalizacion"
+					[(ngModel)]="detallePersonalizacion"
+					required
+				></textarea>
+			</div>
+
+			<!-- Botones de Acción -->
+			<div class="d-flex justify-content-end align-items-center mt-4">
+				<button class="btn btn-secondary me-2" (click)="router.navigate(['/pages/atencion-cliente/registro-pedido', idPedido])">Cancelar</button>
+				<button class="btn btn-primary" (click)="savePersonalizacion()">Guardar</button>
+			</div>
+		</form>
+	</div>
+</div>

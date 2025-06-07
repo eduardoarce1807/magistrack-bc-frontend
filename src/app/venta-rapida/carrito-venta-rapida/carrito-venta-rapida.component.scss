@@ -1,0 +1,27 @@
+.table {
+  font-size: 0.9rem;
+}
+
+h5 {
+  color: #333;
+}
+
+// @media (max-width: 576px) {
+//   .table thead {
+//     display: none;
+//   }
+//   .table tr {
+//     display: block;
+//     margin-bottom: 1rem;
+//     border-bottom: 1px solid #ccc;
+//   }
+//   .table td {
+//     display: flex;
+//     justify-content: space-between;
+//     padding: .5rem;
+//     border: none;
+//   }
+//   .table td::before {
+//     font-weight: bold;
+//   }
+// }

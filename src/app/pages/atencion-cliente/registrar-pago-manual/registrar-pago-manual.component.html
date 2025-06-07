@@ -1,0 +1,101 @@
+<div class="container mt-5">
+	<div class="card shadow-lg p-4 rounded-4">
+		<h2 class="mb-4 text-center">Registrar Pago de Pedido Manual</h2>
+
+		<!-- Buscador de Pedido -->
+		<div class="d-flex justify-content-end mb-4">
+			<div class="input-group w-50">
+				<input
+					type="text"
+					class="form-control"
+					placeholder="Buscar pedido por número"
+					aria-label="Buscar pedido"
+				/>
+				<button class="btn btn-primary" type="button">Buscar</button>
+			</div>
+		</div>
+
+		<!-- Formulario de Pago -->
+		<form>
+			<div class="mb-4">
+				<label for="numeroPedido" class="form-label"
+					>Número de Pedido</label
+				>
+				<input
+					type="text"
+					class="form-control"
+					id="numeroPedido"
+					placeholder="Ingrese el número de pedido"
+					required
+				/>
+			</div>
+			<div class="mb-4">
+				<label for="nombreCliente" class="form-label"
+					>Nombre del Cliente</label
+				>
+				<input
+					type="text"
+					class="form-control"
+					id="nombreCliente"
+					placeholder="Ingrese el nombre del cliente"
+					required
+				/>
+			</div>
+			<div class="mb-4">
+				<label for="montoPagado" class="form-label"
+					>Monto Pagado (S/)</label
+				>
+				<input
+					type="number"
+					class="form-control"
+					id="montoPagado"
+					placeholder="Ingrese el monto pagado"
+					required
+				/>
+			</div>
+			<div class="mb-4">
+				<label for="metodoPago" class="form-label"
+					>Método de Pago</label
+				>
+				<select class="form-select" id="metodoPago" required>
+					<option selected disabled>Seleccione método de pago</option>
+					<option value="Efectivo">Efectivo</option>
+					<option value="Transferencia Bancaria">
+						Transferencia Bancaria
+					</option>
+					<option value="Yape/Plin">Yape/Plin</option>
+					<option value="Tarjeta de Crédito">
+						Tarjeta de Crédito
+					</option>
+				</select>
+			</div>
+			<div class="mb-4">
+				<label for="referencia" class="form-label"
+					>Número de Operación / Referencia</label
+				>
+				<input
+					type="text"
+					class="form-control"
+					id="referencia"
+					placeholder="Ingrese el número de operación o referencia"
+					required
+				/>
+			</div>
+			<div class="mb-4">
+				<label for="fechaPago" class="form-label">Fecha de Pago</label>
+				<input
+					type="date"
+					class="form-control"
+					id="fechaPago"
+					required
+				/>
+			</div>
+
+			<!-- Botones de Acción -->
+			<div class="d-flex justify-content-end align-items-center mt-4">
+				<button class="btn btn-secondary me-2">Cancelar</button>
+				<button class="btn btn-primary">Registrar Pago</button>
+			</div>
+		</form>
+	</div>
+</div>

@@ -1,0 +1,179 @@
+<div class="container mt-5">
+	<div class="card shadow-lg p-4 rounded-4 mb-4">
+		<h2 class="mb-4 text-center">Calculadora Maestra</h2>
+
+        <div class="d-flex justify-content-start mb-3">
+			<div class="text-start">
+				<p class="mb-0"><span class="fw-bold">Pedido:</span> {{idPedido}}</p>
+				<p class="mb-0"><span class="fw-bold">Producto:</span> {{idProducto}}</p>
+                <p class="mb-0"><span class="fw-bold">Nombre Producto:</span> {{nombrePersonalizado}}</p>
+                <p class="mb-0"><span class="fw-bold">Descripción Producto:</span> {{descripcionPersonalizada}}</p>
+                <p class="mb-0"><span class="fw-bold">Glosa/Detalles:</span> {{detallePersonalizacion}}</p>
+			</div>
+		</div>
+
+        <div class="row mb-3">
+            <div class="col-md-3">
+                <label for="base" class="form-label">Bases</label>
+                <select [(ngModel)]="IdBase" class="form-select" name="base" (change)="onBaseChange($event)">
+                    @for (item of bases; track $index) {
+                        <option [value]="item.idBaseProducto">{{ item.nombre }}</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label for="porcentaje" class="form-label">Porcentaje</label>
+                <!-- <input disabled type="number" name="porcentaje" [(ngModel)]="base.porcentaje" class="form-control" id="porcentaje" placeholder="Ingrese porcentaje" max="1" step="0.01" required> -->
+                <div class="input-group mb-3">
+                    <input disabled type="number" name="porcentaje" [value]="base.porcentaje * 100" (input)="onBasePorcentajeChange($event)" class="form-control" id="porcentaje" placeholder="Ingrese porcentaje" max="1" step="0.01" required>
+                    <span class="input-group-text">%</span>
+                </div>
+            </div>
+
+            <div class="col-md-2">
+                <label for="presentacion" class="form-label">Presentación</label>
+                <input type="number" name="presentacion" [(ngModel)]="presentacion" class="form-control" id="presentacion" placeholder="Ingrese presentación" value="30" min="0" max="100" step="0.01" required>
+
+            </div>
+            
+        </div>
+
+        <h3>Componentes:</h3>
+
+        @for (item of componentes; track $index) {
+            <div class="row">
+                <div class="col-md-3">
+                    <label for="materia-prima" class="form-label">Materia Prima</label>
+                </div>
+
+                <div class="col-md-2">
+                    <label for="costo-x-gramo" class="form-label">Costo por gramo</label>
+                </div>
+                
+                <div class="col-md-2">
+                    <label for="porcentaje-componente" class="form-label">Porcentaje</label>
+                </div>
+
+                <div class="col-md-2">
+                    <label for="gramo-x-presentacion" class="form-label">Gramo por presentación</label>
+                </div>
+
+                <div class="col-md-2">
+                    <label for="costo-x-porcentaje" class="form-label">Costo por porcentaje</label>
+                </div>
+            </div>
+
+            <div class="row mb-2">
+                <div class="col-md-3">
+                    <select [(ngModel)]="item.idMateriaPrima" (change)="onChangeMateriaPrimaComponente($index, item.idMateriaPrima)" class="form-select" [name]="'materia-prima-'+($index+1)" [id]="'materia-prima-'+($index+1)">
+                        <option value="" disabled>Seleccione materia prima</option>
+                        @for (item of materiasPrimas; track $index) {
+                            <option [value]="item.idMateriaPrima">{{ item.nombre }}</option>
+                        }
+                    </select>
+                </div>
+
+                <div class="col-md-2">
+                    <input disabled type="number"
+                        [value]="item.costoGramo"
+                        class="form-control"
+                        placeholder="Ingrese costo por gramo"
+                        [name]="'costo-x-gramo-'+($index+1)"
+                        [id]="'costo-x-gramo-'+($index+1)"
+                        min="0" max="100" step="0.01">
+                </div>
+                
+                <div class="col-md-2">
+                    <div class="input-group mb-3">
+                        <input appPorcentajeInput (porcentajeChange)="onPorcentajeComponenteInput2($event, $index)" type="text" [value]="(item.porcentaje * 100) | number:'1.2-2'" class="form-control" placeholder="Ingrese porcentaje" [name]="'porcentaje-componente-'+($index+1)" [id]="'porcentaje-componente-'+($index+1)">
+                        <span class="input-group-text">%</span>
+                    </div>
+                    <!-- <input type="number" [(ngModel)]="item.porcentaje" (ngModelChange)="redondearDecimales($index, 'porcentaje', 4)" (change)="onChangePorcentajeComponente($index, item.idMateriaPrima)" class="form-control" placeholder="Ingrese porcentaje" [name]="'porcentaje-componente-'+($index+1)" [id]="'porcentaje-componente-'+($index+1)" max="1" step="0.01"> -->
+                </div>
+
+                <div class="col-md-2">
+                    <input type="number" disabled [(ngModel)]="item.gramoPorPresentacion" class="form-control" placeholder="Ingrese gramo por presentacion" [name]="'gramo-x-presentacion-'+($index+1)" [id]="'gramo-x-presentacion-'+($index+1)" min="0" max="100" step="0.01">
+                </div>
+
+                <div class="col-md-2">
+                    <input type="number" disabled [(ngModel)]="item.costoPorPorcentaje" class="form-control" placeholder="Ingrese costo por porcentaje" [name]="'costo-x-porcentaje-'+($index+1)" [id]="'costo-x-porcentaje-'+($index+1)" min="0" max="100" step="0.01" required>
+                </div>
+
+                <div class="col-md-1">
+                    <button class="btn btn-danger" (click)="borrarComponente($index)"><i class="bi bi-trash3-fill"></i></button>
+                </div>
+            </div>
+        }
+
+        <div class="row mt-2">
+            <div class="col-md-3">
+                <button type="button" class="btn btn-primary" (click)="agregarComponente()">Agregar Componente</button>
+            </div>
+        </div>
+
+        <hr>
+
+        <div class="row">
+            <div class="col-md-3">
+                <label for="envase" class="form-label">Envase</label>
+                <input type="number" name="envase" [(ngModel)]="envase" (ngModelChange)="updatePrecios()" class="form-control" id="envase" placeholder="Ingrese envase" value="30" min="0" max="100" step="0.01" required>
+            </div>
+            <div class="col-md-3">
+                <label for="maquila" class="form-label">Maquila</label>
+                <input type="number" name="maquila" [(ngModel)]="maquila" (ngModelChange)="updatePrecios()" class="form-control" id="maquila" placeholder="Ingrese maquila" value="30" min="0" max="100" step="0.01" required>
+            </div>
+        </div>
+        <div class="row mt-2">
+            <div class="col-md-3">
+                <label for="totalCosto" class="form-label">Total costo</label>
+                <div class="input-group mb-3">
+                    <span class="input-group-text">S/</span>
+                    <input type="number" name="totalCosto" [(ngModel)]="totalCosto" disabled class="form-control" id="totalCosto" placeholder="Ingrese totalCosto" value="30" min="0" max="100" step="0.01" required>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <label for="gananciaBC" class="form-label">Ganancia BC</label>
+                <div class="input-group mb-3">
+                    <input type="number" name="gananciaBC" appPorcentajeInput [appPorcentajeMax]="500" (porcentajeChange)="onPorcentajeGananciaBCInput($event)" type="text" [value]="(gananciaBC * 100) | number:'1.2-2'" class="form-control" id="gananciaBC" placeholder="Ingrese gananciaBC" value="30" min="0" max="100" step="0.01" required>
+                    <span class="input-group-text">%</span>
+                </div>
+            </div>
+        </div>
+        <div class="row mt-2">
+            <div class="col-md-3">
+                <label for="precioNeto" class="form-label">Precio Neto</label>
+                <div class="input-group mb-3">
+                    <span class="input-group-text">S/</span>
+                    <input type="number" name="precioNeto" [(ngModel)]="precioNeto" disabled class="form-control" id="precioNeto" placeholder="Ingrese precioNeto" value="30" min="0" max="100" step="0.01" required>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <label for="igv" class="form-label">IGV</label>
+                <input disabled type="text" name="igv" [value]="igv*100 + '%'" class="form-control" id="igv" placeholder="Ingrese igv" value="30" min="0" max="100" step="0.01" required>
+            </div>
+        </div>
+        <div class="row mt-2">
+            <div class="col-md-3">
+                <label for="precioVentaFinal" class="form-label">Precio Venta</label>
+                <div class="input-group mb-3">
+                    <span class="input-group-text">S/</span>
+                    <input type="number" name="precioVentaFinal" [(ngModel)]="precioVentaFinal" disabled class="form-control" id="precioVentaFinal" placeholder="Ingrese precioVentaFinal" required>
+                </div>
+            </div>
+        </div>
+        <hr>
+        <div class="row">
+            <div class="col-md-3">
+                <label for="precioVentaFinalRedondeado" class="form-label" style="font-weight: bold;">Precio Venta (Redondeado)</label>
+                <div class="input-group mb-3">
+                    <span class="input-group-text">S/</span>
+                    <input type="number" name="precioVentaFinalRedondeado" [(ngModel)]="precioVentaFinalRedondeado" class="form-control" id="precioVentaFinalRedondeado" placeholder="Ingrese precioVentaFinalRedondeado" required>
+                </div>
+            </div>
+            <div class="text-end">
+                <button class="btn btn-primary" (click)="savePrecioPersonalizado();">Guardar</button>
+            </div>
+        </div>
+
+	</div>
+</div>

@@ -1,0 +1,131 @@
+import { HttpClient } from '@angular/common/http';
+import { Injectable } from '@angular/core';
+import { Observable } from 'rxjs';
+
+@Injectable({
+	providedIn: 'root',
+})
+export class PedidoService {
+	private baseUrl = 'http://localhost:8080/api/pedido';
+
+	constructor(private http: HttpClient) {}
+
+	getPedidoById(idPedido: string): Observable<any> {
+		let url = `${this.baseUrl}/${idPedido}`;
+		return this.http.get<any>(url);
+	}
+
+	getPedidosAll(): Observable<any[]> {
+		return this.http.get<any[]>(this.baseUrl);
+	}
+
+  getPedidosDespacho(): Observable<any[]> {
+    let url = `${this.baseUrl}/bandeja-despacho`;
+    return this.http.get<any[]>(url);
+  }
+
+	getPedidosByIdCliente(idCliente: number): Observable<any[]> {
+		let url = `${this.baseUrl}/buscar`;
+		return this.http.get<any[]>(url, { params: { idCliente } });
+	}
+
+	createPedido(pedido: any) {
+		let url = `${this.baseUrl}`;
+		return this.http.post<any>(url, pedido);
+	}
+
+	updatePedido(pedido: any) {
+		let url = `${this.baseUrl}/${pedido.idPedido}`;
+		return this.http.put<any>(url, pedido);
+	}
+
+	getProductosByIdPedido(idPedido: string): Observable<any[]> {
+		let url = `${this.baseUrl}/${idPedido}/productos`;
+		return this.http.get<any[]>(url);
+	}
+
+	saveProductoForPedido(producto: any) {
+		let url = `${this.baseUrl}/producto`;
+		return this.http.post<any>(url, producto);
+	}
+
+	deleteProductoDePedido(idPedido: string, idProducto: string) {
+		let url = `${this.baseUrl}/${idPedido}/${idProducto}`;
+		return this.http.delete<any>(url);
+	}
+
+	updateEstadoPedido(idPedido: string, idEstadoPedido: number) {
+		let url = `${this.baseUrl}/estado`;
+		return this.http.get<any>(url, {
+			params: { idPedido, idEstadoPedido },
+		});
+	}
+
+  updateDireccionPedido(data: any) {
+    let url = `${this.baseUrl}/direccion`;
+    return this.http.put<any>(url, data);
+  }
+
+	updateEstadoClientePedido(idPedido: string, idEstadoPedidoCliente: number) {
+		let url = `${this.baseUrl}/estado-cliente`;
+		return this.http.get<any>(url, {
+			params: { idPedido, idEstadoPedidoCliente },
+		});
+	}
+
+	deletePedido(idPedido: string) {
+		let url = `${this.baseUrl}/${idPedido}`;
+		return this.http.delete<any>(url);
+	}
+
+	getPedidoProductoByIds(
+		idPedido: string,
+		idProducto: string
+	): Observable<any> {
+		let url = `${this.baseUrl}/${idPedido}/producto/${idProducto}`;
+		return this.http.get<any>(url);
+	}
+
+	getProductosAll(): Observable<any[]> {
+		let url = `${this.baseUrl}/productos`;
+		return this.http.get<any[]>(url);
+	}
+
+	getProductosCalidad(): Observable<any[]> {
+		let url = `${this.baseUrl}/productos/calidad`;
+		return this.http.get<any[]>(url);
+	}
+
+	getProductosEnvasado(): Observable<any[]> {
+		let url = `${this.baseUrl}/productos/envasado`;
+		return this.http.get<any[]>(url);
+	}
+
+	getProductosEtiquetado(): Observable<any[]> {
+		let url = `${this.baseUrl}/productos/etiquetado`;
+		return this.http.get<any[]>(url);
+	}
+
+	getProductosDespacho(): Observable<any[]> {
+		let url = `${this.baseUrl}/productos/despacho`;
+		return this.http.get<any[]>(url);
+	}
+
+	saveObservacionPedido(data: any): Observable<any> {
+		let url = `${this.baseUrl}/observacion`;
+		return this.http.post<any>(url, data);
+	}
+
+	updateEstadoPedidoMasivo(data: any): Observable<any> {
+		let url = `${this.baseUrl}/estado-masivo`;
+		return this.http.post<any>(url, data);
+	}
+
+	updateEstadoProductoByPedido(
+		idPedido: string,
+		idEstadoProducto: number
+	): Observable<any> {
+		let url = `${this.baseUrl}/${idPedido}/estado-producto`;
+		return this.http.get<any>(url, { params: { idEstadoProducto } });
+	}
+}

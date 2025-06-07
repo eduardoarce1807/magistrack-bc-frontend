@@ -1,0 +1,200 @@
+<div class="container-fluid mt-5" style="padding: 0px 60px;">
+	<div class="card shadow-lg p-4 rounded-4">
+		<h2 class="mb-4 text-center">Registro de Pedido</h2>
+
+		<div class="d-flex justify-content-start mb-3">
+			<div class="text-start">
+				<p class="mb-0"><span class="fw-bold">Pedido:</span> {{idPedido}}</p>
+			</div>
+		</div>
+
+		<!-- Buscador de Producto -->
+
+		@if (pedido.estadoPedido.idEstadoPedido == 1) {
+			<div class="row">
+			<div class="col-md-8">
+				<label for="cantidad" class="form-label">Buscar producto</label>
+			</div>
+			<div class="col-md-2">
+				<label for="cantidad" class="form-label">Cantidad</label>
+			</div>
+		</div>
+		<div class="row mb-2">
+			<div class="col-md-8">
+				<div class="position-relative">
+					<div class="input-group">
+						<input
+							type="text"
+							class="form-control"
+							placeholder="Buscar producto por nombre o código"
+							aria-label="Buscar producto"
+							[(ngModel)]="query"
+						/>
+						<button
+							class="btn btn-primary"
+							type="button"
+							(click)="buscarProducto()"
+						>
+							Buscar
+						</button>
+					</div>
+					<ul
+						*ngIf="productosBusqueda.length > 0"
+						class="list-group position-absolute w-100"
+						style="
+							z-index: 1000;
+							max-height: 200px;
+							overflow-y: auto;
+						"
+					>
+						<li
+							*ngFor="let producto of productosBusqueda"
+							(click)="selectProducto(producto)"
+							class="list-group-item list-group-item-action"
+						>
+							{{ producto.nombre }} - {{producto.presentacion}}
+						</li>
+					</ul>
+				</div>
+			</div>
+			<div class="col-md-2">
+				<input [(ngModel)]="cantidad" type="text" class="form-control" placeholder="Ej: 2" />
+			</div>
+			<div class="col-md-2">
+				<button class="btn btn-primary w-100" (click)="agregarProducto()">Agregar a Pedido</button>
+			</div>
+		</div>
+		}
+
+		<!-- Tabla de Productos -->
+		<table
+			class="table table-striped table-hover table-bordered align-middle mt-4"
+		>
+			<thead class="table-primary">
+				<tr>
+					<th scope="col">Código</th>
+					<th scope="col">Producto</th>
+					<th scope="col">Descripción</th>
+					<th scope="col">Cantidad</th>
+					<th scope="col">Precio Unitario</th>
+					<th scope="col">Subtotal</th>
+					<th scope="col">Personalizado</th>
+					<th scope="col">Opciones</th>
+				</tr>
+			</thead>
+			<tbody>
+				@for (item of productosPedido; track $index) {
+				<tr>
+					<td>{{item.idProducto}}</td>
+					<td>{{item.nombre}}</td>
+					<td>{{item.descripcion}}</td>
+					<td>
+						<input
+							type="number"
+							class="form-control form-control-sm"
+							min="1"
+							[disabled]="pedido.estadoPedido.idEstadoPedido > 1"
+							[value]="item.cantidad" 
+              				(change)="changeCantidad(item, $event)" 
+						/>
+					</td>
+					<td>
+						@if (item.personalizado && !item.precioPersonalizado) {
+							-
+						} @else  {
+							S/ {{item.precio.toFixed(2)}}
+						}
+					</td>
+					<td>
+						@if (item.personalizado && !item.precioPersonalizado) {
+							-
+						} @else {
+							S/ {{item.subtotal.toFixed(2)}}
+						}
+					</td>
+					<td>
+						@if (item.personalizado) {
+							<span class="badge bg-success">Sí</span>
+						} @else {
+							<span class="badge bg-danger">No</span>
+						}
+					</td>
+					<td>
+						@if (pedido.estadoPedido.idEstadoPedido == 1) {
+							<button class="btn btn-danger btn-sm me-2" (click)="eliminarProducto(item)">Quitar</button>
+						}
+						@if (idRol == 1) {
+						<button class="btn btn-primary btn-sm" (click)="router.navigate(['/pages/atencion-cliente/personalizacion-producto', idPedido, item.idProducto])">
+							Personalizar
+						</button>
+						}
+					</td>
+				</tr>
+				}
+			</tbody>
+		</table>
+
+		<!-- <div class="d-flex justify-content-end align-items-center">
+			<button class="btn btn-primary me-2">Guardar Pedido</button>
+		</div> -->
+
+		<hr>
+
+		<div class="row">
+			<div class="col-md-5">
+				<label for="metodoEntrega" class="form-label">Método de Entrega</label>
+				
+			</div>
+			<div class="col-md-5">
+				<label for="direccionEntrega" class="form-label">Dirección de Entrega</label>
+			</div>
+		</div>
+
+		<div class="row">
+			<div class="col-md-5">
+				<select
+					id="metodoEntrega"
+					class="form-select"
+					[(ngModel)]="idMetodoEntregaSeleccionado"
+					(change)="onMetodoEntregaChange()"
+				>
+					<option value="0" disabled selected>Seleccione un método de entrega</option>
+					<option *ngFor="let metodo of lstMetodosEntrega" [ngValue]="metodo.idMetodoEntrega">
+						{{ metodo.descripcion }}
+					</option>
+				</select>
+			</div>
+			<div class="col-md-5">
+				<select
+					id="direccionEntrega"
+					class="form-select"
+					[(ngModel)]="idDireccionSeleccionada"
+					[disabled]="!lstDirecciones || lstDirecciones.length === 0"
+				>
+					<option value="0" disabled selected>Seleccione una dirección</option>
+					<option *ngFor="let direccion of lstDirecciones" [ngValue]="direccion.idDireccion">
+						{{ direccion.direccion }} - {{ direccion.distrito }} - {{ direccion.provincia }} - {{ direccion.departamento }}
+					</option>
+				</select>
+			</div>
+			<div class="col-md-2">
+				<button class="btn btn-dark w-100" [disabled]="isLoading" (click)="guardarEntrega()">
+					Guardar Entrega
+				</button>
+			</div>
+		</div>
+
+		<!-- Botones de Acción -->
+		 <hr>
+		<div class="d-flex justify-content-end align-items-center">
+			@if (idRol == 1){
+				<button class="btn btn-primary">Enviar a Producción</button>
+			}
+			@if (idRol == 2 && pedido.estadoPedido.idEstadoPedido == 1 && productosPedido.length > 0) {
+				<button class="btn btn-success me-2" [disabled]="isLoading || disabledPagar" (click)="router.navigate(['/pages/atencion-cliente/pagar-pedido', idPedido])">Pagar</button>
+			}
+		</div>
+	</div>
+</div>
+<ng-template #successTpl>Cantidad actualizada correctamente.</ng-template>
+<app-toasts aria-live="polite" aria-atomic="true"></app-toasts>

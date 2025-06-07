@@ -1,0 +1,50 @@
+<div class="container-fluid mt-5" style="padding: 0px 60px;">
+	<div class="card shadow-lg p-4 rounded-4">
+		<h2 class="mb-4 text-center">Bandeja de Pedidos (Cliente)</h2>
+		<div class="d-flex justify-content-start mb-3">
+			<div class="text-start">
+				<p class="mb-0 fw-bold">Cliente: {{dataService.getLoggedUser().cliente.nombres + ' ' + dataService.getLoggedUser().cliente.apellidos}}</p>
+				<p class="mb-0">DNI: {{dataService.getLoggedUser().cliente.numeroDocumento}}</p>
+			</div>
+		</div>
+		<table
+			class="table table-striped table-hover table-bordered align-middle"
+		>
+			<thead class="table-primary">
+				<tr>
+					<th scope="col">Código de Pedido</th>
+					<th scope="col">Fecha de Pedido</th>
+					<th scope="col">Monto (S/)</th>
+					<th scope="col">Estado del Pedido</th>
+					<th scope="col">Acciones</th>
+				</tr>
+			</thead>
+			<tbody>
+				@for (item of pedidos; track $index) {
+				<tr>
+					<td>{{item.idPedido}}</td>
+					<td>{{item.fechaPedido}}</td>
+					<td>S/ {{item.montoTotal.toFixed(2)}}</td>
+					<td>{{item.estadoPedidoCliente.descripcion}}</td>
+					<td>
+						@if (item.estadoPedido.idEstadoPedido == 1) {
+							<button class="btn btn-primary me-2" (click)="router.navigate(['/pages/atencion-cliente/registro-pedido', item.idPedido])">
+								Editar
+							</button>
+							<button class="btn btn-danger" (click)="borrarPedido(item.idPedido)">Eliminar</button>
+						}
+					</td>
+				</tr>
+				}
+			</tbody>
+		</table>
+
+		<hr>
+
+		<div class="d-flex justify-content-end align-items-center">
+			<button class="btn btn-primary me-2" (click)="router.navigate(['/pages/atencion-cliente/registro-pedido'])">Nuevo Pedido</button>
+			<!-- <button class="btn btn-secondary me-2">Historial de Ventas</button>
+			<button class="btn btn-info">Registrar Reacciones</button> -->
+		</div>
+	</div>
+</div>

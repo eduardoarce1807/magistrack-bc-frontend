@@ -1,0 +1,56 @@
+<div class="container mt-5">
+	<div class="text-center mb-4">
+		<h1>Bienvenido a Magistrack BC</h1>
+		<p class="text-muted">
+			Gestión eficiente de clientes, pedidos y producción
+		</p>
+	</div>
+	<div class="row g-4">
+		<div class="col-md-4">
+			<div class="card shadow-sm">
+				<div class="card-body text-center">
+					<h4 class="card-title">Clientes</h4>
+					<p class="card-text">
+						Administra tus clientes de manera eficiente.
+					</p>
+					<button
+						class="btn btn-primary w-100"
+						(click)="irA('clientes')"
+					>
+						Ver Clientes
+					</button>
+				</div>
+			</div>
+		</div>
+		<div class="col-md-4">
+			<div class="card shadow-sm">
+				<div class="card-body text-center">
+					<h4 class="card-title">Pedidos</h4>
+					<p class="card-text">
+						Gestiona y controla tus pedidos fácilmente.
+					</p>
+					<button
+						class="btn btn-primary w-100"
+						(click)="irA('pedidos')"
+					>
+						Ver Pedidos
+					</button>
+				</div>
+			</div>
+		</div>
+		<div class="col-md-4">
+			<div class="card shadow-sm">
+				<div class="card-body text-center">
+					<h4 class="card-title">Usuarios</h4>
+					<p class="card-text">Controla los usuarios del sistema.</p>
+					<button
+						class="btn btn-primary w-100"
+						(click)="irA('usuarios')"
+					>
+						Ver Usuarios
+					</button>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>

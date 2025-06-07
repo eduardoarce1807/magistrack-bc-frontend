@@ -1,0 +1,57 @@
+<div
+	class="container d-flex flex-column align-items-center justify-content-center vh-100"
+>
+	<div class="card shadow-lg p-5 rounded-4" style="width: 350px">
+		<h2 class="mb-4 text-center">Iniciar Sesión</h2>
+		<form (ngSubmit)="onSubmit()" [formGroup]="loginForm" novalidate>
+			<div class="mb-3">
+				<label for="usuario" class="form-label"
+					>Usuario</label
+				>
+				<input
+					type="text"
+					id="usuario"
+					formControlName="usuario"
+					class="form-control"
+					placeholder="Ingrese su usuario"
+					required
+				/>
+				@if (loginForm.get('usuario')?.invalid &&
+				loginForm.get('usuario')?.touched) {
+				<div class="text-danger small">
+					El usuario es obligatorio.
+				</div>
+				}
+			</div>
+			<div class="mb-3">
+				<label for="password" class="form-label">Contraseña</label>
+				<input
+					type="password"
+					id="password"
+					formControlName="password"
+					class="form-control"
+					placeholder="Ingrese su contraseña"
+					required
+				/>
+				@if (loginForm.get('password')?.invalid &&
+				loginForm.get('password')?.touched) {
+				<div class="text-danger small">
+					La contraseña es obligatoria y debe tener al menos 6 caracteres.
+				</div>
+				}
+			</div>
+			<button
+				type="submit"
+				class="btn btn-primary w-100"
+				[disabled]="loginForm.invalid"
+			>
+				Iniciar Sesión
+			</button>
+		</form>
+		<div class="text-center mt-3">
+			<a href="#" class="text-decoration-none"
+				>¿Olvidaste tu contraseña?</a
+			>
+		</div>
+	</div>
+</div>

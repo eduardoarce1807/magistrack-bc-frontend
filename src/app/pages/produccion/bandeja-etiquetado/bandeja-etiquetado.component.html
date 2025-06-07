@@ -1,0 +1,318 @@
+<div class="container-fluid mt-5" style="padding: 0px 60px">
+	<div class="card shadow-lg p-4 rounded-4">
+		<h2 class="mb-4 text-center">Bandeja de Etiquetado</h2>
+
+		<!-- Tabla de Pedidos -->
+		<table class="table table-bordered align-middle mt-0">
+			<thead class="bg-primary text-white">
+				<tr>
+					<!-- <th>
+						<input
+							class="form-check-input"
+							type="checkbox"
+							[checked]="isTodosSeleccionadosPagina()"
+							(change)="toggleSeleccionTodosPagina($event)"
+						/>
+					</th> -->
+					<th scope="col">Código producto</th>
+					<th scope="col">Nombre producto</th>
+					<th scope="col">Presentación</th>
+					<th scope="col">Estado</th>
+					<th scope="col">Personalizado</th>
+					<th scope="col">Acciones</th>
+				</tr>
+			</thead>
+			<tbody>
+				@for (item of productos; track $index) {
+				<tr>
+					<!-- <td>
+						<input
+							class="form-check-input"
+							type="checkbox"
+							[checked]="
+								isSeleccionado(
+									item.idProducto,
+									item.idPedido
+								)
+							"
+							(change)="
+								toggleSeleccionIndividual(
+									item.idProducto,
+									item.idPedido,
+									$event
+								)
+							"
+						/>
+					</td> -->
+					<td>{{ item.idProducto }}</td>
+					<td>{{ item.nombre }}</td>
+					<td>{{ item.presentacion }}</td>
+					<td>{{ item.estadoProducto }}</td>
+					<td>
+						<span>{{ item.personalizado ? "Sí" : "No" }}</span>
+					</td>
+					<td>
+						<!-- <button
+							class="btn btn-info btn-sm me-2"
+							(click)="enviarDespacho(item)"
+						>
+							Enviar
+						</button> -->
+                        <button
+							class="btn btn-success btn-sm me-2"
+							(click)="openModalValidar(validarProductoModal, item)"
+						>
+							Validar
+						</button>
+						<button
+							class="btn btn-dark btn-sm me-2"
+							(click)="openModalXL(procedimiento)"
+						>
+							Procedimiento
+						</button>
+						<button
+							class="btn btn-secondary btn-sm"
+							(click)="openModalNota(item, nota)"
+						>
+							Nota
+						</button>
+					</td>
+				</tr>
+				}
+			</tbody>
+		</table>
+
+		<div class="d-flex justify-content-between p-2">
+			<ngb-pagination
+				[collectionSize]="collectionSize"
+				[(page)]="page"
+				[pageSize]="pageSize"
+				(pageChange)="refreshProductos()"
+			>
+			</ngb-pagination>
+
+			<select
+				class="form-select"
+				style="width: auto"
+				[(ngModel)]="pageSize"
+				(ngModelChange)="refreshProductos()"
+			>
+				<option [ngValue]="5">5 items</option>
+				<option [ngValue]="10">10 items</option>
+				<option [ngValue]="15">15 items</option>
+			</select>
+		</div>
+
+		<div class="d-flex justify-content-start align-items-start mb-4">
+			<div class="container-fluid">
+				<div class="row">
+					<div class="col-2">
+						<label for="">Acción masiva</label>
+					</div>
+				</div>
+                <div class="row mt-2">
+                    <div class="col-2">
+                        <select
+                            [(ngModel)]="tipoEnvio"
+                            name="tipoEnvio"
+                            class="form-select"
+                            style="width: 100%"
+                        >
+                            <option [ngValue]="0">Enviar a despacho</option>
+                        </select>
+                    </div>
+                    <div class="col-2">
+                        <button
+                            class="btn btn-dark me-2"
+                            (click)="enviarMasivo()"
+                        >
+                            Enviar
+                        </button>
+                    </div>
+                </div>
+			</div>
+		</div>
+
+		<!-- <div class="d-flex justify-content-center align-items-center mb-4">
+			@if (lstProductosSeleccionados.length > 0) {
+				<button class="btn btn-dark me-2" (click)="enviarProduccionMasivo()">Enviar a Producción</button>
+			}
+			<button class="btn btn-primary me-2" (click)="router.navigate(['/pages/atencion-cliente/registro-pedido'])">Nuevo Pedido</button>
+		</div> -->
+	</div>
+</div>
+
+<ng-template #procedimiento let-modal>
+	<div class="modal-header">
+		<h4 class="modal-title" id="modal-basic-title">Procedimiento</h4>
+		<button
+			type="button"
+			class="btn-close"
+			aria-label="Close"
+			(click)="modal.dismiss('Cross click')"
+		></button>
+	</div>
+	<div class="modal-body">
+		<div style="width: 100%">
+			<iframe
+				style="width: 100%; height: 70dvh"
+				src="https://docs.google.com/spreadsheets/d/e/2PACX-1vRu1Z04QZihe4GRVt_nfdROHe38r0cACTmTVuJo1x3U2OFEqq6GDOgITQRSIViG1A/pubhtml?widget=true&amp;headers=false"
+			></iframe>
+		</div>
+	</div>
+</ng-template>
+
+<ng-template #validarProductoModal let-modal>
+	<div class="modal-header">
+		<h4 class="modal-title" id="modal-basic-title">Validar información de producto</h4>
+		<button
+			type="button"
+			class="btn-close"
+			aria-label="Close"
+			(click)="codigoProductoValidar = '';modal.dismiss('Cross click')"
+		></button>
+	</div>
+	<div class="modal-body">
+		<div style="width: 100%">
+            <div class="row">
+                <div class="col-12">
+                    <label for="codigoProducto">Código Producto</label>
+                    <input
+                        type="text"
+                        class="form-control"
+                        id="codigoProducto"
+                        [(ngModel)]="codigoProductoValidar"
+                        name="codigoProductoValidar"
+                    />
+                </div>
+            </div>
+		</div>
+	</div>
+    <div class="modal-footer">
+        <button
+            type="button"
+            class="btn btn-dark"
+            (click)="validarProducto()"
+        >
+            Validar
+        </button>
+    </div>
+</ng-template>
+
+<ng-template #datosProductoValidar let-modal>
+    <div class="modal-header">
+        <h4 class="modal-title" id="modal-basic-title">Datos del Producto Validado</h4>
+        <button
+            type="button"
+            class="btn-close"
+            aria-label="Close"
+            (click)="modal.dismiss('Cross click')"
+        ></button>
+    </div>
+    <div class="modal-body">
+        <div class="row mb-3">
+            <div class="col-12">
+                <label for="idProductoValidado">Código del Producto</label>
+                <input
+                    type="text"
+                    class="form-control"
+                    id="idProductoValidado"
+                    [(ngModel)]="idProductoValidado"
+                    name="idProductoValidado"
+                    readonly
+                />
+            </div>
+        </div>
+        <div class="row mb-3">
+            <div class="col-12">
+                <label for="nombreProductoValidado">Nombre del Producto</label>
+                <input
+                    type="text"
+                    class="form-control"
+                    id="nombreProductoValidado"
+                    [(ngModel)]="nombreProductoValidado"
+                    name="nombreProductoValidado"
+                    readonly
+                />
+            </div>
+        </div>
+        <div class="row mb-3">
+            <div class="col-12">
+                <label for="descripcionProductoValidado">Descripción</label>
+                <textarea
+                    class="form-control"
+                    id="descripcionProductoValidado"
+                    [(ngModel)]="descripcionProductoValidado"
+                    name="descripcionProductoValidado"
+                    readonly
+                ></textarea>
+            </div>
+        </div>
+        <div class="row mb-3">
+            <div class="col-12">
+                <label for="presentacionProductoValidado">Presentación</label>
+                <input
+                    type="text"
+                    class="form-control"
+                    id="presentacionProductoValidado"
+                    [(ngModel)]="presentacionProductoValidado"
+                    name="presentacionProductoValidado"
+                    readonly
+                />
+            </div>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <button
+            type="button"
+            class="btn btn-danger"
+            (click)="openModal(validarProductoModal)"
+        >
+            Regresar
+        </button>
+        <button
+            type="button"
+            class="btn btn-success"
+            (click)="enviarDespacho({ idProducto: idProductoValidar, idPedido: idPedidoValidar })"
+        >
+            Validar y Enviar
+        </button>
+    </div>
+</ng-template>
+
+<ng-template #nota let-modal>
+	<div class="modal-header">
+		<h4 class="modal-title" id="modal-basic-title">Agregar nota</h4>
+		<button
+			type="button"
+			class="btn-close"
+			aria-label="Close"
+			(click)="modal.dismiss('Cross click')"
+		></button>
+	</div>
+	<div class="modal-body">
+		<span style="font-weight: bold">Pedido:</span> {{ idPedidoNota }}<br />
+		<span style="font-weight: bold">Producto:</span> {{ idProductoNota
+		}}<br />
+		<form>
+			<div class="mt-3">
+				<label for="nota">Nota</label>
+				<textarea
+					[(ngModel)]="observacionNota"
+					name="nota"
+					id="nota"
+					class="form-control"
+				></textarea>
+			</div>
+		</form>
+	</div>
+	<div class="modal-footer">
+		<button
+			type="button"
+			class="btn btn-outline-dark"
+			(click)="saveObservacion()"
+		>
+			Guardar
+		</button>
+	</div>
+</ng-template>

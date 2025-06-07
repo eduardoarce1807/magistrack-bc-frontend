@@ -1,0 +1,94 @@
+<div class="container-fluid mt-5" style="padding: 0px 60px;">
+	<div class="card shadow-lg p-4 rounded-4">
+		<h2 class="mb-4 text-center">Bandeja de Pedidos (Administrador)</h2>
+
+		<!-- Tabla de Pedidos -->
+		<table class="table table-bordered align-middle mt-0">
+			<thead class="bg-primary text-white">
+				<tr>
+					<th scope="col">
+						<input class="form-check-input"
+							type="checkbox"
+							[checked]="isTodosSeleccionadosPagina()"
+							(change)="toggleSeleccionTodosPagina($event)">
+					</th>
+					<th scope="col">Código</th>
+					<th scope="col">Fecha</th>
+					<th scope="col">Cliente</th>
+					<th scope="col">Monto (S/)</th>
+					<th scope="col">Estado</th>
+          			<th scope="col">FEE (Fecha Estimada de Entrega)</th>
+					<th scope="col">Método de Pago</th>
+					<th scope="col">Acciones</th>
+				</tr>
+			</thead>
+			<tbody>
+				@for (item of pedidos; track $index) {
+				<tr>
+					<td>
+						<input class="form-check-input"
+							type="checkbox"
+							[checked]="isSeleccionado(item.idPedido)"
+							(change)="toggleSeleccionIndividual(item.idPedido, $event)"
+							[disabled]="item.estadoPedido.idEstadoPedido != 2">
+					</td>
+					<td>{{item.idPedido}}</td>
+					<td>{{item.fechaPedido}}</td>
+					<td>{{item.cliente.nombres}} {{item.cliente.apellidos}}</td>
+					<td>S/ {{item.montoTotal.toFixed(2)}}</td>
+					<td>{{item.estadoPedido.descripcion}}</td>
+					<td>
+						<input 
+						type="date" 
+						class="form-control" 
+						[value]="item.fechaEstimadaEntrega" 
+						(change)="editarFechaEstimadaEntrega(item, $event)" 
+						/>
+					</td>
+					<td>{{item.tipoPago.descripcion}}</td>
+					<td>
+						<button class="btn btn-primary btn-sm me-2" (click)="router.navigate(['/pages/atencion-cliente/registro-pedido', item.idPedido])">
+							Ver
+						</button>
+						<button class="btn btn-dark btn-sm me-2" (click)="enviarProduccionSingle(item)" [disabled]="item.estadoPedido.idEstadoPedido != 2">
+							Producción
+						</button>
+						<button class="btn btn-info btn-sm me-2" (click)="router.navigate(['/pages/atencion-cliente/trazabilidad-pedido', item.idPedido])">
+							Trazabilidad
+						</button>
+						<button class="btn btn-danger btn-sm" (click)="borrarPedido(item.idPedido)">
+							Eliminar
+						</button>
+					</td>
+				</tr>
+				}
+			</tbody>
+		</table>
+
+		<div class="d-flex justify-content-between p-2">
+			<ngb-pagination
+				[collectionSize]="collectionSize"
+				[(page)]="page"
+				[pageSize]="pageSize"
+				(pageChange)="refreshPedidos()"
+			>
+			</ngb-pagination>
+
+			<select class="form-select" style="width: auto" [(ngModel)]="pageSize" (ngModelChange)="refreshPedidos()">
+				<option [ngValue]="5">5 items</option>
+				<option [ngValue]="10">10 items</option>
+				<option [ngValue]="15">15 items</option>
+			</select>
+		</div>
+
+		<!-- Botones de Acción -->
+		<div class="d-flex justify-content-center align-items-center mb-4">
+			@if (lstPedidosSeleccionados.length > 0) {
+				<button class="btn btn-dark me-2" (click)="enviarProduccionMasivo()">Enviar a Producción</button>
+			}
+			<button class="btn btn-primary me-2" (click)="router.navigate(['/pages/atencion-cliente/registro-pedido'])">Nuevo Pedido</button>
+			<!-- <button class="btn btn-primary me-2">Historial de Pedidos</button>
+			<button class="btn btn-primary">Buscar Pedido</button> -->
+		</div>
+	</div>
+</div>
