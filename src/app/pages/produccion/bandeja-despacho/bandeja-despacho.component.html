@@ -39,6 +39,7 @@
 									$event
 								)
 							"
+							[disabled]="item.estadoPedido.idEstadoPedido !== 9"
 						/>
 					</td>
 					<td>{{ item.idPedido }}</td>
@@ -48,6 +49,12 @@
 						<span>{{ item.personalizado ? "Sí" : "No" }}</span>
 					</td>
 					<td>
+						<button
+							class="btn btn-primary btn-sm me-2"
+							(click)="router.navigate(['/pages/produccion/registro-despacho', item.idPedido])"
+						>
+							Despacho
+						</button>
 						<button
 							class="btn btn-info btn-sm me-2"
 							(click)="confirmarEntrega(item)"

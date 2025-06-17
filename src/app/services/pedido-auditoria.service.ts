@@ -1,15 +1,16 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class PedidoAuditoriaService {
 
-  private baseUrl = 'http://localhost:8080/api/pedido-auditoria';
-  
-    constructor(private http: HttpClient) {}
+  private baseUrl = `${environment.apiUrl}/pedido-auditoria`;
+
+  constructor(private http: HttpClient) {}
 
     saveAuditoria(pedido: any): Observable<any> {
       let url = `${this.baseUrl}`;

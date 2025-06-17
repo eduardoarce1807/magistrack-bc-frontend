@@ -1,12 +1,13 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 @Injectable({
 	providedIn: 'root',
 })
 export class PedidoService {
-	private baseUrl = 'http://localhost:8080/api/pedido';
+	private baseUrl = `${environment.apiUrl}/pedido`;
 
 	constructor(private http: HttpClient) {}
 
@@ -108,6 +109,11 @@ export class PedidoService {
 
 	getProductosDespacho(): Observable<any[]> {
 		let url = `${this.baseUrl}/productos/despacho`;
+		return this.http.get<any[]>(url);
+	}
+
+	getProductosDespachoPorIdPedido(idPedido: string): Observable<any[]> {
+		let url = `${this.baseUrl}/productos/despacho/${idPedido}`;
 		return this.http.get<any[]>(url);
 	}
 

@@ -17,6 +17,7 @@ import { DataService } from '../../../services/data.service';
 import { PedidoService } from '../../../services/pedido.service';
 import { ProductoService } from '../../../services/producto.service';
 import { PedidoAuditoriaService } from '../../../services/pedido-auditoria.service';
+import { Router } from '@angular/router';
 
 interface ClienteSeleccionado {
 	metodoEntrega: string;
@@ -52,7 +53,8 @@ export class BandejaDespachoComponent implements OnInit {
 		private pedidoService: PedidoService,
 		private productoService: ProductoService,
 		private dataService: DataService,
-		private pedidoAuditoriaService: PedidoAuditoriaService
+		private pedidoAuditoriaService: PedidoAuditoriaService,
+    public router: Router
 	) {}
 
 	ngOnInit(): void {
@@ -156,7 +158,7 @@ export class BandejaDespachoComponent implements OnInit {
 	// Check si un idPedido está seleccionado
 	isSeleccionado(idPedido: string): boolean {
 		return this.lstPedidosSeleccionados.some(
-			(item) => item.idPedido === idPedido
+			(item) => item === idPedido
 		);
 	}
 
@@ -166,51 +168,52 @@ export class BandejaDespachoComponent implements OnInit {
 		if (checked) {
 			if (
 				!this.lstPedidosSeleccionados.some(
-					(item) => item.idPedido === idPedido
+					(item) => item === idPedido
 				)
 			) {
-				this.lstPedidosSeleccionados.push({ idPedido });
+				this.lstPedidosSeleccionados.push(idPedido);
 			}
 		} else {
 			this.lstPedidosSeleccionados = this.lstPedidosSeleccionados.filter(
-				(item) => item.idPedido !== idPedido
+				(item) => item !== idPedido
 			);
 		}
 		console.log('Pedidos seleccionados:', this.lstPedidosSeleccionados);
 	}
 
-	// Check si todos los pedidos en la página están seleccionados
-	isTodosSeleccionadosPagina(): boolean {
-		if (this.pedidos.length === 0) return false;
-		return this.pedidos.every((p) =>
-			this.lstPedidosSeleccionados.some(
-				(item) => item.idPedido === p.idPedido
-			)
-		);
-	}
+  // Check si todos los pedidos habilitados (estadoPedido.idEstadoPedido === 9) en la página están seleccionados
+  isTodosSeleccionadosPagina(): boolean {
+    // Filtrar solo los pedidos habilitados en la página actual
+    const pedidosHabilitados = this.pedidos.filter(
+      (p) => p.estadoPedido?.idEstadoPedido === 9
+    );
+    if (pedidosHabilitados.length === 0) return false;
+    return pedidosHabilitados.every((p) =>
+      this.lstPedidosSeleccionados.some((item) => item === p.idPedido)
+    );
+  }
 
 	// Cambiar selección masiva de pedidos en la página actual
-	toggleSeleccionTodosPagina(event: Event) {
-		const checked = (event.target as HTMLInputElement)?.checked;
-		const idsPagina = this.pedidos.map((p) => ({ idPedido: p.idPedido }));
+  toggleSeleccionTodosPagina(event: Event) {
+    const checked = (event.target as HTMLInputElement)?.checked;
+    // Solo considerar pedidos habilitados (estadoPedido.idEstadoPedido === 9)
+    const idsPagina = this.pedidos
+      .filter((p) => p.estadoPedido?.idEstadoPedido === 9)
+      .map((p) => p.idPedido);
 
-		if (checked) {
-			idsPagina.forEach(({ idPedido }) => {
-				if (
-					!this.lstPedidosSeleccionados.some(
-						(item) => item.idPedido === idPedido
-					)
-				) {
-					this.lstPedidosSeleccionados.push({ idPedido });
-				}
-			});
-		} else {
-			this.lstPedidosSeleccionados = this.lstPedidosSeleccionados.filter(
-				(item) => !idsPagina.some((p) => p.idPedido === item.idPedido)
-			);
-		}
-		console.log('Pedidos seleccionados:', this.lstPedidosSeleccionados);
-	}
+    if (checked) {
+      idsPagina.forEach((idPedido) => {
+        if (!this.lstPedidosSeleccionados.some((item) => item === idPedido)) {
+          this.lstPedidosSeleccionados.push(idPedido);
+        }
+      });
+    } else {
+      this.lstPedidosSeleccionados = this.lstPedidosSeleccionados.filter(
+        (item) => !idsPagina.some((p) => p === item)
+      );
+    }
+    console.log('Pedidos seleccionados:', this.lstPedidosSeleccionados);
+  }
 
 	entregaMasivo() {
 		if (this.lstPedidosSeleccionados.length === 0) {
@@ -238,7 +241,7 @@ export class BandejaDespachoComponent implements OnInit {
 		}).then((result) => {
 			if (result.isConfirmed) {
 				this.pedidoService
-					.updateEstadoPedido(item.idPedido, 9) // Entregado
+					.updateEstadoPedido(item.idPedido, 10) // Entregado
 					.subscribe({
 						next: (response) => {
 							Swal.fire({
@@ -250,14 +253,14 @@ export class BandejaDespachoComponent implements OnInit {
 								this.pedidoService
 									.updateEstadoProductoByPedido(
 										item.idPedido,
-										8 // Entregado
+										9 // Entregado
 									)
 									.subscribe();
 								this.pedidoAuditoriaService
 									.saveAuditoria({
 										idPedido: item.idPedido,
 										fecha: new Date(),
-										idEstadoPedido: 9,
+										idEstadoPedido: 10,
 										accionRealizada: 'Pedido entregado',
 										idCliente:
 											this.dataService.getLoggedUser()
@@ -306,8 +309,8 @@ export class BandejaDespachoComponent implements OnInit {
 			if (result.isConfirmed) {
 				let json = {
 					idPedidos: this.lstPedidosSeleccionados,
-					idEstadoPedido: 9, // Entregado
-					idEstadoProducto: 8, // Entregado
+					idEstadoPedido: 10, // Entregado
+					idEstadoProducto: 9, // Entregado
 					idCliente:
 						this.dataService.getLoggedUser().cliente.idCliente,
 					accionRealizada: 'Pedido entregado',

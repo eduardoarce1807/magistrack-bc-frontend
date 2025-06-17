@@ -1,13 +1,14 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class MetodoEntregaService {
 
-  private baseUrl = 'http://localhost:8080/api/metodo-entrega';
+  private baseUrl = `${environment.apiUrl}/metodo-entrega`;
 
   constructor(private http: HttpClient) {}
 
