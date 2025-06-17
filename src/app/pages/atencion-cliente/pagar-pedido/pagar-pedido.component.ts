@@ -11,6 +11,7 @@ import KRGlue from '@lyracom/embedded-form-glue'
 import { firstValueFrom } from 'rxjs'
 import { HttpClient } from '@angular/common/http';
 import { PedidoAuditoriaService } from '../../../services/pedido-auditoria.service';
+import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'app-pagar-pedido',
@@ -70,7 +71,7 @@ export class PagarPedidoComponent implements OnInit, AfterViewInit {
             let formToken = 'DEMO-TOKEN-TO-BE-REPLACED'
 
             const observable = this.http.post(
-              'http://localhost:8080/api/izipay/createPayment',
+              `${environment.apiUrl}/izipay/createPayment`,
               {amount: this.pedido.montoTotal * 100, currency: 'PEN', orderId: this.pedido.idPedido, customer: {email:this.dataService.getLoggedUser().cliente.correo}},
             )
             firstValueFrom(observable)
@@ -115,7 +116,7 @@ export class PagarPedidoComponent implements OnInit, AfterViewInit {
 
   private onSubmit = (paymentData: KRPaymentResponse) => {
     this.http
-      .post('http://localhost:8080/api/izipay/validate', paymentData, {
+      .post(`${environment.apiUrl}/izipay/validate`, paymentData, {
         responseType: 'text'
       })
       .subscribe((response: any) => {
@@ -181,17 +182,17 @@ export class PagarPedidoComponent implements OnInit, AfterViewInit {
             allowEscapeKey: false,
           }).then((result) => {
             if (result.isConfirmed) {
-              location.href = 'http://localhost:4200/pages/atencion-cliente/registro-pedido/' + this.pedido.idPedido;
+              location.href = `${environment.frontUrl}/pages/atencion-cliente/registro-pedido/${this.pedido.idPedido}`;
               // this.ngZone.run(() => {
               //   this.router.navigate(['/pages/atencion-cliente/registro-pedido', this.pedido.idPedido]);
               // });
             } else if (result.dismiss === Swal.DismissReason.cancel) {
               if(this.dataService.getLoggedUser().rol.idRol === 1) {
-                location.href = 'http://localhost:4200/pages/atencion-cliente/bandeja-pedidos-administrador';
+                location.href = `${environment.frontUrl}/pages/atencion-cliente/bandeja-pedidos-administrador`;
                 //this.router.navigate(['/pages/atencion-cliente/bandeja-pedidos-administrador']);
               }
               else{
-                location.href = 'http://localhost:4200/pages/atencion-cliente/bandeja-pedidos';
+                location.href = `${environment.frontUrl}/pages/atencion-cliente/bandeja-pedidos`;
                 //this.router.navigate(['/pages/atencion-cliente/bandeja-pedidos']);
               }
             }

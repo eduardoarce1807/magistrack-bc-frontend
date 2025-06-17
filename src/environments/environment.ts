@@ -1,4 +1,5 @@
 export const environment = {
   production: false,
-  apiUrl: 'http://167.88.39.181/magistrack-backend/api',
+  apiUrl: 'http://localhost:8080/api',
+  frontUrl: 'http://localhost:4200',
 };
