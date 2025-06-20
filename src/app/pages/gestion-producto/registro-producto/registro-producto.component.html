@@ -1,0 +1,184 @@
+<div class="container-fluid mt-5" style="padding: 0px 60px;">
+  <div class="card shadow-lg p-4 rounded-4">
+    <h2 class="mb-4 text-center">Registro de Producto</h2>
+    <div class="row g-3">
+        <!-- Primera columna -->
+        <div class="col-md-6" style="padding-right:20px; border-right: 1px solid #ccc;">
+            <!-- Nombre -->
+            <div class="mb-3">
+                <label for="nombre" class="form-label">Nombre</label>
+                <input type="text" id="nombre" [(ngModel)]="producto.nombre" name="nombre" class="form-control" placeholder="Ingrese el nombre" required />
+            </div>
+            <!-- Descripción -->
+            <div class="mb-3">
+                <label for="descripcion" class="form-label">Descripción</label>
+                <input type="text" id="descripcion" [(ngModel)]="producto.descripcion" name="descripcion" class="form-control" placeholder="Ingrese la descripción" required />
+            </div>
+            <!-- Tipo Presentacion -->
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label for="tipoPresentacion" class="form-label">Tipo de Presentación</label>
+                    <select id="tipoPresentacion" [(ngModel)]="producto.idTipoPresentacion" name="tipoPresentacion" class="form-select">
+                        <option [ngValue]="0" disabled selected>Seleccione tipo de presentación</option>
+                        <option *ngFor="let tipo of tiposPresentacion" [ngValue]="tipo.idTipoPresentacion">{{ tipo.descripcion }}</option>
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label for="presentacion" class="form-label">Presentación</label>
+                    <input type="number" id="presentacion" [(ngModel)]="producto.presentacion" name="presentacion" class="form-control" placeholder="Ingrese la presentación" required />
+                </div>
+            </div>
+            <!-- pH definido min y max -->
+            <div class="row mb-3">
+                <div class="col-md-3">
+                    <label for="phMin" class="form-label">pH Mín.</label>
+                    <input type="number" id="phMin" [(ngModel)]="producto.phDefinidoMin" name="phMin" class="form-control" placeholder="pH mínimo" required />
+                </div>
+                <div class="col-md-3">
+                    <label for="phMax" class="form-label">pH Máx.</label>
+                    <input type="number" id="phMax" [(ngModel)]="producto.phDefinidoMax" name="phMax" class="form-control" placeholder="pH máximo" required />
+                </div>
+                <div class="col-md-3">
+                    <label for="precio" class="form-label">Precio</label>
+                    <div class="input-group">
+                        <span class="input-group-text">S/</span>
+                        <input type="number" id="precio" [(ngModel)]="producto.precio" min="0" name="precio" class="form-control" placeholder="Ingrese el precio" required />
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <label for="estado" class="form-label">Estado</label>
+                    <select id="estado" [(ngModel)]="producto.estado" name="estado" class="form-select">
+                        <option [ngValue]="0">Inactivo</option>
+                        <option [ngValue]="1" selected>Activo</option>
+                    </select>
+                </div>
+            </div>
+            <hr>
+            <!-- Ingredientes -->
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5>Ingredientes</h5>
+                <button type="button" class="btn btn-primary" (click)="agregarIngrediente()">
+                    <i class="bi bi-plus-circle"></i> Agregar Ingrediente
+                </button>
+            </div>
+            @for (ingrediente of producto.ingredientes; track $index) {
+                <div class="row mb-3">
+                    <div class="col-md-7">
+                        <label class="form-label">Ingrediente</label>
+                        <select [(ngModel)]="ingrediente.idMateriaPrima" [name]="'ingrediente-' + $index" class="form-select" required>
+                            <option [ngValue]="0" disabled selected>Seleccione un ingrediente</option>
+                            <option *ngFor="let materiaPrima of materiasPrimas" [ngValue]="materiaPrima.idMateriaPrima">
+                                {{ materiaPrima.nombre }}
+                            </option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Cantidad</label>
+                        <div class="input-group">
+                            <input
+                                type="number"
+                                [(ngModel)]="ingrediente.cantidad"
+                                [name]="'cantidad-' + $index"
+                                class="form-control"
+                                placeholder="Ingrese la cantidad"
+                                required
+                            />
+                            <span class="input-group-text">100g</span>
+                        </div>
+                    </div>
+                    <div class="col-md-1 d-flex align-items-end">
+                        <button type="button" class="btn btn-danger" (click)="eliminarIngrediente($index)">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            }
+            <!-- Procedimiento -->
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5>Procedimiento</h5>
+                <button type="button" class="btn btn-primary" (click)="agregarProcedimiento()">
+                    <i class="bi bi-plus-circle"></i> Agregar Procedimiento
+                </button>
+            </div>
+            @for (procedimiento of producto.procedimientos; track $index) {
+                <div class="row mb-3">
+                    <div class="col-md-11">
+                        <div class="input-group">
+                            <span class="input-group-text">{{procedimiento.orden}}.</span>
+                            <input type="text" [(ngModel)]="procedimiento.descripcion" [name]="'procedimiento-' + $index" class="form-control" placeholder="Ingrese la descripción" required />
+                        </div>
+                    </div>
+                    <div class="col-md-1 d-flex align-items-end">
+                        <button type="button" class="btn btn-danger" (click)="eliminarProcedimiento($index)">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            }
+        </div>
+        <!-- Segunda columna -->
+        <div class="col-md-6" style="padding-left:20px;">
+            <!-- Elementos de Seguridad Personal -->
+            <div class="mb-3">
+                <label for="elementosSeguridadPersonal" class="form-label">Elementos de Seguridad Personal</label>
+                <input type="text" id="elementosSeguridadPersonal" [(ngModel)]="producto.elementosSeguridadPersonal" name="elementosSeguridadPersonal" class="form-control" placeholder="Ingrese los elementos de seguridad personal" />
+            </div>
+            <!-- Utillaje -->
+            <div class="mb-3">
+                <label for="utillaje" class="form-label">Utillaje</label>
+                <input type="text" id="utillaje" [(ngModel)]="producto.utillaje" name="utillaje" class="form-control" placeholder="Ingrese el utillaje" />
+            </div>
+            <!-- Control de Calidad -->
+            <div class="mb-3">
+                <label for="controlCalidad" class="form-label">Control de Calidad</label>
+                <input type="text" id="controlCalidad" [(ngModel)]="producto.controlCalidad" name="controlCalidad" class="form-control" placeholder="Ingrese el control de calidad" />
+            </div>
+            <!-- Tipo de Envase -->
+            <div class="mb-3">
+                <label for="tipoEnvase" class="form-label">Tipo de Envase</label>
+                <input type="text" id="tipoEnvase" [(ngModel)]="producto.tipoEnvase" name="tipoEnvase" class="form-control" placeholder="Ingrese el tipo de envase" />
+            </div>
+            <!-- Color de Etiqueta -->
+            <div class="mb-3">
+                <label for="colorEtiqueta" class="form-label">Color de Etiqueta</label>
+                <input type="text" id="colorEtiqueta" [(ngModel)]="producto.colorEtiqueta" name="colorEtiqueta" class="form-control" placeholder="Ingrese el color de la etiqueta" />
+            </div>
+            <!-- Indicaciones y Posología -->
+            <div class="mb-3">
+                <label for="indicacionesPosologia" class="form-label">Indicaciones y Posología</label>
+                <input type="text" id="indicacionesPosologia" [(ngModel)]="producto.indicacionesPosologia" name="indicacionesPosologia" class="form-control" placeholder="Ingrese las indicaciones y posología" />
+            </div>
+            <!-- Conservación -->
+            <div class="mb-3">
+                <label for="conservacion" class="form-label">Conservación</label>
+                <input type="text" id="conservacion" [(ngModel)]="producto.conservacion" name="conservacion" class="form-control" placeholder="Ingrese la conservación" />
+            </div>
+            <!-- Reacciones Adversas -->
+            <div class="mb-3">
+                <label for="reaccionesAdversas" class="form-label">Reacciones Adversas</label>
+                <input type="text" id="reaccionesAdversas" [(ngModel)]="producto.reaccionesAdversas" name="reaccionesAdversas" class="form-control" placeholder="Ingrese las reacciones adversas" />
+            </div>
+            <!-- Precauciones y Contraindicaciones -->
+            <div class="mb-3">
+                <label for="precaucionesContraindicaciones" class="form-label">Precauciones y Contraindicaciones</label>
+                <input type="text" id="precaucionesContraindicaciones" [(ngModel)]="producto.precaucionesContraindicaciones" name="precaucionesContraindicaciones" class="form-control" placeholder="Ingrese las precauciones y contraindicaciones" />
+            </div>
+            <!-- Observaciones -->
+            <div class="mb-3">
+                <label for="observaciones" class="form-label">Observaciones</label>
+                <input type="text" id="observaciones" [(ngModel)]="producto.observaciones" name="observaciones" class="form-control" placeholder="Ingrese las observaciones" />
+            </div>
+            <!-- Bibliografía -->
+            <div class="mb-3">
+                <label for="bibliografia" class="form-label">Bibliografía</label>
+                <input type="text" id="bibliografia" [(ngModel)]="producto.bibliografia" name="bibliografia" class="form-control" placeholder="Ingrese la bibliografía" />
+            </div>
+        </div>
+    </div>
+    <div class="text-center mt-4">
+        <button type="button" (click)="guardarProducto()" class="btn btn-primary px-5 py-2 rounded-4" [disabled]="!producto.nombre || !producto.descripcion || !producto.presentacion || !producto.phDefinidoMin || !producto.phDefinidoMax || !producto.precio">
+            Registrar Producto
+        </button>
+    </div>
+  </div>
+</div>

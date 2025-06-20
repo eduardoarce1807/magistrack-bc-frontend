@@ -94,9 +94,10 @@
 			</li>
 			}
 		</ul>
+		@if (dataService.getLoggedUser().rol.idRol == 1) {
 		<h5>Producción</h5>
 		<ul class="nav flex-column">
-			@if (dataService.getLoggedUser().rol.idRol == 1) {
+			
 			<li class="nav-item">
 				<a
 					class="nav-link"
@@ -137,8 +138,21 @@
 					>Bandeja de despacho</a
 				>
 			</li>
-			}
+			
 		</ul>
+		
+		<h5>Gestión Producto</h5>
+		<ul class="nav flex-column">
+			<li class="nav-item">
+				<a
+					class="nav-link"
+					(click)="irA('pages/gestion-producto/registro-producto')"
+                    style="cursor: pointer"
+					>Registro de Producto</a
+				>
+			</li>
+		</ul>
+		}
 	</div>
 
 	<!-- Contenido Principal -->

@@ -18,6 +18,7 @@ import { ProductoService } from '../../../services/producto.service';
 import { ToastService } from '../../../services/toast.service';
 import { ToastsContainer } from '../../../shared/components/toasts-container/toasts-container.component';
 import { DataService } from '../../../services/data.service';
+import { CommonModule } from '@angular/common';
 
 @Component({
 	selector: 'app-bandeja-calidad',
@@ -28,6 +29,7 @@ import { DataService } from '../../../services/data.service';
 		NgbPaginationModule,
 		NgbTooltipModule,
 		ToastsContainer,
+		CommonModule
 	],
 	templateUrl: './bandeja-calidad.component.html',
 	styleUrl: './bandeja-calidad.component.scss',
@@ -49,6 +51,8 @@ export class BandejaCalidadComponent implements OnInit {
 	observacionNota: string = '';
 
 	tipoEnvio = 1;
+
+	procedimientoData: any;
 
 	constructor(
 		private pedidoService: PedidoService,
@@ -89,6 +93,28 @@ export class BandejaCalidadComponent implements OnInit {
 
 	openModalXL(content: TemplateRef<any>) {
 		this.modalService.open(content, { size: 'xl' });
+	}
+
+	@ViewChild('procedimiento', { static: true }) procedimiento: TemplateRef<any> | null = null;
+	getHojaProduccion(idProducto: string): void {
+		this.productoService.getHojaProduccion(idProducto).subscribe(
+			(hojaProduccion) => {
+				console.log('Hoja de producción obtenida:', hojaProduccion);
+				this.procedimientoData = hojaProduccion;
+				if (this.procedimiento) {
+					this.openModalXL(this.procedimiento);
+				}
+			},
+			(error) => {
+				console.error('Error al obtener la hoja de producción', error);
+				Swal.fire({
+			icon: 'error',
+			title: 'Oops!',
+			text: 'No se pudo obtener la hoja de producción, inténtelo de nuevo.',
+			showConfirmButton: true,
+			});
+		}
+		);
 	}
 
 	isLoading: boolean = false;

@@ -53,4 +53,14 @@ export class ProductoService {
     let url = `${this.baseUrl}/pedido-producto`;
     return this.http.put<any>(url, data);
   }
+
+  getHojaProduccion(idProducto: string): Observable<any> {
+    let url = `${this.baseUrl}/hoja-produccion/${idProducto}`;
+    return this.http.get<any>(url);
+  }
+
+  saveProducto(producto: any): Observable<any> {
+    let url = `${this.baseUrl}/guardar`;
+    return this.http.post<any>(url, producto);
+  }
 }

@@ -256,6 +256,8 @@ export class BandejaDespachoComponent implements OnInit {
 										9 // Entregado
 									)
 									.subscribe();
+								this.pedidoService.updateEstadoClientePedido(item.idPedido, 5 // Entregado
+								).subscribe();
 								this.pedidoAuditoriaService
 									.saveAuditoria({
 										idPedido: item.idPedido,

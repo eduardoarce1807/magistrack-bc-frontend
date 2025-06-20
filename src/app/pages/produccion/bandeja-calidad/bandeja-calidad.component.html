@@ -83,7 +83,7 @@
 							(click)="enviarEnvasado(item)">
 							Enviar
 						</button>
-						<button class="btn btn-dark btn-sm me-2" (click)="openModalXL(procedimiento)">
+						<button class="btn btn-dark btn-sm me-2" (click)="getHojaProduccion(item.idProducto)">
 							Procedimiento
 						</button>
 						<button class="btn btn-danger btn-sm me-2" (click)="regresarAProduccion(item)" [disabled]="
@@ -154,13 +154,102 @@
 
 <ng-template #procedimiento let-modal>
 	<div class="modal-header">
-		<h4 class="modal-title" id="modal-basic-title">Procedimiento</h4>
-		<button type="button" class="btn-close" aria-label="Close" (click)="modal.dismiss('Cross click')"></button>
+		<h4 class="modal-title" id="modal-basic-title">Hoja de Procedimiento</h4>
+		<button
+			type="button"
+			class="btn-close"
+			aria-label="Close"
+			(click)="modal.dismiss('Cross click')"
+		></button>
 	</div>
 	<div class="modal-body">
-		<div style="width: 100%;">
-            <iframe style="width: 100%; height: 70dvh;" src="https://docs.google.com/spreadsheets/d/e/2PACX-1vRu1Z04QZihe4GRVt_nfdROHe38r0cACTmTVuJo1x3U2OFEqq6GDOgITQRSIViG1A/pubhtml?widget=true&amp;headers=false"></iframe>
-        </div>
+		<form>
+			<span class="mb-2"><span style="font-weight: bold;">ID Producto:</span> {{procedimientoData.producto.idProducto}}</span><br>
+			<span class="mb-2"><span style="font-weight: bold;">Nombre Producto:</span> {{procedimientoData.producto.nombre}}</span>
+			<hr>
+
+			<h5>Ingredientes</h5>
+
+			<table class="table table-bordered">
+				<thead>
+					<tr>
+						<th>Ingrediente</th>
+						<th>Cantidad (100g)</th>
+						<th>Total</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr *ngFor="let ingrediente of procedimientoData.ingredientes">
+						<td>{{ ingrediente.materiaPrima.nombre }}</td>
+						<td>{{ ingrediente.cantidad }}</td>
+						<td>{{ ingrediente.cantidad * 10 }}</td>
+					</tr>
+				</tbody>
+			</table>
+
+			<h4 style="text-align: center;">MODUS OPERANDI</h4>
+			<h5>Procedimiento</h5>
+
+			<table class="table table-bordered">
+				<thead>
+					<tr>
+						<th>Orden</th>
+						<th>Procedimiento</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr *ngFor="let procedimiento of procedimientoData.procedimientos">
+						<td>{{ procedimiento.orden }}</td>
+						<td>{{ procedimiento.descripcion }}</td>
+					</tr>
+				</tbody>
+			</table>
+
+			<div class="mb-2">
+				<label class="form-label" style="font-weight: bold;">Elementos de Seguridad Personal</label>
+				<input type="text" class="form-control" [value]="procedimientoData.elementosSeguridadPersonal" readonly>
+			</div>
+			<div class="mb-2">
+				<label class="form-label" style="font-weight: bold;">Utillaje</label>
+				<input type="text" class="form-control" [value]="procedimientoData.utillaje" readonly>
+			</div>
+			<div class="mb-2">
+				<label class="form-label" style="font-weight: bold;">Control de Calidad</label>
+				<input type="text" class="form-control" [value]="procedimientoData.controlCalidad" readonly>
+			</div>
+			<div class="mb-2">
+				<label class="form-label" style="font-weight: bold;">Tipo de Envase</label>
+				<input type="text" class="form-control" [value]="procedimientoData.tipoEnvase" readonly>
+			</div>
+			<div class="mb-2">
+				<label class="form-label" style="font-weight: bold;">Color de Etiqueta</label>
+				<input type="text" class="form-control" [value]="procedimientoData.colorEtiqueta" readonly>
+			</div>
+			<div class="mb-2">
+				<label class="form-label" style="font-weight: bold;">Indicaciones Posología</label>
+				<input type="text" class="form-control" [value]="procedimientoData.indicacionesPosologia" readonly>
+			</div>
+			<div class="mb-2">
+				<label class="form-label" style="font-weight: bold;">Conservación</label>
+				<input type="text" class="form-control" [value]="procedimientoData.conservacion" readonly>
+			</div>
+			<div class="mb-2">
+				<label class="form-label" style="font-weight: bold;">Reacciones Adversas</label>
+				<input type="text" class="form-control" [value]="procedimientoData.reaccionesAdversas" readonly>
+			</div>
+			<div class="mb-2">
+				<label class="form-label" style="font-weight: bold;">Precauciones y Contraindicaciones</label>
+				<input type="text" class="form-control" [value]="procedimientoData.precaucionesContraindicaciones" readonly>
+			</div>
+			<div class="mb-2">
+				<label class="form-label" style="font-weight: bold;">Observaciones</label>
+				<input type="text" class="form-control" [value]="procedimientoData.observaciones" readonly>
+			</div>
+			<div class="mb-2">
+				<label class="form-label" style="font-weight: bold;">Bibliografía</label>
+				<input type="text" class="form-control" [value]="procedimientoData.bibliografia" readonly>
+			</div>
+		</form>
 	</div>
 </ng-template>
 
