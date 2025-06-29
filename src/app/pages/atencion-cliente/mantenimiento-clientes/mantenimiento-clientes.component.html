@@ -1,0 +1,84 @@
+<div class="container-fluid mt-5" style="padding: 0px 60px;">
+	<div class="card shadow-lg p-4 rounded-4">
+		<h2 class="mb-4 text-center">Mantenimiento de Clientes</h2>
+
+		<!-- Tabla de Pedidos -->
+		<table class="table table-bordered align-middle mt-0">
+			<thead class="bg-primary text-white">
+				<tr>
+					<!-- <th scope="col">
+						<input class="form-check-input"
+							type="checkbox"
+							[checked]="isTodosSeleccionadosPagina()"
+							(change)="toggleSeleccionTodosPagina($event)"
+                            >
+					</th> -->
+					<th scope="col">Nombre Completo</th>
+					<th scope="col">Doc. Identidad</th>
+					<th scope="col">Teléfono</th>
+					<th scope="col">Correo</th>
+					<th scope="col">Código Referido</th>
+                    <th scope="col">Estado</th>
+					<th scope="col">Acciones</th>
+				</tr>
+			</thead>
+			<tbody>
+				@for (item of clientes; track $index) {
+				<tr>
+					<!-- <td>
+						<input class="form-check-input"
+							type="checkbox"
+							[checked]="isSeleccionado(item.idCliente)"
+							(change)="toggleSeleccionIndividual(item.idCliente, $event)"
+							[disabled]="item.estadoCliente.idEstadoCliente != 2">
+					</td> -->
+					<td>{{item.nombres + ' ' + item.apellidos}}</td>
+					<td>{{item.numeroDocumento}}</td>
+					<td>{{item.telefono}}</td>
+					<td>{{item.correo}}</td>
+					<td>{{item.codigoReferido}}</td>
+                    <td>
+                        @if (item.estado) {
+                            <span class="badge bg-success">Activo</span>
+                        } @else {
+                            <span class="badge bg-danger">Inactivo</span>
+                        }
+                    </td>
+					<td>
+						<button class="btn btn-primary btn-sm me-2" (click)="router.navigate(['/pages/atencion-cliente/registro-cliente', item.idCliente])">
+							Editar
+						</button>
+						<button class="btn btn-danger btn-sm" (click)="desactivarCliente(item.idCliente)">
+							Desactivar
+						</button>
+					</td>
+				</tr>
+				}
+			</tbody>
+		</table>
+
+		<div class="d-flex justify-content-between p-2">
+			<ngb-pagination
+				[collectionSize]="collectionSize"
+				[(page)]="page"
+				[pageSize]="pageSize"
+				(pageChange)="refreshClientes()"
+			>
+			</ngb-pagination>
+
+			<select class="form-select" style="width: auto" [(ngModel)]="pageSize" (ngModelChange)="refreshClientes()">
+				<option [ngValue]="5">5 items</option>
+				<option [ngValue]="10">10 items</option>
+				<option [ngValue]="15">15 items</option>
+			</select>
+		</div>
+
+		<!-- Botones de Acción -->
+		<!-- <div class="d-flex justify-content-center align-items-center mb-4">
+			@if (lstClientesSeleccionados.length > 0) {
+				<button class="btn btn-dark me-2" (click)="enviarProduccionMasivo()">Enviar a Producción</button>
+			}
+			<button class="btn btn-primary me-2" (click)="router.navigate(['/pages/atencion-cliente/registro-pedido'])">Nuevo Pedido</button>
+		</div> -->
+	</div>
+</div>

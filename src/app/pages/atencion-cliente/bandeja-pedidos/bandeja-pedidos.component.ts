@@ -3,11 +3,12 @@ import { Router } from '@angular/router';
 import { PedidoService } from '../../../services/pedido.service';
 import { DataService } from '../../../services/data.service';
 import Swal from 'sweetalert2';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-bandeja-pedidos',
   standalone: true,
-  imports: [],
+  imports: [CommonModule],
   templateUrl: './bandeja-pedidos.component.html',
   styleUrl: './bandeja-pedidos.component.scss'
 })

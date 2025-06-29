@@ -1,5 +1,5 @@
 <nav class="navbar navbar-expand-lg navbar-dark bg-primary px-4">
-	<a class="navbar-brand" href="#">MAGISTRACK-BC</a>
+	<a style="cursor: pointer;" class="navbar-brand" (click)="irA('pages/home')">MAGISTRACK-BC</a>
     <div class="ms-auto">
         <div ngbDropdown class="d-inline-block">
             <img
@@ -58,6 +58,14 @@
 					>Registro de Cliente</a
 				>
 			</li>
+			<li class="nav-item">
+				<a
+					class="nav-link"
+					(click)="irA('pages/atencion-cliente/mantenimiento-clientes')"
+                    style="cursor: pointer"
+					>Mantenimiento de Clientes</a
+				>
+			</li>
 			}
 			<li class="nav-item">
 				<a
@@ -90,6 +98,14 @@
 					(click)="irA('venta-rapida/productos-venta-rapida')"
                     style="cursor: pointer"
 					>Venta rápida</a
+				>
+			</li>
+			<li class="nav-item">
+				<a
+					class="nav-link"
+					(click)="irA('pages/atencion-cliente/visualizador-pagos')"
+                    style="cursor: pointer"
+					>Visualizador de Pagos</a
 				>
 			</li>
 			}

@@ -7,17 +7,18 @@ import { PedidoService } from '../../../services/pedido.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { DataService } from '../../../services/data.service';
-import { NgbTooltipModule } from '@ng-bootstrap/ng-bootstrap';
+import { NgbModal, NgbPaginationModule, NgbTooltipModule } from '@ng-bootstrap/ng-bootstrap';
 import { ToastService } from '../../../services/toast.service';
 import { ToastsContainer } from '../../../shared/components/toasts-container/toasts-container.component';
 import { MetodoEntregaService } from '../../../services/metodo-entrega.service';
 import { DireccionService } from '../../../services/direccion.service';
+import { UbigeoService } from '../../../services/ubigeo.service';
 
 interface PedidoRequest {
   idCliente: number;
   fechaPedido: string;
   idEstadoPedido: number;
-  idTipoPago: number;
+  idTipoPago: number | null;
   observaciones: string;
   fechaEstimadaEntrega: string;
   montoTotal: number;
@@ -29,7 +30,13 @@ interface Producto {
   nombre: string;
   descripcion: string;
   precio: number;
-  presentacion: string;
+  presentacion: number;
+  tipoPresentacion: TipoPresentacion;
+}
+
+interface TipoPresentacion {
+  idTipoPresentacion: number;
+  descripcion: string;
 }
 
 interface PedidoProducto {
@@ -50,16 +57,27 @@ interface PedidoProductoRequest {
   personalizado: boolean;
 }
 
+interface Direccion {
+  direccion: string;
+  referencia: string;
+  idCliente: number;
+  //idTienda: number;
+  idDistrito: number; // Opcional si se necesita el ID del distrito
+  idProvincia: number; // Opcional si se necesita el ID de la provincia
+  idDepartamento: number; // Opcional si se necesita el ID del departamento
+}
+
 @Component({
   selector: 'app-registro-pedido',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, NgbTooltipModule, ToastsContainer],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, NgbTooltipModule, ToastsContainer, NgbPaginationModule],
   templateUrl: './registro-pedido.component.html',
   styleUrl: './registro-pedido.component.scss'
 })
 export class RegistroPedidoComponent implements OnInit, OnDestroy {
 
   @ViewChild('successTpl', { static: false }) successTpl!: TemplateRef<any>;
+  @ViewChild('successTplDireccion', { static: false }) successTplDireccion!: TemplateRef<any>;
   toastService = inject(ToastService);
 
   idRol: number = 0;
@@ -73,6 +91,12 @@ export class RegistroPedidoComponent implements OnInit, OnDestroy {
   timeoutId: any;
   private updateTimeout: any;
 
+  productosBusquedaAvanzada: Producto[] = [];
+	productosBusquedaAvanzadaTable: any[] = [];
+	page = 1;
+	pageSize = 5;
+	collectionSize = this.productosBusquedaAvanzada.length;
+
   idPedido: string | null = null;
   pedido: any;
   private routeSubscription: Subscription | null = null;
@@ -83,40 +107,72 @@ export class RegistroPedidoComponent implements OnInit, OnDestroy {
   idMetodoEntregaSeleccionado = 0;
   idDireccionSeleccionada = 0;
 
+  nuevaDireccion : Direccion = {
+    direccion: '',
+    referencia: '',
+    idCliente: 0,
+    idDistrito: 0,
+    idProvincia: 0,
+    idDepartamento: 0
+  };
+
+  departamentos: any[] = [];
+  provincias: any[] = [];
+  distritos: any[] = [];
+
+  private modalService = inject(NgbModal);
+
   ngOnInit(): void {
     this.routeSubscription = this.route.paramMap.subscribe(params => {
       this.idPedido = params.get('idPedido');
       if (this.idPedido) {
+        this.getUbigeoData();
         this.getMetodosEntrega();
-        this.onMetodoEntregaChange();
         this.getPedidoById(this.idPedido);
         this.cargarProductosByIdPedido(this.idPedido);
       }else{
-        let request: PedidoRequest = {
-          idCliente: this.dataService.getLoggedUser().cliente.idCliente,
-          fechaPedido: new Date().toISOString(),
-          idEstadoPedido: 1,
-          idTipoPago: 1,
-          observaciones: '',
-          fechaEstimadaEntrega: new Date(new Date().getTime() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-          montoTotal: 0,
-          idCanalVenta: 1
-        };
-        this.pedidoService.createPedido(request).subscribe((data: any) => {
-          if(data){
-            this.router.navigate(['/pages/atencion-cliente/registro-pedido', data.idPedido]);
+
+        Swal.fire({
+          icon: 'question',
+          title: '¿Está seguro?',
+          text: 'Confirme que desea crear un nuevo pedido.',
+          showConfirmButton: true,
+          confirmButtonText: 'Sí, crear pedido',
+          showCancelButton: true,
+          cancelButtonText: 'Cancelar',
+          allowEscapeKey: false,
+          allowOutsideClick: false
+        }).then((result) => {
+          if (result.isConfirmed) {
+            let request: PedidoRequest = {
+              idCliente: this.dataService.getLoggedUser().cliente.idCliente,
+              fechaPedido: new Date().toISOString(),
+              idEstadoPedido: 1,
+              idTipoPago: null,
+              observaciones: '',
+              fechaEstimadaEntrega: new Date(new Date().getTime() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+              montoTotal: 0,
+              idCanalVenta: 1
+            };
+            this.pedidoService.createPedido(request).subscribe((data: any) => {
+              if(data){
+                this.router.navigate(['/pages/atencion-cliente/registro-pedido', data.idPedido]);
+              }
+            }, error => {
+              console.error('Error al crear pedido', error);
+              Swal.fire({
+                icon: 'error',
+                title: 'Oops!',
+                text: 'No se pudo crear el pedido, inténtelo de nuevo.',
+                showConfirmButton: true
+              });
+            });
+          }else{
+            this.goBandejaPedidos();
           }
-        }, error => {
-          console.error('Error al crear pedido', error);
-          Swal.fire({
-            icon: 'error',
-            title: 'Oops!',
-            text: 'No se pudo crear el pedido, inténtelo de nuevo.',
-            showConfirmButton: true
-          });
+          console.log('ID del Pedido:', this.idPedido);
         });
       }
-      console.log('ID del Pedido:', this.idPedido);
     });
   }
 
@@ -133,21 +189,107 @@ export class RegistroPedidoComponent implements OnInit, OnDestroy {
     public router: Router,
     private dataService: DataService,
     private metodoEntregaService: MetodoEntregaService,
-    private direccionService: DireccionService
+    private direccionService: DireccionService,
+    private ubigeoService: UbigeoService
   ) {
     this.idRol = this.dataService.getLoggedUser().rol.idRol;
     console.log('ID del Rol:', this.idRol);
   }
 
-  onMetodoEntregaChange() {
+  getUbigeoData() {
+    this.ubigeoService.getDepartamentos().subscribe(
+      (data: any) => {
+        this.departamentos = data;
+      }
+    );
+  }
+
+  onDepartamentoChange(idDepartamento: number) {
+
+    this.ubigeoService.getProvincias(idDepartamento).subscribe(
+      (data: any) => {
+        this.provincias = data;
+        this.distritos = [];
+        this.nuevaDireccion.idProvincia = 0;
+        this.nuevaDireccion.idDistrito = 0;
+      }
+    );
+  }
+
+  onProvinciaChange(idProvincia: number) {
+
+    this.ubigeoService.getDistritos(idProvincia).subscribe(
+      (data: any) => {
+        this.distritos = data;
+        this.nuevaDireccion.idDistrito = 0;
+      }
+    );
+  }
+
+  goBandejaPedidos() {
+    if(this.dataService.getLoggedUser().rol.idRol === 1) {
+      this.router.navigate(['/pages/atencion-cliente/bandeja-pedidos-administrador']);
+    } else {
+      this.router.navigate(['/pages/atencion-cliente/bandeja-pedidos']);
+    }
+  }
+
+  openModal(content: TemplateRef<any>) {
+    this.modalService.dismissAll(); // Cierra cualquier modal abierto antes de abrir uno nuevo
+    this.modalService.open(content, {backdrop: 'static', keyboard: false});
+  }
+
+  openModalBusquedaAvanzada(content: TemplateRef<any>) {
+    this.modalService.dismissAll(); // Cierra cualquier modal abierto antes de abrir uno nuevo
+    this.getProductosBusquedaAvanzada(content); // Cargar productos para la búsqueda avanzada
+  }
+
+  crearDireccion() {
+    if (this.nuevaDireccion.direccion && this.nuevaDireccion.idDistrito > 0 && this.nuevaDireccion.idProvincia > 0 && this.nuevaDireccion.idDepartamento > 0) {
+      this.nuevaDireccion.idCliente = this.pedido.cliente.idCliente; // Asignar el ID del cliente al crear la dirección
+      //console.log('Nueva dirección:', this.nuevaDireccion);
+      
+      this.direccionService.createDireccion(this.nuevaDireccion).subscribe(
+        (response) => {
+          this.modalService.dismissAll(); // Cierra el modal después de crear la dirección
+          Swal.fire({
+            icon: 'success',
+            title: '¡Listo!',
+            text: 'La dirección ha sido creada correctamente.',
+            showConfirmButton: true
+          });
+          this.getDireccionesByClienteId(this.pedido.cliente.idCliente, true);
+          this.nuevaDireccion = {
+            direccion: '',
+            referencia: '',
+            idCliente: 0,
+            idDistrito: 0,
+            idProvincia: 0,
+            idDepartamento: 0
+          };
+        },
+        (error) => {
+          console.error('Error al crear dirección', error);
+          Swal.fire({
+            icon: 'error',
+            title: 'Oops!',
+            text: 'No se pudo crear la dirección, inténtelo de nuevo.',
+            showConfirmButton: true
+          });
+        }
+      );
+    }
+  }
+
+  onMetodoEntregaChange(firstRequest: boolean = false) {
     console.log('Método de entrega seleccionado:', this.idMetodoEntregaSeleccionado);
     this.idDireccionSeleccionada = 0; // Reiniciar la dirección seleccionada
     this.lstDirecciones = []; // Limpiar las direcciones
     if (this.idMetodoEntregaSeleccionado === 1) { // Si es "Recojo en tienda"
-      this.getDireccionesByTiendaId(1);
+      this.getDireccionesByTiendaId(1, firstRequest);
     }
     if (this.idMetodoEntregaSeleccionado === 2) { // Si es "Delivery"
-      this.getDireccionesByClienteId(this.dataService.getLoggedUser().cliente.idCliente);
+      this.getDireccionesByClienteId(this.pedido.cliente.idCliente, firstRequest);
     }
   }
 
@@ -157,6 +299,7 @@ export class RegistroPedidoComponent implements OnInit, OnDestroy {
       (metodos) => {
         this.lstMetodosEntrega = metodos;
         console.log('Métodos de entrega:', metodos);
+        //this.onMetodoEntregaChange();
       },
       (error) => {
         console.error('Error al obtener métodos de entrega', error);
@@ -165,12 +308,15 @@ export class RegistroPedidoComponent implements OnInit, OnDestroy {
   }
 
   lstDirecciones: any[] = [];
-  getDireccionesByClienteId(idCliente: number) {
+  getDireccionesByClienteId(idCliente: number, firstRequest: boolean = false) {
     this.direccionService.getDireccionesByClienteId(idCliente).subscribe(
       (direcciones) => {
         this.lstDirecciones = direcciones;
         this.idDireccionSeleccionada = this.lstDirecciones[0]?.idDireccion || 0; // Seleccionar la primera dirección por defecto
         console.log('Direcciones del cliente:', direcciones);
+        if (!firstRequest) {
+          this.guardarEntrega(); // Llamar al método de entrega después de obtener las direcciones
+        }
       },
       (error) => {
         console.error('Error al obtener direcciones del cliente', error);
@@ -178,12 +324,15 @@ export class RegistroPedidoComponent implements OnInit, OnDestroy {
     );
   }
 
-  getDireccionesByTiendaId(idTienda: number) {
+  getDireccionesByTiendaId(idTienda: number, firstRequest: boolean = false) {
     this.direccionService.getDireccionesByTiendaId(idTienda).subscribe(
       (direcciones) => {
         this.lstDirecciones = direcciones;
         this.idDireccionSeleccionada = this.lstDirecciones[0]?.idDireccion || 0; // Seleccionar la primera dirección por defecto
         console.log('Direcciones de la tienda:', direcciones);
+        if (!firstRequest) {
+          this.guardarEntrega(); // Llamar al método de entrega después de obtener las direcciones
+        }
       },
       (error) => {
         console.error('Error al obtener direcciones de la tienda', error);
@@ -198,12 +347,10 @@ export class RegistroPedidoComponent implements OnInit, OnDestroy {
       idDireccion: this.idDireccionSeleccionada
     }).subscribe(
       (response) => {
-        Swal.fire({
-          icon: 'success',
-          title: '¡Listo!',
-          text: 'La dirección de entrega ha sido actualizada correctamente.',
-          showConfirmButton: true
-        });
+        this.showSuccess(this.successTplDireccion);
+        if(this.productosPedido.length > 0) {
+          this.disabledPagar = false; // Habilitar el botón de pagar si hay productos en el pedido
+        }
       },
       (error) => {
         console.error('Error al actualizar la dirección de entrega', error);
@@ -222,7 +369,9 @@ export class RegistroPedidoComponent implements OnInit, OnDestroy {
           ) {
             this.idMetodoEntregaSeleccionado = pedido.metodoEntrega.idMetodoEntrega || 0;
             this.idDireccionSeleccionada = pedido.direccion ? pedido.direccion.idDireccion : 0; // Asignar la dirección del pedido
-            this.onMetodoEntregaChange();
+            this.onMetodoEntregaChange(true);
+          }else{
+            this.disabledPagar = true; // Deshabilitar el botón de pagar si no hay método de entrega o dirección
           }
         }
         console.log('Pedido:', pedido);
@@ -231,6 +380,52 @@ export class RegistroPedidoComponent implements OnInit, OnDestroy {
         console.error('Error al cargar el pedido', error);
       }
     );
+  }
+
+  getProductosBusquedaAvanzada(content: TemplateRef<any>) {
+    this.productoService.getProductos().subscribe((data: any) => {
+      this.productosBusquedaAvanzada = data;
+      this.productosBusquedaAvanzadaTable = data;
+      this.collectionSize = data.length;
+      this.refreshProductosBusquedaAvanzada();
+      this.modalService.open(content, {backdrop: 'static', keyboard: false, size: 'xl'});
+    },
+    (error) => {
+      console.error('Error al registrar cliente', error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Oops!',
+        text: 'No se pudo registrar el cliente, inténtelo de nuevo.',
+        showConfirmButton: true
+      });
+    });
+  }
+
+  refreshProductosBusquedaAvanzada() {
+		this.productosBusquedaAvanzada = this.productosBusquedaAvanzadaTable
+			.map((producto, i) => ({ id: i + 1, ...producto }))
+			.slice(
+				(this.page - 1) * this.pageSize,
+				(this.page - 1) * this.pageSize + this.pageSize
+			);
+	}
+
+  filterByLetter(letter: string) {
+    const lowerLetter = letter.trim().toLowerCase()
+
+    // Filtrar la lista completa
+    const filtered = this.productosBusquedaAvanzadaTable.filter(p =>
+      p.nombre.toLowerCase().startsWith(lowerLetter)
+    )
+
+    // Reiniciar paginación
+    this.page = 1
+    this.collectionSize = filtered.length
+
+    // Mostrar la primera página del filtro
+    this.productosBusquedaAvanzada = filtered
+      .map((producto, i) => ({ id: i + 1, ...producto }))
+      .slice(0, this.pageSize)
   }
 
   onSearch(event: Event) {
@@ -282,6 +477,10 @@ export class RegistroPedidoComponent implements OnInit, OnDestroy {
   cargarProductosByIdPedido(idPedido: string) {
     this.pedidoService.getProductosByIdPedido(idPedido).subscribe((data: any) => {
         this.productosPedido = data;
+        this.totalPedido = 0; // Reiniciar el total del pedido
+        this.productosPedido.forEach((producto: PedidoProducto) => {
+          this.totalPedido += producto.subtotal;
+        });
         let checkPersonalizado = this.productosPedido.some((producto: PedidoProducto) => producto.personalizado && !producto.precioPersonalizado);
         if(checkPersonalizado){
           this.disabledPagar = true;
@@ -298,6 +497,7 @@ export class RegistroPedidoComponent implements OnInit, OnDestroy {
       });
   }
 
+  totalPedido = 0;
   agregarProducto() {
 
     const productoExistente = this.productosPedido.some(p => p.idProducto === this.productoSeleccionado.idProducto);
@@ -413,16 +613,21 @@ export class RegistroPedidoComponent implements OnInit, OnDestroy {
     
   }
 
-  selectProducto(producto: Producto) {
+  selectProducto(producto: Producto, busquedaAvanzada: boolean = false) {
     this.query = producto.nombre;
     this.productosBusqueda = [];
     this.productoSeleccionado = producto;
+
+    if( busquedaAvanzada ) {
+      this.agregarProducto();
+      this.modalService.dismissAll(); // Cierra el modal de búsqueda avanzada
+    }
   }
 
   eliminarProducto(producto: PedidoProducto) {
     Swal.fire({
       title: '¿Estás seguro?',
-      text: "No podrás recuperar este producto después de eliminarlo.",
+      html: "¿Deseas eliminar el producto '<b>" + producto.nombre + "</b>' del pedido?",
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#3085d6',
@@ -460,11 +665,11 @@ export class RegistroPedidoComponent implements OnInit, OnDestroy {
 	}
 
 	showSuccess(template: TemplateRef<any>) {
-		this.toastService.show({ template, classname: 'bg-success text-light', delay: 10000 });
+		this.toastService.show({ template, classname: 'bg-success text-light', delay: 3000 });
 	}
 
 	showDanger(template: TemplateRef<any>) {
-		this.toastService.show({ template, classname: 'bg-danger text-light', delay: 15000 });
+		this.toastService.show({ template, classname: 'bg-danger text-light', delay: 3000 });
 	}
 
 }

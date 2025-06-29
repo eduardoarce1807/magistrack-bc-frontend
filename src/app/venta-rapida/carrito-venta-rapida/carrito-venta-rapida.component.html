@@ -57,7 +57,7 @@
 				type="number"
 				class="form-control"
 				placeholder="Ingrese efectivo"
-				[(ngModel)]="efectivoRecibido.toFixed"
+				[(ngModel)]="efectivoRecibido"
 				(ngModelChange)="vuelto = (efectivoRecibido - total)"
 			/>
 		</div>

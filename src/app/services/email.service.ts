@@ -15,4 +15,9 @@ export class EmailService {
   sendEmail(data: any): Observable<any[]> {
     return this.http.post<any>(this.baseUrl, data);
   }
+
+  sendEmailBienvenida(data: any): Observable<any[]> {
+    return this.http.post<any>(`${this.baseUrl}/bienvenida`, data);
+  }
+
 }

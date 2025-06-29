@@ -20,6 +20,10 @@ export class PedidoService {
 		return this.http.get<any[]>(this.baseUrl);
 	}
 
+	getPedidosCompleto(): Observable<any[]> {
+		return this.http.get<any[]>(`${this.baseUrl}/listar`);
+	}
+
   getPedidosDespacho(): Observable<any[]> {
     let url = `${this.baseUrl}/bandeja-despacho`;
     return this.http.get<any[]>(url);
@@ -38,6 +42,11 @@ export class PedidoService {
 	updatePedido(pedido: any) {
 		let url = `${this.baseUrl}/${pedido.idPedido}`;
 		return this.http.put<any>(url, pedido);
+	}
+
+	updatePedidoPago(data: any) {
+		let url = `${this.baseUrl}/pago/${data.idPedido}`;
+		return this.http.put<any>(url, data);
 	}
 
 	getProductosByIdPedido(idPedido: string): Observable<any[]> {

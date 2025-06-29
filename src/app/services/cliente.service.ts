@@ -17,6 +17,11 @@ export class ClienteService {
     return this.http.get<any>(`${this.baseUrl}/${id}`);
   }
 
+  getClienteCompleto(id: number): Observable<any> {
+    let url = `${this.baseUrl}/listar-completo/${id}`;
+    return this.http.get<any>(url);
+  }
+
   createCliente(cliente: any): Observable<any> {
     return this.http.post<any>(this.baseUrl, cliente);
   }
@@ -26,12 +31,22 @@ export class ClienteService {
     return this.http.post<any>(url, clienteUsuario);
   }
 
+  updateClienteUsuario(clienteUsuario: any): Observable<any>{
+    let url = this.baseUrl + '/usuario/actualizar';
+    return this.http.put<any>(url, clienteUsuario);
+  }
+
   updateCliente(id: number, cliente: any): Observable<any> {
     return this.http.put<any>(`${this.baseUrl}/${id}`, cliente);
   }
 
   deleteCliente(id: number): Observable<void> {
     return this.http.delete<void>(`${this.baseUrl}/${id}`);
+  }
+
+  desactivarCliente(id: number): Observable<any> {
+    let url = `${this.baseUrl}/desactivar/${id}`;
+    return this.http.put<any>(url, {});
   }
 
   validarCodigoReferido(codigo: string): Observable<any> {

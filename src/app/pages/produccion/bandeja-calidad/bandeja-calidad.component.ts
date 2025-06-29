@@ -19,6 +19,7 @@ import { ToastService } from '../../../services/toast.service';
 import { ToastsContainer } from '../../../shared/components/toasts-container/toasts-container.component';
 import { DataService } from '../../../services/data.service';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 
 @Component({
 	selector: 'app-bandeja-calidad',
@@ -57,7 +58,8 @@ export class BandejaCalidadComponent implements OnInit {
 	constructor(
 		private pedidoService: PedidoService,
 		private productoService: ProductoService,
-		private dataService: DataService
+		private dataService: DataService,
+		public router: Router,
 	) {}
 
 	ngOnInit(): void {

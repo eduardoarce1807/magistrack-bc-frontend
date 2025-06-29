@@ -5,23 +5,26 @@
 			Gestión eficiente de clientes, pedidos y producción
 		</p>
 	</div>
-	<div class="row g-4">
-		<div class="col-md-4">
-			<div class="card shadow-sm">
-				<div class="card-body text-center">
-					<h4 class="card-title">Clientes</h4>
-					<p class="card-text">
-						Administra tus clientes de manera eficiente.
-					</p>
-					<button
-						class="btn btn-primary w-100"
-						(click)="irA('clientes')"
-					>
-						Ver Clientes
-					</button>
+	<div class="row g-4 justify-content-center">
+		@if (dataService.getLoggedUser().rol.idRol == 1) {
+			<div class="col-md-4">
+				<div class="card shadow-sm">
+					<div class="card-body text-center">
+						<h4 class="card-title">Clientes</h4>
+						<p class="card-text">
+							Administra tus clientes de manera eficiente.
+						</p>
+						<button
+							class="btn btn-primary w-100"
+							(click)="irA('pages/atencion-cliente/mantenimiento-clientes')"
+						>
+							Ver Clientes
+						</button>
+					</div>
 				</div>
 			</div>
-		</div>
+		}
+		
 		<div class="col-md-4">
 			<div class="card shadow-sm">
 				<div class="card-body text-center">
@@ -29,16 +32,25 @@
 					<p class="card-text">
 						Gestiona y controla tus pedidos fácilmente.
 					</p>
-					<button
-						class="btn btn-primary w-100"
-						(click)="irA('pedidos')"
-					>
-						Ver Pedidos
-					</button>
+					@if (dataService.getLoggedUser().rol.idRol == 1) {
+						<button
+							class="btn btn-primary w-100"
+							(click)="irA('pages/atencion-cliente/bandeja-pedidos-administrador')"
+						>
+							Ver Pedidos
+						</button>
+					}@else{
+						<button
+							class="btn btn-primary w-100"
+							(click)="irA('pages/atencion-cliente/bandeja-pedidos')"
+						>
+							Ver Pedidos
+						</button>
+					}
 				</div>
 			</div>
 		</div>
-		<div class="col-md-4">
+		<!-- <div class="col-md-4">
 			<div class="card shadow-sm">
 				<div class="card-body text-center">
 					<h4 class="card-title">Usuarios</h4>
@@ -51,6 +63,6 @@
 					</button>
 				</div>
 			</div>
-		</div>
+		</div> -->
 	</div>
 </div>

@@ -1,10 +1,18 @@
 <div class="container-fluid mt-5" style="padding: 0px 60px">
 	<div class="card shadow-lg p-4 rounded-4">
+		<button style="position: absolute;" class="btn btn-link text-decoration-none p-0" (click)="router.navigate(['/pages/produccion/bandeja-envasado'])">
+			<i class="bi bi-arrow-left"></i> Bandeja Envasado
+		</button>
+
 		<h2 class="mb-4 text-center">Bandeja de Etiquetado</h2>
+
+		<button style="position: absolute; right: 30px;" class="btn btn-link text-decoration-none p-0" (click)="router.navigate(['/pages/produccion/bandeja-despacho'])">
+			Bandeja Despacho <i class="bi bi-arrow-right"></i>
+		</button>
 
 		<!-- Tabla de Pedidos -->
 		<table class="table table-bordered align-middle mt-0">
-			<thead class="bg-primary text-white">
+			<thead class="table-primary">
 				<tr>
 					<!-- <th>
 						<input
@@ -59,22 +67,22 @@
 							Enviar
 						</button> -->
                         <button
-							class="btn btn-success btn-sm me-2"
+							class="btn btn-success me-2"
 							(click)="openModalValidar(validarProductoModal, item)"
 						>
-							Validar
+							<i class="bi bi-clipboard-check"></i>
 						</button>
 						<button
-							class="btn btn-dark btn-sm me-2"
+							class="btn btn-dark me-2"
 							(click)="getHojaProduccion(item.idProducto)"
 						>
-							Procedimiento
+							<i class="bi bi-journal-text"></i>
 						</button>
 						<button
-							class="btn btn-secondary btn-sm"
+							class="btn btn-secondary"
 							(click)="openModalNota(item, nota)"
 						>
-							Nota
+							<i class="bi bi-stickies"></i>
 						</button>
 					</td>
 				</tr>
@@ -103,7 +111,7 @@
 			</select>
 		</div>
 
-		<div class="d-flex justify-content-start align-items-start mb-4">
+		<!-- <div class="d-flex justify-content-start align-items-start mb-4">
 			<div class="container-fluid">
 				<div class="row">
 					<div class="col-2">
@@ -126,19 +134,13 @@
                             class="btn btn-dark me-2"
                             (click)="enviarMasivo()"
                         >
-                            Enviar
+                            <i class="bi bi-send"></i>
                         </button>
                     </div>
                 </div>
 			</div>
-		</div>
-
-		<!-- <div class="d-flex justify-content-center align-items-center mb-4">
-			@if (lstProductosSeleccionados.length > 0) {
-				<button class="btn btn-dark me-2" (click)="enviarProduccionMasivo()">Enviar a Producción</button>
-			}
-			<button class="btn btn-primary me-2" (click)="router.navigate(['/pages/atencion-cliente/registro-pedido'])">Nuevo Pedido</button>
 		</div> -->
+
 	</div>
 </div>
 

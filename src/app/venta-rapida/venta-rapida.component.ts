@@ -24,7 +24,7 @@ export class VentaRapidaComponent {
         // Aquí puedes agregar la lógica para limpiar el token de sesión o cerrar la sesión
         // alert('Sesión cerrada');
         this.dataService.clearLoggedUser();
-        this.router.navigate(['/login']);
+        this.router.navigate(['/auth/login']);
         
     }
 }

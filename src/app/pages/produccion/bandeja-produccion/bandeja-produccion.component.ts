@@ -15,6 +15,7 @@ import Swal from 'sweetalert2';
 import { DataService } from '../../../services/data.service';
 import { ProductoService } from '../../../services/producto.service';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 
 // Define ProcedimientoProducto type with all required properties for the form
 type ProcedimientoProducto = {
@@ -92,7 +93,8 @@ export class BandejaProduccionComponent implements OnInit {
 		private pedidoService: PedidoService,
 		private pedidoAuditoriaService: PedidoAuditoriaService,
 		private dataService: DataService,
-		private productoService: ProductoService
+		private productoService: ProductoService,
+		public router: Router
 	) {}
 
 	ngOnInit(): void {

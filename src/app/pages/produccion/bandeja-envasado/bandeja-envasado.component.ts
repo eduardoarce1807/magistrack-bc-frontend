@@ -7,6 +7,7 @@ import { ProductoService } from '../../../services/producto.service';
 import { FormsModule } from '@angular/forms';
 import JsBarcode from 'jsbarcode';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-bandeja-envasado',
@@ -41,7 +42,8 @@ export class BandejaEnvasadoComponent implements OnInit {
   constructor(
     private pedidoService: PedidoService,
     private productoService: ProductoService,
-    private dataService: DataService
+    private dataService: DataService,
+    public router: Router,
   ) {}
 
   ngOnInit(): void {

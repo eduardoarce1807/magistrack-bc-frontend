@@ -7,6 +7,7 @@ import { PedidoService } from '../../../services/pedido.service';
 import { ProductoService } from '../../../services/producto.service';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-bandeja-etiquetado',
@@ -42,7 +43,8 @@ export class BandejaEtiquetadoComponent implements OnInit {
   constructor(
     private pedidoService: PedidoService,
     private productoService: ProductoService,
-    private dataService: DataService
+    private dataService: DataService,
+    public router: Router
   ) {}
 
   ngOnInit(): void {
