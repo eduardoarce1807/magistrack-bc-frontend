@@ -76,7 +76,7 @@
         </div>
         <!-- Empresa Asociada -->
         <div class="col-md-6">
-          <label for="empresaAsociada" class="form-label">Empresa Asociada</label>
+          <label for="empresaAsociada" class="form-label">Empresa asociada (Nombre de Spa, consultorio o Centro Estético)</label>
           <input type="text" formControlName="empresaAsociada" class="form-control" placeholder="Ingrese el nombre de la empresa (opcional)" />
         </div>
         <!-- Correo Electrónico -->
@@ -120,12 +120,12 @@
         </div>
 
         <div class="col-md-3">
-          <label for="telefono2" class="form-label">Teléfono 2 (opcional)</label>
+          <label for="telefono2" class="form-label">Teléfono Fijo (opcional)</label>
           <input
             type="tel"
             formControlName="telefono2"
             class="form-control"
-            placeholder="Ingrese el teléfono 2"
+            placeholder="Ingrese el teléfono fijo"
             maxlength="9"
             pattern="[0-9]*"
             inputmode="numeric"
@@ -187,6 +187,9 @@
                 class="form-control"
                 (change)="onArchivoSeleccionado($event)">
 
+          <div class="text-secondary small">
+            *Si es profesional de Estetica adjuntar constancia o certificado, si es estudiante adjuntar boleta, carnét u otro documento que acredite
+          </div>
         </div>
       </div>
       <div class="text-center mt-4">

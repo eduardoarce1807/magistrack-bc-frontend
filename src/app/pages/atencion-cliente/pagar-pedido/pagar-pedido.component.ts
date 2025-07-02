@@ -17,6 +17,7 @@ import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { TipoPagoService } from '../../../services/tipo-pago.service';
 import { PagoPedidoService } from '../../../services/pago-pedido.service';
 import { BancoService } from '../../../services/banco.service';
+import { UtilDate } from '../../../util/util-date';
 
 interface PagoManual {
   idTipoPago: number;
@@ -292,7 +293,9 @@ export class PagarPedidoComponent implements OnInit, AfterViewInit {
   onPagarIzipay(): void {
     
     const fecha = new Date();
-    this.pagoManual.fechaPago = fecha.toISOString();
+    // Obtener la fecha y hora actual en la zona horaria de Perú (UTC-5)
+    const nowPeru = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Lima' }));
+    this.pagoManual.fechaPago = UtilDate.toPeruIsoString(nowPeru).slice(0, 19);
     this.pagoManual.numeroOperacion = null;
     this.pagoManual.idTipoPago = 1;
     this.pagoManual.idPedido = this.idPedido || '';

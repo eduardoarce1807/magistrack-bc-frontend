@@ -3,6 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { NgbTypeaheadModule, NgbPaginationModule } from '@ng-bootstrap/ng-bootstrap';
 import { PagoPedidoService } from '../../../services/pago-pedido.service';
+import { UtilDate } from '../../../util/util-date';
 
 @Component({
   selector: 'app-visualizador-pagos',
@@ -19,8 +20,9 @@ export class VisualizadorPagosComponent implements OnInit {
 	pageSize = 5;
 	collectionSize = this.pagos.length;
 
-  fechaInicio: string = new Date().toISOString().split('T')[0];
-  fechaFin: string = new Date().toISOString().split('T')[0];
+  // Usar UtilDate para obtener la fecha actual en la zona horaria de Perú (UTC-5)
+  fechaInicio: string = UtilDate.toPeruIsoString(new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Lima' }))).slice(0, 10);
+  fechaFin: string = UtilDate.toPeruIsoString(new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Lima' }))).slice(0, 10);
 
 	lstPagosSeleccionados: string[] = [];
 

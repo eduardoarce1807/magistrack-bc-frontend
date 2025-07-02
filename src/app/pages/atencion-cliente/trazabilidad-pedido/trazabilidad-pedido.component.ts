@@ -4,11 +4,12 @@ import { Subscription } from 'rxjs';
 import Swal from 'sweetalert2';
 import { DataService } from '../../../services/data.service';
 import { PedidoAuditoriaService } from '../../../services/pedido-auditoria.service';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-trazabilidad-pedido',
   standalone: true,
-  imports: [],
+  imports: [CommonModule],
   templateUrl: './trazabilidad-pedido.component.html',
   styleUrl: './trazabilidad-pedido.component.scss'
 })

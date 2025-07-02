@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { PedidoService } from '../../../services/pedido.service';
 import { Router } from '@angular/router';
 import Swal from 'sweetalert2';
-import { DecimalPipe } from '@angular/common';
+import { CommonModule, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
 	NgbTypeaheadModule,
@@ -15,7 +15,7 @@ import { ProductoService } from '../../../services/producto.service';
 @Component({
 	selector: 'app-bandeja-pedidos-administrador',
 	standalone: true,
-	imports: [FormsModule, NgbTypeaheadModule, NgbPaginationModule],
+	imports: [FormsModule, NgbTypeaheadModule, NgbPaginationModule, CommonModule],
 	templateUrl: './bandeja-pedidos-administrador.component.html',
 	styleUrl: './bandeja-pedidos-administrador.component.scss',
 })

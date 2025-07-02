@@ -13,6 +13,8 @@ import { ToastsContainer } from '../../../shared/components/toasts-container/toa
 import { MetodoEntregaService } from '../../../services/metodo-entrega.service';
 import { DireccionService } from '../../../services/direccion.service';
 import { UbigeoService } from '../../../services/ubigeo.service';
+import { UtilDate } from '../../../util/util-date';
+import { ClienteService } from '../../../services/cliente.service';
 
 interface PedidoRequest {
   idCliente: number;
@@ -98,7 +100,7 @@ export class RegistroPedidoComponent implements OnInit, OnDestroy {
 	collectionSize = this.productosBusquedaAvanzada.length;
 
   idPedido: string | null = null;
-  pedido: any;
+  pedido: any = {estadoPedido: 0};
   private routeSubscription: Subscription | null = null;
 
   isLoading: boolean = false;
@@ -132,7 +134,10 @@ export class RegistroPedidoComponent implements OnInit, OnDestroy {
         this.cargarProductosByIdPedido(this.idPedido);
       }else{
 
-        Swal.fire({
+        if(this.dataService.getLoggedUser().rol.idRol === 1) {
+          this.getClientes();
+        }else{
+          Swal.fire({
           icon: 'question',
           title: '¿Está seguro?',
           text: 'Confirme que desea crear un nuevo pedido.',
@@ -144,34 +149,13 @@ export class RegistroPedidoComponent implements OnInit, OnDestroy {
           allowOutsideClick: false
         }).then((result) => {
           if (result.isConfirmed) {
-            let request: PedidoRequest = {
-              idCliente: this.dataService.getLoggedUser().cliente.idCliente,
-              fechaPedido: new Date().toISOString(),
-              idEstadoPedido: 1,
-              idTipoPago: null,
-              observaciones: '',
-              fechaEstimadaEntrega: new Date(new Date().getTime() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-              montoTotal: 0,
-              idCanalVenta: 1
-            };
-            this.pedidoService.createPedido(request).subscribe((data: any) => {
-              if(data){
-                this.router.navigate(['/pages/atencion-cliente/registro-pedido', data.idPedido]);
-              }
-            }, error => {
-              console.error('Error al crear pedido', error);
-              Swal.fire({
-                icon: 'error',
-                title: 'Oops!',
-                text: 'No se pudo crear el pedido, inténtelo de nuevo.',
-                showConfirmButton: true
-              });
-            });
+            this.crearPedidoCliente();
           }else{
             this.goBandejaPedidos();
           }
           console.log('ID del Pedido:', this.idPedido);
         });
+        }
       }
     });
   }
@@ -190,7 +174,8 @@ export class RegistroPedidoComponent implements OnInit, OnDestroy {
     private dataService: DataService,
     private metodoEntregaService: MetodoEntregaService,
     private direccionService: DireccionService,
-    private ubigeoService: UbigeoService
+    private ubigeoService: UbigeoService,
+    private clienteService: ClienteService
   ) {
     this.idRol = this.dataService.getLoggedUser().rol.idRol;
     console.log('ID del Rol:', this.idRol);
@@ -237,6 +222,101 @@ export class RegistroPedidoComponent implements OnInit, OnDestroy {
   openModal(content: TemplateRef<any>) {
     this.modalService.dismissAll(); // Cierra cualquier modal abierto antes de abrir uno nuevo
     this.modalService.open(content, {backdrop: 'static', keyboard: false});
+  }
+
+  esClienteGenerico = true;
+  listaClientes: any[] = [];
+  clienteSeleccionado: number | null = null;
+  getClientes(){
+    this.clienteService.getClientesByRol(2).subscribe(
+      (clientes) => {
+        this.listaClientes = clientes;
+        console.log('Clientes:', clientes);
+        this.openModalRegistroPedidoAdmin();
+      },
+      (error) => {
+        console.error('Error al obtener clientes', error);
+      }
+    );
+  }
+
+  @ViewChild('registroPedidoAdmin', { static: true }) registroPedidoAdmin: TemplateRef<any> | null = null;
+  openModalRegistroPedidoAdmin() {
+    this.modalService.dismissAll(); // Cierra cualquier modal abierto antes de abrir uno nuevo
+    this.modalService.open(this.registroPedidoAdmin, {backdrop: 'static', keyboard: false, size: 'lg', centered: true});
+  }
+
+  crearPedidoCliente(){
+    // Obtener la fecha y hora actual en la zona horaria de Perú (UTC-5)
+    const nowPeru = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Lima' }));
+
+    const fechaPedido = UtilDate.toPeruIsoString(nowPeru);
+
+    // Calcular la fecha estimada de entrega (7 días después) en la zona horaria de Perú
+    const fechaEstimadaEntregaDate = new Date(nowPeru.getTime() + 7 * 24 * 60 * 60 * 1000);
+    const fechaEstimadaEntrega = UtilDate.toPeruIsoString(fechaEstimadaEntregaDate);
+
+    let request: PedidoRequest = {
+      idCliente: this.dataService.getLoggedUser().cliente.idCliente, // Asignar el ID del cliente logueado
+      fechaPedido: fechaPedido.slice(0, 19),
+      idEstadoPedido: 1,
+      idTipoPago: null,
+      observaciones: '',
+      fechaEstimadaEntrega: fechaEstimadaEntrega.slice(0, 19),
+      montoTotal: 0,
+      idCanalVenta: 1
+    };
+    console.log('Request para crear pedido:', request);
+    this.pedidoService.createPedido(request).subscribe((data: any) => {
+      if(data){
+        this.router.navigate(['/pages/atencion-cliente/registro-pedido', data.idPedido]);
+      }
+    }, error => {
+      console.error('Error al crear pedido', error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Oops!',
+        text: 'No se pudo crear el pedido, inténtelo de nuevo.',
+        showConfirmButton: true
+      });
+    });
+  }
+
+  crearPedidoAdmin(){
+    // Obtener la fecha y hora actual en la zona horaria de Perú (UTC-5)
+    const nowPeru = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Lima' }));
+
+    const fechaPedido = UtilDate.toPeruIsoString(nowPeru);
+
+    // Calcular la fecha estimada de entrega (7 días después) en la zona horaria de Perú
+    const fechaEstimadaEntregaDate = new Date(nowPeru.getTime() + 7 * 24 * 60 * 60 * 1000);
+    const fechaEstimadaEntrega = UtilDate.toPeruIsoString(fechaEstimadaEntregaDate);
+
+    let request: PedidoRequest = {
+      idCliente: this.esClienteGenerico ? 15 : this.clienteSeleccionado!, // Asignar el ID del cliente seleccionado
+      fechaPedido: fechaPedido.slice(0, 19),
+      idEstadoPedido: 1,
+      idTipoPago: null,
+      observaciones: '',
+      fechaEstimadaEntrega: fechaEstimadaEntrega.slice(0, 19),
+      montoTotal: 0,
+      idCanalVenta: 1
+    };
+    console.log('Request para crear pedido:', request);
+    this.pedidoService.createPedido(request).subscribe((data: any) => {
+      if(data){
+        this.modalService.dismissAll(); // Cierra el modal después de crear el pedido
+        this.router.navigate(['/pages/atencion-cliente/registro-pedido', data.idPedido]);
+      }
+    }, error => {
+      console.error('Error al crear pedido', error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Oops!',
+        text: 'No se pudo crear el pedido, inténtelo de nuevo.',
+        showConfirmButton: true
+      });
+    });
   }
 
   openModalBusquedaAvanzada(content: TemplateRef<any>) {

@@ -31,7 +31,7 @@
 			<tbody>
 				@for (item of trazabilidadPedido; track $index) {
 				<tr>
-					<td>{{item.fecha}}</td>
+					<td>{{item.fecha | date:'dd/MM/yyyy HH:mm:ss'}}</td>
 					<td>{{item.estadoPedido.descripcion}}</td>
 					<td>{{item.accionRealizada}}</td>
 					<td>{{item.cliente.nombres + ' ' + item.cliente.apellidos}}</td>

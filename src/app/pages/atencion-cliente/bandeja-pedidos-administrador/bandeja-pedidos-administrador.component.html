@@ -37,7 +37,7 @@
 							[disabled]="item.estadoPedido.idEstadoPedido != 2">
 					</td>
 					<td>{{item.idPedido}}</td>
-					<td>{{item.fechaPedido}}</td>
+					<td>{{item.fechaPedido | date: 'dd/MM/yyyy'}}</td>
 					<td>{{item.cliente.nombres}} {{item.cliente.apellidos}}</td>
 					<td>S/ {{item.montoTotal.toFixed(2)}}</td>
 					<td>{{item.estadoPedido.descripcion}}</td>

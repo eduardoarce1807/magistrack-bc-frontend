@@ -1,5 +1,10 @@
 <div class="container-fluid mt-5" style="padding: 0px 60px;">
 	<div class="card shadow-lg p-4 rounded-4">
+
+		<button style="position: absolute;" class="btn btn-link text-decoration-none p-0" (click)="router.navigate(['/pages/atencion-cliente/bandeja-pedidos-administrador'])">
+			<i class="bi bi-arrow-left"></i> Regresar a bandeja de pedidos
+		</button>
+
 		<h2 class="mb-4 text-center">Bandeja de Personalización</h2>
 
 		<!-- Tabla de Pedidos -->
@@ -21,8 +26,8 @@
 					<td>{{item.detallesPersonalizacion}}</td>
                     <td>{{item.precioPersonalizado.toFixed(2)}}</td>
 					<td>
-						<button class="btn btn-primary btn-sm me-2" (click)="router.navigate(['/pages/atencion-cliente/calculadora-maestra', item.pedido.idPedido, item.producto.idProducto])">
-							Calculadora
+						<button [disabled]="item.pedido.estadoPedido.idEstadoPedido == 2" style="padding: 2px 5px;" class="btn btn-primary me-2" (click)="router.navigate(['/pages/atencion-cliente/calculadora-maestra', item.pedido.idPedido, item.producto.idProducto])">
+							<i style="font-size: 22px;" class="bi bi-calculator-fill"></i>
 						</button>
 					</td>
 				</tr>
