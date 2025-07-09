@@ -1,0 +1,107 @@
+<div class="container-fluid mt-5" style="padding: 0px 60px; width: 70%;">
+  <div class="card shadow-lg p-4 rounded-4">
+    <button style="position: absolute;" class="btn btn-link text-decoration-none p-0" (click)="router.navigate(['/pages/gestion-producto/listado-cupones'])">
+        <i class="bi bi-arrow-left"></i> Regresar a listado de cupones
+    </button>
+    <h2 class="mb-4 text-center">{{titleText}}</h2>
+    <div class="row g-3">
+        <div class="col-md-12">
+            <!-- Código del cupón -->
+            <div class="mb-3">
+                <label for="codigo" class="form-label">Código del cupón*</label>
+                <input type="text" id="codigo" [(ngModel)]="cupon.codigoCupon" name="codigo" class="form-control" placeholder="Ingrese el código del cupón" required />
+            </div>
+            <!-- Descripción -->
+            <div class="mb-3">
+                <label for="descripcion" class="form-label">Descripción*</label>
+                <input type="text" id="descripcion" [(ngModel)]="cupon.descripcion" name="descripcion" class="form-control" placeholder="Ingrese la descripción" required />
+            </div>
+            <div class="row">
+                <div class="col-3">
+                    <div class="mb-3">
+                        <label for="descuento" class="form-label">Descuento* (%)</label>
+                        <div class="input-group mb-3">
+                            <span class="input-group-text">%</span>
+                            <input type="text" id="descuento" [(ngModel)]="cupon.descuento" name="descuento" class="form-control" placeholder="Ingrese el descuento" required />
+                        </div>
+                    </div>
+                </div>
+                <div class="col-3">
+                    <div class="mb-3">
+                        <label for="stock" class="form-label">Stock*</label>
+                        <input type="text" id="stock" [(ngModel)]="cupon.stock" name="stock" class="form-control" placeholder="Ingrese el stock" required />
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="mb-3">
+                        <label for="montoMinimo" class="form-label">Monto mínimo requerido*</label>
+                        <div class="input-group mb-3">
+                            <span class="input-group-text">S/</span>
+                            <input type="text" id="montoMinimo" [(ngModel)]="cupon.montoMinimo" name="montoMinimo" class="form-control" placeholder="Ingrese el monto mínimo" required />
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-6">
+                    <label for="fechaInicio" class="form-label">Fecha Inicio*</label>
+                    <input type="date" id="fechaInicio" [(ngModel)]="cupon.fechaInicio" name="fechaInicio" class="form-control" required />
+                </div>
+                <div class="col-6">
+                    <label for="fechaFin" class="form-label">Fecha Fin*</label>
+                    <input type="date" id="fechaFin" [(ngModel)]="cupon.fechaFin" name="fechaFin" class="form-control" required />
+                </div>
+            </div>
+            <div class="row mt-3">
+                <div class="col-6">
+                    <label for="tiposClientes" class="form-label">Clientes habilitados*</label>
+                    <ng-multiselect-dropdown
+                    [placeholder]="'Seleccione roles'"
+                    [settings]="ddsRoles"
+                    [data]="roles"
+                    [(ngModel)]="rolesSeleccionados"
+                    (onSelect)="onItemSelect($event)"
+                    (onSelectAll)="onSelectAll($event)"
+                    (onDeSelectAll)="onDeSelectAll($event)"
+                    (onDeSelect)="onItemDeSelect($event)"
+                    >
+                    </ng-multiselect-dropdown>
+                    <div class="form-text">
+                        *Seleccione los clientes a los que se aplicará el cupón. Si no selecciona ninguno, se aplicará a todos los clientes.
+                    </div>
+                </div>
+
+                <div class="col-6">
+                    <label for="tiposClientes" class="form-label">Aplicar a productos*</label>
+                    <ng-multiselect-dropdown
+                    [placeholder]="'Seleccione productos'"
+                    [settings]="ddsProductos"
+                    [data]="productos"
+                    [(ngModel)]="productosSeleccionados"
+                    (onSelect)="onItemSelect($event)"
+                    (onSelectAll)="onSelectAll($event)"
+                    (onDeSelectAll)="onDeSelectAll($event)"
+                    (onDeSelect)="onItemDeSelect($event)"
+                    >
+                    </ng-multiselect-dropdown>
+                    <div class="form-text">
+                        *Seleccione los productos a los que se aplicará el cupón. Si no selecciona ninguno, se aplicará a todos los productos.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="text-center mt-4">
+        @if(!isEditing){
+            <button (click)="registrarCupon()" type="button"  class="btn btn-primary px-5 py-2 rounded-4" [disabled]="!cupon.codigoCupon || !cupon.descripcion || !cupon.descuento || !cupon.montoMinimo || !cupon.fechaInicio || !cupon.fechaFin">
+                {{ isEditing ? 'Actualizar Cupón' : 'Registrar Cupón' }}
+            </button>
+        }@else{
+            <button (click)="actualizarCupon()" type="button"  class="btn btn-primary px-5 py-2 rounded-4" [disabled]="!cupon.codigoCupon || !cupon.descripcion || !cupon.descuento || !cupon.montoMinimo || !cupon.fechaInicio || !cupon.fechaFin">
+                {{ isEditing ? 'Actualizar Cupón' : 'Registrar Cupón' }}
+            </button>
+        }
+        
+    </div>
+  </div>
+</div>

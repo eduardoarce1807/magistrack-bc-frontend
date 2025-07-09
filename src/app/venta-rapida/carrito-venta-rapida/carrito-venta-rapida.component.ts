@@ -59,6 +59,16 @@ export class CarritoVentaRapidaComponent implements OnInit {
 
   crearPedido(){
 
+    if(this.carrito.length === 0) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Carrito vacío',
+        text: 'No hay productos en el carrito para procesar la venta.',
+        showConfirmButton: true
+      });
+      return;
+    }
+
     // Obtener la fecha y hora actual en la zona horaria de Perú (UTC-5)
     const nowPeru = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Lima' }));
 
@@ -70,7 +80,7 @@ export class CarritoVentaRapidaComponent implements OnInit {
     const fechaEstimadaEntrega = UtilDate.toPeruIsoString(fechaEstimadaEntregaDate);
 
     let request: PedidoRequest = {
-      idCliente: 1, // cliente default ventas
+      idCliente: 15, // cliente generico
       fechaPedido: fechaPedido.slice(0, 19),
       idEstadoPedido: 2, // pagado
       idTipoPago: this.idTipoPago,

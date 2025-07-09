@@ -16,8 +16,13 @@ export class ClienteService {
   getClienteById(id: number): Observable<any> {
     return this.http.get<any>(`${this.baseUrl}/${id}`);
   }
+
   getClientesByRol(idRol: number): Observable<any[]> {
     return this.http.get<any[]>(`${this.baseUrl}/rol/${idRol}`);
+  }
+
+  getClientesMenosRol(idRol: number): Observable<any[]> {
+    return this.http.get<any[]>(`${this.baseUrl}/rol-menos/${idRol}`);
   }
 
   getClienteCompleto(id: number): Observable<any> {

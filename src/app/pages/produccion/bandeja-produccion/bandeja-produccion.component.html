@@ -35,7 +35,10 @@
 			</thead>
 			<tbody>
 				@for (item of productos; track $index) {
-				<tr>
+				<tr [ngClass]="{
+						'table-warning': item.idEstadoProducto == 2,
+						'table-success': item.idEstadoProducto == 3
+					}">
 					<td>
 						<input
 							class="form-check-input"
@@ -48,21 +51,21 @@
 									$event
 								)
 							"
-							[disabled]="(tipoEnvio == 0 && item.estadoPedido == 'En producción') || (tipoEnvio == 1 && item.estadoPedido == 'En cola')"
+							[disabled]="(tipoEnvio == 0 && item.idEstadoProducto == 3) || (tipoEnvio == 1 && item.idEstadoProducto == 2)"
 						/>
 					</td>
 
 					<td>{{ item.idProducto }}</td>
 					<td>{{ item.nombre }}</td>
-					<td>{{ item.presentacion }}</td>
-					<td>{{ item.estadoPedido }}</td>
+					<td>{{ item.presentacion }} {{item.tipoPresentacion}}</td>
+					<td>{{ item.estadoProducto }}</td>
 					<td>
 						<span>{{ item.personalizado ? "Sí" : "No" }}</span>
 					</td>
 					<td>{{ item.cantidad }}</td>
 					<td>
 						<button
-							[disabled]="item.estadoPedido == 'En producción'"
+							[disabled]="item.idEstadoProducto == 3"
 							class="btn btn-primary me-2"
 							(click)="recibirProducto(item)"
 						>
@@ -75,7 +78,7 @@
 							<i class="bi bi-journal-text"></i>
 						</button>
 						<button
-							[disabled]="item.estadoPedido == 'En cola'"
+							[disabled]="item.idEstadoProducto == 2"
 							class="btn btn-info me-2"
 							(click)="enviarCalidad(item)"
 						>

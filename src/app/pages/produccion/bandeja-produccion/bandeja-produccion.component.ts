@@ -161,39 +161,52 @@ export class BandejaProduccionComponent implements OnInit {
 
 
 	recibirProducto(item: any) {
-		this.productoService
-			.updateEstadoProducto({
-				idProducto: item.idProducto,
-				idPedido: item.idPedido,
-				idEstadoProducto: 3, // En producción
-				idEstadoPedido: 4, // En producción
-				idEstadoPedidoCliente: 3, // En producción
-				idCliente: this.dataService.getLoggedUser().cliente.idCliente,
-				accionRealizada: 'Producto recibido en producción',
-				observacion: '',
-			})
-			.subscribe(
-				(response) => {
-					Swal.fire({
-						icon: 'success',
-						title: '¡Listo!',
-						text: 'Producto recibido en producción correctamente.',
-						showConfirmButton: true,
-					}).then(() => {
-						this.getProductosAll();
-						this.lstProductosSeleccionados = [];
-					});
-				},
-				(error) => {
-					console.error('Error al recibir producto en producción', error);
-					Swal.fire({
-						icon: 'error',
-						title: 'Oops!',
-						text: 'No se pudo recibir el producto en producción, inténtelo de nuevo.',
-						showConfirmButton: true,
-					});
-				}
-			);
+
+		Swal.fire({
+			icon: 'question',
+			title: '¿Estás seguro?',
+			text: `¿Deseas recibir el producto "${item.idProducto}" en producción?`,
+			showConfirmButton: true,
+			showCancelButton: true,
+			cancelButtonText: 'Cancelar',
+			confirmButtonText: 'Sí, recibir',
+		}).then((result) => {
+			if (result.isConfirmed) {
+				this.productoService
+					.updateEstadoProducto({
+						idProducto: item.idProducto,
+						idPedido: item.idPedido,
+						idEstadoProducto: 3, // En producción
+						idEstadoPedido: 4, // En producción
+						idEstadoPedidoCliente: 3, // En producción
+						idCliente: this.dataService.getLoggedUser().cliente.idCliente,
+						accionRealizada: 'Producto recibido en producción',
+						observacion: '',
+					})
+					.subscribe(
+						(response) => {
+							Swal.fire({
+								icon: 'success',
+								title: '¡Listo!',
+								text: 'Producto recibido en producción correctamente.',
+								showConfirmButton: true,
+							}).then(() => {
+								this.getProductosAll();
+								this.lstProductosSeleccionados = [];
+							});
+						},
+						(error) => {
+							console.error('Error al recibir producto en producción', error);
+							Swal.fire({
+								icon: 'error',
+								title: 'Oops!',
+								text: 'No se pudo recibir el producto en producción, inténtelo de nuevo.',
+								showConfirmButton: true,
+							});
+						}
+					);
+			}
+		});
 	}
 
 	observacion = '';
@@ -232,39 +245,51 @@ export class BandejaProduccionComponent implements OnInit {
 	}
 
 	enviarCalidad(item: any) {
-		this.productoService
-			.updateEstadoProducto({
-				idProducto: item.idProducto,
-				idPedido: item.idPedido,
-				idEstadoProducto: 4, // En calidad
-				idEstadoPedido: 5, // En calidad
-				idEstadoPedidoCliente: 3, // En producción
-				idCliente: this.dataService.getLoggedUser().cliente.idCliente,
-				accionRealizada: 'Producto enviado a calidad',
-				observacion: '',
-			})
-			.subscribe(
-				(response) => {
-					Swal.fire({
-						icon: 'success',
-						title: '¡Listo!',
-						text: 'Producto enviado a calidad correctamente.',
-						showConfirmButton: true,
-					}).then(() => {
-						this.getProductosAll();
-						this.lstProductosSeleccionados = [];
-					});
-				},
-				(error) => {
-					console.error('Error al enviar producto a calidad', error);
-					Swal.fire({
-						icon: 'error',
-						title: 'Oops!',
-						text: 'No se pudo enviar el producto a calidad, inténtelo de nuevo.',
-						showConfirmButton: true,
-					});
-				}
-			);
+		Swal.fire({
+			icon: 'question',
+			title: '¿Estás seguro?',
+			text: `¿Deseas enviar el producto "${item.idProducto}" a calidad?`,
+			showConfirmButton: true,
+			showCancelButton: true,
+			cancelButtonText: 'Cancelar',
+			confirmButtonText: 'Sí, enviar',
+		}).then((result) => {
+			if (result.isConfirmed) {
+				this.productoService
+					.updateEstadoProducto({
+						idProducto: item.idProducto,
+						idPedido: item.idPedido,
+						idEstadoProducto: 4, // En calidad
+						idEstadoPedido: 5, // En calidad
+						idEstadoPedidoCliente: 3, // En producción
+						idCliente: this.dataService.getLoggedUser().cliente.idCliente,
+						accionRealizada: 'Producto enviado a calidad',
+						observacion: '',
+					})
+					.subscribe(
+						(response) => {
+							Swal.fire({
+								icon: 'success',
+								title: '¡Listo!',
+								text: 'Producto enviado a calidad correctamente.',
+								showConfirmButton: true,
+							}).then(() => {
+								this.getProductosAll();
+								this.lstProductosSeleccionados = [];
+							});
+						},
+						(error) => {
+							console.error('Error al enviar producto a calidad', error);
+							Swal.fire({
+								icon: 'error',
+								title: 'Oops!',
+								text: 'No se pudo enviar el producto a calidad, inténtelo de nuevo.',
+								showConfirmButton: true,
+							});
+						}
+					);
+			}
+		});
 	}
 
 	isCheckboxDisabled(): boolean {

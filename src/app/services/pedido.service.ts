@@ -143,4 +143,9 @@ export class PedidoService {
 		let url = `${this.baseUrl}/${idPedido}/estado-producto`;
 		return this.http.get<any>(url, { params: { idEstadoProducto } });
 	}
+
+	aplicarCuponPedido(data: any): Observable<any> {
+		let url = `${this.baseUrl}/aplicar-cupon`;
+		return this.http.post<any>(url, data);
+	}
 }

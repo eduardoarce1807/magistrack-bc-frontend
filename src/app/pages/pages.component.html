@@ -108,6 +108,14 @@
 					>Visualizador de Pagos</a
 				>
 			</li>
+			<li class="nav-item">
+				<a
+					class="nav-link"
+					(click)="irA('pages/atencion-cliente/reporte-ventas')"
+                    style="cursor: pointer"
+					>Reporte de Ventas</a
+				>
+			</li>
 			}
 		</ul>
 		@if (dataService.getLoggedUser().rol.idRol == 1) {
@@ -165,6 +173,30 @@
 					(click)="irA('pages/gestion-producto/registro-producto')"
                     style="cursor: pointer"
 					>Registro de Producto</a
+				>
+			</li>
+			<li class="nav-item">
+				<a
+					class="nav-link"
+					(click)="irA('pages/gestion-producto/registro-cupon')"
+                    style="cursor: pointer"
+					>Registro de Cupón</a
+				>
+			</li>
+			<li class="nav-item">
+				<a
+					class="nav-link"
+					(click)="irA('pages/gestion-producto/listado-cupones')"
+                    style="cursor: pointer"
+					>Listado de Cupones</a
+				>
+			</li>
+			<li class="nav-item">
+				<a
+					class="nav-link"
+					(click)="irA('pages/gestion-producto/catalogo-precios')"
+                    style="cursor: pointer"
+					>Catálogo de Precios</a
 				>
 			</li>
 		</ul>

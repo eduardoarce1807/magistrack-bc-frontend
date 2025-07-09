@@ -15,6 +15,7 @@ import { DireccionService } from '../../../services/direccion.service';
 import { UbigeoService } from '../../../services/ubigeo.service';
 import { UtilDate } from '../../../util/util-date';
 import { ClienteService } from '../../../services/cliente.service';
+import { CuponService } from '../../../services/cupon.service';
 
 interface PedidoRequest {
   idCliente: number;
@@ -50,6 +51,7 @@ interface PedidoProducto {
   subtotal: number;
   personalizado: boolean;
   precioPersonalizado: boolean;
+  tieneDescuento: boolean;
 }
 
 interface PedidoProductoRequest {
@@ -122,6 +124,8 @@ export class RegistroPedidoComponent implements OnInit, OnDestroy {
   provincias: any[] = [];
   distritos: any[] = [];
 
+  codigoCupon: string = '';
+
   private modalService = inject(NgbModal);
 
   ngOnInit(): void {
@@ -175,7 +179,8 @@ export class RegistroPedidoComponent implements OnInit, OnDestroy {
     private metodoEntregaService: MetodoEntregaService,
     private direccionService: DireccionService,
     private ubigeoService: UbigeoService,
-    private clienteService: ClienteService
+    private clienteService: ClienteService,
+    private cuponService: CuponService
   ) {
     this.idRol = this.dataService.getLoggedUser().rol.idRol;
     console.log('ID del Rol:', this.idRol);
@@ -444,6 +449,7 @@ export class RegistroPedidoComponent implements OnInit, OnDestroy {
       (pedido) => {
         if(pedido) {
           this.pedido = pedido;
+          this.codigoCupon = pedido.cupon ? pedido.cupon.codigo : '';
           if(pedido.metodoEntrega && pedido.metodoEntrega.idMetodoEntrega && pedido.metodoEntrega.idMetodoEntrega > 0
             && pedido.direccion && pedido.direccion.idDireccion && pedido.direccion.idDireccion > 0
           ) {
@@ -577,6 +583,137 @@ export class RegistroPedidoComponent implements OnInit, OnDestroy {
       });
   }
 
+
+  errorCupon = false;
+  textoErrorCupon = "";
+  textoCupon = "";
+  cuponValidado = false;
+  validarCodigoCupon() {
+    if (this.codigoCupon.trim() === '') {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Oops!',
+        text: 'Por favor, ingrese un código de cupón válido.',
+        showConfirmButton: true
+      });
+      return;
+    }
+
+    this.cuponService.validarCupon(this.codigoCupon.trim()).subscribe(
+      (response: any) => {
+        if (response.valid) {
+          
+          this.cuponService.obtenerCuponPorCodigoDetallado(this.codigoCupon.trim()).subscribe(
+            (response: any) => {
+              if (response) {
+                console.log('Cupón válido:', response);
+
+                  if(response.montoMinimo && response.montoMinimo > 0 && this.totalPedido < response.montoMinimo) {
+                    this.errorCupon = true;
+                    this.textoErrorCupon = `El cupón requiere un monto mínimo de S/${response.montoMinimo} para ser aplicado.`;
+                    return;
+                  }
+
+                  if (response.roles.some((rol: any) => rol.idRol === this.pedido.cliente.rol.idRol)) {
+                    //ROL VÁLIDO
+                    const productosCupon = response.productos.map((p: any) => p.idProducto);
+                    const existeProducto = this.productosPedido.some((prod: any) =>
+                      productosCupon.includes(prod.idProducto)
+                    );
+
+                    if (existeProducto) {
+                      this.errorCupon = false;
+                      this.textoErrorCupon = '';
+                      this.cuponValidado = true;
+                      this.textoCupon = "Cupón válido.";
+
+                      //ACTUALIZAR PRODUCTO DEL PEDIDO CON DESCUENTO
+                      let cuponRequest = {
+                        idPedido: this.idPedido!,
+                        codigoCupon: this.codigoCupon.trim()
+                      }
+                      this.pedidoService.aplicarCuponPedido(cuponRequest).subscribe((data: any) => {
+                        if (data && data.idResultado && data.idResultado > 0) {
+                          Swal.fire({
+                            icon: 'success',
+                            title: '¡Listo!',
+                            text: data.mensaje,
+                            showConfirmButton: true
+                          });
+                          this.cargarProductosByIdPedido(this.idPedido!);
+                        }else{
+                          Swal.fire({
+                            icon: 'error',
+                            title: 'Oops!',
+                            text: data.mensaje,
+                            showConfirmButton: true
+                          });
+                        }
+                      },
+                      (error) => {
+                        console.error('Error al aplicar cupón', error);
+                        Swal.fire({
+                          icon: 'error',
+                          title: 'Oops!',
+                          text: 'No se pudo aplicar el cupón, inténtelo de nuevo.',
+                          showConfirmButton: true
+                        });
+                      });
+                    } else {
+                      this.errorCupon = true;
+                      this.textoErrorCupon = 'El cupón no es válido para los productos del pedido.';
+                    }
+
+                  }else{
+                    this.errorCupon = true;
+                    this.textoErrorCupon = 'El cupón no es válido para el rol del usuario.';
+                  }
+
+                // Swal.fire({
+                //   icon: 'success',
+                //   title: '¡Éxito!',
+                //   text: 'El código de cupón ha sido aplicado correctamente.',
+                //   showConfirmButton: true
+                // });
+                // this.cargarProductosByIdPedido(this.idPedido!); // Recargar los productos del pedido para reflejar el descuento
+              } else {
+                Swal.fire({
+                  icon: 'error',
+                  title: 'Oops!',
+                  text: response.message || 'El código de cupón no es válido o ya ha sido utilizado.',
+                  showConfirmButton: true
+                });
+              }
+            },
+            (error) => {
+              console.error('Error al validar el código de cupón', error);
+              Swal.fire({
+                icon: 'error',
+                title: 'Oops!',
+                text: 'No se pudo validar el código de cupón, inténtelo de nuevo.',
+                showConfirmButton: true
+              });
+            }
+          );
+
+        }else{
+          this.errorCupon = true;
+          this.textoErrorCupon = response.resultado;
+        }
+      },
+      (error) => {
+        console.error('Error al validar el cupón', error);
+        Swal.fire({
+          icon: 'error',
+          title: 'Oops!',
+          text: 'No se pudo validar el cupón, inténtelo de nuevo.',
+          showConfirmButton: true
+        });
+      }
+    );
+    
+  }
+
   totalPedido = 0;
   agregarProducto() {
 
@@ -632,7 +769,11 @@ export class RegistroPedidoComponent implements OnInit, OnDestroy {
       const cantidadNumber = parseInt(cantidad, 10);
       if (!isNaN(cantidadNumber) && cantidadNumber > 0) {
         producto.cantidad = cantidadNumber;
-        producto.subtotal = producto.precio * producto.cantidad;
+        if(producto.tieneDescuento){
+          producto.subtotal = (producto.precio - ((this.pedido.cupon.descuento / 100) * producto.precio)) * producto.cantidad;
+        } else {
+          producto.subtotal = producto.precio * producto.cantidad;
+        }
       } else {
         Swal.fire({
           icon: 'error',
@@ -657,7 +798,11 @@ export class RegistroPedidoComponent implements OnInit, OnDestroy {
       const cantidadNumber = parseInt(cantidad, 10);
       if (!isNaN(cantidadNumber) && cantidadNumber > 0) {
         producto.cantidad = cantidadNumber;
-        producto.subtotal = producto.precio * producto.cantidad;
+        if(producto.tieneDescuento){
+          producto.subtotal = (producto.precio - ((this.pedido.cupon.descuento / 100) * producto.precio)) * producto.cantidad;
+        } else {
+          producto.subtotal = producto.precio * producto.cantidad;
+        }
       } else {
         Swal.fire({
           icon: 'error',
@@ -725,6 +870,7 @@ export class RegistroPedidoComponent implements OnInit, OnDestroy {
                 showConfirmButton: true
               });
               this.cargarProductosByIdPedido(this.idPedido!);
+              this.validarCodigoCupon();
             },
             error: (error) => {
               console.error('Error al eliminar producto del pedido', error);

@@ -1,0 +1,90 @@
+<div class="container-fluid mt-5" style="padding: 0px 60px;">
+	<div class="card shadow-lg p-4 rounded-4">
+		<h2 class="mb-4 text-center">Listado de Cupones</h2>
+
+		<!-- Tabla de Pedidos -->
+		<table class="table table-bordered align-middle mt-0">
+			<thead class="table-primary">
+				<tr>
+					<th scope="col">Código</th>
+					<th scope="col">Descripción</th>
+					<th scope="col">Cliente</th>
+					<th scope="col">Producto</th>
+                    <th scope="col">Descuento</th>
+                    <th scope="col">Monto Mínimo</th>
+					<th scope="col">Inicio</th>
+                    <th scope="col">Fin</th>
+					<th scope="col">Estado</th>
+                    <th scope="col">Acciones</th>
+				</tr>
+			</thead>
+			<tbody>
+				@for (item of cupones; track $index) {
+				<tr>
+					<td>{{item.codigo}}</td>
+					<td>{{item.descripcion}}</td>
+					<td>
+                        @for (rol of item.roles; track $index) {
+                            - {{rol.nombre}}<br>
+                        }
+                    </td>
+					<td>
+                        @for (producto of item.productos; track $index) {
+                            - {{producto.nombre}}<br>
+                        }
+                    </td>
+                    <td>{{item.descuento}}%</td>
+                    <td>S/ {{item.montoMinimo.toFixed(2)}}</td>
+					<td>{{item.fechaInicio | date:'dd/MM/yyyy'}}</td>
+					<td>{{item.fechaFin | date:'dd/MM/yyyy'}}</td>
+                    <td>
+                        @if (item.estado) {
+                            <span class="badge bg-success">Activo</span>
+                        } @else {
+                            <span class="badge bg-danger">Inactivo</span>
+                        }
+                    </td>
+					<td>
+						<button class="btn btn-primary btn-sm me-2" (click)="router.navigate(['/pages/gestion-producto/registro-cupon', item.codigo])">
+							Editar
+						</button>
+                        @if(item.estado) {
+                            <button class="btn btn-danger btn-sm" (click)="desactivarCupon(item.idCupon)">
+                                Desactivar
+                            </button>
+                        }@else {
+                            <button class="btn btn-success btn-sm" (click)="activarCupon(item.idCupon)">
+                                Activar
+                            </button>
+                        }
+					</td>
+				</tr>
+				}
+			</tbody>
+		</table>
+
+		<div class="d-flex justify-content-between p-2">
+			<ngb-pagination
+				[collectionSize]="collectionSize"
+				[(page)]="page"
+				[pageSize]="pageSize"
+				(pageChange)="refreshCupones()"
+			>
+			</ngb-pagination>
+
+			<select class="form-select" style="width: auto" [(ngModel)]="pageSize" (ngModelChange)="refreshCupones()">
+				<option [ngValue]="5">5 items</option>
+				<option [ngValue]="10">10 items</option>
+				<option [ngValue]="15">15 items</option>
+			</select>
+		</div>
+
+		<!-- Botones de Acción -->
+		<!-- <div class="d-flex justify-content-center align-items-center mb-4">
+			@if (lstClientesSeleccionados.length > 0) {
+				<button class="btn btn-dark me-2" (click)="enviarProduccionMasivo()">Enviar a Producción</button>
+			}
+			<button class="btn btn-primary me-2" (click)="router.navigate(['/pages/atencion-cliente/registro-pedido'])">Nuevo Pedido</button>
+		</div> -->
+	</div>
+</div>
