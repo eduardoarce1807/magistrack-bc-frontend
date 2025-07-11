@@ -1,10 +1,15 @@
 <div class="container-fluid mt-5" style="padding: 0px 60px">
 	<div class="card shadow-lg p-4 rounded-4">
+
+		<button style="position: absolute;" class="btn btn-link text-decoration-none p-0" (click)="router.navigate(['/pages/produccion/bandeja-etiquetado'])">
+			<i class="bi bi-arrow-left"></i> Bandeja Etiquetado
+		</button>
+
 		<h2 class="mb-4 text-center">Bandeja de Despacho</h2>
 
 		<!-- Tabla de Pedidos -->
 		<table class="table table-bordered align-middle mt-0">
-			<thead class="bg-primary text-white">
+			<thead class="table-primary">
 				<tr>
 					<th>
 						<input
@@ -50,29 +55,29 @@
 					</td>
 					<td>
 						<button
-							class="btn btn-primary btn-sm me-2"
+							class="btn btn-primary me-2"
 							(click)="router.navigate(['/pages/produccion/registro-despacho', item.idPedido])"
 						>
-							Despacho
+							<i class="bi bi-journal-plus"></i>
 						</button>
 						<button
-							class="btn btn-info btn-sm me-2"
+							class="btn btn-info me-2"
 							(click)="confirmarEntrega(item)"
-							[disabled]="item.estadoPedido.idEstadoPedido == 10"
+							[disabled]="item.estadoPedido.idEstadoPedido == 10 || item.estadoPedido.idEstadoPedido == 8"
 						>
-							Confirmar entrega
+							<i class="bi bi-bag-check"></i>
 						</button>
 						<button
-							class="btn btn-dark btn-sm me-2"
+							class="btn btn-dark me-2"
 							(click)="openModalDatosCliente(datosCliente, item)"
 						>
-							Datos Cliente
+							<i class="bi bi-person-lines-fill"></i>
 						</button>
 						<button
-							class="btn btn-secondary btn-sm"
+							class="btn btn-secondary"
 							(click)="openModalNota(item, nota)"
 						>
-							Nota
+							<i class="bi bi-stickies"></i>
 						</button>
 					</td>
 				</tr>
@@ -124,7 +129,7 @@
                             class="btn btn-dark me-2"
                             (click)="entregaMasivo()"
                         >
-                            Enviar
+                            <i class="bi bi-send"></i>
                         </button>
                     </div>
                 </div>

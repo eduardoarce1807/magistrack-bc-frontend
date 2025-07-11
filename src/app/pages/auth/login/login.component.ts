@@ -29,7 +29,7 @@ export class LoginComponent {
       this.usuarioService.login({ usuario, password }).subscribe(
         (response: any) => {
           const token = response.token;
-          localStorage.setItem('jwt', token);  // Guarda el token en el almacenamiento local
+          localStorage.setItem('jwt-magistrack-bc', token);  // Guarda el token en el almacenamiento local
           localStorage.setItem('usuario-magistrack-bc', JSON.stringify(response.usuario)); // Guarda el usuario en el almacenamiento local
           console.log('Login exitoso', token);
           this.router.navigate(['/pages/home']);

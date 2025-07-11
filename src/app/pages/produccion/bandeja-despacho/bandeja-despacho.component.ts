@@ -105,10 +105,10 @@ export class BandejaDespachoComponent implements OnInit {
 			this.clienteSeleccionado.metodoEntrega =
 				pedido.metodoEntrega.descripcion;
 			this.clienteSeleccionado.direccion = pedido.direccion.direccion;
-			this.clienteSeleccionado.distrito = pedido.direccion.distrito;
-			this.clienteSeleccionado.provincia = pedido.direccion.provincia;
+			this.clienteSeleccionado.distrito = pedido.direccion.distrito.nombre;
+			this.clienteSeleccionado.provincia = pedido.direccion.provincia.nombre;
 			this.clienteSeleccionado.departamento =
-				pedido.direccion.departamento;
+				pedido.direccion.departamento.nombre;
 			this.modalService.open(content, { backdrop: 'static' });
 		});
 	}

@@ -6,6 +6,7 @@ import { TipoPagoService } from '../../services/tipo-pago.service';
 import Swal from 'sweetalert2';
 import { PedidoService } from '../../services/pedido.service';
 import { FormsModule } from '@angular/forms';
+import { UtilDate } from '../../util/util-date';
 
 interface PedidoRequest {
   idCliente: number;
@@ -58,15 +59,35 @@ export class CarritoVentaRapidaComponent implements OnInit {
 
   crearPedido(){
 
+    if(this.carrito.length === 0) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Carrito vacío',
+        text: 'No hay productos en el carrito para procesar la venta.',
+        showConfirmButton: true
+      });
+      return;
+    }
+
+    // Obtener la fecha y hora actual en la zona horaria de Perú (UTC-5)
+    const nowPeru = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Lima' }));
+
+    // Suponiendo que tienes una utilidad UtilDate con el método toPeruIsoString
+    const fechaPedido = UtilDate.toPeruIsoString(nowPeru);
+
+    // Calcular la fecha estimada de entrega (7 días después) en la zona horaria de Perú
+    const fechaEstimadaEntregaDate = new Date(nowPeru.getTime() + 7 * 24 * 60 * 60 * 1000);
+    const fechaEstimadaEntrega = UtilDate.toPeruIsoString(fechaEstimadaEntregaDate);
+
     let request: PedidoRequest = {
-      idCliente: 1, //cliente default ventas
-      fechaPedido: new Date().toISOString(),
-      idEstadoPedido: 2, //pagado
+      idCliente: 15, // cliente generico
+      fechaPedido: fechaPedido.slice(0, 19),
+      idEstadoPedido: 2, // pagado
       idTipoPago: this.idTipoPago,
       observaciones: '',
-      fechaEstimadaEntrega: new Date().toISOString(),
+      fechaEstimadaEntrega: fechaEstimadaEntrega.slice(0, 19),
       montoTotal: this.total,
-      idCanalVenta: 2 //Venta rapida
+      idCanalVenta: 2 // Venta rapida
     };
     this.pedidoService.createPedido(request).subscribe((data: any) => {
       if(data){

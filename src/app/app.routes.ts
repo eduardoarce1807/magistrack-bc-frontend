@@ -3,6 +3,7 @@ import { pagesRoutes } from './pages/pages.routes';
 import { PagesComponent } from './pages/pages.component';
 import { ventaRapidaRoutes } from './venta-rapida/venta-rapida.routes';
 import { VentaRapidaComponent } from './venta-rapida/venta-rapida.component';
+import { AuthGuard } from './guards/auth.guard';
 
 export const routes: Routes = [
     { path: '', redirectTo: 'auth/login', pathMatch: 'full' },

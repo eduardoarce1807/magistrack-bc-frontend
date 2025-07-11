@@ -164,14 +164,15 @@
         <hr>
         <div class="row">
             <div class="col-md-3">
-                <label for="precioVentaFinalRedondeado" class="form-label" style="font-weight: bold;">Precio Venta (Redondeado)</label>
-                <div class="input-group mb-3">
-                    <span class="input-group-text">S/</span>
-                    <input type="number" name="precioVentaFinalRedondeado" [(ngModel)]="precioVentaFinalRedondeado" class="form-control" id="precioVentaFinalRedondeado" placeholder="Ingrese precioVentaFinalRedondeado" required>
-                </div>
+            <label for="precioVentaFinalRedondeado" class="form-label" style="font-weight: bold;">Precio Venta (Redondeado)</label>
+            <div class="input-group mb-3">
+                <span class="input-group-text">S/</span>
+                <input type="number" name="precioVentaFinalRedondeado" [(ngModel)]="precioVentaFinalRedondeado" class="form-control" id="precioVentaFinalRedondeado" placeholder="Ingrese precioVentaFinalRedondeado" required>
+            </div>
             </div>
             <div class="text-end">
-                <button class="btn btn-primary" (click)="savePrecioPersonalizado();">Guardar</button>
+                <button class="btn btn-danger" (click)="router.navigate(['/pages/atencion-cliente/bandeja-personalizacion'])">Cancelar</button>
+                <button class="btn btn-primary ms-2" (click)="savePrecioPersonalizado();">Guardar</button>
             </div>
         </div>
 

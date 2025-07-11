@@ -1,0 +1,95 @@
+<div class="container-fluid mt-5" style="padding: 0px 60px;">
+	<div class="card shadow-lg p-4 rounded-4">
+		<h2 class="mb-4 text-center">Catálogo de Precios</h2>
+
+        <div class="row">
+            <div class="col-6">
+                <label for="nombreCatalogo" class="form-label">Nombre</label>
+                <input [(ngModel)]="nombreCatalogo" [disabled]="catalogosTable.length > 0" name="nombreCatalogo" type="text" class="form-control" id="nombreCatalogo" placeholder="Ej: Precio para dermatólogos" />
+            </div>
+            <div class="col-6">
+                <label for="idRol" class="form-label">Tipo de Cliente</label>
+                <select class="form-select" id="idRol" [(ngModel)]="idRol" (ngModelChange)="cargarCatalogosPrecio()">
+                    <option *ngFor="let rol of roles" [value]="rol.idRol">{{ rol.nombre }}</option>
+                </select>
+            </div>
+        </div>
+
+		<!-- Tabla de Pedidos -->
+        <div class="row align-items-center mt-3">
+            <div class="col">
+                <h5 class="mb-2">Precios por producto</h5>
+            </div>
+            <div class="col-auto ms-auto text-end" *ngIf="catalogo != null">
+                <button class="btn btn-primary">Agregar producto</button>
+            </div>
+        </div>
+		<table *ngIf="catalogosTable.length > 0" class="table table-bordered align-middle mt-2">
+			<thead class="table-primary">
+				<tr>
+					<th scope="col">Código</th>
+					<th scope="col">Nombre</th>
+					<th scope="col">Costo (S/)</th>
+					<th scope="col">% Margen</th>
+                    <th scope="col">Precio (S/)</th>
+                    <th scope="col">Acciones</th>
+				</tr>
+			</thead>
+			<tbody>
+				@for (item of catalogos; track $index) {
+				<tr>
+					<td>{{item.producto.idProducto}}</td>
+					<td>{{item.producto.nombre}}</td>
+					<td>{{item.costo.toFixed(2)}}</td>
+					<td>{{item.margen}}%</td>
+					<td>{{item.precio.toFixed(2)}}</td>
+					<td>
+						<button class="btn btn-primary btn-sm me-2" (click)="router.navigate(['/pages/gestion-producto/registro-cupon', item.producto.idProducto])">
+							Editar
+						</button>
+					</td>
+				</tr>
+				}
+			</tbody>
+		</table>
+
+        <div *ngIf="catalogo == null && catalogosTable.length === 0" class="d-flex justify-content-between p-2">
+            <div class="w-100 text-center" *ngIf="catalogosTable.length === 0">
+                <span class="me-3">No existe un catálogo para el tipo de cliente seleccionado.</span>
+                <br>
+                <button class="btn btn-success mt-2" (click)="crearCatalogo()">Crear catálogo</button>
+            </div>
+        </div>
+
+        <div *ngIf="catalogo != null" class="d-flex justify-content-between p-2">
+            <div class="w-100 text-center" *ngIf="catalogosTable.length === 0">
+                <span class="me-3">El catálogo creado no tiene productos agregados, por favor agregue productos.</span>
+            </div>
+        </div>
+
+
+		<div class="d-flex justify-content-between p-2">
+			<ngb-pagination
+				[collectionSize]="collectionSize"
+				[(page)]="page"
+				[pageSize]="pageSize"
+				(pageChange)="refreshCatalogos()"
+			>
+			</ngb-pagination>
+
+			<select class="form-select" style="width: auto" [(ngModel)]="pageSize" (ngModelChange)="refreshCatalogos()">
+				<option [ngValue]="5">5 items</option>
+				<option [ngValue]="10">10 items</option>
+				<option [ngValue]="15">15 items</option>
+			</select>
+		</div>
+
+		<!-- Botones de Acción -->
+		<!-- <div class="d-flex justify-content-center align-items-center mb-4">
+			@if (lstClientesSeleccionados.length > 0) {
+				<button class="btn btn-dark me-2" (click)="enviarProduccionMasivo()">Enviar a Producción</button>
+			}
+			<button class="btn btn-primary me-2" (click)="router.navigate(['/pages/atencion-cliente/registro-pedido'])">Nuevo Pedido</button>
+		</div> -->
+	</div>
+</div>

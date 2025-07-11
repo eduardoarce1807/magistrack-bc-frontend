@@ -15,6 +15,8 @@
 					<th scope="col">Código de Pedido</th>
 					<th scope="col">Fecha de Pedido</th>
 					<th scope="col">Monto (S/)</th>
+					<th scope="col">FEE (Fecha Estimada de Entrega)</th>
+					<th scope="col">Método de Pago</th>
 					<th scope="col">Estado del Pedido</th>
 					<th scope="col">Acciones</th>
 				</tr>
@@ -23,15 +25,23 @@
 				@for (item of pedidos; track $index) {
 				<tr>
 					<td>{{item.idPedido}}</td>
-					<td>{{item.fechaPedido}}</td>
+					<td>{{item.fechaPedido | date:'dd/MM/yyyy'}}</td>
 					<td>S/ {{item.montoTotal.toFixed(2)}}</td>
+					<td>
+						{{item.fechaEstimadaEntrega | date:'dd/MM/yyyy'}}
+					</td>
+					<td>{{item.tipoPago ? item.tipoPago.descripcion : '-'}}</td>
 					<td>{{item.estadoPedidoCliente.descripcion}}</td>
 					<td>
 						@if (item.estadoPedido.idEstadoPedido == 1) {
 							<button class="btn btn-primary me-2" (click)="router.navigate(['/pages/atencion-cliente/registro-pedido', item.idPedido])">
-								Editar
+								<i class="bi bi-pencil-square"></i>
 							</button>
-							<button class="btn btn-danger" (click)="borrarPedido(item.idPedido)">Eliminar</button>
+							<button class="btn btn-danger" (click)="borrarPedido(item.idPedido)"><i class="bi bi-trash3-fill"></i></button>
+						} @else{
+							<button class="btn btn-primary me-2" (click)="router.navigate(['/pages/atencion-cliente/registro-pedido', item.idPedido])">
+								<i class="bi bi-arrow-return-left"></i>
+							</button>
 						}
 					</td>
 				</tr>
@@ -41,8 +51,8 @@
 
 		<hr>
 
-		<div class="d-flex justify-content-end align-items-center">
-			<button class="btn btn-primary me-2" (click)="router.navigate(['/pages/atencion-cliente/registro-pedido'])">Nuevo Pedido</button>
+		<div class="d-flex justify-content-center align-items-center">
+			<button class="btn btn-primary me-2" (click)="router.navigate(['/pages/atencion-cliente/registro-pedido'])"><i class="bi bi-plus-circle"></i> Nuevo Pedido</button>
 			<!-- <button class="btn btn-secondary me-2">Historial de Ventas</button>
 			<button class="btn btn-info">Registrar Reacciones</button> -->
 		</div>

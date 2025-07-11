@@ -14,7 +14,7 @@ export class DataService {
   }
 
   clearLoggedUser(): void {
-    localStorage.removeItem('jwt'); // Elimina el token del almacenamiento local
+    localStorage.removeItem('jwt-magistrack-bc'); // Elimina el token del almacenamiento local
     localStorage.removeItem('usuario-magistrack-bc');
   }
 }

@@ -1,4 +1,4 @@
-@import "primeicons/primeicons.css";
+//@import "primeicons/primeicons.css";
 @import "tailwindcss";
 @import "bootstrap/scss/bootstrap";
 // Update the import directory to point to it‘s location within node_modules
@@ -11,4 +11,8 @@ $bootstrap-icons-font-dir: "bootstrap-icons/font/fonts";
 
 /* Importing Bootstrap SCSS file. */
 //v@import 'bootstrap/scss/bootstrap';*/
-
+@import url("https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap");
+@import "primeicons/primeicons.css";
+//@import url("https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap");
+//@import "primeng/resources/themes/lara-light-blue/theme.css";
+//@import "primeng/resources/primeng.css";

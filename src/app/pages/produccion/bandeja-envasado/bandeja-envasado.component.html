@@ -1,10 +1,18 @@
 <div class="container-fluid mt-5" style="padding: 0px 60px">
 	<div class="card shadow-lg p-4 rounded-4">
+		<button style="position: absolute;" class="btn btn-link text-decoration-none p-0" (click)="router.navigate(['/pages/produccion/bandeja-calidad'])">
+			<i class="bi bi-arrow-left"></i> Bandeja Calidad
+		</button>
+
 		<h2 class="mb-4 text-center">Bandeja de Envasado</h2>
+
+		<button style="position: absolute; right: 30px;" class="btn btn-link text-decoration-none p-0" (click)="router.navigate(['/pages/produccion/bandeja-etiquetado'])">
+			Bandeja Etiquetado <i class="bi bi-arrow-right"></i>
+		</button>
 
 		<!-- Tabla de Pedidos -->
 		<table class="table table-bordered align-middle mt-0">
-			<thead class="bg-primary text-white">
+			<thead class="table-primary">
 				<tr>
 					<th>
 						<input
@@ -53,22 +61,22 @@
 					</td>
 					<td>
 						<button
-							class="btn btn-info btn-sm me-2"
+							class="btn btn-info me-2"
 							(click)="enviarEtiquetado(item)"
 						>
-							Enviar
+							<i class="bi bi-send"></i>
 						</button>
 						<button
-							class="btn btn-dark btn-sm me-2"
+							class="btn btn-dark me-2"
 							(click)="getHojaProduccion(item.idProducto)"
 						>
-							Procedimiento
+							<i class="bi bi-journal-text"></i>
 						</button>
 						<button
-							class="btn btn-secondary btn-sm"
+							class="btn btn-secondary"
 							(click)="openModalNota(item, nota)"
 						>
-							Nota
+							<i class="bi bi-stickies"></i>
 						</button>
 					</td>
 				</tr>
@@ -120,11 +128,11 @@
                             class="btn btn-dark me-2"
                             (click)="enviarMasivo()"
                         >
-                            Enviar
+                            <i class="bi bi-send"></i>
                         </button>
                     </div>
                     <div class="col-2 ms-auto d-flex justify-content-end">
-                        <button class="btn btn-dark" (click)="openModalCodigoBarras(codigosBarra)">Imprimir códigos barra</button>
+                        <button class="btn btn-dark" (click)="openModalCodigoBarras(codigosBarra)"><i class="bi bi-printer-fill"></i> Imprimir códigos barra</button>
                     </div>
                 </div>
 			</div>
@@ -264,7 +272,7 @@
             </div>
         </div>
         <div class="d-flex justify-content-center mt-3">
-            <button class="btn btn-primary" (click)="imprimirCodigosBarra('barcodeDiv')">Imprimir</button>
+            <button class="btn btn-primary" (click)="imprimirCodigosBarra('barcodeDiv')"><i class="bi bi-printer-fill"></i> Imprimir</button>
         </div>
 	</div>
 </ng-template>

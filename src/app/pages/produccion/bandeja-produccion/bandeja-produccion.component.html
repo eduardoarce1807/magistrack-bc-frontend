@@ -1,10 +1,19 @@
 <div class="container-fluid mt-5" style="padding: 0px 60px">
 	<div class="card shadow-lg p-4 rounded-4">
+
+		<button style="position: absolute;" class="btn btn-link text-decoration-none p-0" (click)="router.navigate(['/pages/atencion-cliente/bandeja-pedidos-administrador'])">
+			<i class="bi bi-arrow-left"></i> Bandeja Pedidos
+		</button>
+
 		<h2 class="mb-4 text-center">Bandeja de Producción</h2>
+
+		<button style="position: absolute; right: 30px;" class="btn btn-link text-decoration-none p-0" (click)="router.navigate(['/pages/produccion/bandeja-calidad'])">
+			Bandeja Calidad <i class="bi bi-arrow-right"></i>
+		</button>
 
 		<!-- Tabla de Pedidos -->
 		<table class="table table-bordered align-middle mt-0">
-			<thead class="bg-primary text-white">
+			<thead class="table-primary">
 				<tr>
 					<th>
 						<input
@@ -26,7 +35,10 @@
 			</thead>
 			<tbody>
 				@for (item of productos; track $index) {
-				<tr>
+				<tr [ngClass]="{
+						'table-warning': item.idEstadoProducto == 2,
+						'table-success': item.idEstadoProducto == 3
+					}">
 					<td>
 						<input
 							class="form-check-input"
@@ -39,43 +51,44 @@
 									$event
 								)
 							"
-							[disabled]="(tipoEnvio == 0 && item.estadoPedido == 'En producción') || (tipoEnvio == 1 && item.estadoPedido == 'En cola')"
+							[disabled]="(tipoEnvio == 0 && item.idEstadoProducto == 3) || (tipoEnvio == 1 && item.idEstadoProducto == 2)"
 						/>
 					</td>
 
 					<td>{{ item.idProducto }}</td>
 					<td>{{ item.nombre }}</td>
-					<td>{{ item.presentacion }}</td>
-					<td>{{ item.estadoPedido }}</td>
+					<td>{{ item.presentacion }} {{item.tipoPresentacion}}</td>
+					<td>{{ item.estadoProducto }}</td>
 					<td>
 						<span>{{ item.personalizado ? "Sí" : "No" }}</span>
 					</td>
 					<td>{{ item.cantidad }}</td>
 					<td>
 						<button
-							[disabled]="item.estadoPedido == 'En producción'"
-							class="btn btn-primary btn-sm me-2"
+							[disabled]="item.idEstadoProducto == 3"
+							class="btn btn-primary me-2"
 							(click)="recibirProducto(item)"
 						>
-							Recibir
+							<i class="bi bi-download"></i>
 						</button>
 						<button
-							class="btn btn-dark btn-sm me-2"
+							class="btn btn-dark me-2"
 							(click)="getHojaProduccion(item.idProducto)"
 						>
-							Procedimiento
+							<i class="bi bi-journal-text"></i>
 						</button>
 						<button
-							class="btn btn-info btn-sm me-2"
+							[disabled]="item.idEstadoProducto == 2"
+							class="btn btn-info me-2"
 							(click)="enviarCalidad(item)"
 						>
-							Enviar
+							<i class="bi bi-send"></i>
 						</button>
 						<button
-							class="btn btn-danger btn-sm"
+							class="btn btn-secondary"
 							(click)="openModalNota(item, nota)"
 						>
-							Nota
+							<i class="bi bi-stickies"></i>
 						</button>
 					</td>
 				</tr>
@@ -120,7 +133,7 @@
 					</div>
 					<div class="col-2">
 						<button class="btn btn-dark me-2" (click)="enviarMasivo()">
-						Enviar
+						<i class="bi bi-send"></i>
 					</button>
 					</div>
 				</div>

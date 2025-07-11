@@ -45,7 +45,7 @@
 		#dt
 		[value]="listaRequerimientos"
 		[(selection)]="selectedCustomers"
-		dataKey="id"
+		dataKey="codigo"
 		[rowHover]="true"
 		[rows]="5"
 		[showCurrentPageReport]="true"
@@ -378,11 +378,11 @@
 				</ng-template>
 			</p-fileUpload>
 		</div>
-
-		<div class="text-end mt-2">
-			<p-button  icon="pi pi-trash" [outlined]="true" label="Cancelar" class="mx-1" severity="secondary"  />
-			<p-button  icon="pi pi-save" label="Generar Orden" class="mx-1" severity="success"  />
-		</div>
+		<ng-template pTemplate="footer">
+			<div class="text-end mt-2">
+				<p-button  icon="pi pi-trash" [outlined]="true" label="Cancelar" class="mx-1" severity="secondary"  />
+				<p-button  icon="pi pi-save" label="Enviar Respuesta" class="mx-1" severity="success"  />
+			</div></ng-template>
 	</p-dialog>
 }
 

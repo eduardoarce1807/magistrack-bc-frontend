@@ -3,10 +3,38 @@
 		<h2 class="mb-4 text-center">Pago de Pedido</h2>
 
 		<div class="row mb-2">
-			<div id="myPaymentForm">
-				<div class="kr-smart-form" kr-card-form-expanded></div>
+			<div class="col-md-6">
+				<label for="idPedido" class="form-label">ID Pedido</label>
+				<input type="text" id="idPedido" class="form-control" [value]="idPedido" readonly>
 			</div>
-			<div data-test="payment-message">{{ message }}</div>
+			<div class="col-md-6">
+				<label for="montoTotal" class="form-label">Monto Total</label>
+				<div class="input-group mb-3">
+                    <span class="input-group-text">S/</span>
+					<input type="text" id="montoTotal" class="form-control" [value]="pedido.montoTotal" readonly>
+                </div>
+			</div>
+		</div>
+		<div class="row mb-2">
+			<div class="col-md-6">
+				<label for="cliente" class="form-label">Cliente</label>
+				<input type="text" id="cliente" class="form-control" [value]="pedido.cliente.nombres + ' ' + pedido.cliente.apellidos" readonly>
+			</div>
+			<div class="col-md-6">
+				<label for="fechaPedido" class="form-label">Fecha del Pedido</label>
+				<input type="text" id="fechaPedido" class="form-control" [value]="pedido.fechaPedido | date:'dd/MM/yyyy'" readonly>
+			</div>
+		</div>
+		<hr>
+		<div class="row mt-2 justify-content-center">
+			@if(dataService.getLoggedUser().rol.idRol == 1){
+				<div class="col-md-6 d-flex justify-content-center mb-2 mb-md-0">
+					<button class="btn btn-primary col-12" type="button" (click)="openModal(pagoManualTemplate)"><i class="bi bi-pencil-square"></i> Pago manual</button>
+				</div>
+			}
+			<div class="col-md-6 d-flex justify-content-center">
+				<button class="btn btn-danger col-12" type="button" (click)="openModalIziPay(pagoIzipay)"><i class="bi bi-credit-card"></i> Tarjeta (IziPay)</button>
+			</div>
 		</div>
 
 		<!-- <hr>
@@ -16,3 +44,83 @@
 		</div> -->
 	</div>
 </div>
+
+<ng-template #pagoIzipay let-modal>
+	<div class="modal-header">
+		<h4 class="modal-title">Pago IziPay</h4>
+		<button type="button" class="btn-close" aria-label="Close" (click)="modal.dismiss('Cross click');cancelarPagoIziPay()"></button>
+	</div>
+	<div class="modal-body">
+		<div class="row mb-2">
+			<div id="myPaymentForm">
+				<div class="kr-smart-form" kr-card-form-expanded></div>
+			</div>
+			<div data-test="payment-message">{{ message }}</div>
+		</div>
+	</div>
+</ng-template>
+
+<ng-template #pagoManualTemplate let-modal>
+	<form (ngSubmit)="onPagarManual()" #pagoManualForm="ngForm">
+		<div class="modal-header">
+			<h4 class="modal-title">Registrar Pago Manual</h4>
+			<button type="button" class="btn-close" aria-label="Close" (click)="modal.dismiss('Cross click')"></button>
+		</div>
+		<div class="modal-body">
+			<div class="mb-3">
+				<label for="manualIdPedido" class="form-label">ID Pedido</label>
+				<input type="text" id="manualIdPedido" class="form-control" [value]="idPedido" readonly>
+			</div>
+			<div class="mb-3">
+				<label for="manualCliente" class="form-label">Nombre del Cliente</label>
+				<input type="text" id="manualCliente" class="form-control" [value]="pedido.cliente.nombres + ' ' + pedido.cliente.apellidos" readonly>
+			</div>
+			<div class="mb-3">
+				<label for="manualMontoPagado" class="form-label">Monto Pagado</label>
+				<div class="input-group mb-3">
+                    <span class="input-group-text">S/</span>
+					<input type="text" id="manualMontoPagado" class="form-control" [value]="pedido.montoTotal" readonly>
+                </div>
+			</div>
+			<div class="mb-3">
+				<label for="metodoPago" class="form-label">Método de Pago*</label>
+				<select [(ngModel)]="pagoManual.idTipoPago" id="metodoPago" class="form-select" required name="metodoPago">
+					<option [ngValue]="0" disabled selected>Seleccione un método</option>
+					<option *ngFor="let tipo of lstTiposPago" [ngValue]="tipo.idTipoPago">{{ tipo.descripcion }}</option>
+				</select>
+			</div>
+
+			@if (pagoManual.idTipoPago == 3) {
+				<div class="mb-3">
+					<label for="banco" class="form-label">Banco*</label>
+					<select [(ngModel)]="pagoManual.idBanco" id="banco" class="form-select" required name="banco">
+						<option [ngValue]="null" disabled selected>Seleccione un banco</option>
+						<option *ngFor="let banco of lstBancos" [ngValue]="banco.idBanco">{{ banco.nombre }}</option>
+					</select>
+				</div>
+			}
+
+			<div class="mb-3">
+				<label for="numeroOperacion" class="form-label">Número de Operación*</label>
+				<input type="text" id="numeroOperacion" class="form-control" [(ngModel)]="pagoManual.numeroOperacion" required name="numeroOperacion">
+			</div>
+			<div class="mb-3">
+				<label for="fechaPago" class="form-label">Fecha de Pago*</label>
+				<input type="date" id="fechaPago" class="form-control" [(ngModel)]="pagoManual.fechaPago" required name="fechaPago">
+			</div>
+
+			<div class="mb-3">
+				<label for="archivoInput" class="form-label">Adjunto</label>
+				<input type="file"
+						id="archivoInput"
+						class="form-control"
+						(change)="onArchivoSeleccionado($event)">
+
+			</div>
+		</div>
+		<div class="modal-footer">
+			<button type="button" class="btn btn-secondary" (click)="modal.dismiss('cancel')">Cancelar</button>
+			<button type="submit" class="btn btn-success" [disabled]="!pagoManualForm.form.valid">Registrar Pago</button>
+		</div>
+	</form>
+</ng-template>

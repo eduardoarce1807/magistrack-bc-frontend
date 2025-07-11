@@ -20,8 +20,8 @@ export class ProductoService {
 
   constructor(private http: HttpClient) { }
 
-  getProductos(): Observable<Producto[]> {
-    return this.http.get<Producto[]>(this.baseUrl);
+  getProductos(): Observable<any[]> {
+    return this.http.get<any[]>(this.baseUrl);
   }
 
   getBuscarProductos(nombre: string): Observable<any[]> {

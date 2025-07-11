@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { PedidoService } from '../../../services/pedido.service';
 import { Router } from '@angular/router';
 import Swal from 'sweetalert2';
-import { DecimalPipe } from '@angular/common';
+import { CommonModule, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
 	NgbTypeaheadModule,
@@ -15,7 +15,7 @@ import { ProductoService } from '../../../services/producto.service';
 @Component({
 	selector: 'app-bandeja-pedidos-administrador',
 	standalone: true,
-	imports: [FormsModule, NgbTypeaheadModule, NgbPaginationModule],
+	imports: [FormsModule, NgbTypeaheadModule, NgbPaginationModule, CommonModule],
 	templateUrl: './bandeja-pedidos-administrador.component.html',
 	styleUrl: './bandeja-pedidos-administrador.component.scss',
 })
@@ -41,7 +41,7 @@ export class BandejaPedidosAdministradorComponent implements OnInit {
 	}
 
 	cargarPedidos(): void {
-		this.pedidoService.getPedidosAll().subscribe(
+		this.pedidoService.getPedidosCompleto().subscribe(
 			(pedidos) => {
 				this.pedidosTable = pedidos;
 				this.collectionSize = this.pedidosTable.length;
@@ -75,26 +75,38 @@ export class BandejaPedidosAdministradorComponent implements OnInit {
 	}
 
 	borrarPedido(idPedido: string): void {
-		this.pedidoService.deletePedido(idPedido).subscribe({
-			next: (response) => {
-				Swal.fire({
-					icon: 'success',
-					title: '¡Listo!',
-					text: 'El pedido ha sido eliminado correctamente.',
-					showConfirmButton: true,
-				}).then(() => {
-					this.cargarPedidos();
+
+		Swal.fire({
+			title: '¿Estás seguro?',
+			text: `¿Deseas eliminar el pedido "${idPedido}"? Esta acción no se puede deshacer.`,
+			icon: 'question',
+			showCancelButton: true,
+			confirmButtonText: 'Sí, eliminar',
+			cancelButtonText: 'Cancelar',
+		}).then((result) => {
+			if (result.isConfirmed) {
+				this.pedidoService.deletePedido(idPedido).subscribe({
+					next: (response) => {
+						Swal.fire({
+							icon: 'success',
+							title: '¡Listo!',
+							text: 'El pedido ha sido eliminado correctamente.',
+							showConfirmButton: true,
+						}).then(() => {
+							this.cargarPedidos();
+						});
+					},
+					error: (error) => {
+						console.error('Error al eliminar el pedido', error);
+						Swal.fire({
+							icon: 'error',
+							title: 'Oops!',
+							text: 'No se pudo eliminar el pedido, inténtelo de nuevo.',
+							showConfirmButton: true,
+						});
+					},
 				});
-			},
-			error: (error) => {
-				console.error('Error al eliminar el pedido', error);
-				Swal.fire({
-					icon: 'error',
-					title: 'Oops!',
-					text: 'No se pudo eliminar el pedido, inténtelo de nuevo.',
-					showConfirmButton: true,
-				});
-			},
+			}
 		});
 	}
 

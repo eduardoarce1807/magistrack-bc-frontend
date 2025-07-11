@@ -29,7 +29,12 @@ export class SidebarComponent {
 							key: '0_0',
 							label: 'Registro de Cliente',
 							command: () => this.irA('pages/atencion-cliente/registro-cliente')
-						}
+						},
+						{
+							key: '0_0',
+							label: 'Mantenimiento de Cliente',
+							command: () => this.irA('pages/atencion-cliente/mantenimiento-clientes')
+						},
 					] : []),
 					{
 						key: '0_1',
@@ -51,6 +56,16 @@ export class SidebarComponent {
 							key: '0_4',
 							label: 'Venta rápida',
 							command: () => this.irA('venta-rapida/productos-venta-rapida')
+						},
+						{
+							key: '0_5',
+							label: 'Visualizador de pagos',
+							command: () => this.irA('pages/atencion-cliente/visualizador-pagos')
+						},
+						{
+							key: '0_6',
+							label: 'Reporte de Ventas',
+							command: () => this.irA('pages/atencion-cliente/reporte-ventas')
 						}
 					] : [])
 				]
@@ -97,6 +112,21 @@ export class SidebarComponent {
 							key: '2_0',
 							label: 'Registro de Producto',
 							command: () => this.irA('pages/gestion-producto/registro-producto')
+						},
+						{
+							key: '2_1',
+							label: 'Registro de Cupón',
+							command: () => this.irA('pages/gestion-producto/registro-cupon')
+						},
+						{
+							key: '2_2',
+							label: 'Listado de Cupones',
+							command: () => this.irA('pages/gestion-producto/listado-cupones')
+						},
+						{
+							key: '2_3',
+							label: 'Catálogo de Precios',
+							command: () => this.irA('pages/gestion-producto/catalogo-precios')
 						}
 					]
 				},

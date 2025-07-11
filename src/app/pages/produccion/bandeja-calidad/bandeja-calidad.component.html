@@ -1,10 +1,18 @@
 <div class="container-fluid mt-5" style="padding: 0px 60px;">
 	<div class="card shadow-lg p-4 rounded-4">
+		<button style="position: absolute;" class="btn btn-link text-decoration-none p-0" (click)="router.navigate(['/pages/produccion/bandeja-produccion'])">
+			<i class="bi bi-arrow-left"></i> Bandeja Producción
+		</button>
+
 		<h2 class="mb-4 text-center">Bandeja de Calidad</h2>
+
+		<button style="position: absolute; right: 30px;" class="btn btn-link text-decoration-none p-0" (click)="router.navigate(['/pages/produccion/bandeja-envasado'])">
+			Bandeja Envasado <i class="bi bi-arrow-right"></i>
+		</button>
 
 		<!-- Tabla de Pedidos -->
 		<table class="table table-bordered align-middle mt-0">
-			<thead class="bg-primary text-white">
+			<thead class="table-primary">
 				<tr>
 					<th>
 						<input
@@ -74,28 +82,28 @@
 						/>
 					</td>
 					<td>
-						<button class="btn btn-info btn-sm me-2" [disabled]="
+						<button class="btn btn-info me-2" [disabled]="
 								item.phCalidad === null ||
 								item.phCalidad === '' ||
 								item.phCalidad < item.phDefinidoMin ||
 								item.phCalidad > item.phDefinidoMax
 							"
 							(click)="enviarEnvasado(item)">
-							Enviar
+							<i class="bi bi-send"></i>
 						</button>
-						<button class="btn btn-dark btn-sm me-2" (click)="getHojaProduccion(item.idProducto)">
-							Procedimiento
+						<button class="btn btn-dark me-2" (click)="getHojaProduccion(item.idProducto)">
+							<i class="bi bi-journal-text"></i>
 						</button>
-						<button class="btn btn-danger btn-sm me-2" (click)="regresarAProduccion(item)" [disabled]="
+						<button class="btn btn-danger me-2" (click)="regresarAProduccion(item)" [disabled]="
 								!(item.phCalidad === null ||
 								item.phCalidad === '' ||
 								item.phCalidad < item.phDefinidoMin ||
 								item.phCalidad > item.phDefinidoMax)
 							">
-							Regresar a Prod.
+							<i class="bi bi-backspace"></i>
 						</button>
-                        <button class="btn btn-secondary btn-sm" (click)="openModalNota(item, nota)">
-                            Nota
+                        <button class="btn btn-secondary" (click)="openModalNota(item, nota)">
+                            <i class="bi bi-stickies"></i>
                         </button>
 					</td>
 				</tr>
@@ -135,7 +143,7 @@
 					</div>
 					<div class="col-2">
 						<button class="btn btn-dark me-2" (click)="enviarMasivo()" [disabled]="isLoading">
-						Enviar
+						<i class="bi bi-send"></i>
 					</button>
 					</div>
 				</div>

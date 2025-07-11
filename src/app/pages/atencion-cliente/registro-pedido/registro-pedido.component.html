@@ -1,6 +1,9 @@
 <div class="container-fluid mt-5" style="padding: 0px 60px;">
 	<div class="card shadow-lg p-4 rounded-4">
-		<h2 class="mb-4 text-center">Registro de Pedido</h2>
+		<button style="position: absolute;" class="btn btn-link text-decoration-none p-0" (click)="goBandejaPedidos()">
+			<i class="bi bi-arrow-left"></i> Regresar a bandeja de pedidos
+		</button>
+		<h2 style="text-align: center;">Registro de Pedido</h2>
 
 		<div class="d-flex justify-content-start mb-3">
 			<div class="text-start">
@@ -20,7 +23,7 @@
 			</div>
 		</div>
 		<div class="row mb-2">
-			<div class="col-md-8">
+			<div class="col-md-6">
 				<div class="position-relative">
 					<div class="input-group">
 						<input
@@ -35,7 +38,7 @@
 							type="button"
 							(click)="buscarProducto()"
 						>
-							Buscar
+							<i class="bi bi-search"></i> Buscar
 						</button>
 					</div>
 					<ul
@@ -52,33 +55,39 @@
 							(click)="selectProducto(producto)"
 							class="list-group-item list-group-item-action"
 						>
-							{{ producto.nombre }} - {{producto.presentacion}}
+							{{ producto.nombre }} - {{producto.presentacion + ' ' + producto.tipoPresentacion.descripcion}}
 						</li>
 					</ul>
 				</div>
 			</div>
 			<div class="col-md-2">
+				<button class="btn btn-dark w-100" (click)="openModalBusquedaAvanzada(busquedaAvanzada)">Búsqueda Avanzada</button>
+			</div>
+			<div class="col-md-2">
 				<input [(ngModel)]="cantidad" type="text" class="form-control" placeholder="Ej: 2" />
 			</div>
 			<div class="col-md-2">
-				<button class="btn btn-primary w-100" (click)="agregarProducto()">Agregar a Pedido</button>
+				<button class="btn btn-primary w-100" (click)="agregarProducto()"><i class="bi bi-plus-circle"></i> Agregar a Pedido</button>
 			</div>
 		</div>
 		}
 
 		<!-- Tabla de Productos -->
 		<table
-			class="table table-striped table-hover table-bordered align-middle mt-4"
+			class="table table-bordered align-middle mt-4"
 		>
 			<thead class="table-primary">
 				<tr>
 					<th scope="col">Código</th>
 					<th scope="col">Producto</th>
 					<th scope="col">Descripción</th>
+					<th scope="col">Personalizado</th>
 					<th scope="col">Cantidad</th>
 					<th scope="col">Precio Unitario</th>
 					<th scope="col">Subtotal</th>
-					<th scope="col">Personalizado</th>
+					@if (pedido.cupon) {
+						<th scope="col">Descuento</th>
+					}
 					<th scope="col">Opciones</th>
 				</tr>
 			</thead>
@@ -89,6 +98,13 @@
 					<td>{{item.nombre}}</td>
 					<td>{{item.descripcion}}</td>
 					<td>
+						@if (item.personalizado) {
+							<span class="badge bg-success">Sí</span>
+						} @else {
+							<span class="badge bg-danger">No</span>
+						}
+					</td>
+					<td style="max-width: 50px;">
 						<input
 							type="number"
 							class="form-control form-control-sm"
@@ -101,8 +117,15 @@
 					<td>
 						@if (item.personalizado && !item.precioPersonalizado) {
 							-
-						} @else  {
-							S/ {{item.precio.toFixed(2)}}
+						} @else if(!item.tieneDescuento)  {
+							<div class="d-flex justify-content-end align-items-center">
+								<span>S/ {{item.precio.toFixed(2)}}</span>
+							</div>
+						} @else if(pedido.cupon) {
+							<div class="d-flex justify-content-between align-items-center">
+								<span style="text-decoration:line-through; font-size: 11pt;">S/ {{item.precio.toFixed(2)}}</span>
+								<span>S/ {{(item.precio - ((pedido.cupon.descuento / 100) * item.precio)).toFixed(2)}}</span>
+							</div>
 						}
 					</td>
 					<td>
@@ -112,89 +135,319 @@
 							S/ {{item.subtotal.toFixed(2)}}
 						}
 					</td>
-					<td>
-						@if (item.personalizado) {
-							<span class="badge bg-success">Sí</span>
-						} @else {
-							<span class="badge bg-danger">No</span>
-						}
-					</td>
-					<td>
+					@if (pedido.cupon) {
+						<td>
+							@if (item.tieneDescuento) {
+								{{pedido.cupon.descuento}}%
+							} @else {
+								-
+							}
+						</td>
+					}
+					<td style="min-width: 90px">
 						@if (pedido.estadoPedido.idEstadoPedido == 1) {
-							<button class="btn btn-danger btn-sm me-2" (click)="eliminarProducto(item)">Quitar</button>
+							<button class="btn btn-danger btn-sm me-2" (click)="eliminarProducto(item)"><i class="bi bi-trash3-fill"></i></button>
 						}
-						@if (idRol == 1) {
+						@if (idRol == 1 && pedido.estadoPedido.idEstadoPedido == 1) {
 						<button class="btn btn-primary btn-sm" (click)="router.navigate(['/pages/atencion-cliente/personalizacion-producto', idPedido, item.idProducto])">
-							Personalizar
+							<i class="bi bi-pencil-square"></i>
 						</button>
 						}
 					</td>
 				</tr>
 				}
+				<tr>
+					<td colspan="6" class="text-end fw-bold">Total Pedido:</td>
+					<td colspan="2" class="fw-bold">
+						S/ {{totalPedido.toFixed(2)}}
+				</tr>
 			</tbody>
 		</table>
+
+		<div class="row">
+			<div class="col-4">
+				<label class="form-label" for="cuponDescuento">Cupón de Descuento</label>
+				<div class="input-group">
+					<input
+						type="text"
+						class="form-control"
+						placeholder="Ingrese el código del cupón"
+						aria-label="Código del cupón"
+						[(ngModel)]="codigoCupon"
+						[disabled]="pedido.estadoPedido.idEstadoPedido > 1"
+					/>
+					<button
+						class="btn btn-dark"
+						type="button"
+						(click)="validarCodigoCupon()"
+						[disabled]="pedido.estadoPedido.idEstadoPedido > 1"
+					>
+						<i class="bi bi-search"></i> Validar
+					</button>
+				</div>
+				@if(errorCupon){
+					<div class="form-text text-danger">
+						*{{textoErrorCupon}}
+					</div>
+				}@else if(cuponValidado){
+					<div class="form-text text-success">
+						*{{textoCupon}}
+					</div>
+				}
+			</div>
+		</div>
+
+		<!-- <div class="d-flex justify-content-end mb-3">
+			<span class="fw-bold">Total Pedido: S/ {{totalPedido.toFixed(2)}}</span>
+		</div> -->
 
 		<!-- <div class="d-flex justify-content-end align-items-center">
 			<button class="btn btn-primary me-2">Guardar Pedido</button>
 		</div> -->
+		@if (idPedido != null) {
+			<hr>
+			<div class="row">
+				<div [className]="idMetodoEntregaSeleccionado == 2 && pedido.estadoPedido.idEstadoPedido == 1 ? 'col-md-4' : 'col-md-5'">
+					<label for="metodoEntrega" class="form-label">Método de Entrega*</label>
+					
+				</div>
+				<div [className]="idMetodoEntregaSeleccionado == 2 && pedido.estadoPedido.idEstadoPedido == 1 ? 'col-md-6' : 'col-md-7'">
+					<label for="direccionEntrega" class="form-label">Dirección de Entrega*</label>
+				</div>
+			</div>
 
-		<hr>
-
-		<div class="row">
-			<div class="col-md-5">
-				<label for="metodoEntrega" class="form-label">Método de Entrega</label>
-				
+			<div class="row">
+				<div [className]="idMetodoEntregaSeleccionado == 2 && pedido.estadoPedido.idEstadoPedido == 1 ? 'col-md-4' : 'col-md-5'">
+					<select
+						id="metodoEntrega"
+						class="form-select"
+						[(ngModel)]="idMetodoEntregaSeleccionado"
+						(change)="onMetodoEntregaChange()"
+						[disabled]="pedido.estadoPedido.idEstadoPedido > 1"
+					>
+						<option value="0" disabled selected>Seleccione un método de entrega</option>
+						<option *ngFor="let metodo of lstMetodosEntrega" [ngValue]="metodo.idMetodoEntrega">
+							{{ metodo.descripcion }}
+						</option>
+					</select>
+				</div>
+				<div [className]="idMetodoEntregaSeleccionado == 2 && pedido.estadoPedido.idEstadoPedido == 1 ? 'col-md-6' : 'col-md-7'">
+					<select
+						id="direccionEntrega"
+						class="form-select"
+						[(ngModel)]="idDireccionSeleccionada"
+						[disabled]="!lstDirecciones || lstDirecciones.length === 0 || pedido.estadoPedido.idEstadoPedido > 1"
+						(change)="guardarEntrega()"
+					>
+						<option value="0" disabled selected>Seleccione una dirección</option>
+						<option *ngFor="let direccion of lstDirecciones" [ngValue]="direccion.idDireccion">
+							{{ direccion.direccion }} - {{ direccion.distrito.nombre }} - {{ direccion.provincia.nombre }} - {{ direccion.departamento.nombre }}
+						</option>
+					</select>
+					<div class="form-text">
+						*La dirección se actualizará automáticamente al seleccionar un método de entrega.
+					</div>
+				</div>
+				@if (idMetodoEntregaSeleccionado == 2 && pedido.estadoPedido.idEstadoPedido == 1) {
+					<div class="col-md-2">
+						<button class="btn btn-dark w-100" (click)="openModal(agregarDireccion)"><i class="bi bi-plus-circle"></i> Agregar Dirección</button>
+					</div>
+				}
+				<!-- <div class="col-md-2">
+					<button class="btn btn-dark w-100" [disabled]="isLoading" (click)="guardarEntrega()">
+						Guardar Entrega
+					</button>
+				</div> -->
 			</div>
-			<div class="col-md-5">
-				<label for="direccionEntrega" class="form-label">Dirección de Entrega</label>
-			</div>
-		</div>
-
-		<div class="row">
-			<div class="col-md-5">
-				<select
-					id="metodoEntrega"
-					class="form-select"
-					[(ngModel)]="idMetodoEntregaSeleccionado"
-					(change)="onMetodoEntregaChange()"
-				>
-					<option value="0" disabled selected>Seleccione un método de entrega</option>
-					<option *ngFor="let metodo of lstMetodosEntrega" [ngValue]="metodo.idMetodoEntrega">
-						{{ metodo.descripcion }}
-					</option>
-				</select>
-			</div>
-			<div class="col-md-5">
-				<select
-					id="direccionEntrega"
-					class="form-select"
-					[(ngModel)]="idDireccionSeleccionada"
-					[disabled]="!lstDirecciones || lstDirecciones.length === 0"
-				>
-					<option value="0" disabled selected>Seleccione una dirección</option>
-					<option *ngFor="let direccion of lstDirecciones" [ngValue]="direccion.idDireccion">
-						{{ direccion.direccion }} - {{ direccion.distrito }} - {{ direccion.provincia }} - {{ direccion.departamento }}
-					</option>
-				</select>
-			</div>
-			<div class="col-md-2">
-				<button class="btn btn-dark w-100" [disabled]="isLoading" (click)="guardarEntrega()">
-					Guardar Entrega
-				</button>
-			</div>
-		</div>
+		}
 
 		<!-- Botones de Acción -->
 		 <hr>
 		<div class="d-flex justify-content-end align-items-center">
-			@if (idRol == 1){
+			<!-- @if (idRol == 1){
 				<button class="btn btn-primary">Enviar a Producción</button>
-			}
-			@if (idRol == 2 && pedido.estadoPedido.idEstadoPedido == 1 && productosPedido.length > 0) {
-				<button class="btn btn-success me-2" [disabled]="isLoading || disabledPagar" (click)="router.navigate(['/pages/atencion-cliente/pagar-pedido', idPedido])">Pagar</button>
+			} -->
+			@if (pedido.estadoPedido.idEstadoPedido == 1 && productosPedido.length > 0) {
+				<button class="btn btn-success me-2" [disabled]="isLoading || disabledPagar" (click)="router.navigate(['/pages/atencion-cliente/pagar-pedido', idPedido])"><i class="bi bi-wallet2"></i> Registrar Pago</button>
 			}
 		</div>
 	</div>
 </div>
+
+<ng-template #agregarDireccion let-modal>
+	<div class="modal-header">
+		<h5 class="modal-title">Agregar Dirección</h5>
+		<button type="button" class="btn-close" aria-label="Close" (click)="modal.dismiss('cancel')"></button>
+	</div>
+	<form #direccionForm="ngForm">
+		<div class="modal-body">
+			<div class="mb-3">
+				<label for="direccion" class="form-label">Dirección</label>
+				<input type="text" id="direccion" class="form-control" name="direccion" [(ngModel)]="nuevaDireccion.direccion" required />
+			</div>
+			<div class="mb-3">
+				<label for="referencia" class="form-label">Referencia</label>
+				<input type="text" id="referencia" class="form-control" name="referencia" [(ngModel)]="nuevaDireccion.referencia" />
+			</div>
+			<div class="mb-3">
+				<label for="departamento" class="form-label">Departamento</label>
+				<select class="form-select" [(ngModel)]="nuevaDireccion.idDepartamento" name="departamento" (change)="onDepartamentoChange(nuevaDireccion.idDepartamento)">
+					<option [ngValue]="0">-- Seleccione --</option>
+					<option *ngFor="let dep of departamentos" [ngValue]="dep.idDepartamento">{{ dep.nombre }}</option>
+				</select>
+			</div>
+			<div class="mb-3">
+				<label for="provincia" class="form-label">Provincia</label>
+				<select class="form-select" [(ngModel)]="nuevaDireccion.idProvincia" name="provincia" [disabled]="!provincias.length" (change)="onProvinciaChange(nuevaDireccion.idProvincia)">
+					<option [ngValue]="0">-- Seleccione --</option>
+					<option *ngFor="let prov of provincias" [ngValue]="prov.idProvincia">{{ prov.nombre }}</option>
+				</select>
+			</div>
+			<div class="mb-3">
+				<label for="distrito" class="form-label">Distrito</label>
+				<select class="form-select" [(ngModel)]="nuevaDireccion.idDistrito" name="distrito" [disabled]="!distritos.length">
+					<option [ngValue]="0">-- Seleccione --</option>
+					<option *ngFor="let dist of distritos" [ngValue]="dist.idDistrito">{{ dist.nombre }}</option>
+				</select>
+			</div>
+		</div>
+		<div class="modal-footer">
+			<button type="button" class="btn btn-secondary" (click)="modal.dismiss('cancel')">Cancelar</button>
+			<button type="button" class="btn btn-primary" [disabled]="direccionForm.invalid || nuevaDireccion.idDistrito === undefined" (click)="crearDireccion()">Guardar</button>
+		</div>
+	</form>
+</ng-template>
+
+<ng-template #busquedaAvanzada let-modal>
+	<div class="modal-header">
+		<h5 class="modal-title">Búsqueda Avanzada</h5>
+		<button type="button" class="btn-close" aria-label="Close" (click)="modal.dismiss('cancel')"></button>
+	</div>
+	<div class="modal-body">
+		<div class="row justify-content-between align-items-end mb-2">
+			<div class="col-auto">
+				<label for="cantidad" class="form-label">Cantidad</label>
+				<input [(ngModel)]="cantidad"
+							 type="text"
+							 class="form-control"
+							 placeholder="Ej: 2" />
+			</div>
+			<div class="col-auto">
+				<button class="btn btn-dark" (click)="filterByLetter('')">Listar Todo</button>
+			</div>
+		</div>
+		<hr>
+		<div class="mb-3">
+			<div class="btn-group w-100" role="group" aria-label="Filtro alfabético">
+				<button
+					*ngFor="let letter of 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('')"
+					type="button"
+					class="btn btn-outline-secondary btn-sm flex-fill"
+					(click)="filterByLetter(letter)"
+				>
+					{{ letter }}
+				</button>
+			</div>
+		</div>
+		<table ngbTable class="table table-striped table-hover">
+			<thead>
+				<tr>
+					<th ngbTableHeader>Código</th>
+					<th ngbTableHeader>Nombre</th>
+					<th ngbTableHeader>Descripción</th>
+					<th ngbTableHeader>Presentación</th>
+					<th ngbTableHeader>Precio</th>
+					<th ngbTableHeader>Acción</th>
+				</tr>
+			</thead>
+			<tbody ngbTableBody>
+				<tr *ngFor="let producto of productosBusquedaAvanzada">
+					<td ngbTableCell>{{ producto.idProducto }}</td>
+					<td ngbTableCell>{{ producto.nombre }}</td>
+					<td ngbTableCell>{{ producto.descripcion }}</td>
+					<td ngbTableCell>{{ producto.presentacion }} {{ producto.tipoPresentacion.descripcion }}</td>
+					<td ngbTableCell>S/ {{ producto.precio.toFixed(2) }}</td>
+					<td ngbTableCell>
+						<button class="btn btn-primary btn-sm" (click)="selectProducto(producto, true)">Agregar</button>
+					</td>
+				</tr>
+			</tbody>
+		</table>
+
+		<div class="d-flex justify-content-between p-2">
+			<ngb-pagination
+				[collectionSize]="collectionSize"
+				[(page)]="page"
+				[pageSize]="pageSize"
+				(pageChange)="refreshProductosBusquedaAvanzada()"
+			>
+			</ngb-pagination>
+
+			<select class="form-select" style="width: auto" [(ngModel)]="pageSize" (ngModelChange)="refreshProductosBusquedaAvanzada()">
+				<option [ngValue]="5">5 items</option>
+				<option [ngValue]="10">10 items</option>
+				<option [ngValue]="15">15 items</option>
+			</select>
+		</div>
+	</div>
+	<div class="modal-footer">
+		<button type="button" class="btn btn-secondary" (click)="modal.close()">Cerrar</button>
+	</div>
+</ng-template>
+
+<ng-template #registroPedidoAdmin let-modal>
+	<div class="modal-header">
+		<h5 class="modal-title">Registro de Pedido</h5>
+		<button type="button" class="btn-close" aria-label="Close" (click)="goBandejaPedidos();modal.dismiss('cancel')"></button>
+	</div>
+	<div class="modal-body">
+		<p>Seleccione si el pedido es genérico o si pertenece a un cliente registrado.</p>
+		<div class="mb-3">
+			<div class="form-check form-check-inline">
+				<input
+					class="form-check-input"
+					type="radio"
+					name="tipoCliente"
+					id="clienteGenerico"
+					[value]="true"
+					[(ngModel)]="esClienteGenerico"
+				/>
+				<label class="form-check-label" for="clienteGenerico">
+					Cliente genérico
+				</label>
+			</div>
+			<div class="form-check form-check-inline">
+				<input
+					class="form-check-input"
+					type="radio"
+					name="tipoCliente"
+					id="clienteRegistrado"
+					[value]="false"
+					[(ngModel)]="esClienteGenerico"
+				/>
+				<label class="form-check-label" for="clienteRegistrado">
+					Cliente registrado
+				</label>
+			</div>
+		</div>
+		<div *ngIf="!esClienteGenerico" class="row">
+			<div class="col">
+				<label for="cliente">Cliente*</label>
+				<select id="cliente" name="cliente" class="form-select" [(ngModel)]="clienteSeleccionado">
+					<option [ngValue]="null" disabled selected>Seleccione un cliente</option>
+					<option *ngFor="let cliente of listaClientes" [ngValue]="cliente.idCliente">
+						{{ cliente.nombres + ' ' + cliente.apellidos }}
+					</option>
+				</select>
+			</div>
+		</div>
+	</div>
+	<div class="modal-footer">
+		<button type="button" class="btn btn-danger" (click)="goBandejaPedidos();modal.dismiss('cancel')">Cancelar</button>
+		<button type="button" class="btn btn-primary" [disabled]="!esClienteGenerico && clienteSeleccionado == null" (click)="crearPedidoAdmin()">Registrar Pedido</button>
+	</div>
+</ng-template>
+
 <ng-template #successTpl>Cantidad actualizada correctamente.</ng-template>
+<ng-template #successTplDireccion>Método de entrega actualizado correctamente.</ng-template>
 <app-toasts aria-live="polite" aria-atomic="true"></app-toasts>

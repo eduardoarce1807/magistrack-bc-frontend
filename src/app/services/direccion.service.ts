@@ -21,7 +21,7 @@ export class DireccionService {
   }
 
   createDireccion(direccion: any): Observable<any> {
-    return this.http.post<any>(this.baseUrl, direccion);
+    return this.http.post<any>(`${this.baseUrl}/guardar`, direccion);
   }
 
   updateDireccion(id: number, direccion: any): Observable<any> {
