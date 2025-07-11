@@ -1,0 +1,46 @@
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary px-4">
+	<a class="navbar-brand" href="#">MAGISTRACK-BC</a>
+	<div class="ms-auto">
+		<div ngbDropdown class="d-inline-block">
+			<img
+				src="assets/img/user-icon.png"
+				alt="User"
+				class="rounded-circle"
+				style="cursor: pointer"
+				id="userMenu"
+				ngbDropdownToggle
+				width="40"
+			/>
+			<ul ngbDropdownMenu aria-labelledby="userMenu" class="dropdown-menu-end">
+				<li>
+					<a class="dropdown-item" href="#" (click)="cerrarSesion()">Cerrar Sesión</a>
+				</li>
+			</ul>
+		</div>
+	</div>
+	<!-- <div class="ms-auto">
+		<div class="dropdown">
+			<img
+				src="assets/img/user-icon.png"
+				alt="User"
+				class="rounded-circle"
+				style="cursor: pointer"
+				id="userMenu"
+				data-bs-toggle="dropdown"
+				aria-expanded="false"
+                width="40"
+			/>
+			<ul
+				class="dropdown-menu dropdown-menu-end"
+				aria-labelledby="userMenu"
+			>
+				<li>
+					<a class="dropdown-item" href="#" (click)="cerrarSesion()"
+						>Cerrar Sesión</a
+					>
+				</li>
+			</ul>
+		</div>
+	</div> -->
+</nav>

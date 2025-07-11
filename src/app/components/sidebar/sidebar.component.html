@@ -1,0 +1,150 @@
+<div class="card flex justify-center">
+	<p-button label="Menú" icon="pi pi-plus"  size="small" [text]="true" (onClick)="toggleAll()" />
+	<p-panelMenu [model]="items" styleClass="w-full" size="small"/>
+</div>
+<!--<p-scrollPanel [style]="{ width: '100%', height: '80vh' }">-->
+
+<!--	<h5>Atención al Cliente</h5>-->
+<!--	<ul class="nav flex-column">-->
+<!--		@if (dataService.getLoggedUser().rol.idRol == 1) {-->
+<!--			<li class="nav-item">-->
+<!--				<a-->
+<!--					class="nav-link"-->
+<!--					(click)="irA('pages/atencion-cliente/registro-cliente')"-->
+<!--					style="cursor: pointer"-->
+<!--				>Registro de Cliente</a-->
+<!--				>-->
+<!--			</li>-->
+<!--		}-->
+<!--		<li class="nav-item">-->
+<!--			<a-->
+<!--				class="nav-link"-->
+<!--				(click)="irA('pages/atencion-cliente/registro-pedido')"-->
+<!--				style="cursor: pointer"-->
+<!--			>Registro de Pedido</a-->
+<!--			>-->
+<!--		</li>-->
+<!--		<li class="nav-item">-->
+<!--			<a-->
+<!--				class="nav-link"-->
+<!--				(click)="irA('pages/atencion-cliente/bandeja-pedidos')"-->
+<!--				style="cursor: pointer"-->
+<!--			>Bandeja de Pedidos</a-->
+<!--			>-->
+<!--		</li>-->
+<!--		@if (dataService.getLoggedUser().rol.idRol == 1) {-->
+<!--			<li class="nav-item">-->
+<!--				<a-->
+<!--					class="nav-link"-->
+<!--					(click)="irA('pages/atencion-cliente/bandeja-personalizacion')"-->
+<!--					style="cursor: pointer"-->
+<!--				>Bandeja de Personalización</a-->
+<!--				>-->
+<!--			</li>-->
+<!--			<li class="nav-item">-->
+<!--				<a-->
+<!--					class="nav-link"-->
+<!--					(click)="irA('venta-rapida/productos-venta-rapida')"-->
+<!--					style="cursor: pointer"-->
+<!--				>Venta rápida</a-->
+<!--				>-->
+<!--			</li>-->
+<!--		}-->
+<!--	</ul>-->
+<!--	@if (dataService.getLoggedUser().rol.idRol == 1) {-->
+<!--		<h5>Producción</h5>-->
+<!--		<ul class="nav flex-column">-->
+
+<!--			<li class="nav-item">-->
+<!--				<a-->
+<!--					class="nav-link"-->
+<!--					(click)="irA('pages/produccion/bandeja-produccion')"-->
+<!--					style="cursor: pointer"-->
+<!--				>Bandeja de producción</a-->
+<!--				>-->
+<!--			</li>-->
+<!--			<li class="nav-item">-->
+<!--				<a-->
+<!--					class="nav-link"-->
+<!--					(click)="irA('pages/produccion/bandeja-calidad')"-->
+<!--					style="cursor: pointer"-->
+<!--				>Bandeja de calidad</a-->
+<!--				>-->
+<!--			</li>-->
+<!--			<li class="nav-item">-->
+<!--				<a-->
+<!--					class="nav-link"-->
+<!--					(click)="irA('pages/produccion/bandeja-envasado')"-->
+<!--					style="cursor: pointer"-->
+<!--				>Bandeja de envasado</a-->
+<!--				>-->
+<!--			</li>-->
+<!--			<li class="nav-item">-->
+<!--				<a-->
+<!--					class="nav-link"-->
+<!--					(click)="irA('pages/produccion/bandeja-etiquetado')"-->
+<!--					style="cursor: pointer"-->
+<!--				>Bandeja de etiquetado</a-->
+<!--				>-->
+<!--			</li>-->
+<!--			<li class="nav-item">-->
+<!--				<a-->
+<!--					class="nav-link"-->
+<!--					(click)="irA('pages/produccion/bandeja-despacho')"-->
+<!--					style="cursor: pointer"-->
+<!--				>Bandeja de despacho</a-->
+<!--				>-->
+<!--			</li>-->
+
+<!--		</ul>-->
+
+<!--		<h5>Gestión Producto</h5>-->
+<!--		<ul class="nav flex-column">-->
+<!--			<li class="nav-item">-->
+<!--				<a-->
+<!--					class="nav-link"-->
+<!--					(click)="irA('pages/gestion-producto/registro-producto')"-->
+<!--					style="cursor: pointer"-->
+<!--				>Registro de Producto</a-->
+<!--				>-->
+<!--			</li>-->
+<!--		</ul>-->
+
+<!--		<h5>Compras</h5>-->
+<!--		<ul class="nav flex-column">-->
+<!--			<li class="nav-item">-->
+<!--				<a-->
+<!--					class="nav-link"-->
+<!--					(click)="irA('pages/compras/bandeja-requerimientos')"-->
+<!--					style="cursor: pointer"-->
+<!--				>Bandeja de Requerimientos</a-->
+<!--				>-->
+<!--			</li>-->
+<!--			<li class="nav-item">-->
+<!--				<a-->
+<!--					class="nav-link"-->
+<!--					(click)="irA('pages/compras/requerimiento-manual')"-->
+<!--					style="cursor: pointer"-->
+<!--				>Requerimiento manual</a-->
+<!--				>-->
+<!--			</li>-->
+<!--			<li class="nav-item">-->
+<!--				<a-->
+<!--					class="nav-link"-->
+<!--					(click)="irA('pages/compras/seleccionar-proveedor')"-->
+<!--					style="cursor: pointer"-->
+<!--				>Seleccionar Proveedor</a-->
+<!--				>-->
+<!--			</li>-->
+<!--			&lt;!&ndash;			<li class="nav-item">&ndash;&gt;-->
+<!--			&lt;!&ndash;				<a&ndash;&gt;-->
+<!--			&lt;!&ndash;					class="nav-link"&ndash;&gt;-->
+<!--			&lt;!&ndash;					(click)="irA('pages/gestion-producto/registro-producto')"&ndash;&gt;-->
+<!--			&lt;!&ndash;					style="cursor: pointer"&ndash;&gt;-->
+<!--			&lt;!&ndash;				>Detalle del Requerimientos</a&ndash;&gt;-->
+<!--			&lt;!&ndash;				>&ndash;&gt;-->
+<!--			&lt;!&ndash;			</li>&ndash;&gt;-->
+<!--		</ul>-->
+<!--	}-->
+
+<!--</p-scrollPanel>-->

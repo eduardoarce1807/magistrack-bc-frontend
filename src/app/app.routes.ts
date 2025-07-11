@@ -8,6 +8,8 @@ import { AuthGuard } from './guards/auth.guard';
 export const routes: Routes = [
     { path: '', redirectTo: 'auth/login', pathMatch: 'full' },
     { path: 'auth/login', loadComponent: () => import('./pages/auth/login/login.component').then(m => m.LoginComponent) },
-    { path: 'pages', component: PagesComponent, children: pagesRoutes, canActivate: [AuthGuard] },
-    { path: 'venta-rapida', component: VentaRapidaComponent, children: ventaRapidaRoutes, canActivate: [AuthGuard] },
+    { path: 'pages', component: PagesComponent, children: pagesRoutes },
+    // { path: 'venta-rapida', component: VentaRapidaComponent, children: ventaRapidaRoutes },
+	{ path: 'venta-rapida', loadChildren: () => import('./venta-rapida/venta-rapida.routes').then(m => m.ventaRapidaRoutes) },
+	// { path: 'pages', loadChildren: () => import('./pages/pages.routes').then(m => m.pagesRoutes) },
 ];
