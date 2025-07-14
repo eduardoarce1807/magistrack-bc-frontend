@@ -151,6 +151,23 @@ export class SidebarComponent {
 							command: () => this.irA('pages/compras/seleccionar-proveedor')
 						}
 					]
+				},
+				{
+					key: '4',
+					label: 'Proveedor',
+					icon: 'pi pi-building',
+					items: [
+						{
+							key: '4_0',
+							label: 'Mantenimiento Proveedor',
+							command: () => this.irA('pages/proveedor/mantenimiento-proveedor')
+						},
+						{
+							key: '4_1',
+							label: 'Asignar Proveedor',
+							command: () => this.irA('pages/proveedor/asignar-proveedor')
+						}
+					]
 				}
 			] : [])
 		];

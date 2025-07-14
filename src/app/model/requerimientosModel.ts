@@ -14,6 +14,28 @@ export class DetalleReqModel {
 	unidad:string|null=null;
 	subtotal:number=0;
 }
+export class RequeremientossaveModel {
+	id_requerimiento: string|null=null;
+	glosa: string|null=null;
+	fecha: string|null=null;
+	estadorequerimiento:string|null=null;
+	imptotal: number=0;
+	impigv: number=0;
+	responsable:string|null=null;
+	areasolicitante:string|null=null;
+	iterequerimiento:iterequerimientoModel[]=[]
+}
+
+export class iterequerimientoModel {
+	itemitereq: number=0;
+	cantidad_requerida: number=0;
+	impsubtotal:number=0;
+	impigv: number=0;
+	id_materia_prima: number=0;
+	desmateriaprima:string|null=null;
+	costo_gramo: number=0;
+	cantidad_cotizada_total: number=0;
+}
 
 export class ObsevacionesReqModel {
 	item: string|null=null;

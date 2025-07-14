@@ -1,6 +1,11 @@
 export class proveedorModel {
 	codigo?: number;
-	proveedor: string|null=null;
+	descripcion: string|null=null;
+	representante: string|null=null;
+	celular: string|null=null;
+	correo: string|null=null;
+	ruc: string|null=null;
+	direccion: string|null=null;
 	detalle:ListaMateriaModel[]=[]
 }
 

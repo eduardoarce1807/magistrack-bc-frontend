@@ -2,7 +2,7 @@ import {Component, ViewChildren, ViewEncapsulation} from '@angular/core';
 import {NgbHighlight, NgbPaginationModule} from "@ng-bootstrap/ng-bootstrap";
 import {AsyncPipe, CommonModule, CurrencyPipe, DatePipe, DecimalPipe} from "@angular/common";
 import {FormsModule} from "@angular/forms";
-import {ObsevacionesReqModel, RequeremientosModel} from "../../../model/requerimientosModel";
+import {ObsevacionesReqModel, RequeremientosModel, RequeremientossaveModel} from "../../../model/requerimientosModel";
 import {TagModule} from "primeng/tag";
 import {ButtonModule} from "primeng/button";
 import {CheckboxModule} from "primeng/checkbox";
@@ -21,6 +21,7 @@ import {CalendarModule} from "primeng/calendar";
 import {InputTextareaModule} from "primeng/inputtextarea";
 import {FileUploadModule} from "primeng/fileupload";
 import {BadgeModule} from "primeng/badge";
+import {RequerimientosService} from "../../../services/compras/requerimientos.service";
 
 
 @Component({
@@ -39,8 +40,8 @@ export class BandejaRequerimientosComponent {
 	page = 1;
 	pageSize = 4;
 	collectionSize = 0;
-	listaRequerimientos: RequeremientosModel[] = [];
-	listaRequerimientospaginado: RequeremientosModel[] = [];
+	listaRequerimientos: RequeremientossaveModel[] = [];
+	listaRequerimientospaginado: RequeremientossaveModel[] = [];
 	selectedCustomers!: RequeremientosModel[];
 	items: MenuItem[]=[];
 	representatives!: RequeremientosModel[];
@@ -48,11 +49,11 @@ export class BandejaRequerimientosComponent {
 	verdetalle:boolean=false
 	statuses!: any[];
 	searchValue:any
-	loading: boolean = true;
+	loading: boolean = false;
 	verordencompra:boolean=false
 	condicionpago:string=''
 	fechaentrega: Date = new Date();
-	fila_select:RequeremientosModel = new RequeremientosModel()
+	fila_select:RequeremientossaveModel = new RequeremientossaveModel()
 	verobservaciones:boolean=false
 	observaciones:ObsevacionesReqModel=new ObsevacionesReqModel()
 	activityValues: number[] = [0, 100];
@@ -61,7 +62,8 @@ export class BandejaRequerimientosComponent {
 	totalSize : number = 0;
 
 	totalSizePercent : number = 0;
-	constructor(private config: PrimeNGConfig,private messageService: MessageService) {
+	constructor(private config: PrimeNGConfig,private messageService: MessageService,
+				private requerimietoService:RequerimientosService) {
 		this.loading=false
 		this.items = [
 			{
@@ -112,204 +114,215 @@ export class BandejaRequerimientosComponent {
 				}
 			},
 		];
-		this.listaRequerimientos = [
-			{
-				codigo: 3001,
-				fecha: new Date('2025-07-01'),
-				origen: 'Laboratorio Central',
-				estado: 'Pendiente',
-				totalestimado: 1280.00,
-				motivo: 'Formulación de crema antiacné',
-				detalle: [
-					{ descripcion: 'Ácido salicílico', cantidad: 1, unidad: 'kg', subtotal: 350 },
-					{ descripcion: 'Glicerina vegetal', cantidad: 2, unidad: 'lt', subtotal: 280 },
-					{ descripcion: 'Envases de 50ml', cantidad: 200, unidad: 'unid', subtotal: 400 }
-				]
-			},
-			{
-				codigo: 3002,
-				fecha: new Date('2025-07-02'),
-				origen: 'Control de Calidad',
-				estado: 'Aprobado',
-				totalestimado: 720.00,
-				motivo: 'Análisis de lote de hidratante facial',
-				detalle: [
-					{ descripcion: 'Alcohol etílico 96%', cantidad: 1, unidad: 'lt', subtotal: 120 },
-					{ descripcion: 'Tiras pH', cantidad: 100, unidad: 'unid', subtotal: 100 },
-					{ descripcion: 'Vaselina blanca', cantidad: 2, unidad: 'kg', subtotal: 500 }
-				]
-			},
-			{
-				codigo: 3003,
-				fecha: new Date('2025-07-03'),
-				origen: 'Planta Piloto',
-				estado: 'Pendiente',
-				totalestimado: 935.00,
-				motivo: 'Lote de prueba crema antiarrugas',
-				detalle: [
-					{ descripcion: 'Coenzima Q10', cantidad: 250, unidad: 'g', subtotal: 250 },
-					{ descripcion: 'Aceite de jojoba', cantidad: 2, unidad: 'lt', subtotal: 300 },
-					{ descripcion: 'Cajas plegables 100ml', cantidad: 150, unidad: 'unid', subtotal: 385 }
-				]
-			},
-			{
-				codigo: 3004,
-				fecha: new Date('2025-07-03'),
-				origen: 'Formulación',
-				estado: 'Aprobado',
-				totalestimado: 680.00,
-				motivo: 'Ajuste de fórmula con nuevo emulsionante',
-				detalle: [
-					{ descripcion: 'Emulsionante tipo O/W', cantidad: 1, unidad: 'kg', subtotal: 320 },
-					{ descripcion: 'Conservante parabeno-free', cantidad: 500, unidad: 'g', subtotal: 180 },
-					{ descripcion: 'Frascos PET 200ml', cantidad: 100, unidad: 'unid', subtotal: 180 }
-				]
-			},
-			{
-				codigo: 3005,
-				fecha: new Date('2025-07-04'),
-				origen: 'Producción',
-				estado: 'Pendiente',
-				totalestimado: 1100.00,
-				motivo: 'Preparación crema humectante',
-				detalle: [
-					{ descripcion: 'Urea', cantidad: 1, unidad: 'kg', subtotal: 300 },
-					{ descripcion: 'Aceite de almendras', cantidad: 2, unidad: 'lt', subtotal: 400 },
-					{ descripcion: 'Tarros 250ml', cantidad: 100, unidad: 'unid', subtotal: 400 }
-				]
-			},
-			{
-				codigo: 3006,
-				fecha: new Date('2025-07-04'),
-				origen: 'Almacén de Materias Primas',
-				estado: 'Aprobado',
-				totalestimado: 980.00,
-				motivo: 'Reposición de insumos',
-				detalle: [
-					{ descripcion: 'Propilenglicol', cantidad: 3, unidad: 'lt', subtotal: 270 },
-					{ descripcion: 'Cera lanette', cantidad: 1, unidad: 'kg', subtotal: 250 },
-					{ descripcion: 'Etiquetas adhesivas', cantidad: 500, unidad: 'unid', subtotal: 460 }
-				]
-			},
-			{
-				codigo: 3007,
-				fecha: new Date('2025-07-05'),
-				origen: 'Sucursal Norte',
-				estado: 'Pendiente',
-				totalestimado: 600.00,
-				motivo: 'Demanda de crema exfoliante',
-				detalle: [
-					{ descripcion: 'Microesferas de jojoba', cantidad: 500, unidad: 'g', subtotal: 300 },
-					{ descripcion: 'Extracto de manzanilla', cantidad: 1, unidad: 'lt', subtotal: 300 }
-				]
-			},
-			{
-				codigo: 3008,
-				fecha: new Date('2025-07-06'),
-				origen: 'Sucursal Sur',
-				estado: 'Rechazado',
-				totalestimado: 540.00,
-				motivo: 'Solicitud no autorizada',
-				detalle: [
-					{ descripcion: 'Aceite de rosa mosqueta', cantidad: 1, unidad: 'lt', subtotal: 400 },
-					{ descripcion: 'Envases vidrio ámbar', cantidad: 50, unidad: 'unid', subtotal: 140 }
-				]
-			},
-			{
-				codigo: 3009,
-				fecha: new Date('2025-07-06'),
-				origen: 'Muestreo clínico',
-				estado: 'Pendiente',
-				totalestimado: 825.00,
-				motivo: 'Fórmula con niacinamida',
-				detalle: [
-					{ descripcion: 'Niacinamida', cantidad: 250, unidad: 'g', subtotal: 200 },
-					{ descripcion: 'Crema base neutra', cantidad: 5, unidad: 'kg', subtotal: 625 }
-				]
-			},
-			{
-				codigo: 3010,
-				fecha: new Date('2025-07-07'),
-				origen: 'Sucursal Este',
-				estado: 'Aprobado',
-				totalestimado: 1095.00,
-				motivo: 'Lanzamiento de nuevo descripcion',
-				detalle: [
-					{ descripcion: 'Extracto de caléndula', cantidad: 1, unidad: 'lt', subtotal: 350 },
-					{ descripcion: 'Aceite de coco', cantidad: 2, unidad: 'lt', subtotal: 400 },
-					{ descripcion: 'Etiquetas color full', cantidad: 300, unidad: 'unid', subtotal: 345 }
-				]
-			},
-			{
-				codigo: 3011,
-				fecha: new Date('2025-07-08'),
-				origen: 'Departamento Técnico',
-				estado: 'Pendiente',
-				totalestimado: 710.00,
-				motivo: 'Ensayo estabilidad crema nocturna',
-				detalle: [
-					{ descripcion: 'Vitamina E', cantidad: 250, unidad: 'g', subtotal: 250 },
-					{ descripcion: 'Aceite de argán', cantidad: 1, unidad: 'lt', subtotal: 300 },
-					{ descripcion: 'Envases tester', cantidad: 50, unidad: 'unid', subtotal: 160 }
-				]
-			},
-			{
-				codigo: 3012,
-				fecha: new Date('2025-07-08'),
-				origen: 'Distribución',
-				estado: 'Pendiente',
-				totalestimado: 430.00,
-				motivo: 'Muestras a farmacias',
-				detalle: [
-					{ descripcion: 'Cajas pequeñas', cantidad: 100, unidad: 'unid', subtotal: 200 },
-					{ descripcion: 'Stickers promocionales', cantidad: 500, unidad: 'unid', subtotal: 230 }
-				]
-			},
-			{
-				codigo: 3013,
-				fecha: new Date('2025-07-09'),
-				origen: 'Marketing',
-				estado: 'Aprobado',
-				totalestimado: 1340.00,
-				motivo: 'Promoción en puntos de venta',
-				detalle: [
-					{ descripcion: 'Folletos informativos', cantidad: 1000, unidad: 'unid', subtotal: 400 },
-					{ descripcion: 'Bolsas promocionales', cantidad: 500, unidad: 'unid', subtotal: 400 },
-					{ descripcion: 'Displays de mostrador', cantidad: 20, unidad: 'unid', subtotal: 540 }
-				]
-			},
-			{
-				codigo: 3014,
-				fecha: new Date('2025-07-09'),
-				origen: 'Dirección Técnica',
-				estado: 'Pendiente',
-				totalestimado: 1080.00,
-				motivo: 'Producción de crema con AHA',
-				detalle: [
-					{ descripcion: 'Ácido glicólico', cantidad: 500, unidad: 'g', subtotal: 400 },
-					{ descripcion: 'Crema base emoliente', cantidad: 3, unidad: 'kg', subtotal: 480 },
-					{ descripcion: 'Tarros 100ml', cantidad: 100, unidad: 'unid', subtotal: 200 }
-				]
-			},
-			{
-				codigo: 3015,
-				fecha: new Date('2025-07-10'),
-				origen: 'Formulación Magistral',
-				estado: 'Aprobado',
-				totalestimado: 965.00,
-				motivo: 'Preparación de lotes personalizados',
-				detalle: [
-					{ descripcion: 'Extracto de té verde', cantidad: 1, unidad: 'lt', subtotal: 400 },
-					{ descripcion: 'Base hipoalergénica', cantidad: 3, unidad: 'kg', subtotal: 565 }
-				]
-			}
-		];
+		// this.listaRequerimientos = [
+		// 	{
+		// 		codigo: 3001,
+		// 		fecha: new Date('2025-07-01'),
+		// 		origen: 'Laboratorio Central',
+		// 		estado: 'Pendiente',
+		// 		totalestimado: 1280.00,
+		// 		motivo: 'Formulación de crema antiacné',
+		// 		detalle: [
+		// 			{ descripcion: 'Ácido salicílico', cantidad: 1, unidad: 'kg', subtotal: 350 },
+		// 			{ descripcion: 'Glicerina vegetal', cantidad: 2, unidad: 'lt', subtotal: 280 },
+		// 			{ descripcion: 'Envases de 50ml', cantidad: 200, unidad: 'unid', subtotal: 400 }
+		// 		]
+		// 	},
+		// 	{
+		// 		codigo: 3002,
+		// 		fecha: new Date('2025-07-02'),
+		// 		origen: 'Control de Calidad',
+		// 		estado: 'Aprobado',
+		// 		totalestimado: 720.00,
+		// 		motivo: 'Análisis de lote de hidratante facial',
+		// 		detalle: [
+		// 			{ descripcion: 'Alcohol etílico 96%', cantidad: 1, unidad: 'lt', subtotal: 120 },
+		// 			{ descripcion: 'Tiras pH', cantidad: 100, unidad: 'unid', subtotal: 100 },
+		// 			{ descripcion: 'Vaselina blanca', cantidad: 2, unidad: 'kg', subtotal: 500 }
+		// 		]
+		// 	},
+		// 	{
+		// 		codigo: 3003,
+		// 		fecha: new Date('2025-07-03'),
+		// 		origen: 'Planta Piloto',
+		// 		estado: 'Pendiente',
+		// 		totalestimado: 935.00,
+		// 		motivo: 'Lote de prueba crema antiarrugas',
+		// 		detalle: [
+		// 			{ descripcion: 'Coenzima Q10', cantidad: 250, unidad: 'g', subtotal: 250 },
+		// 			{ descripcion: 'Aceite de jojoba', cantidad: 2, unidad: 'lt', subtotal: 300 },
+		// 			{ descripcion: 'Cajas plegables 100ml', cantidad: 150, unidad: 'unid', subtotal: 385 }
+		// 		]
+		// 	},
+		// 	{
+		// 		codigo: 3004,
+		// 		fecha: new Date('2025-07-03'),
+		// 		origen: 'Formulación',
+		// 		estado: 'Aprobado',
+		// 		totalestimado: 680.00,
+		// 		motivo: 'Ajuste de fórmula con nuevo emulsionante',
+		// 		detalle: [
+		// 			{ descripcion: 'Emulsionante tipo O/W', cantidad: 1, unidad: 'kg', subtotal: 320 },
+		// 			{ descripcion: 'Conservante parabeno-free', cantidad: 500, unidad: 'g', subtotal: 180 },
+		// 			{ descripcion: 'Frascos PET 200ml', cantidad: 100, unidad: 'unid', subtotal: 180 }
+		// 		]
+		// 	},
+		// 	{
+		// 		codigo: 3005,
+		// 		fecha: new Date('2025-07-04'),
+		// 		origen: 'Producción',
+		// 		estado: 'Pendiente',
+		// 		totalestimado: 1100.00,
+		// 		motivo: 'Preparación crema humectante',
+		// 		detalle: [
+		// 			{ descripcion: 'Urea', cantidad: 1, unidad: 'kg', subtotal: 300 },
+		// 			{ descripcion: 'Aceite de almendras', cantidad: 2, unidad: 'lt', subtotal: 400 },
+		// 			{ descripcion: 'Tarros 250ml', cantidad: 100, unidad: 'unid', subtotal: 400 }
+		// 		]
+		// 	},
+		// 	{
+		// 		codigo: 3006,
+		// 		fecha: new Date('2025-07-04'),
+		// 		origen: 'Almacén de Materias Primas',
+		// 		estado: 'Aprobado',
+		// 		totalestimado: 980.00,
+		// 		motivo: 'Reposición de insumos',
+		// 		detalle: [
+		// 			{ descripcion: 'Propilenglicol', cantidad: 3, unidad: 'lt', subtotal: 270 },
+		// 			{ descripcion: 'Cera lanette', cantidad: 1, unidad: 'kg', subtotal: 250 },
+		// 			{ descripcion: 'Etiquetas adhesivas', cantidad: 500, unidad: 'unid', subtotal: 460 }
+		// 		]
+		// 	},
+		// 	{
+		// 		codigo: 3007,
+		// 		fecha: new Date('2025-07-05'),
+		// 		origen: 'Sucursal Norte',
+		// 		estado: 'Pendiente',
+		// 		totalestimado: 600.00,
+		// 		motivo: 'Demanda de crema exfoliante',
+		// 		detalle: [
+		// 			{ descripcion: 'Microesferas de jojoba', cantidad: 500, unidad: 'g', subtotal: 300 },
+		// 			{ descripcion: 'Extracto de manzanilla', cantidad: 1, unidad: 'lt', subtotal: 300 }
+		// 		]
+		// 	},
+		// 	{
+		// 		codigo: 3008,
+		// 		fecha: new Date('2025-07-06'),
+		// 		origen: 'Sucursal Sur',
+		// 		estado: 'Rechazado',
+		// 		totalestimado: 540.00,
+		// 		motivo: 'Solicitud no autorizada',
+		// 		detalle: [
+		// 			{ descripcion: 'Aceite de rosa mosqueta', cantidad: 1, unidad: 'lt', subtotal: 400 },
+		// 			{ descripcion: 'Envases vidrio ámbar', cantidad: 50, unidad: 'unid', subtotal: 140 }
+		// 		]
+		// 	},
+		// 	{
+		// 		codigo: 3009,
+		// 		fecha: new Date('2025-07-06'),
+		// 		origen: 'Muestreo clínico',
+		// 		estado: 'Pendiente',
+		// 		totalestimado: 825.00,
+		// 		motivo: 'Fórmula con niacinamida',
+		// 		detalle: [
+		// 			{ descripcion: 'Niacinamida', cantidad: 250, unidad: 'g', subtotal: 200 },
+		// 			{ descripcion: 'Crema base neutra', cantidad: 5, unidad: 'kg', subtotal: 625 }
+		// 		]
+		// 	},
+		// 	{
+		// 		codigo: 3010,
+		// 		fecha: new Date('2025-07-07'),
+		// 		origen: 'Sucursal Este',
+		// 		estado: 'Aprobado',
+		// 		totalestimado: 1095.00,
+		// 		motivo: 'Lanzamiento de nuevo descripcion',
+		// 		detalle: [
+		// 			{ descripcion: 'Extracto de caléndula', cantidad: 1, unidad: 'lt', subtotal: 350 },
+		// 			{ descripcion: 'Aceite de coco', cantidad: 2, unidad: 'lt', subtotal: 400 },
+		// 			{ descripcion: 'Etiquetas color full', cantidad: 300, unidad: 'unid', subtotal: 345 }
+		// 		]
+		// 	},
+		// 	{
+		// 		codigo: 3011,
+		// 		fecha: new Date('2025-07-08'),
+		// 		origen: 'Departamento Técnico',
+		// 		estado: 'Pendiente',
+		// 		totalestimado: 710.00,
+		// 		motivo: 'Ensayo estabilidad crema nocturna',
+		// 		detalle: [
+		// 			{ descripcion: 'Vitamina E', cantidad: 250, unidad: 'g', subtotal: 250 },
+		// 			{ descripcion: 'Aceite de argán', cantidad: 1, unidad: 'lt', subtotal: 300 },
+		// 			{ descripcion: 'Envases tester', cantidad: 50, unidad: 'unid', subtotal: 160 }
+		// 		]
+		// 	},
+		// 	{
+		// 		codigo: 3012,
+		// 		fecha: new Date('2025-07-08'),
+		// 		origen: 'Distribución',
+		// 		estado: 'Pendiente',
+		// 		totalestimado: 430.00,
+		// 		motivo: 'Muestras a farmacias',
+		// 		detalle: [
+		// 			{ descripcion: 'Cajas pequeñas', cantidad: 100, unidad: 'unid', subtotal: 200 },
+		// 			{ descripcion: 'Stickers promocionales', cantidad: 500, unidad: 'unid', subtotal: 230 }
+		// 		]
+		// 	},
+		// 	{
+		// 		codigo: 3013,
+		// 		fecha: new Date('2025-07-09'),
+		// 		origen: 'Marketing',
+		// 		estado: 'Aprobado',
+		// 		totalestimado: 1340.00,
+		// 		motivo: 'Promoción en puntos de venta',
+		// 		detalle: [
+		// 			{ descripcion: 'Folletos informativos', cantidad: 1000, unidad: 'unid', subtotal: 400 },
+		// 			{ descripcion: 'Bolsas promocionales', cantidad: 500, unidad: 'unid', subtotal: 400 },
+		// 			{ descripcion: 'Displays de mostrador', cantidad: 20, unidad: 'unid', subtotal: 540 }
+		// 		]
+		// 	},
+		// 	{
+		// 		codigo: 3014,
+		// 		fecha: new Date('2025-07-09'),
+		// 		origen: 'Dirección Técnica',
+		// 		estado: 'Pendiente',
+		// 		totalestimado: 1080.00,
+		// 		motivo: 'Producción de crema con AHA',
+		// 		detalle: [
+		// 			{ descripcion: 'Ácido glicólico', cantidad: 500, unidad: 'g', subtotal: 400 },
+		// 			{ descripcion: 'Crema base emoliente', cantidad: 3, unidad: 'kg', subtotal: 480 },
+		// 			{ descripcion: 'Tarros 100ml', cantidad: 100, unidad: 'unid', subtotal: 200 }
+		// 		]
+		// 	},
+		// 	{
+		// 		codigo: 3015,
+		// 		fecha: new Date('2025-07-10'),
+		// 		origen: 'Formulación Magistral',
+		// 		estado: 'Aprobado',
+		// 		totalestimado: 965.00,
+		// 		motivo: 'Preparación de lotes personalizados',
+		// 		detalle: [
+		// 			{ descripcion: 'Extracto de té verde', cantidad: 1, unidad: 'lt', subtotal: 400 },
+		// 			{ descripcion: 'Base hipoalergénica', cantidad: 3, unidad: 'kg', subtotal: 565 }
+		// 		]
+		// 	}
+		// ];
 
-		this.collectionSize = this.listaRequerimientos.length
+		// this.collectionSize = this.listaRequerimientos.length
 
 		this.refreshRequerimientos();
 	}
 
+	ngOnInit(){
+		this.loading=true
+		this.requerimietoService.getRequerimientos().subscribe({
+			next:(data)=>{
+				this.listaRequerimientos=data.data.listar
+				this.loading=false
+			},error:(err)=>{
+				this.loading=false
+			}
+		})
+	}
 	refreshRequerimientos() {
 		this.listaRequerimientospaginado = this.listaRequerimientos
 			.map((req, i) => ({id: i + 1, ...req}))
@@ -353,8 +366,8 @@ export class BandejaRequerimientosComponent {
 	calcularSuma(customer:any){
 		this.sumaorder=0
 		this.fila_select=customer
-		this.fila_select.detalle.forEach(e=>{
-			this.sumaorder+=e.subtotal
+		this.fila_select.iterequerimiento.forEach(e=>{
+			this.sumaorder+=e.impsubtotal
 		})
 
 	}
