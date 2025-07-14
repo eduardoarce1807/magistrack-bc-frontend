@@ -39,6 +39,11 @@ export class PedidoService {
 		return this.http.post<any>(url, pedido);
 	}
 
+	createPedidoVentaRapida(pedido: any) {
+		let url = `${this.baseUrl}/venta-rapida`;
+		return this.http.post<any>(url, pedido);
+	}
+
 	updatePedido(pedido: any) {
 		let url = `${this.baseUrl}/${pedido.idPedido}`;
 		return this.http.put<any>(url, pedido);
@@ -148,4 +153,10 @@ export class PedidoService {
 		let url = `${this.baseUrl}/aplicar-cupon`;
 		return this.http.post<any>(url, data);
 	}
+
+	getReportePedidos(data: any): Observable<any[]> {
+		let url = `${this.baseUrl}/filtrar`;
+		return this.http.post<any[]>(url, data);
+	}
+
 }

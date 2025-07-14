@@ -55,12 +55,14 @@
                 }
               ],
               "optimization": true,
-              "outputHashing": "all"
+              "outputHashing": "all",
+              "baseHref": "/magistrack-bc/"
             },
             "development": {
               "optimization": false,
               "extractLicenses": false,
-              "sourceMap": true
+              "sourceMap": true,
+              "baseHref": "/magistrack-bc/"
             }
           },
           "defaultConfiguration": "production"

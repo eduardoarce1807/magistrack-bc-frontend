@@ -1,4 +1,4 @@
-<div class="container py-3">
+<div class="container py-3" style="max-width: 700px;">
 	<h5 class="fw-bold text-center mb-3">CARRITO DE VENTA RÁPIDA</h5>
 	<table class="table table-bordered">
 		<thead>
@@ -49,6 +49,24 @@
 		</div>
 	</div>
 
+	@if(idTipoPago == 3) {
+	<div class="row mb-3">
+		<div class="col-md-6">
+			<label for="banco" class="form-label">Banco</label>
+			<select [(ngModel)]="idBanco" class="form-select" required>
+				<option [ngValue]="null" disabled selected>Seleccione banco</option>
+				<option *ngFor="let banco of lstBancos" [ngValue]="banco.idBanco">
+					{{ banco.nombre }}
+				</option>
+			</select>
+		</div>
+		<div class="col-md-6">
+			<label for="numeroOperacion" class="form-label">Número de operación</label>
+			<input type="text" id="numeroOperacion" class="form-control" [(ngModel)]="numeroOperacion" name="numeroOperacion" />
+		</div>
+	</div>
+	}
+
 	@if (idTipoPago == 4) {
 	<div class="row mb-3">
 		<div class="col">
@@ -88,3 +106,31 @@
 		</button>
 	</div>
 </div>
+
+
+<ng-template #enviarComprobante let-modal>
+	<div class="modal-header">
+		<h5 class="modal-title">Enviar Comprobante</h5>
+		<button type="button" class="btn-close" aria-label="Close" (click)="modal.dismiss()"></button>
+	</div>
+	<div class="modal-body">
+		<form>
+			<div class="mb-3">
+				<label for="dni" class="form-label">DNI</label>
+				<input type="text" id="dni" class="form-control" [(ngModel)]="dni" name="dni" maxlength="8" />
+			</div>
+			<div class="mb-3">
+				<label for="nombres" class="form-label">Nombres y apellidos</label>
+				<input type="text" id="nombres" class="form-control" [(ngModel)]="nombreCliente" name="nombres" />
+			</div>
+			<div class="mb-3">
+				<label for="celular" class="form-label">Celular*</label>
+				<input type="text" id="celular" class="form-control" [(ngModel)]="celular" name="celular" maxlength="9" />
+			</div>
+		</form>
+	</div>
+	<div class="modal-footer">
+		<button type="button" class="btn btn-primary" (click)="ticketVenta()">Ticket Venta</button>
+		<!-- <button type="button" class="btn btn-success" (click)="modal.close()">Boleta</button> -->
+	</div>
+</ng-template>
