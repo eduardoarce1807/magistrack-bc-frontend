@@ -24,14 +24,14 @@
                 />
             </div>
             <div class="col-auto">
-                <label for="canalVenta" class="form-label">Canal de Venta*</label>
+                <label for="canalVenta" class="form-label">Canal de Venta</label>
                 <select [(ngModel)]="idCanalVenta" class="form-select" required>
-                    <option [ngValue]="0" disabled selected>Seleccione canal de venta</option>
+                    <option [ngValue]="null" selected>Seleccione canal de venta</option>
                     <option *ngFor="let tipo of tiposCanalVenta" [ngValue]="tipo.idCanalVenta">{{ tipo.descripcion }}</option>
                 </select>
             </div>
             <div class="col-auto">
-                <button class="btn btn-primary" (click)="cargarPagos()">Buscar</button>
+                <button class="btn btn-primary" (click)="cargarPedidos()">Buscar</button>
             </div>
         </div>
 
@@ -40,26 +40,24 @@
 			<thead class="table-primary">
 				<tr>
 					<th scope="col">Pedido</th>
+					<th scope="col">Monto</th>
 					<th scope="col">Método de Pago</th>
-                    <th scope="col">Monto</th>
-					<th scope="col">N° Operación</th>
 					<th scope="col">Cliente</th>
-					<th scope="col">Fecha de Pago</th>
-          			<th scope="col">Banco</th>
-					<th scope="col">Adjunto</th>
+					<th scope="col">Fecha de Pedido</th>
+          			<th scope="col">Canal de Venta</th>
+					<th scope="col">Estado</th>
 				</tr>
 			</thead>
 			<tbody>
-				@for (item of pagos; track $index) {
+				@for (item of pedidos; track $index) {
 				<tr>
-					<td>{{item.pedido.idPedido}}</td>
-					<td>{{item.tipoPago ? item.tipoPago.descripcion : '-'}}</td>
-                    <td>S/ {{item.pedido.montoTotal.toFixed(2)}}</td>
-					<td>{{item.numeroOperacion}}</td>
+					<td>{{item.idPedido}}</td>
+					<td>S/ {{item.montoTotal.toFixed(2)}}</td>
+					<td>{{item.pagoPedido ? item.pagoPedido.tipoPago.descripcion : '-'}}</td>
 					<td>{{item.cliente.nombres}} {{item.cliente.apellidos}}</td>
-					<td>{{item.fechaPago}}</td>
-					<td>{{item.banco ? item.banco.nombre : '-'}}</td>
-                    <td>-</td>
+					<td>{{item.fechaPedido | date: 'dd/MM/yyyy'}}</td>
+					<td>{{item.canalVenta ? item.canalVenta.descripcion : '-'}}</td>
+					<td>{{item.estadoPedido ? item.estadoPedido.descripcion : '-'}}</td>
 				</tr>
 				}
 			</tbody>
@@ -70,11 +68,11 @@
 				[collectionSize]="collectionSize"
 				[(page)]="page"
 				[pageSize]="pageSize"
-				(pageChange)="refreshPagos()"
+				(pageChange)="refreshPedidos()"
 			>
 			</ngb-pagination>
 
-			<select class="form-select" style="width: auto" [(ngModel)]="pageSize" (ngModelChange)="refreshPagos()">
+			<select class="form-select" style="width: auto" [(ngModel)]="pageSize" (ngModelChange)="refreshPedidos()">
 				<option [ngValue]="5">5 items</option>
 				<option [ngValue]="10">10 items</option>
 				<option [ngValue]="15">15 items</option>
