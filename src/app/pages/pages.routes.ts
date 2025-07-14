@@ -1,8 +1,4 @@
 import { Routes } from '@angular/router';
-import { atencionClienteRoutes } from './atencion-cliente/atencion-cliente.routes';
-import { produccionRoutes } from './produccion/produccion.routes';
-import { gestionProductoRoutes } from './gestion-producto/gestion-producto.routes';
-import {comprasRoutes} from "./compras/compras.routes";
 import { AuthGuard } from '../guards/auth.guard';
 export const pagesRoutes: Routes = [
     { path: '', redirectTo: 'home', pathMatch: 'full' },
@@ -26,6 +22,11 @@ export const pagesRoutes: Routes = [
 	{
 		path: 'compras',
 		loadChildren: () => import('./compras/compras.routes').then(m => m.comprasRoutes),
+		canActivate: [AuthGuard]
+	},
+	{
+		path: 'proveedor',
+		loadChildren: () => import('./proveedor/proveedor.routes').then(m => m.proveedorRoutes),
 		canActivate: [AuthGuard]
 	},
 	{ path: '**', redirectTo: 'auth/login' }

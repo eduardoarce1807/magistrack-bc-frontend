@@ -1,40 +1,189 @@
 
 
 <p-toast></p-toast>
-<div class="d-flex flex-column p-2">
-	<h4 class="text-danger fw-bold flex items-center"><img src="assets/img/entrega.gif" width="50"> Requerimiento Manual</h4>
+<div class="row">
+	<div class="col-md-6 col-sm-12 col-sm-12">
+		<div class="d-flex flex-column p-2">
+			<h4 class="text-danger fw-bold flex items-center"><img src="assets/img/entrega.gif" width="50"> Requerimiento Manual</h4>
 
-		<label class="mt-1">Motivo o Glosa del Requerimiento</label>
 
-		<textarea
-			rows="5"
-			cols="30"
-			pInputTextarea
-			placeholder="Ej:Solicitud urgente de insumos en producción"
-			[autoResize]="true"
-			[(ngModel)]="glosa">
+			<div class="row">
+				<div class="col-md-7 col-sm-12">
+					<label class="mt-1">Motivo o Glosa del Requerimiento</label>
+
+					<textarea
+						class="w-full"
+						rows="5"
+						cols="30"
+						pInputTextarea
+						placeholder="Ej:Solicitud urgente de insumos en producción"
+						[autoResize]="true"
+						[(ngModel)]="requerimientosave.glosa">
 			</textarea>
+				</div>
+				<div class="col-md-5 col-sm-12 d-flex flex-column mt-1" >
 
-	<div class="row p-2">
-		<div class="row">
-			<div class="col-md-6">
+					<label class="mt-1">Responsable</label>
+
+					<input
+						class="w-full"
+						type="text"
+						pInputTextarea
+						[(ngModel)]="requerimientosave.responsable" />
+
+					<label class="mt-1">Área Solicitante</label>
+
+					<input
+						class="w-full"
+						type="text"
+						pInputTextarea
+						[(ngModel)]="requerimientosave.areasolicitante" />
+				</div>
+			</div>
+
+			<p-table
+				#dt
+				[value]="listaMateriaPrima"
+				selectionMode="single"
+				[(selection)]="selectedCustomers"
+				dataKey="idMateriaPrima"
+				[rowHover]="true"
+				[rows]="5"
+				[showCurrentPageReport]="true"
+				[rowsPerPageOptions]="[5, 25, 50]"
+				[loading]="loading"
+				[paginator]="true"
+				currentPageReportTemplate="{first} hasta {last} de {totalRecords} registros"
+				[filterDelay]="0"
+				styleClass="p-datatable-gridlines p-datatable-striped p-datatable-sm mt-1"
+				[tableStyle]="{'min-width': '30rem'}"
+				[globalFilterFields]="['idMateriaPrima', 'nombre','costoGramo']"
+			>
+				<ng-template pTemplate="caption">
+					<div class="flex justify-between items-center">
+
+						<div class="text-end">
+							<p-iconField iconPosition="left">
+								<p-inputIcon>
+									<i class="pi pi-search"></i>
+								</p-inputIcon>
+								<input pInputText #input (input)="dt.filterGlobal(input.value, 'contains')" placeholder="Materia Prima" />
+								<!--					<input pInputText type="text" [(ngModel)]="searchValue" (input)="dt.filterGlobal($event.target.value, 'contains')" placeholder="Keyboard Search" />-->
+							</p-iconField>
+							<p-button [outlined]="true" icon="pi pi-filter-slash" label="Clear" (click)="clear(dt)" />
+						</div>
+					</div>
+
+				</ng-template>
+				<ng-template pTemplate="header">
+					<tr>
+						<th pSortableColumn="idMateriaPrima" style="width: 20px">
+							<div class="flex justify-content-between align-items-center">
+								Id
+								<p-sortIcon field="idMateriaPrima" />
+								<p-columnFilter type="number" field="idMateriaPrima" display="menu" class="ml-auto" />
+							</div>
+						</th>
+						<th pSortableColumn="nombre" style="min-width: 220px">
+							<div class="flex justify-content-between align-items-center">
+								Nombre
+								<p-sortIcon field="nombre" />
+								<p-columnFilter type="text" field="nombre" display="menu" class="ml-auto" />
+							</div>
+						</th>
+						<th pSortableColumn="costoGramo" style="min-width: 50px">
+							<div class="flex justify-content-between align-items-center">
+								Costo
+								<p-sortIcon field="costoGramo" />
+								<p-columnFilter type="number" field="costoGramo" display="menu" class="ml-auto" />
+							</div>
+						</th>
+						<th  style="min-width: 50px">
+							Enviar
+						</th>
+					</tr>
+				</ng-template>
+				<ng-template pTemplate="body" let-customer>
+					<tr class="p-selectable-row"  [pSelectableRow]="customer" (click)="onRowSelect($event)">
+						<td>
+							{{ customer.idMateriaPrima }}
+						</td>
+						<td>
+							<!--					<img src="https://primefaces.org/cdn/primeng/images/demo/flag/flag_placeholder.png" [class]="'flag flag-' + customer.country.code" style="width: 20px" />-->
+							<span class="ml-1 vertical-align-middle">{{ customer.nombre }}</span>
+						</td>
+						<td>
+							{{ customer.costoGramo | currency:' ':'symbol':'1.2-2':'en-US' }}
+						</td>
+						<td>
+							<i class="pi pi-send" style="color: var(--primary-color)"
+							   pTooltip="cargar requerimiento"
+							   tooltipPosition="right"
+							></i>
+						</td>
+					</tr>
+				</ng-template>
+				<ng-template pTemplate="emptymessage">
+					<tr>
+						<td colspan="3">No se encontraron Materias Primas.</td>
+					</tr>
+				</ng-template>
+			</p-table>
+
+		</div>
+	</div>
+	<div class="col-md-6 col-sm-12 d-flex justify-content-center align-items-center">
+		<div class="w-full p-1">
+			<p-panel [toggleable]="true">
+				<ng-template pTemplate="header">
+					<div class="flex align-items-center  gap-2">
+							<img src="assets/img/lista-de-compras.gif" width="50">
+							<span class="font-bold text-bg-danger p-2">
+							   Nuevo Requerimiento
+							</span>
+						<span class="fw-bold text-success fs-3">
+							Total : S/ {{this.requerimientosave.imptotal  | currency:' ':'symbol':'1.2-2':'en-US'}}
+						</span>
+					</div>
+				</ng-template>
+				<ng-template pTemplate="footer">
+					<div class="flex flex-wrap align-items-center justify-content-between gap-3">
+						<div class="flex align-items-center gap-2">
+							<p-button icon="pi pi-user" rounded="true" text="true" />
+							<p-button icon="pi pi-bookmark" severity="secondary" rounded="true" text="true" />
+						</div>
+						<span class="p-text-secondary">
+                <p-button [outlined]="true" icon="pi pi-save" severity="success" label="Registrar Requerimiento" (click)="guardarRequermiento()" />
+            </span>
+					</div>
+				</ng-template>
+				<ng-template pTemplate="icons">
+<!--					<button class="p-panel-header-icon p-link mr-2" (click)="menu.toggle($event)">-->
+<!--						<span class="pi pi-cog"></span>-->
+<!--					</button>-->
+<!--					<p-menu #menu id="config_menu" [model]="items" [popup]="true" />-->
+				</ng-template>
+				<p class="m-1">
+					<span class="fw-bold">GLOSA:</span> {{requerimientosave.glosa}}
+				</p>
+				<p class="m-1">
+					<span class="fw-bold">RESPONSABLE:</span> {{requerimientosave.responsable}}
+				</p>
+				<p class="m-1">
+					<span class="fw-bold">ÁREA:</span> {{requerimientosave.areasolicitante}}
+				</p>
 				<p-table
 					#dt
-					[value]="listaRequerimientos"
-					selectionMode="single"
-					[(selection)]="selectedCustomers"
-					dataKey="codigo"
+					[value]="listaMateriaPrimaSelected"
+					dataKey="idMateriaPrima"
 					[rowHover]="true"
-					[rows]="5"
-					[showCurrentPageReport]="true"
-					[rowsPerPageOptions]="[5, 25, 50]"
 					[loading]="loading"
-					[paginator]="true"
-					currentPageReportTemplate="{first} hasta {last} de {totalRecords} registros"
 					[filterDelay]="0"
-					styleClass="p-datatable-gridlines p-datatable-striped p-datatable-sm"
+					styleClass="p-datatable-gridlines p-datatable-striped p-datatable-sm mt-1"
 					[tableStyle]="{'min-width': '30rem'}"
-					[globalFilterFields]="['codigo', 'proveedor']"
+					[globalFilterFields]="['idMateriaPrima', 'nombre','costoGramo']"
+					[scrollable]="true"
+					scrollHeight="300px"
 				>
 					<ng-template pTemplate="caption">
 						<div class="flex justify-between items-center">
@@ -44,7 +193,7 @@
 									<p-inputIcon>
 										<i class="pi pi-search"></i>
 									</p-inputIcon>
-									<input pInputText #input (input)="dt.filterGlobal(input.value, 'contains')" placeholder="Proveedor" />
+									<input pInputText #input (input)="dt.filterGlobal(input.value, 'contains')" placeholder="Materia Prima" />
 									<!--					<input pInputText type="text" [(ngModel)]="searchValue" (input)="dt.filterGlobal($event.target.value, 'contains')" placeholder="Keyboard Search" />-->
 								</p-iconField>
 								<p-button [outlined]="true" icon="pi pi-filter-slash" label="Clear" (click)="clear(dt)" />
@@ -54,129 +203,82 @@
 					</ng-template>
 					<ng-template pTemplate="header">
 						<tr>
-							<th pSortableColumn="codigo" style="width: 20px">
+							<th pSortableColumn="id_materia_prima" style="width: 20px">
 								<div class="flex justify-content-between align-items-center">
-									Código
-									<p-sortIcon field="codigo" />
-									<p-columnFilter type="text" field="codigo" display="menu" class="ml-auto" />
+									Id
+									<p-sortIcon field="id_materia_prima" />
+									<p-columnFilter type="number" field="id_materia_prima" display="menu" class="ml-auto" />
 								</div>
 							</th>
-							<th pSortableColumn="descripcion" style="min-width: 60px">
+							<th pSortableColumn="desmateriaprima" style="min-width: 220px">
 								<div class="flex justify-content-between align-items-center">
-									Descripción
-									<p-sortIcon field="descripcion" />
-									<p-columnFilter type="text" field="descripcion" display="menu" class="ml-auto" />
+									Materia
+									<p-sortIcon field="desmateriaprima" />
+									<p-columnFilter type="text" field="desmateriaprima" display="menu" class="ml-auto" />
 								</div>
+							</th>
+							<th pSortableColumn="costo_gramo" style="min-width: 50px">
+								<div class="flex justify-content-between align-items-center">
+									Costo
+									<p-sortIcon field="costo_gramo" />
+									<p-columnFilter type="number" field="costo_gramo" display="menu" class="ml-auto" />
+								</div>
+							</th>
+							<th  style="min-width: 50px">
+								Eliminar
 							</th>
 						</tr>
+
 					</ng-template>
 					<ng-template pTemplate="body" let-customer>
-						<tr class="p-selectable-row"  [pSelectableRow]="customer" (click)="onRowSelect($event)">
+						<tr class="p-selectable-row"  >
 							<td>
-								{{ customer.codigo }}
+								{{ customer.id_materia_prima }}
 							</td>
 							<td>
 								<!--					<img src="https://primefaces.org/cdn/primeng/images/demo/flag/flag_placeholder.png" [class]="'flag flag-' + customer.country.code" style="width: 20px" />-->
-								<span class="ml-1 vertical-align-middle">{{ customer.proveedor }}</span>
+								<span class="ml-1 vertical-align-middle text-danger fw-bold">{{ customer.desmateriaprima }}</span>
 							</td>
+							<td class="text-danger fw-bold">
+								{{ customer.costo_gramo | currency:' ':'symbol':'1.2-2':'en-US' }}
+							</td>
+							<td>
+								<i class="pi pi-trash" style="color: red"
+								   pTooltip="Eliminar Registro"
+								   tooltipPosition="top"
+								   (click)="eliminarRegistro(customer)"
+								></i>
+							</td>
+						</tr>
+						<tr>
+							<td colspan="2">
+								Cant:
+								<p-inputNumber
+								[(ngModel)]="customer.cantidad_requerida"
+								inputId="minmaxfraction"
+								mode="decimal"
+								class="w-full"
+								[minFractionDigits]="2"
+								[maxFractionDigits]="5"
+								(ngModelChange)="cambiocantidad(customer)"/>
+							</td>
+							<td colspan="2">
+								Subtotal: S/ {{customer.impsubtotal | currency:' ':'symbol':'1.2-2':'en-US'}}
+							</td>
+
 						</tr>
 					</ng-template>
 					<ng-template pTemplate="emptymessage">
 						<tr>
-							<td colspan="8">No customers found.</td>
+							<td colspan="3">No se encontraron Materias Primas.</td>
 						</tr>
 					</ng-template>
 				</p-table>
-			</div>
-			<div class="col-md-6 ">
-				@if (detalle.length==0){
-					<div class="d-flex justify-content-center align-items-center">
-						<img  src="assets/img/3d-management.png" width="250"></div>
-				} @else {
-					<h5 class="text-bg-primary border-2 rounded-2 p-2">{{this.selectedCustomers.proveedor}}</h5>
-					<p-table
-							#dtdetalle
-							[value]="detalle"
-							[(selection)]="selectedMateria"
-							dataKey="codigo"
-							[rowHover]="true"
-							[rows]="5"
-							[showCurrentPageReport]="true"
-							[rowsPerPageOptions]="[5, 25, 50]"
-							[loading]="loading"
-							[paginator]="true"
-							currentPageReportTemplate="{first} hasta {last} de {totalRecords} registros"
-							[filterDelay]="0"
-							styleClass="p-datatable-gridlines p-datatable-striped p-datatable-sm"
-							[tableStyle]="{'min-width': '30rem'}"
-							[globalFilterFields]="['codigo', 'descripcion','subtotal']"
-						>
-							<ng-template pTemplate="caption">
-								<div class="flex justify-between items-center">
-
-									<div class="text-end">
-										<p-iconField iconPosition="left">
-											<p-inputIcon>
-												<i class="pi pi-search"></i>
-											</p-inputIcon>
-											<input pInputText #input (input)="dt.filterGlobal(input.value, 'contains')" placeholder="Materia Prima" />
-											<!--					<input pInputText type="text" [(ngModel)]="searchValue" (input)="dt.filterGlobal($event.target.value, 'contains')" placeholder="Keyboard Search" />-->
-										</p-iconField>
-										<p-button [outlined]="true" icon="pi pi-filter-slash" label="Clear" (click)="clear(dt)" />
-									</div>
-									<p-button severity="success" icon="pi pi-cloud-download" label="Cargar" (click)="cargarRequerimiento()" />
-								</div>
-
-							</ng-template>
-							<ng-template pTemplate="header">
-								<tr>
-<!--									<th style="width: 4rem">-->
-<!--										<p-tableHeaderCheckbox />-->
-<!--									</th>-->
-									<th pSortableColumn="codigo" style="min-width: 30px">
-										<div class="flex justify-content-between align-items-center">
-											Código
-											<p-sortIcon field="codigo" />
-											<p-columnFilter type="text" field="codigo" display="menu" class="ml-auto" />
-										</div>
-									</th>
-									<th pSortableColumn="descripcion" style="min-width: 14rem">
-										<div class="flex justify-content-between align-items-center">
-											Descripción
-											<p-sortIcon field="descripcion" />
-											<p-columnFilter type="text" field="descripcion" display="menu" class="ml-auto" />
-										</div>
-									</th>
-								</tr>
-							</ng-template>
-							<ng-template pTemplate="body" let-customer>
-								<tr class="p-selectable-row">
-<!--									<td>-->
-<!--										<p-tableCheckbox [value]="customer" />-->
-<!--									</td>-->
-									<td>
-										<span class="p-column-title">Name</span>
-										{{ customer.codigo }}
-									</td>
-									<td>
-										<span class="p-column-title">Descripcion</span>
-										<!--					<img src="https://primefaces.org/cdn/primeng/images/demo/flag/flag_placeholder.png" [class]="'flag flag-' + customer.country.code" style="width: 20px" />-->
-										<span class="ml-1 vertical-align-middle">{{ customer.descripcion }}</span>
-									</td>
-								</tr>
-							</ng-template>
-							<ng-template pTemplate="emptymessage">
-								<tr>
-									<td colspan="8">No customers found.</td>
-								</tr>
-							</ng-template>
-						</p-table>
-				}
-
-			</div>
+			</p-panel>
 		</div>
 	</div>
 </div>
+
 <!--@if (verdetalle){-->
 <!--	<p-dialog-->
 <!--		[modal]="true"-->
