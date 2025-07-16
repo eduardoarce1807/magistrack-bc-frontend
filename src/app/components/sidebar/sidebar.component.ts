@@ -18,91 +18,109 @@ export class SidebarComponent {
 	items: MenuItem[]=[];
 	constructor(private router: Router, public dataService: DataService) {
 
+		const user = this.dataService.getLoggedUser();
+		const atencionClienteAccessRoles = [1, 5];
+		const atencionClienteItems = [
+			...(atencionClienteAccessRoles.includes(user.rol.idRol) ? [
+				{
+					key: '0_0',
+					label: 'Registro de Cliente',
+					command: () => this.irA('pages/atencion-cliente/registro-cliente')
+				},
+				{
+					key: '0_0',
+					label: 'Mantenimiento de Cliente',
+					command: () => this.irA('pages/atencion-cliente/mantenimiento-clientes')
+				},
+			] : []),
+			...([1,2,3,4,5].includes(user.rol.idRol) ? [
+				{
+					key: '0_1',
+					label: 'Registro de Pedido',
+					command: () => this.irA('pages/atencion-cliente/registro-pedido')
+				},
+				{
+					key: '0_2',
+					label: 'Bandeja de Pedidos',
+					command: () => this.irA('pages/atencion-cliente/bandeja-pedidos')
+				}
+			] : []),
+			...(atencionClienteAccessRoles.includes(user.rol.idRol) ? [
+				{
+					key: '0_3',
+					label: 'Bandeja de Personalización',
+					command: () => this.irA('pages/atencion-cliente/bandeja-personalizacion')
+				},
+				{
+					key: '0_4',
+					label: 'Venta rápida',
+					command: () => this.irA('venta-rapida/productos-venta-rapida')
+				},
+				{
+					key: '0_5',
+					label: 'Visualizador de pagos',
+					command: () => this.irA('pages/atencion-cliente/visualizador-pagos')
+				},
+				{
+					key: '0_6',
+					label: 'Reporte de Ventas',
+					command: () => this.irA('pages/atencion-cliente/reporte-ventas')
+				}
+			] : [])
+		];
+
 		this.items = [
-			{
+			...(atencionClienteItems.length > 0 ? [{
 				key: '0',
 				label: 'Atención al Cliente',
 				icon: 'pi pi-users',
-				items: [
-					...(this.dataService.getLoggedUser().rol.idRol === 1 ? [
-						{
-							key: '0_0',
-							label: 'Registro de Cliente',
-							command: () => this.irA('pages/atencion-cliente/registro-cliente')
-						},
-						{
-							key: '0_0',
-							label: 'Mantenimiento de Cliente',
-							command: () => this.irA('pages/atencion-cliente/mantenimiento-clientes')
-						},
-					] : []),
-					{
-						key: '0_1',
-						label: 'Registro de Pedido',
-						command: () => this.irA('pages/atencion-cliente/registro-pedido')
-					},
-					{
-						key: '0_2',
-						label: 'Bandeja de Pedidos',
-						command: () => this.irA('pages/atencion-cliente/bandeja-pedidos')
-					},
-					...(this.dataService.getLoggedUser().rol.idRol === 1 ? [
-						{
-							key: '0_3',
-							label: 'Bandeja de Personalización',
-							command: () => this.irA('pages/atencion-cliente/bandeja-personalizacion')
-						},
-						{
-							key: '0_4',
-							label: 'Venta rápida',
-							command: () => this.irA('venta-rapida/productos-venta-rapida')
-						},
-						{
-							key: '0_5',
-							label: 'Visualizador de pagos',
-							command: () => this.irA('pages/atencion-cliente/visualizador-pagos')
-						},
-						{
-							key: '0_6',
-							label: 'Reporte de Ventas',
-							command: () => this.irA('pages/atencion-cliente/reporte-ventas')
-						}
-					] : [])
-				]
-			},
-			...(this.dataService.getLoggedUser().rol.idRol === 1 ? [
+				items: atencionClienteItems
+			}] : []),
+			...(user.rol.idRol === 1 || user.rol.idRol === 5 || user.rol.idRol === 6 || user.rol.idRol === 7 || user.rol.idRol === 8 || user.rol.idRol === 9 ? [
 				{
 					key: '1',
 					label: 'Producción',
 					icon: 'pi pi-cog',
 					items: [
-						{
-							key: '1_0',
-							label: 'Bandeja de producción',
-							command: () => this.irA('pages/produccion/bandeja-produccion')
-						},
-						{
-							key: '1_1',
+						...([1, 6].includes(user.rol.idRol) ? [
+							{
+								key: '1_0',
+								label: 'Bandeja de producción',
+								command: () => this.irA('pages/produccion/bandeja-produccion')
+							}
+						] : []),
+						...([1, 7].includes(user.rol.idRol) ? [
+							{
+								key: '1_1',
 							label: 'Bandeja de calidad',
 							command: () => this.irA('pages/produccion/bandeja-calidad')
-						},
-						{
-							key: '1_2',
-							label: 'Bandeja de envasado',
-							command: () => this.irA('pages/produccion/bandeja-envasado')
-						},
-						{
-							key: '1_3',
-							label: 'Bandeja de etiquetado',
-							command: () => this.irA('pages/produccion/bandeja-etiquetado')
-						},
-						{
-							key: '1_4',
-							label: 'Bandeja de despacho',
-							command: () => this.irA('pages/produccion/bandeja-despacho')
-						}
+							}
+						] : []),
+						...([1, 8].includes(user.rol.idRol) ? [
+							{
+								key: '1_2',
+								label: 'Bandeja de envasado',
+								command: () => this.irA('pages/produccion/bandeja-envasado')
+							}
+						] : []),
+						...([1, 9].includes(user.rol.idRol) ? [
+							{
+								key: '1_3',
+								label: 'Bandeja de etiquetado',
+								command: () => this.irA('pages/produccion/bandeja-etiquetado')
+							}
+						] : []),
+						...([1, 5].includes(user.rol.idRol) ? [
+							{
+								key: '1_4',
+								label: 'Bandeja de despacho',
+								command: () => this.irA('pages/produccion/bandeja-despacho')
+							}
+						] : [])
 					]
-				},
+				}
+			] : []),
+			...(user.rol.idRol === 1 ? [
 				{
 					key: '2',
 					label: 'Gestión Producto',
