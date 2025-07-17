@@ -9,18 +9,30 @@ import { CuponService } from '../../../services/cupon.service';
 import { PedidoService } from '../../../services/pedido.service';
 import { CatalogoPrecioService } from '../../../services/catalogo-precio.service';
 import { RolService } from '../../../services/rol.service';
+import { Table, TableModule } from 'primeng/table';
+import { PaginatorModule } from 'primeng/paginator';
+import { ButtonModule } from 'primeng/button';
+import { IconFieldModule } from 'primeng/iconfield';
+import { InputIconModule } from 'primeng/inputicon';
+import { InputTextModule } from 'primeng/inputtext';
+
+interface PageEvent {
+    first: number;
+    rows: number;
+    page: number;
+    pageCount: number;
+}
 
 @Component({
   selector: 'app-catalogo-precios',
   standalone: true,
-  imports: [FormsModule, NgbTypeaheadModule, NgbPaginationModule, CommonModule],
+  imports: [FormsModule, NgbTypeaheadModule, NgbPaginationModule, CommonModule, TableModule, ButtonModule, IconFieldModule, InputIconModule, InputTextModule],
   templateUrl: './catalogo-precios.component.html',
   styleUrl: './catalogo-precios.component.scss'
 })
 export class CatalogoPreciosComponent implements OnInit {
 
   catalogos: any[] = [];
-  catalogosTable: any[] = [];
   page = 1;
   pageSize = 5;
   collectionSize = this.catalogos.length;
@@ -59,13 +71,11 @@ export class CatalogoPreciosComponent implements OnInit {
         if(catalogo) {
           this.catalogo = catalogo;
           this.nombreCatalogo = catalogo.nombre;
-          this.catalogosTable = catalogo.productos || [];
-          this.collectionSize = this.catalogosTable.length;
-          this.refreshCatalogos();
+          this.catalogos = catalogo.productos || [];
+          this.collectionSize = this.catalogos.length;
         }else{
           this.catalogo = null;
           this.catalogos = [];
-          this.catalogosTable = [];
           let rol = this.roles.find(r => r.idRol == this.idRol);
           this.nombreCatalogo = "";
           
@@ -73,15 +83,6 @@ export class CatalogoPreciosComponent implements OnInit {
       },
       (error) => console.error('Error al cargar catalogos', error)
     );
-  }
-
-  refreshCatalogos() {
-    this.catalogos = this.catalogosTable
-      .map((catalogo, i) => ({ id: i + 1, ...catalogo }))
-      .slice(
-        (this.page - 1) * this.pageSize,
-        (this.page - 1) * this.pageSize + this.pageSize
-      );
   }
 
   crearCatalogo() {
@@ -114,5 +115,10 @@ export class CatalogoPreciosComponent implements OnInit {
       }
     });
   }
+
+  searchValue = "";
+  clear(table: Table) {
+      table.clear(); // o lo que sea necesario
+    }
 
 }

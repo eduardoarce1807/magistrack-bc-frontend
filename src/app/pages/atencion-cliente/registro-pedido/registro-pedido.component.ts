@@ -138,7 +138,7 @@ export class RegistroPedidoComponent implements OnInit, OnDestroy {
         this.cargarProductosByIdPedido(this.idPedido);
       }else{
 
-        if(this.dataService.getLoggedUser().rol.idRol === 1) {
+        if(this.dataService.getLoggedUser().rol.idRol === 1 || this.dataService.getLoggedUser().rol.idRol === 5) {
           this.getClientes();
         }else{
           Swal.fire({

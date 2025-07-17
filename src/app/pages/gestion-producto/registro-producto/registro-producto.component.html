@@ -62,7 +62,7 @@
                 </button>
             </div>
             @for (ingrediente of producto.ingredientes; track $index) {
-                <div class="row mb-3">
+                <div class="row mb-3 pr-3">
                     <div class="col-md-7">
                         <label class="form-label">Ingrediente</label>
                         <select [(ngModel)]="ingrediente.idMateriaPrima" [name]="'ingrediente-' + $index" class="form-select" required>
@@ -101,14 +101,14 @@
                 </button>
             </div>
             @for (procedimiento of producto.procedimientos; track $index) {
-                <div class="row mb-3">
+                <div class="row mb-3 pr-3">
                     <div class="col-md-11">
                         <div class="input-group">
                             <span class="input-group-text">{{procedimiento.orden}}.</span>
                             <input type="text" [(ngModel)]="procedimiento.descripcion" [name]="'procedimiento-' + $index" class="form-control" placeholder="Ingrese la descripción" required />
                         </div>
                     </div>
-                    <div class="col-md-1 d-flex align-items-end">
+                    <div class="col-md-1">
                         <button type="button" class="btn btn-danger" (click)="eliminarProcedimiento($index)">
                             <i class="bi bi-trash"></i>
                         </button>
