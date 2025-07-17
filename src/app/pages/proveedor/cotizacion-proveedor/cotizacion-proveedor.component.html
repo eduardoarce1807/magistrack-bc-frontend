@@ -1,4 +1,7 @@
+@if (spinner){
+	<app-carga></app-carga>
 
+}
 <p-toast></p-toast>
 <div class="p-5" >
 	<p-table
@@ -19,8 +22,10 @@
 	>
 		<ng-template pTemplate="caption">
 			<div class="flex justify-between items-center">
-				<h4 class="text-primary fw-bold flex items-center"><img src="assets/img/tarea.gif" width="50">Lista de Proveedores</h4>
+				<h4 class="p-text-secondary fw-bold flex items-center"><img src="assets/img/grocery.gif" width="50">Lista de Cotizaciones x Proveedor</h4>
+
 				<div>
+
 					<p-iconField iconPosition="left">
 						<p-inputIcon>
 							<i class="pi pi-search"></i>
@@ -33,9 +38,18 @@
 			</div>
 			<div class="row">
 				<div class="col-md-6 g-2">
-<!--					<p-button [outlined]="true" icon="pi pi-file-plus" label="Historial Req." class="mx-1" severity="success"  />-->
-<!--					<p-button  icon="pi pi-angle-double-up" label="Indicadores" severity="info"  class="mx-1"/>-->
-<!--					<p-button [outlined]="true" icon="pi pi-print" label="Reportes" severity="info"  class="mx-1"/>-->
+
+					<label class="mx-3" >Proveedor:</label>
+					<p-dropdown
+						[options]="listaProveedores"
+						[(ngModel)]="selectedprov"
+						optionLabel="descripcion"
+						[loading]="cargaprov"
+						(ngModelChange)="cambioproveedor()"
+						placeholder="Seleccionar Proveedor" />
+					<!--					<p-button [outlined]="true" icon="pi pi-file-plus" label="Historial Req." class="mx-1" severity="success"  />-->
+					<!--					<p-button  icon="pi pi-angle-double-up" label="Indicadores" severity="info"  class="mx-1"/>-->
+					<!--					<p-button [outlined]="true" icon="pi pi-print" label="Reportes" severity="info"  class="mx-1"/>-->
 				</div>
 				<div class="col-md-6 text-end g-2">
 					<p-button  icon="pi pi-plus" label="Nuevo Proveedor" class="mx-1" severity="success" (click)="nuevoproveedor()" />

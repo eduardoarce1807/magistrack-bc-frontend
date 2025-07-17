@@ -166,6 +166,17 @@ export class SidebarComponent {
 							key: '4_1',
 							label: 'Asignar Proveedor',
 							command: () => this.irA('pages/proveedor/asignar-proveedor')
+						},
+
+						{
+							key: '4_2',
+							label: 'Cotizaciones Proveedor',
+							command: () => this.irA('pages/proveedor/cotizacion-proveedor')
+						},
+						{
+							key: '4_3',
+							label: 'Orden Compra Proveedor',
+							command: () => this.irA('pages/proveedor/ordencompra-proveedor')
 						}
 					]
 				}

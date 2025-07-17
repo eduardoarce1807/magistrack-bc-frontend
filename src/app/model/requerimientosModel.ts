@@ -23,6 +23,7 @@ export class RequeremientossaveModel {
 	impigv: number=0;
 	responsable:string|null=null;
 	areasolicitante:string|null=null;
+	idproveedor:string|null=null;
 	iterequerimiento:iterequerimientoModel[]=[]
 }
 
@@ -43,4 +44,10 @@ export class ObsevacionesReqModel {
 	path_img:string|null=null;
 }
 
+export class respuestaGuardaModel{
+	id_cotizacion:string|null=null;
+	id_orden_compra:string|null=null;
+	id_requerimiento:string|null=null;
+	mensaje:string|null=null;
+}
 

@@ -28,6 +28,12 @@ import {PanelModule} from "primeng/panel";
 import {iterequerimientoModel, RequeremientossaveModel} from "../../../model/requerimientosModel";
 import {InputNumberModule} from "primeng/inputnumber";
 import {RequerimientosService} from "../../../services/compras/requerimientos.service";
+import {ProveedorService} from "../../../services/compras/proveedor.service";
+import {ProgressSpinnerModule} from "primeng/progressspinner";
+import {CargaComponent} from "../../../components/carga/carga.component";
+import {EmailService} from "../../../services/email.service";
+import Swal from "sweetalert2";
+import {emailordenModel} from "../../../model/enviarEmailModel";
 
 @Component({
   selector: 'app-requerimiento-manual',
@@ -35,7 +41,7 @@ import {RequerimientosService} from "../../../services/compras/requerimientos.se
 	imports: [CommonModule, DecimalPipe, FormsModule, AsyncPipe, NgbHighlight, NgbPaginationModule, DatePipe, CurrencyPipe, TagModule, ButtonModule,
 		CheckboxModule, TableModule, SliderModule, DropdownModule, IconFieldModule, InputIconModule,
 		SplitButtonModule, MultiSelectModule, InputTextModule, DialogModule, ToastModule,
-		CalendarModule,InputTextareaModule,FileUploadModule,BadgeModule,TooltipModule,PanelModule,InputNumberModule
+		CalendarModule, InputTextareaModule, FileUploadModule, BadgeModule, TooltipModule, PanelModule, InputNumberModule, CargaComponent
 	],
   templateUrl: './requerimiento-manual.component.html',
   styleUrl: './requerimiento-manual.component.scss',
@@ -46,100 +52,57 @@ export class RequerimientoManualComponent {
 	page = 1;
 	pageSize = 4;
 	collectionSize = 0;
-
-	glosa:any
 	listaRequerimientos: proveedorModel[] = [];
 	selectedCustomers: materiasprimasModel = new materiasprimasModel();
+	selectedCustomersProv:ListaMateriaModel = new ListaMateriaModel()
+	listaMateriaPrimaxProveedor:ListaMateriaModel[]=[]
 	items: MenuItem[]=[];
 	sumaorder:number=0
-	verdetalle:boolean=false
-	totalacumulado:number=0
-	responsable:string=''
-	areasolicitante:string=''
+	spinner:boolean=false
+	selectedprov:proveedorModel=new proveedorModel()
+	cargaprov:boolean=true
 	loading: boolean = true;
-	verordencompra:boolean=false
-	condicionpago:string=''
-	fechaentrega: Date = new Date();
+	ordencompra:string=''
 	fila_select:proveedorModel = new proveedorModel()
 	listaMateriaPrima:materiasprimasModel[]=[]
 	listaMateriaPrimaSelected:iterequerimientoModel[]=[]
-
-	verobservaciones:boolean=false
-	activityValues: number[] = [0, 100];
+	visiblecorreo:boolean=false
+	checkautomatico:boolean=false
+	mensaje:string=''
 	files:File[] = [];
-	detalle:ListaMateriaModel[]=[]
-	selectedMateria:ListaMateriaModel=new ListaMateriaModel()
+	enviaremail: emailordenModel = new emailordenModel()
 	totalSize : number = 0;
 	requerimientosave:RequeremientossaveModel=new RequeremientossaveModel()
-
+	listaProveedores:proveedorModel[]=[]
 	totalSizePercent : number = 0;
 	constructor(private config: PrimeNGConfig,private messageService: MessageService,
-				private materiaprimaService:MateriaPrimaService,private requerimietoService:RequerimientosService) {
+				private materiaprimaService:MateriaPrimaService,private requerimietoService:RequerimientosService,
+				private proveedorService:ProveedorService,private emailService:EmailService) {
 		this.loading=false
-		// this.listaRequerimientos = [
-		// 	{
-		// 		codigo: 1,
-		// 		proveedor: 'Distribuidora Química Andina',
-		// 		detalle: [
-		// 			{ codigo: 'MAT001', descripcion: 'Aceite de coco refinado', unidad: 'lt', subtotal: 150.00 },
-		// 			{ codigo: 'MAT002', descripcion: 'Lanolina anhidra', unidad: 'kg', subtotal: 280.00 },
-		// 			{ codigo: 'MAT003', descripcion: 'Vitamina C pura', unidad: 'kg', subtotal: 320.00 },
-		// 			{ codigo: 'MAT004', descripcion: 'Envases de 50ml PET', unidad: 'unid', subtotal: 90.00 }
-		// 		]
-		// 	},
-		// 	{
-		// 		codigo: 2,
-		// 		proveedor: 'Insumos Farmacéuticos S.A.',
-		// 		detalle: [
-		// 			{ codigo: 'MAT005', descripcion: 'Glicerina bidestilada', unidad: 'lt', subtotal: 120.00 },
-		// 			{ codigo: 'MAT006', descripcion: 'Ácido hialurónico', unidad: 'kg', subtotal: 450.00 },
-		// 			{ codigo: 'MAT007', descripcion: 'Extracto de aloe vera', unidad: 'lt', subtotal: 180.00 }
-		// 		]
-		// 	},
-		// 	{
-		// 		codigo: 3,
-		// 		proveedor: 'Laboratorios Naturales del Sur',
-		// 		detalle: [
-		// 			{ codigo: 'MAT008', descripcion: 'Aceite de jojoba', unidad: 'lt', subtotal: 210.00 },
-		// 			{ codigo: 'MAT009', descripcion: 'Cera de abejas pura', unidad: 'kg', subtotal: 250.00 },
-		// 			{ codigo: 'MAT010', descripcion: 'Fragancia de lavanda', unidad: 'ml', subtotal: 75.00 },
-		// 			{ codigo: 'MAT011', descripcion: 'Frascos de vidrio ámbar 100ml', unidad: 'unid', subtotal: 110.00 }
-		// 		]
-		// 	},
-		// 	{
-		// 		codigo: 4,
-		// 		proveedor: 'Global Químicos Perú',
-		// 		detalle: [
-		// 			{ codigo: 'MAT012', descripcion: 'Alcohol etílico 96%', unidad: 'lt', subtotal: 95.00 },
-		// 			{ codigo: 'MAT013', descripcion: 'Propilenglicol', unidad: 'lt', subtotal: 130.00 },
-		// 			{ codigo: 'MAT014', descripcion: 'Colorante cosmético rojo', unidad: 'gr', subtotal: 50.00 }
-		// 		]
-		// 	},
-		// 	{
-		// 		codigo: 5,
-		// 		proveedor: 'Bioinsumos del Pacífico',
-		// 		detalle: [
-		// 			{ codigo: 'MAT015', descripcion: 'Manteca de karité', unidad: 'kg', subtotal: 270.00 },
-		// 			{ codigo: 'MAT016', descripcion: 'Aceite esencial de eucalipto', unidad: 'ml', subtotal: 90.00 },
-		// 			{ codigo: 'MAT017', descripcion: 'Vitamina E natural', unidad: 'ml', subtotal: 130.00 },
-		// 			{ codigo: 'MAT018', descripcion: 'Envases airless 30ml', unidad: 'unid', subtotal: 140.00 }
-		// 		]
-		// 	}
-		// ];
+
 
 		this.collectionSize = this.listaRequerimientos.length
 
 	}
 
 	ngOnInit(){
-		this.loading=true
+		this.spinner=true
 		this.materiaprimaService.getMateriasPrimas().subscribe({
 			next:(data)=>{
 				this.listaMateriaPrima=data
-				this.loading=false
+				this.spinner=false
 			},error:(err)=>{
-				this.loading=false
+				this.spinner=false
 				this.messageService.add({ severity: 'danger', summary: 'Error', detail: 'Ocurrió un problema al lista las materias Primas' });
+			}
+		})
+		this.cargaprov=true
+		this.proveedorService.getProveedorxMateria().subscribe({
+			next:(data)=>{
+				this.listaProveedores=data.data.listar
+				this.cargaprov=false
+			},error:(err)=>{
+				this.cargaprov=false
 			}
 		})
 	}
@@ -182,7 +145,7 @@ export class RequerimientoManualComponent {
 		this.sumaorder=0
 		this.fila_select=customer
 		this.fila_select.detalle.forEach(e=>{
-			this.sumaorder+=e.subtotal
+			this.sumaorder+=e.costo_gramo
 		})
 
 	}
@@ -258,17 +221,70 @@ export class RequerimientoManualComponent {
 
 		// this.messageService.add({ severity: 'info', summary: 'Product Selected', detail: this.selectedCustomers.proveedor! });
 	}
+	onRowSelectProveedor(event: any) {
+		// console.log(this.selectedCustomers)
+
+		// this.detalle=this.selectedCustomers.detalle
+		let registro : iterequerimientoModel = new iterequerimientoModel()
+		registro.id_materia_prima=this.selectedCustomersProv.id_materia_prima
+		registro.costo_gramo=this.selectedCustomersProv.costo_gramo
+		registro.desmateriaprima=this.selectedCustomersProv.nombre
+
+		let existe = this.listaMateriaPrimaSelected.find(
+			x => x.id_materia_prima === registro.id_materia_prima
+		);
+
+		if (!existe) {
+			this.listaMateriaPrimaSelected.push(registro);
+		} else {
+			// Opcional: mostrar mensaje si ya existe
+			this.messageService.add({ severity: 'warn', summary: 'Duplicado', detail: 'Ya fue agregado' });
+		}
+
+
+		// this.messageService.add({ severity: 'info', summary: 'Product Selected', detail: this.selectedCustomers.proveedor! });
+	}
 
 	guardarRequermiento(){
+		let op :number=1
 		this.requerimientosave.estadorequerimiento='PENDIENTE'
 		this.requerimientosave.iterequerimiento=this.listaMateriaPrimaSelected
 		// console.log(this.requerimientosave)
-		this.requerimietoService.registrarRequerimientos(this.requerimientosave,1).subscribe({
+		if(this.checkautomatico){
+			this.requerimientosave.idproveedor=this.selectedprov.idproveedor
+			op=3
+		}else{
+			op=1
+		}
+		this.spinner=true
+		this.requerimietoService.registrarRequerimientos(this.requerimientosave,op).subscribe({
 			next:(data)=>{
 				this.requerimientosave=new RequeremientossaveModel()
 				this.listaMateriaPrimaSelected=[]
+				this.spinner=false
 				this.messageService.add({ severity: 'success', summary: 'Éxito', detail: 'Se guardó el registro correctamente' });
+				if(op==3){
+					this.ordencompra=data.data.id_orden_compra!
+					Swal.fire({
+						title: "Desea Enviar el Correo?",
+						text: "Escribir el asunto y detalle",
+						icon: "warning",
+						showCancelButton: true,
+						confirmButtonColor: "#3085d6",
+						cancelButtonColor: "#d33",
+						confirmButtonText: "Si, enviar"
+					}).then((result) => {
+						if (result.isConfirmed) {
+							this.visiblecorreo=true
+							this.enviaremail.para=this.selectedprov.correo
+
+
+						}
+					});
+				}
+
 			},error:(err)=>{
+				this.spinner=false
 				this.messageService.add({ severity: 'error', summary: 'Eliminado', detail: 'Ocurrió un error al guardar el requerimiento' });
 			}
 		})
@@ -286,5 +302,34 @@ export class RequerimientoManualComponent {
 
 		this.requerimientosave.imptotal = this.listaMateriaPrimaSelected
 			.reduce((sum, e) => sum + e.impsubtotal, 0);
+	}
+	cambioproveedor(){
+		this.listaMateriaPrimaxProveedor=this.selectedprov.detalle
+		this.listaMateriaPrimaSelected=[]
+		this.requerimientosave.imptotal=0
+	}
+	cambiocheck(){
+		this.requerimientosave.imptotal=0
+		this.listaMateriaPrimaSelected=[]
+	}
+	confirmarcorreo(){
+		this.visiblecorreo=false
+		this.enviaremail.idPedido=this.ordencompra
+		this.spinner=true
+		this.emailService.sendEmailOdenCompra(this.enviaremail).subscribe({
+			next:(data)=>{
+				this.spinner=false
+				this.enviaremail=new emailordenModel()
+				Swal.fire({
+					title: "Enviado!",
+					text: "Su correo fue enviado con ÉXITO",
+					icon: "success"
+				});
+			},error:(err)=>{
+				this.spinner=false
+				this.visiblecorreo=true
+				this.messageService.add({ severity: 'error', summary: 'ERROR', detail: 'Ocurrió un error al enviar el correo' });
+			}
+		})
 	}
 }

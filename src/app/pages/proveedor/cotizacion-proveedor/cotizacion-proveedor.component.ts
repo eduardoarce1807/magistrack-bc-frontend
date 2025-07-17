@@ -1,70 +1,69 @@
 import {Component, ViewEncapsulation} from '@angular/core';
-import {BadgeModule} from "primeng/badge";
-import {Button, ButtonModule} from "primeng/button";
-import {CalendarModule} from "primeng/calendar";
-import {AsyncPipe, CommonModule, CurrencyPipe, DatePipe, DecimalPipe} from "@angular/common";
+import {Button} from "primeng/button";
 import {DialogModule} from "primeng/dialog";
-import {FileUploadModule} from "primeng/fileupload";
 import {IconFieldModule} from "primeng/iconfield";
 import {InputIconModule} from "primeng/inputicon";
 import {InputTextModule} from "primeng/inputtext";
-import {InputTextareaModule} from "primeng/inputtextarea";
-import {MultiSelectModule} from "primeng/multiselect";
-import {MenuItem, MessageService, PrimeNGConfig} from "primeng/api";
-import {FormsModule} from "@angular/forms";
-import {SplitButtonModule} from "primeng/splitbutton";
+import {PaginatorModule} from "primeng/paginator";
+import {MenuItem, MessageService, PrimeNGConfig, PrimeTemplate} from "primeng/api";
 import {Table, TableModule} from "primeng/table";
-import {TagModule} from "primeng/tag";
 import {ToastModule} from "primeng/toast";
-import { soloproveedorModel} from "../../../model/proveedoresModel";
-import {
-	ObsevacionesReqModel,
-	RequeremientosModel,
-	RequeremientossaveModel
-} from "../../../model/requerimientosModel";
-import {MateriaPrimaService} from "../../../services/materia-prima.service";
+import {ObsevacionesReqModel, RequeremientosModel, RequeremientossaveModel} from "../../../model/requerimientosModel";
+import {proveedorModel, soloproveedorModel} from "../../../model/proveedoresModel";
 import {RequerimientosService} from "../../../services/compras/requerimientos.service";
-import {NgbHighlight, NgbPaginationModule} from "@ng-bootstrap/ng-bootstrap";
-import {CheckboxModule} from "primeng/checkbox";
-import {SliderModule} from "primeng/slider";
-import {DropdownModule} from "primeng/dropdown";
 import {ProveedorService} from "../../../services/compras/proveedor.service";
+import {CotizacionesService} from "../../../services/compras/cotizaciones.service";
+import {CargaComponent} from "../../../components/carga/carga.component";
 
 @Component({
-  selector: 'app-mantenimiento-proveedor',
+  selector: 'app-cotizacion-proveedor',
   standalone: true,
-    imports: [
-		CommonModule, DecimalPipe, FormsModule, AsyncPipe, NgbHighlight, NgbPaginationModule, DatePipe, CurrencyPipe, TagModule, ButtonModule,
-		CheckboxModule, TableModule, SliderModule, DropdownModule, IconFieldModule, InputIconModule,
-		SplitButtonModule, MultiSelectModule, InputTextModule, DialogModule, ToastModule,
-		CalendarModule,InputTextareaModule,FileUploadModule,BadgeModule
-    ],
-  templateUrl: './mantenimiento-proveedor.component.html',
-  styleUrl: './mantenimiento-proveedor.component.scss',
+	imports: [
+		Button,
+		DialogModule,
+		IconFieldModule,
+		InputIconModule,
+		InputTextModule,
+		PaginatorModule,
+		PrimeTemplate,
+		TableModule,
+		ToastModule,
+		CargaComponent
+	],
+  templateUrl: './cotizacion-proveedor.component.html',
+  styleUrl: './cotizacion-proveedor.component.scss',
 	providers: [MessageService],
 	encapsulation: ViewEncapsulation.None,
 })
-export class MantenimientoProveedorComponent {
+export class CotizacionProveedorComponent {
 	page = 1;
 	pageSize = 4;
 	collectionSize = 0;
 	listaRequerimientos: RequeremientossaveModel[] = [];
 	listaProveedores: soloproveedorModel[] = [];
 	listaRequerimientospaginado: RequeremientossaveModel[] = [];
+	selectedprov:proveedorModel=new proveedorModel()
 	items: MenuItem[]=[];
+	representatives!: RequeremientosModel[];
+	sumaorder:number=0
 	verdetalle:boolean=false
+	spinner:boolean=false
 	loading: boolean = false;
 	verordencompra:boolean=false
+	condicionpago:string=''
+	fechaentrega: Date = new Date();
 	fila_select:soloproveedorModel = new soloproveedorModel()
 	verobservaciones:boolean=false
 	observaciones:ObsevacionesReqModel=new ObsevacionesReqModel()
+	activityValues: number[] = [0, 100];
 	files:File[] = [];
-
+	cargaprov:boolean=false
 	totalSize : number = 0;
 
 	totalSizePercent : number = 0;
 	constructor(private config: PrimeNGConfig,private messageService: MessageService,
-				private proveedorService:ProveedorService) {
+				private requerimietoService:RequerimientosService, private proveedorService:ProveedorService,
+				private cotizacionesService:CotizacionesService) {
 		this.loading=false
 		this.items = [
 			{
@@ -120,13 +119,13 @@ export class MantenimientoProveedorComponent {
 	}
 
 	ngOnInit(){
-		this.loading=true
+		this.cargaprov=true
 		this.proveedorService.getProveedor().subscribe({
 			next:(data)=>{
 				this.listaProveedores=data.data
-				this.loading=false
+				this.cargaprov=false
 			},error:(err)=>{
-				this.loading=false
+				this.cargaprov=false
 			}
 		})
 	}
@@ -223,5 +222,16 @@ export class MantenimientoProveedorComponent {
 	}
 	nuevoproveedor(){
 		this.fila_select = new soloproveedorModel()
+	}
+	cambioproveedor(){
+		// this.listaMateriaPrimaxProveedor=this.selectedprov.detalle
+		// this.listaMateriaPrimaSelected=[]
+		// this.requerimientosave.imptotal=0
+		this.spinner=true
+		this.cotizacionesService.getCotizacionesxProveedor(this.selectedprov.idproveedor!).subscribe({
+			next:(data)=>{
+				this.spinner=false
+			}
+		})
 	}
 }
