@@ -97,25 +97,70 @@ export class BandejaCalidadComponent implements OnInit {
 		this.modalService.open(content, { size: 'xl' });
 	}
 
+	openModalLG(content: TemplateRef<any>) {
+		this.modalService.open(content, { size: 'lg' });
+	}
+
 	@ViewChild('procedimiento', { static: true }) procedimiento: TemplateRef<any> | null = null;
-	getHojaProduccion(idProducto: string): void {
-		this.productoService.getHojaProduccion(idProducto).subscribe(
-			(hojaProduccion) => {
-				console.log('Hoja de producción obtenida:', hojaProduccion);
-				this.procedimientoData = hojaProduccion;
-				if (this.procedimiento) {
-					this.openModalXL(this.procedimiento);
+	getHojaProduccion(idProductoMaestro: string): void {
+		this.productoService.getHojaProduccion(idProductoMaestro).subscribe(
+			(data) => {
+				console.log('Hoja de producción obtenida:', data);
+				if(data && data.idResultado == 1) {
+					this.procedimientoData = data.value;
+					if (this.procedimiento) {
+						this.openModalXL(this.procedimiento);
+					}
+				}else{
+					Swal.fire({
+						icon: 'warning',
+						title: '¡Oops!',
+						text: data.resultado,
+						showConfirmButton: true,
+					});
 				}
 			},
 			(error) => {
 				console.error('Error al obtener la hoja de producción', error);
 				Swal.fire({
-			icon: 'error',
-			title: 'Oops!',
-			text: 'No se pudo obtener la hoja de producción, inténtelo de nuevo.',
-			showConfirmButton: true,
-			});
-		}
+					icon: 'error',
+					title: 'Oops!',
+					text: 'No se pudo obtener la hoja de producción, inténtelo de nuevo.',
+					showConfirmButton: true,
+				});
+			}
+		);
+	}
+
+	@ViewChild('ingredientes', { static: true }) ingredientes: TemplateRef<any> | null = null;
+	productoMaestroCalculo: any = null;
+	getCalculoIngredientes(productoMaestro: any): void {
+		this.productoService.getHojaProduccion(productoMaestro.idProductoMaestro).subscribe(
+			(data) => {
+				if(data && data.idResultado == 1) {
+					this.procedimientoData = data.value;
+					this.productoMaestroCalculo = productoMaestro;
+					if (this.ingredientes) {
+						this.openModalLG(this.ingredientes);
+					}
+				}else{
+					Swal.fire({
+						icon: 'warning',
+						title: '¡Oops!',
+						text: data.resultado,
+						showConfirmButton: true,
+					});
+				}
+			},
+			(error) => {
+				console.error('Error al obtener el cálculo de ingredientes', error);
+				Swal.fire({
+					icon: 'error',
+					title: 'Oops!',
+					text: 'No se pudo obtener el cálculo de ingredientes, inténtelo de nuevo.',
+					showConfirmButton: true,
+				});
+			}
 		);
 	}
 
@@ -158,17 +203,13 @@ export class BandejaCalidadComponent implements OnInit {
 				return;
 			}
 			let productoRequest: any = {
-				idPedido: pedidoProducto.idPedido,
-				idProducto: pedidoProducto.idProducto,
-				cantidad: pedidoProducto.cantidad,
-				subtotal: pedidoProducto.subtotal,
-				personalizado: pedidoProducto.personalizado,
-				observacion: pedidoProducto.observacion,
+				idProductoMaestro: pedidoProducto.idProductoMaestro,
 				idEstadoProducto: pedidoProducto.idEstadoProducto,
 				phCalidad: phValue,
+				observacion: ""
 			};
 			this.productoService
-				.updatePedidoProducto(productoRequest)
+				.updatePedidoProductoMaestro(productoRequest)
 				.subscribe(
 					(data: any) => {
 						if (data) {
@@ -256,17 +297,15 @@ export class BandejaCalidadComponent implements OnInit {
 			);
 	}
 
-	// Check si un idProducto está seleccionado y cumple condiciones según tipoEnvio y pH
+	// Check si un idProductoMaestro está seleccionado y cumple condiciones según tipoEnvio y pH
 	isSeleccionado(
-		idProducto: string,
-		idPedido: string,
+		idProductoMaestro: string,
 		phCalidad?: number,
 		phDefinidoMin?: number,
 		phDefinidoMax?: number
 	): boolean {
 		const seleccionado = this.lstProductosSeleccionados.some(
-			(item) =>
-				item.idProducto === idProducto && item.idPedido === idPedido
+			(item) => item.idProductoMaestro === idProductoMaestro
 		);
 
 		if (!seleccionado) return false;
@@ -303,30 +342,24 @@ export class BandejaCalidadComponent implements OnInit {
 
 	// Cambiar selección individual
 	toggleSeleccionIndividual(
-		idProducto: string,
-		idPedido: string,
+		idProductoMaestro: string,
 		event: Event
 	) {
 		let checked = (event.target as HTMLInputElement)?.checked;
 		if (checked) {
 			if (
 				!this.lstProductosSeleccionados.some(
-					(item) =>
-						item.idProducto === idProducto &&
-						item.idPedido === idPedido
+					(item) => item.idProductoMaestro === idProductoMaestro
 				)
 			) {
 				this.lstProductosSeleccionados.push({
-					idProducto: idProducto,
-					idPedido: idPedido,
+					idProductoMaestro: idProductoMaestro,
 				});
 			}
 		} else {
 			this.lstProductosSeleccionados =
 				this.lstProductosSeleccionados.filter(
-					(item) =>
-						item.idProducto !== idProducto ||
-						item.idPedido !== idPedido
+					(item) => item.idProductoMaestro !== idProductoMaestro
 				);
 		}
 		console.log('Productos seleccionados:', this.lstProductosSeleccionados);
@@ -339,7 +372,7 @@ export class BandejaCalidadComponent implements OnInit {
 		if (this.tipoEnvio === 0) {
 			// Regresar a producción: phCalidad nulo/vacío o fuera de rango
 			productosFiltrados = this.productos.filter((p) => {
-				const ph = p.phCalidad;
+				const ph = p.phCalidadPromedio;
 				const min = p.phDefinidoMin;
 				const max = p.phDefinidoMax;
 				return (
@@ -354,7 +387,7 @@ export class BandejaCalidadComponent implements OnInit {
 		} else if (this.tipoEnvio === 1) {
 			// Enviar a envasado: phCalidad numérico y dentro de rango
 			productosFiltrados = this.productos.filter((p) => {
-				const ph = p.phCalidad;
+				const ph = p.phCalidadPromedio;
 				const min = p.phDefinidoMin;
 				const max = p.phDefinidoMax;
 				return (
@@ -372,9 +405,7 @@ export class BandejaCalidadComponent implements OnInit {
 
 		return productosFiltrados.every((p) =>
 			this.lstProductosSeleccionados.some(
-				(item) =>
-					item.idProducto === p.idProducto &&
-					item.idPedido === p.idPedido
+				(item) => item.idProductoMaestro === p.idProductoMaestro
 			)
 		);
 	}
@@ -388,7 +419,7 @@ export class BandejaCalidadComponent implements OnInit {
 		if (this.tipoEnvio === 0) {
 			// Regresar a producción: phCalidad nulo/vacío o fuera de rango
 			productosFiltrados = this.productos.filter((p) => {
-				const ph = p.phCalidad;
+				const ph = p.phCalidadPromedio;
 				const min = p.phDefinidoMin;
 				const max = p.phDefinidoMax;
 				return (
@@ -403,7 +434,7 @@ export class BandejaCalidadComponent implements OnInit {
 		} else if (this.tipoEnvio === 1) {
 			// Enviar a envasado: phCalidad numérico y dentro de rango
 			productosFiltrados = this.productos.filter((p) => {
-				const ph = p.phCalidad;
+				const ph = p.phCalidadPromedio;
 				const min = p.phDefinidoMin;
 				const max = p.phDefinidoMax;
 				return (
@@ -417,23 +448,17 @@ export class BandejaCalidadComponent implements OnInit {
 			});
 		}
 
-		const idsPagina = productosFiltrados.map((p) => ({
-			idProducto: p.idProducto,
-			idPedido: p.idPedido,
-		}));
+		const idsPagina = productosFiltrados.map((p) => p.idProductoMaestro);
 
 		if (checked) {
-			idsPagina.forEach(({ idProducto, idPedido }) => {
+			idsPagina.forEach((idProductoMaestro) => {
 				if (
 					!this.lstProductosSeleccionados.some(
-						(item) =>
-							item.idProducto === idProducto &&
-							item.idPedido === idPedido
+						(item) => item.idProductoMaestro === idProductoMaestro
 					)
 				) {
 					this.lstProductosSeleccionados.push({
-						idProducto,
-						idPedido,
+						idProductoMaestro,
 					});
 				}
 			});
@@ -441,11 +466,7 @@ export class BandejaCalidadComponent implements OnInit {
 			this.lstProductosSeleccionados =
 				this.lstProductosSeleccionados.filter(
 					(item) =>
-						!idsPagina.some(
-							(p) =>
-								p.idProducto === item.idProducto &&
-								p.idPedido === item.idPedido
-						)
+						!idsPagina.includes(item.idProductoMaestro)
 				);
 		}
 		console.log('Productos seleccionados:', this.lstProductosSeleccionados);
@@ -472,8 +493,10 @@ export class BandejaCalidadComponent implements OnInit {
 	regresarAProduccionMasivo() {
 		let lstProductos = '';
 		for (let i = 0; i < this.lstProductosSeleccionados.length; i++) {
-			lstProductos +=
-				this.lstProductosSeleccionados[i].idProducto + '<br>';
+			const idProductoMaestro = this.lstProductosSeleccionados[i].idProductoMaestro;
+			const producto = this.productosTable.find(p => p.idProductoMaestro === idProductoMaestro);
+			const nombreProducto = producto ? producto.nombreProducto : idProductoMaestro;
+			lstProductos += nombreProducto + '<br>';
 		}
 
 		Swal.fire({
@@ -488,11 +511,13 @@ export class BandejaCalidadComponent implements OnInit {
 		}).then((result) => {
 			if (result.isConfirmed) {
 				this.productoService
-					.updateEstadoProductoPedidoMasivo({
-						idProductos: this.lstProductosSeleccionados,
-						idEstadoProducto: 3, // En producción
-						idEstadoPedido: 4, // En producción
-						idEstadoPedidoCliente: 3, // En producción
+					.updateEstadoProductoPedidoMasivoMaestro({
+						idProductoMaestroList: this.lstProductosSeleccionados.map(
+							(item) => item.idProductoMaestro
+						),
+						idEstadoProductoNuevo: 3, // En producción
+						idEstadoPedidoNuevo: 4, // En producción
+						idEstadoPedidoClienteNuevo: 3, // En producción
 						idCliente:
 							this.dataService.getLoggedUser().cliente.idCliente,
 						accionRealizada: 'Productos regresados a producción',
@@ -530,8 +555,10 @@ export class BandejaCalidadComponent implements OnInit {
 	enviarEnvasadoMasivo() {
 		let lstProductos = '';
 		for (let i = 0; i < this.lstProductosSeleccionados.length; i++) {
-			lstProductos +=
-				this.lstProductosSeleccionados[i].idProducto + '<br>';
+			const idProductoMaestro = this.lstProductosSeleccionados[i].idProductoMaestro;
+			const producto = this.productosTable.find(p => p.idProductoMaestro === idProductoMaestro);
+			const nombreProducto = producto ? producto.nombreProducto : idProductoMaestro;
+			lstProductos += nombreProducto + '<br>';
 		}
 
 		Swal.fire({
@@ -546,11 +573,13 @@ export class BandejaCalidadComponent implements OnInit {
 		}).then((result) => {
 			if (result.isConfirmed) {
 				this.productoService
-					.updateEstadoProductoPedidoMasivo({
-						idProductos: this.lstProductosSeleccionados,
-						idEstadoProducto: 5, // En envasado
-						idEstadoPedido: 6, // En envasado
-						idEstadoPedidoCliente: 3, // En producción
+					.updateEstadoProductoPedidoMasivoMaestro({
+						idProductoMaestroList: this.lstProductosSeleccionados.map(
+							(item) => item.idProductoMaestro
+						),
+						idEstadoProductoNuevo: 5, // En envasado
+						idEstadoPedidoNuevo: 6, // En envasado
+						idEstadoPedidoClienteNuevo: 3, // En producción
 						idCliente:
 							this.dataService.getLoggedUser().cliente.idCliente,
 						accionRealizada: 'Productos enviados a envasado',
@@ -589,7 +618,7 @@ export class BandejaCalidadComponent implements OnInit {
 
     Swal.fire({
       title: '¿Estás seguro?',
-      html: `<p>¿Deseas regresar el producto <strong>${item.idProducto}</strong> a producción?</p>`,
+      html: `<p>¿Deseas regresar el producto <strong>${item.nombreProducto}</strong> a producción?</p>`,
       icon: 'question',
       showCancelButton: true,
       confirmButtonText: 'Sí, regresar',
@@ -597,15 +626,15 @@ export class BandejaCalidadComponent implements OnInit {
     }).then((result) => {
       if (result.isConfirmed) {
         this.productoService
-          .updateEstadoProducto({
-            idProducto: item.idProducto,
-            idPedido: item.idPedido,
-            idEstadoProducto: 3, // En producción
-            idEstadoPedido: 4, // En producción
-            idEstadoPedidoCliente: 3, // En producción
-            idCliente: this.dataService.getLoggedUser().cliente.idCliente,
-            accionRealizada: 'Producto regresado a producción',
-            observacion: '',
+          .updateEstadoProductoMaestro({
+            idProductoMaestro: item.idProductoMaestro,
+			idEstadoProductoActual: 4, // En calidad
+			idEstadoProductoNuevo: 3, // En producción
+			idEstadoPedidoNuevo: 4, // En producción
+			idEstadoPedidoClienteNuevo: 3, // En producción
+			idCliente: this.dataService.getLoggedUser().cliente.idCliente,
+			accionRealizada: 'Producto regresado a producción',
+			observacion: ''
           })
           .subscribe(
             (response) => {
@@ -634,11 +663,11 @@ export class BandejaCalidadComponent implements OnInit {
 
 	}
 
-  enviarEnvasado(item: any) {
+  	enviarEnvasado(item: any) {
 
     Swal.fire({
       title: '¿Estás seguro?',
-      html: `<p>¿Deseas enviar el producto <strong>${item.idProducto}</strong> a envasado?</p>`,
+      html: `<p>¿Deseas enviar el producto <strong>${item.nombreProducto}</strong> a envasado?</p>`,
       icon: 'question',
       showCancelButton: true,
       confirmButtonText: 'Sí, enviar',
@@ -646,17 +675,17 @@ export class BandejaCalidadComponent implements OnInit {
     }).then((result) => {
       if (result.isConfirmed) {
         this.productoService
-          .updateEstadoProducto({
-            idProducto: item.idProducto,
-            idPedido: item.idPedido,
-            idEstadoProducto: 5, // En envasado
-            idEstadoPedido: 6, // En envasado
-            idEstadoPedidoCliente: 3, // En producción
-            idCliente: this.dataService.getLoggedUser().cliente.idCliente,
-            accionRealizada: 'Producto enviado a envasado',
-            observacion: '',
-          })
-          .subscribe(
+			.updateEstadoProductoMaestro({
+				idProductoMaestro: item.idProductoMaestro,
+				idEstadoProductoActual: 4, // En calidad
+				idEstadoProductoNuevo: 5, // En envasado
+				idEstadoPedidoNuevo: 6, // En envasado
+				idEstadoPedidoClienteNuevo: 3, // En producción
+				idCliente: this.dataService.getLoggedUser().cliente.idCliente,
+				accionRealizada: 'Producto enviado a envasado',
+				observacion: ''
+			})
+          	.subscribe(
             (response) => {
               Swal.fire({
                 icon: 'success',

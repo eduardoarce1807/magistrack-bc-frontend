@@ -35,7 +35,7 @@ export class RegistroClienteComponent implements OnInit {
     private tipoDocumentoService: TipoDocumentoService,
     private medioContactoService: MedioContactoService,
     private route: ActivatedRoute,
-    private router: Router,
+    public router: Router,
     private emailService: EmailService
   ) {
     const passwordPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{6,}$/;

@@ -23,7 +23,7 @@
 					<th scope="col">Estado</th>
           			<th scope="col">FEE (Fecha Estimada de Entrega)</th>
 					<th scope="col">Método de Pago</th>
-					<th scope="col">Acciones</th>
+					<th scope="col" style="min-width: 210px;">Acciones</th>
 				</tr>
 			</thead>
 			<tbody>
@@ -60,7 +60,7 @@
 						<button class="btn btn-info me-2" (click)="router.navigate(['/pages/atencion-cliente/trazabilidad-pedido', item.idPedido])">
 							<i class="bi bi-clock-history"></i>
 						</button>
-						<button class="btn btn-danger" (click)="borrarPedido(item.idPedido)">
+						<button [disabled]="item.estadoPedido.idEstadoPedido >= 2" class="btn btn-danger" (click)="borrarPedido(item.idPedido)">
 							<i class="bi bi-trash3-fill"></i>
 						</button>
 					</td>

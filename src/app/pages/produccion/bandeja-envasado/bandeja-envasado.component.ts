@@ -183,7 +183,7 @@ export class BandejaEnvasadoComponent implements OnInit {
   initBarcodes(): void {
     for (let i = 0; i < this.lstProductosSeleccionados.length; i++) {
       const element = this.lstProductosSeleccionados[i];
-      JsBarcode(`#barcode-${i}`, element.idProducto);
+      JsBarcode(`#barcode-${i}`, element.idProducto, {width: 1, height: 45, displayValue: true, fontSize: 12});
     }
   }
 

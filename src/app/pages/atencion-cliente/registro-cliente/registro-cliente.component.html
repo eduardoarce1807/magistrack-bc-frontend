@@ -1,5 +1,11 @@
 <div class="container-fluid mt-5" style="padding: 0px 60px;">
   <div class="card shadow-lg p-4 rounded-4">
+    @if(isEditing){
+      <button style="position: absolute;" class="btn btn-link text-decoration-none p-0" (click)="router.navigate(['/pages/atencion-cliente/mantenimiento-clientes'])">
+        <i class="bi bi-arrow-left"></i> Mantenimiento Clientes
+      </button>
+    }
+    
     <h2 class="mb-4 text-center">{{titleText}}</h2>
     <form [formGroup]="clienteForm" (ngSubmit)="onSubmit()">
       <div class="row g-3">

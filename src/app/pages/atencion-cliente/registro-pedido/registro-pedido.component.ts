@@ -16,6 +16,11 @@ import { UbigeoService } from '../../../services/ubigeo.service';
 import { UtilDate } from '../../../util/util-date';
 import { ClienteService } from '../../../services/cliente.service';
 import { CuponService } from '../../../services/cupon.service';
+import { ButtonModule } from 'primeng/button';
+import { IconFieldModule } from 'primeng/iconfield';
+import { InputIconModule } from 'primeng/inputicon';
+import { InputTextModule } from 'primeng/inputtext';
+import { Table, TableModule } from 'primeng/table';
 
 interface PedidoRequest {
   idCliente: number;
@@ -35,6 +40,13 @@ interface Producto {
   precio: number;
   presentacion: number;
   tipoPresentacion: TipoPresentacion;
+  productoMaestro: ProductoMaestro;
+}
+
+interface ProductoMaestro {
+  idProductoMaestro: string;
+  nombre: string;
+  descripcion: string;
 }
 
 interface TipoPresentacion {
@@ -52,6 +64,8 @@ interface PedidoProducto {
   personalizado: boolean;
   precioPersonalizado: boolean;
   tieneDescuento: boolean;
+  presentacion: number;
+  tipoPresentacion: string;
 }
 
 interface PedidoProductoRequest {
@@ -74,7 +88,7 @@ interface Direccion {
 @Component({
   selector: 'app-registro-pedido',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, NgbTooltipModule, ToastsContainer, NgbPaginationModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, NgbTooltipModule, ToastsContainer, NgbPaginationModule, TableModule, ButtonModule, IconFieldModule, InputIconModule, InputTextModule],
   templateUrl: './registro-pedido.component.html',
   styleUrl: './registro-pedido.component.scss'
 })
@@ -96,7 +110,6 @@ export class RegistroPedidoComponent implements OnInit, OnDestroy {
   private updateTimeout: any;
 
   productosBusquedaAvanzada: Producto[] = [];
-	productosBusquedaAvanzadaTable: any[] = [];
 	page = 1;
 	pageSize = 5;
 	collectionSize = this.productosBusquedaAvanzada.length;
@@ -471,9 +484,7 @@ export class RegistroPedidoComponent implements OnInit, OnDestroy {
   getProductosBusquedaAvanzada(content: TemplateRef<any>) {
     this.productoService.getProductos().subscribe((data: any) => {
       this.productosBusquedaAvanzada = data;
-      this.productosBusquedaAvanzadaTable = data;
       this.collectionSize = data.length;
-      this.refreshProductosBusquedaAvanzada();
       this.modalService.open(content, {backdrop: 'static', keyboard: false, size: 'xl'});
     },
     (error) => {
@@ -487,31 +498,24 @@ export class RegistroPedidoComponent implements OnInit, OnDestroy {
     });
   }
 
-  refreshProductosBusquedaAvanzada() {
-		this.productosBusquedaAvanzada = this.productosBusquedaAvanzadaTable
-			.map((producto, i) => ({ id: i + 1, ...producto }))
-			.slice(
-				(this.page - 1) * this.pageSize,
-				(this.page - 1) * this.pageSize + this.pageSize
-			);
-	}
-
   filterByLetter(letter: string) {
     const lowerLetter = letter.trim().toLowerCase()
 
     // Filtrar la lista completa
-    const filtered = this.productosBusquedaAvanzadaTable.filter(p =>
-      p.nombre.toLowerCase().startsWith(lowerLetter)
+    const filtered = this.productosBusquedaAvanzada.filter(p =>
+      p.productoMaestro.nombre.toLowerCase().startsWith(lowerLetter)
     )
 
     // Reiniciar paginación
     this.page = 1
-    this.collectionSize = filtered.length
+    this.collectionSize = filtered.length;
 
-    // Mostrar la primera página del filtro
-    this.productosBusquedaAvanzada = filtered
-      .map((producto, i) => ({ id: i + 1, ...producto }))
-      .slice(0, this.pageSize)
+    this.productosBusquedaAvanzada = filtered;
+  }
+
+  searchValue = "";
+  clear(table: Table) {
+    table.clear(); // o lo que sea necesario
   }
 
   onSearch(event: Event) {

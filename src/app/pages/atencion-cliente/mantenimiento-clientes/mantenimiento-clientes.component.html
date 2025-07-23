@@ -1,18 +1,128 @@
 <div class="container-fluid mt-5" style="padding: 0px 60px;">
 	<div class="card shadow-lg p-4 rounded-4">
+
+		<button style="position: absolute;" class="btn btn-link text-decoration-none p-0" (click)="router.navigate(['/pages/home'])">
+			<i class="bi bi-arrow-left"></i> Home
+		</button>
+
 		<h2 class="mb-4 text-center">Mantenimiento de Clientes</h2>
 
-		<!-- Tabla de Pedidos -->
-		<table class="table table-bordered align-middle mt-0">
+		<p-table
+			#dt1
+			*ngIf="clientes.length > 0"
+			[value]="clientes"
+			[paginator]="true"
+			[rows]="pageSize"
+			[totalRecords]="collectionSize"
+			[responsiveLayout]="'scroll'"
+			class="mt-2"
+			[showCurrentPageReport]="true"
+			currentPageReportTemplate="{first} a {last} de {totalRecords} registros"
+			[filterDelay]="0"
+			styleClass="p-datatable-gridlines p-datatable-striped p-datatable-sm mt-1"
+			[tableStyle]="{'min-width': '30rem'}"
+			[rowsPerPageOptions]="[5, 25, 50]"
+			dataKey="idCliente"
+			[globalFilterFields]="['idCliente', 'nombreCompleto', 'numeroDocumento', 'telefono', 'correo', 'codigoReferido']"
+		>
+			<ng-template pTemplate="caption">
+					<div class="flex justify-between items-center">
+
+						<div class="text-end">
+							<p-iconField iconPosition="left">
+								<p-inputIcon>
+									<i class="pi pi-search"></i>
+								</p-inputIcon>
+								<input pInputText #input (input)="dt1.filterGlobal(input.value, 'contains')" placeholder="Buscar..." />
+								<!--					<input pInputText type="text" [(ngModel)]="searchValue" (input)="dt.filterGlobal($event.target.value, 'contains')" placeholder="Keyboard Search" />-->
+							</p-iconField>
+							<p-button [outlined]="true" icon="pi pi-filter-slash" label="Clear" (click)="clear(dt1)" />
+						</div>
+					</div>
+
+				</ng-template>
+			<ng-template pTemplate="header">
+				<tr>
+					<th pSortableColumn="nombreCompleto" style="width: 20%">
+						<div class="flex justify-content-between align-items-center">
+							Nombres
+							<p-sortIcon field="nombreCompleto" />
+							<p-columnFilter type="text" field="nombreCompleto" display="menu" class="ml-auto" />
+						</div>
+					</th>
+					<th pSortableColumn="numeroDocumento">
+						<div class="flex justify-content-between align-items-center">
+							Documento Identidad
+							<p-sortIcon field="numeroDocumento" />
+							<p-columnFilter type="text" field="numeroDocumento" display="menu" class="ml-auto" />
+						</div>
+					</th>
+					<th pSortableColumn="telefono">
+						<div class="flex justify-content-between align-items-center">
+							Teléfono
+							<p-sortIcon field="telefono" />
+							<p-columnFilter type="text" field="telefono" display="menu" class="ml-auto" />
+						</div>
+					</th>
+					<th pSortableColumn="correo">
+						<div class="flex justify-content-between align-items-center">
+							Correo
+							<p-sortIcon field="correo" />
+							<p-columnFilter type="email" field="correo" display="menu" class="ml-auto" />
+						</div>
+					</th>
+					<th pSortableColumn="codigoReferido">
+						<div class="flex justify-content-between align-items-center">
+							Código Referido
+							<p-sortIcon field="codigoReferido" />
+							<p-columnFilter type="text" field="codigoReferido" display="menu" class="ml-auto" />
+						</div>
+					</th>
+					<th pSortableColumn="estado">
+						<div class="flex justify-content-between align-items-center">
+							Estado
+							<p-sortIcon field="estado" />
+							<p-columnFilter type="boolean" field="estado" display="menu" class="ml-auto" />
+						</div>
+					</th>
+					<th style="min-width: 100px;">Acciones</th>
+				</tr>
+			</ng-template>
+			<ng-template pTemplate="body" let-item>
+				<tr>
+					<td>{{item.nombreCompleto}}</td>
+					<td>{{item.numeroDocumento}}</td>
+					<td>{{item.telefono}}</td>
+					<td>{{item.correo}}</td>
+					<td>{{item.codigoReferido}}</td>
+					<td>
+						@if (item.estado) {
+							<span class="badge bg-success">Activo</span>
+						} @else {
+							<span class="badge bg-danger">Inactivo</span>
+						}
+					</td>
+					<td>
+						<button class="btn btn-primary btn-sm me-2" (click)="router.navigate(['/pages/atencion-cliente/registro-cliente', item.idCliente])">
+							<i class="bi bi-pencil-square"></i>
+						</button>
+						@if(item.estado) {
+							<button class="btn btn-danger btn-sm me-2" (click)="desactivarCliente(item)">
+								<i class="bi bi-trash"></i>
+							</button>
+						} @else {
+							<button class="btn btn-success btn-sm me-2" (click)="activarCliente(item)">
+								<i class="bi bi-person-check-fill"></i>
+							</button>
+						}
+					</td>
+				</tr>
+			</ng-template>
+		</p-table>
+
+		<!-- <table class="table table-bordered align-middle mt-0">
 			<thead class="table-primary">
 				<tr>
-					<!-- <th scope="col">
-						<input class="form-check-input"
-							type="checkbox"
-							[checked]="isTodosSeleccionadosPagina()"
-							(change)="toggleSeleccionTodosPagina($event)"
-                            >
-					</th> -->
 					<th scope="col">Nombre Completo</th>
 					<th scope="col">Doc. Identidad</th>
 					<th scope="col">Teléfono</th>
@@ -25,13 +135,6 @@
 			<tbody>
 				@for (item of clientes; track $index) {
 				<tr>
-					<!-- <td>
-						<input class="form-check-input"
-							type="checkbox"
-							[checked]="isSeleccionado(item.idCliente)"
-							(change)="toggleSeleccionIndividual(item.idCliente, $event)"
-							[disabled]="item.estadoCliente.idEstadoCliente != 2">
-					</td> -->
 					<td>{{item.nombres + ' ' + item.apellidos}}</td>
 					<td>{{item.numeroDocumento}}</td>
 					<td>{{item.telefono}}</td>
@@ -71,7 +174,7 @@
 				<option [ngValue]="10">10 items</option>
 				<option [ngValue]="15">15 items</option>
 			</select>
-		</div>
+		</div> -->
 
 		<!-- Botones de Acción -->
 		<!-- <div class="d-flex justify-content-center align-items-center mb-4">

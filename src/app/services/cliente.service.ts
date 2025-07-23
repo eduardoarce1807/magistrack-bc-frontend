@@ -57,6 +57,11 @@ export class ClienteService {
     return this.http.put<any>(url, {});
   }
 
+  activarCliente(id: number): Observable<any> {
+    let url = `${this.baseUrl}/activar/${id}`;
+    return this.http.put<any>(url, {});
+  }
+
   validarCodigoReferido(codigo: string): Observable<any> {
     let url = `${this.baseUrl}/validar-codigo-referido`;
     return this.http.get<any>(url, { params: { codigo } });
