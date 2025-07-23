@@ -165,8 +165,13 @@ export class SidebarComponent {
 						},
 						{
 							key: '3_2',
-							label: 'Seleccionar Proveedor',
+							label: 'Seleccionar Proveedor x Cotización',
 							command: () => this.irA('pages/compras/seleccionar-proveedor')
+						},
+						{
+							key: '3_3',
+							label: 'Ordenes de Compras',
+							command: () => this.irA('pages/compras/ordencompra')
 						}
 					]
 				},
@@ -182,8 +187,19 @@ export class SidebarComponent {
 						},
 						{
 							key: '4_1',
-							label: 'Asignar Proveedor',
+							label: 'Asignar Materia Prima x Proveedor',
 							command: () => this.irA('pages/proveedor/asignar-proveedor')
+						},
+
+						{
+							key: '4_2',
+							label: 'Cotizaciones Proveedor',
+							command: () => this.irA('pages/proveedor/cotizacion-proveedor')
+						},
+						{
+							key: '4_3',
+							label: 'Orden Compra Proveedor',
+							command: () => this.irA('pages/proveedor/ordencompra-proveedor')
 						}
 					]
 				}

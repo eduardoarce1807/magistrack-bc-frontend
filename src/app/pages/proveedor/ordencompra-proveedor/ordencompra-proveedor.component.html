@@ -1,0 +1,537 @@
+@if (spinner){
+	<app-carga></app-carga>
+}
+<p-toast></p-toast>
+<div class="p-5" >
+	<p-table
+		#dt
+		[value]="listaOrdenes"
+		dataKey="id_orden_compra"
+		[rowHover]="true"
+		[rows]="5"
+		[showCurrentPageReport]="true"
+		[rowsPerPageOptions]="[5, 25, 50]"
+		[loading]="loading"
+		[paginator]="true"
+		currentPageReportTemplate="{first} hasta {last} de {totalRecords} registros"
+		[filterDelay]="0"
+		styleClass="p-datatable-gridlines p-datatable-striped p-datatable-sm"
+		[tableStyle]="{'min-width': '40rem'}"
+		[expandedRowKeys]="expandedRows"
+		[globalFilterFields]="['id_orden_compra', 'fechaemision', 'imptotal','estadoord','celular','direccion','ruc']"
+	>
+		<ng-template pTemplate="caption">
+			<div class="flex justify-between items-center">
+				<h4 class="p-text-secondary fw-bold flex items-center"><img src="assets/img/lista-de-deseos.gif" width="50">Ord. Compra x Proveedor</h4>
+
+				<div>
+
+					<p-iconField iconPosition="left">
+						<p-inputIcon>
+							<i class="pi pi-search"></i>
+						</p-inputIcon>
+						<input pInputText #input (input)="dt.filterGlobal(input.value, 'contains')" placeholder="Keyword" />
+						<!--					<input pInputText type="text" [(ngModel)]="searchValue" (input)="dt.filterGlobal($event.target.value, 'contains')" placeholder="Keyboard Search" />-->
+					</p-iconField>
+					<p-button [outlined]="true" icon="pi pi-filter-slash" label="Clear" (click)="clear(dt)" />
+
+				</div>
+			</div>
+			<div class="row">
+				<div class="col-md-6 g-2">
+
+					<label class="mx-3" >Proveedor:</label>
+					<p-dropdown
+						[options]="listaProveedores"
+						[(ngModel)]="selectedprov"
+						optionLabel="descripcion"
+						[loading]="cargaprov"
+						(ngModelChange)="cambioproveedor()"
+						placeholder="Seleccionar Proveedor" />
+					<!--					<p-button [outlined]="true" icon="pi pi-file-plus" label="Historial Req." class="mx-1" severity="success"  />-->
+					<!--					<p-button  icon="pi pi-angle-double-up" label="Indicadores" severity="info"  class="mx-1"/>-->
+					<!--					<p-button [outlined]="true" icon="pi pi-print" label="Reportes" severity="info"  class="mx-1"/>-->
+				</div>
+				<div class="col-md-6 text-end g-2">
+
+					<p-button label="Expand All" icon="pi pi-plus" text (onClick)="expandAll()" />
+					<p-button label="Collapse All" icon="pi pi-minus" text (onClick)="collapseAll()" />
+<!--					<p-button  icon="pi pi-plus" label="Nuevo Proveedor" class="mx-1" severity="success" (click)="nuevoproveedor()" />-->
+				</div>
+			</div>
+		</ng-template>
+		<ng-template pTemplate="header">
+			<tr>
+				<th style="width: 10px"></th>
+				<th pSortableColumn="id_orden_compra" style="min-width: 15px">
+					<div class="flex justify-content-between align-items-center">
+						Id
+						<p-sortIcon field="id_orden_compra" />
+						<p-columnFilter type="text" field="id_orden_compra" display="menu" class="ml-auto" />
+					</div>
+				</th>
+				<th style="min-width: 30px">
+						Validaciones
+				</th>
+				<th pSortableColumn="fechaemision" style="min-width: 100px">
+					<div class="flex justify-content-between align-items-center">
+						Fecha Emisión
+						<p-sortIcon field="fechaemision" />
+						<p-columnFilter type="text" field="fechaemision" display="menu" class="ml-auto" />
+					</div>
+				</th>
+				<th pSortableColumn="imptotal" style="min-width: 40px">
+					<div class="flex justify-content-between align-items-center">
+						ImpTotal
+						<p-sortIcon field="imptotal" />
+						<p-columnFilter type="text" field="imptotal" display="menu" class="ml-auto" />
+					</div>
+				</th>
+				<th pSortableColumn="estadoord" style="min-width: 40px">
+					<div class="flex justify-content-between align-items-center">
+						Estado OC
+						<p-sortIcon field="estadoord" />
+						<p-columnFilter type="text" field="estadoord" display="menu" class="ml-auto" />
+					</div>
+				</th>
+				<th pSortableColumn="fechaemisionfact" style="min-width: 100px">
+					<div class="flex justify-content-between align-items-center">
+						Fecha Em.Fact
+						<p-sortIcon field="fechaemisionfact" />
+						<p-columnFilter type="text" field="fechaemisionfact" display="menu" class="ml-auto" />
+					</div>
+				</th>
+				<th pSortableColumn="imptotalfact" style="min-width: 40px">
+					<div class="flex justify-content-between align-items-center">
+						ImpTotalFact
+						<p-sortIcon field="imptotalfact" />
+						<p-columnFilter type="text" field="imptotalfact" display="menu" class="ml-auto" />
+					</div>
+				</th>
+				<th style="min-width: 20px" >
+					<div class="flex justify-content-between align-items-center">
+						Acciones
+					</div>
+				</th>
+			</tr>
+		</ng-template>
+		<ng-template pTemplate="body" let-customer let-expanded="expanded">
+			<tr class="p-selectable-row">
+				<td>
+					<p-button type="button" pRipple [pRowToggler]="customer" [text]="true" [rounded]="true" [plain]="true" [icon]="expanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'" />
+				</td>
+				<td>
+					{{ customer.id_orden_compra }}
+					@if (getCumpleCount(customer.detalleorden)>0){
+					<i class="pi pi-bell p-text-secondary" pBadge style="font-size: 1.1rem"
+					   [value]="getCumpleCount(customer.detalleorden)" severity="danger"></i>
+
+					}
+				</td>
+				<td>
+					{{ getCumpleCount(customer.detalleorden) }} / {{ customer.detalleorden.length }}
+					@if (getCumpleCount(customer.detalleorden)==customer.detalleorden.length){
+						<i class="pi pi-check-circle" style="color: green;font-size: 1.5rem"></i>
+					} @else if (getCumpleCount(customer.detalleorden)>0){
+						<p-tag severity="warning" value="PARCIAL" [rounded]="true" />
+					} @else {
+						<p-tag severity="danger" value="EN ESPERA" [rounded]="true" />
+					}
+				</td>
+				<td>
+					{{ customer.fechaemision }}
+				</td>
+				<td class="text-end">
+					{{ customer.imptotal | currency:' ':'symbol':'1.2-2':'en-US'}}
+					@if (customer.path_factura){
+						<a
+							[href]="customer.path_factura"
+							target="_blank"
+							rel="noopener noreferrer"
+							pTooltip="Ver Factura"
+							tooltipPosition="right">
+							<i class="pi pi-file-check" style="color: #7e088c;font-size: 1.5rem;cursor:pointer"></i>
+						</a>
+
+
+					}
+				</td>
+				<td>
+					 <p-tag severity="warning" [value]="customer.estadoord" [severity]="getEstadoOrden(customer.estadoord)" [rounded]="true" />
+				</td>
+				<td>
+					{{ customer.fechaemisionfact }}
+				</td>
+				<td>
+					{{ customer.imptotalfact | currency:' ':'symbol':'1.2-2':'en-US'}}
+					<p-tag *ngIf="customer.estado_fact" severity="warning" [value]="customer.estado_fact" [severity]="getEstadoOrden(customer.estado_fact)" [rounded]="true" />
+				</td>
+				<td>
+					<p-button  [rounded]="true" icon="pi pi-upload" pTooltip="Subir Factura"
+							   tooltipPosition="right" severity="info"  (click)="cargarFactura(customer)"
+					[disabled]="customer.path_factura"/>
+				</td>
+			</tr>
+		</ng-template>
+		<ng-template pTemplate="rowexpansion" let-product>
+			<tr class="back-tabla">
+				<td colspan="10">
+					<div class="p-3">
+						<p-table [value]="product.detalleorden" dataKey="item">
+							<ng-template pTemplate="header">
+								<tr>
+									<th pSortableColumn="id">
+										<div class="flex justify-content-between align-items-center">
+										Id <p-sortIcon field="price" />
+										</div>
+									</th>
+									<th pSortableColumn="desmateria">
+										<div class="flex justify-content-between align-items-center">
+											Materia Prima <p-sortIcon field="desmateria" />
+										</div>
+									</th>
+									<th pSortableColumn="cantidad">
+										<div class="flex justify-content-between align-items-center">
+											Cantidad <p-sortIcon field="cantidad" />
+										</div>
+									</th>
+									<th pSortableColumn="cantidad">
+										<div class="flex justify-content-between align-items-center">
+											Cantidad Conf.<p-sortIcon field="cantidad" />
+										</div>
+									</th>
+									<th pSortableColumn="impunit">
+										<div class="flex justify-content-between align-items-center">
+											S/ x unid <p-sortIcon field="impunit" />
+										</div>
+									</th>
+									<th pSortableColumn="impsubtotal">
+										<div class="flex justify-content-between align-items-center">
+											Subtotal <p-sortIcon field="impsubtotal" />
+										</div>
+									</th>
+									<th pSortableColumn="observaciones">
+										<div class="flex justify-content-between align-items-center">
+											Observaciones <p-sortIcon field="observaciones" />
+										</div>
+									</th>
+									<th pSortableColumn="respuestaprov">
+										<div class="flex justify-content-between align-items-center">
+											Respuesta <p-sortIcon field="respuestaprov" />
+
+										</div>
+									</th>
+									<th>
+										Subir
+									</th>
+								</tr>
+							</ng-template>
+							<ng-template pTemplate="body" let-order>
+								<tr [ngClass]="product.estadoord=='OBSERVADO' && order.cumple==0?'observado':null">
+									<td>{{ order.item }}
+										@if (order.cumple==1){
+											<i class="pi pi-check-circle" style="color: green;font-size: 1.5rem"></i>
+										}
+									</td>
+									<td>{{ order.desmateria }}</td>
+									<td>{{ order.cantidad }}</td>
+									<td>{{ order.cantidad_conf_total }}</td>
+									<td>{{ order.impunit | currency:' ':'symbol':'1.2-2':'en-US' }}</td>
+									<td>{{ order.impsubtotal | currency:' ':'symbol':'1.2-2':'en-US' }}</td>
+									<td>{{ order.observaciones }}</td>
+									<td>{{ order.respuestaprov }}</td>
+									<td>
+										@if (product.estadoord=='OBSERVADO' && order.cumple==0){
+											<p-button  [rounded]="true" icon="pi pi-tag" pTooltip="Subir Observaciones"
+													   tooltipPosition="left" severity="danger" (click)="verobservaciones=true"
+													  />
+										}
+									</td>
+								</tr>
+							</ng-template>
+							<ng-template pTemplate="emptymessage">
+								<tr>
+									<td colspan="6">No tiene detalle de Ordenes </td>
+								</tr>
+							</ng-template>
+						</p-table>
+					</div>
+				</td>
+			</tr>
+		</ng-template>
+		<ng-template pTemplate="emptymessage">
+			<tr>
+				<td colspan="8">No se encontraron órdenes de compras.</td>
+			</tr>
+		</ng-template>
+	</p-table>
+</div>
+@if (verfactura){
+	<p-dialog
+		[modal]="true"
+		[(visible)]="verfactura"
+		[style]="{ width: '45vw' }"
+		[breakpoints]="{ '1199px': '75vw', '575px': '90vw' }"
+		[maximizable]="true">
+		<ng-template pTemplate="header">
+
+			<h5 class="text-bg-light p-2 rounded-3 fw-bold"> Cargar Factura - {{fila_select.id_orden_compra}}</h5>
+
+		</ng-template>
+		<div class="row my-2">
+			<div class="row" style="min-height:250px">
+				<div class="col-md-6 col-sm-12 d-flex flex-column align-items-center justify-content-center">
+
+						<label for="item">Número de Factura</label>
+						<input pInputText id="item" aria-describedby="username-help" [(ngModel)]="fila_select.nrofactura" />
+						<label class="mt-1">Fecha Emisión</label>
+						<p-calendar [(ngModel)]="fechaemision"
+									dateFormat="dd-mm-yy"
+									appendTo="body"
+									[iconDisplay]="'input'"
+									[showIcon]="true" inputId="icondisplay"
+									pStyleClass="fs-11 example-full-width"
+									[style]="{ width: '100%' }"
+									[showTime]="true"
+									[hourFormat]="'24'"
+									[inputStyle]="{ width: '100%' }"/>
+						<label class="mt-1">Monto Total</label>
+						<input
+							pInputText
+							[(ngModel)]="fila_select.imptotalfact"/>
+
+
+					<label class="mt-2">Adjuntar Evidencia (PDF,images*)</label>
+					<p-fileUpload
+						mode="basic"
+						name="demo[]"
+						chooseIcon="pi pi-upload"
+						url="https://www.primefaces.org/cdn/api/upload.php"
+						accept="image/*,application/pdf"
+						maxFileSize="10000000"
+						(onSelect)="this.carga=true"
+						(onUpload)="onBasicUploadAuto($event);"
+						[auto]="true"
+						[disabled]="carga"
+						chooseLabel="Buscar Archivos" />
+
+				</div>
+					<div class="col-md-6 col-sm-12">
+						@if (carga){
+							<div class="d-flex align-items-center justify-content-center">
+								<i class="pi pi-spin pi-cog" style="font-size: 100px;color: #5698bb"></i>
+							</div>
+						}
+
+						@if (subirFactura.archivobase64 && !carga){
+						<img *ngIf="subirFactura.extensiondoc === 'jpeg' || subirFactura.extensiondoc === 'jpg' || subirFactura.extensiondoc === 'png'"
+							 [src]="subirFactura.archivobase64"
+							 style="max-width: 100%; max-height: 250px;" />
+
+						<!-- Mostrar PDF -->
+						<iframe *ngIf="subirFactura.extensiondoc === 'pdf' && !carga"
+								[src]="sanitizarPdf(subirFactura.archivobase64)"
+								width="100%"
+								height="250"
+								style="border: none"
+								allowfullscreen>
+						</iframe>
+						}
+					</div>
+
+			</div>
+
+<!--			<p-fileUpload name="myfile[]" url="https://www.primefaces.org/cdn/api/upload.php" [multiple]="true" accept="image/*,application/pdf" maxFileSize="1000000" (onUpload)="onTemplatedUpload()" (onSelect)="onSelectedFiles($event)">-->
+<!--				<ng-template pTemplate="header" let-files let-chooseCallback="chooseCallback" let-clearCallback="clearCallback" let-uploadCallback="uploadCallback">-->
+<!--					<div class="flex flex-wrap justify-content-between align-items-center flex-1 gap-2">-->
+<!--						<div class="flex gap-2">-->
+<!--							<p-button (onClick)="choose($event, chooseCallback)" icon="pi pi-images" [rounded]="true" [outlined]="true" />-->
+<!--							<p-button (onClick)="uploadEvent(uploadCallback)" icon="pi pi-cloud-upload" [rounded]="true" [outlined]="true" severity="success" [disabled]="!files || files.length === 0" />-->
+<!--							<p-button (onClick)="clearCallback()" icon="pi pi-times" [rounded]="true" [outlined]="true" severity="danger" [disabled]="!files || files.length === 0" />-->
+<!--						</div>-->
+<!--						<p-progressBar [value]="totalSizePercent" [showValue]="false" styleClass="md:w-20rem h-1rem w-full md:ml-auto" [ngClass]="{ 'exceeded-progress-bar': totalSizePercent > 100 }">-->
+<!--							<span class="white-space-nowrap">{{ totalSize }}B / 1Mb</span>-->
+<!--						</p-progressBar>-->
+<!--					</div>-->
+<!--				</ng-template>-->
+<!--				<ng-template pTemplate="content" let-files let-uploadedFiles="uploadedFiles" let-removeFileCallback="removeFileCallback" let-removeUploadedFileCallback="removeUploadedFileCallback">-->
+<!--					<div *ngIf="files?.length > 0">-->
+<!--						<h5>Pending</h5>-->
+<!--						<div class="flex flex-wrap p-0 sm:p-5 gap-5">-->
+<!--							<div *ngFor="let file of files; let i = index" class="card m-0 px-6 flex flex-column border-1 surface-border align-items-center gap-3">-->
+<!--								<div>-->
+<!--									<img role="presentation" [alt]="file.name" [src]="file.objectURL" width="100" height="50" />-->
+<!--								</div>-->
+<!--								<span class="font-semibold">{{ file.name }}</span>-->
+<!--								<div>{{ formatSize(file.size) }}</div>-->
+<!--								<p-badge value="Pending" severity="warning" />-->
+<!--								<p-button icon="pi pi-times" (onClick)="onRemoveTemplatingFile($event, file, removeFileCallback, i)" [outlined]="true" [rounded]="true" severity="danger" />-->
+<!--							</div>-->
+<!--						</div>-->
+<!--					</div>-->
+<!--					<div *ngIf="uploadedFiles?.length > 0">-->
+<!--						<h5>Completed</h5>-->
+<!--						<div class="flex flex-wrap p-0 sm:p-5 gap-5">-->
+<!--							<div *ngFor="let file of uploadedFiles; let i = index" class="card m-0 px-6 flex flex-column border-1 surface-border align-items-center gap-3">-->
+<!--								<div>-->
+<!--									<img role="presentation" [alt]="file.name" [src]="file.objectURL" width="100" height="50" />-->
+<!--								</div>-->
+<!--								<span class="font-semibold">{{ file.name }}</span>-->
+<!--								<div>{{ formatSize(file.size) }}</div>-->
+<!--								<p-badge value="Completed" class="mt-3" severity="success" />-->
+<!--								<p-button icon="pi pi-times" (click)="removeUploadedFileCallback(i)" [outlined]="true" [rounded]="true" severity="danger" />-->
+<!--							</div>-->
+<!--						</div>-->
+<!--					</div>-->
+<!--				</ng-template>-->
+<!--				<ng-template pTemplate="file"> </ng-template>-->
+<!--				<ng-template pTemplate="empty">-->
+<!--					<div class="flex align-items-center justify-content-center flex-column">-->
+<!--						<i class="pi pi-cloud-upload border-2 border-circle p-5 text-8xl text-400 border-400"></i>-->
+<!--						<p class="mt-4 mb-0">Arrastra y sube algùn archivo.</p>-->
+<!--					</div>-->
+<!--				</ng-template>-->
+<!--			</p-fileUpload>-->
+		</div>
+		<ng-template pTemplate="footer">
+			<div class="text-end mt-2">
+				<p-button  icon="pi pi-trash" [outlined]="true" label="Cancelar" class="mx-1" severity="secondary"  />
+				<p-button  icon="pi pi-save" label="Registrar Factura" class="mx-1" severity="success"  (click)="guardarfactura()"/>
+			</div></ng-template>
+	</p-dialog>
+}
+@if (verobservaciones){
+	<p-dialog
+		[modal]="true"
+		[(visible)]="verobservaciones"
+		[style]="{ width: '45vw' }"
+		[breakpoints]="{ '1199px': '75vw', '575px': '90vw' }"
+		[maximizable]="true">
+		<ng-template pTemplate="header">
+
+			<h5 class="text-bg-primary p-2 rounded-3 fw-bold"> Levantar Observaciones - {{fila_select.id_orden_compra}}</h5>
+
+		</ng-template>
+		<div class="row my-2">
+			<div class="row" style="min-height:250px">
+				<div class="col-md-6 col-sm-12 d-flex flex-column align-items-center justify-content-center">
+
+					<label for="item">Número de Factura</label>
+					<input pInputText id="item" aria-describedby="username-help" [(ngModel)]="fila_select.nrofactura" />
+					<label class="mt-1">Fecha Emisión</label>
+					<p-calendar [(ngModel)]="fechaemision"
+								dateFormat="dd-mm-yy"
+								appendTo="body"
+								[iconDisplay]="'input'"
+								[showIcon]="true" inputId="icondisplay"
+								pStyleClass="fs-11 example-full-width"
+								[style]="{ width: '100%' }"
+								[showTime]="true"
+								[hourFormat]="'24'"
+								[inputStyle]="{ width: '100%' }"/>
+					<label class="mt-1">Monto Total</label>
+					<input
+						pInputText
+						[(ngModel)]="fila_select.imptotalfact"/>
+
+
+					<label class="mt-2">Adjuntar Evidencia (PDF,images*)</label>
+					<p-fileUpload
+						mode="basic"
+						name="demo[]"
+						chooseIcon="pi pi-upload"
+						url="https://www.primefaces.org/cdn/api/upload.php"
+						accept="image/*,application/pdf"
+						maxFileSize="10000000"
+						(onSelect)="this.carga=true"
+						(onUpload)="onBasicUploadAuto($event);"
+						[auto]="true"
+						[disabled]="carga"
+						chooseLabel="Buscar Archivos" />
+
+				</div>
+				<div class="col-md-6 col-sm-12">
+					@if (carga){
+						<div class="d-flex align-items-center justify-content-center">
+							<i class="pi pi-spin pi-cog" style="font-size: 100px;color: #5698bb"></i>
+						</div>
+					}
+
+					@if (subirFactura.archivobase64 && !carga){
+						<img *ngIf="subirFactura.extensiondoc === 'jpeg' || subirFactura.extensiondoc === 'jpg' || subirFactura.extensiondoc === 'png'"
+							 [src]="subirFactura.archivobase64"
+							 style="max-width: 100%; max-height: 250px;" />
+
+						<!-- Mostrar PDF -->
+						<iframe *ngIf="subirFactura.extensiondoc === 'pdf' && !carga"
+								[src]="sanitizarPdf(subirFactura.archivobase64)"
+								width="100%"
+								height="250"
+								style="border: none"
+								allowfullscreen>
+						</iframe>
+					}
+				</div>
+
+			</div>
+
+			<!--			<p-fileUpload name="myfile[]" url="https://www.primefaces.org/cdn/api/upload.php" [multiple]="true" accept="image/*,application/pdf" maxFileSize="1000000" (onUpload)="onTemplatedUpload()" (onSelect)="onSelectedFiles($event)">-->
+			<!--				<ng-template pTemplate="header" let-files let-chooseCallback="chooseCallback" let-clearCallback="clearCallback" let-uploadCallback="uploadCallback">-->
+			<!--					<div class="flex flex-wrap justify-content-between align-items-center flex-1 gap-2">-->
+			<!--						<div class="flex gap-2">-->
+			<!--							<p-button (onClick)="choose($event, chooseCallback)" icon="pi pi-images" [rounded]="true" [outlined]="true" />-->
+			<!--							<p-button (onClick)="uploadEvent(uploadCallback)" icon="pi pi-cloud-upload" [rounded]="true" [outlined]="true" severity="success" [disabled]="!files || files.length === 0" />-->
+			<!--							<p-button (onClick)="clearCallback()" icon="pi pi-times" [rounded]="true" [outlined]="true" severity="danger" [disabled]="!files || files.length === 0" />-->
+			<!--						</div>-->
+			<!--						<p-progressBar [value]="totalSizePercent" [showValue]="false" styleClass="md:w-20rem h-1rem w-full md:ml-auto" [ngClass]="{ 'exceeded-progress-bar': totalSizePercent > 100 }">-->
+			<!--							<span class="white-space-nowrap">{{ totalSize }}B / 1Mb</span>-->
+			<!--						</p-progressBar>-->
+			<!--					</div>-->
+			<!--				</ng-template>-->
+			<!--				<ng-template pTemplate="content" let-files let-uploadedFiles="uploadedFiles" let-removeFileCallback="removeFileCallback" let-removeUploadedFileCallback="removeUploadedFileCallback">-->
+			<!--					<div *ngIf="files?.length > 0">-->
+			<!--						<h5>Pending</h5>-->
+			<!--						<div class="flex flex-wrap p-0 sm:p-5 gap-5">-->
+			<!--							<div *ngFor="let file of files; let i = index" class="card m-0 px-6 flex flex-column border-1 surface-border align-items-center gap-3">-->
+			<!--								<div>-->
+			<!--									<img role="presentation" [alt]="file.name" [src]="file.objectURL" width="100" height="50" />-->
+			<!--								</div>-->
+			<!--								<span class="font-semibold">{{ file.name }}</span>-->
+			<!--								<div>{{ formatSize(file.size) }}</div>-->
+			<!--								<p-badge value="Pending" severity="warning" />-->
+			<!--								<p-button icon="pi pi-times" (onClick)="onRemoveTemplatingFile($event, file, removeFileCallback, i)" [outlined]="true" [rounded]="true" severity="danger" />-->
+			<!--							</div>-->
+			<!--						</div>-->
+			<!--					</div>-->
+			<!--					<div *ngIf="uploadedFiles?.length > 0">-->
+			<!--						<h5>Completed</h5>-->
+			<!--						<div class="flex flex-wrap p-0 sm:p-5 gap-5">-->
+			<!--							<div *ngFor="let file of uploadedFiles; let i = index" class="card m-0 px-6 flex flex-column border-1 surface-border align-items-center gap-3">-->
+			<!--								<div>-->
+			<!--									<img role="presentation" [alt]="file.name" [src]="file.objectURL" width="100" height="50" />-->
+			<!--								</div>-->
+			<!--								<span class="font-semibold">{{ file.name }}</span>-->
+			<!--								<div>{{ formatSize(file.size) }}</div>-->
+			<!--								<p-badge value="Completed" class="mt-3" severity="success" />-->
+			<!--								<p-button icon="pi pi-times" (click)="removeUploadedFileCallback(i)" [outlined]="true" [rounded]="true" severity="danger" />-->
+			<!--							</div>-->
+			<!--						</div>-->
+			<!--					</div>-->
+			<!--				</ng-template>-->
+			<!--				<ng-template pTemplate="file"> </ng-template>-->
+			<!--				<ng-template pTemplate="empty">-->
+			<!--					<div class="flex align-items-center justify-content-center flex-column">-->
+			<!--						<i class="pi pi-cloud-upload border-2 border-circle p-5 text-8xl text-400 border-400"></i>-->
+			<!--						<p class="mt-4 mb-0">Arrastra y sube algùn archivo.</p>-->
+			<!--					</div>-->
+			<!--				</ng-template>-->
+			<!--			</p-fileUpload>-->
+		</div>
+		<ng-template pTemplate="footer">
+			<div class="text-end mt-2">
+				<p-button  icon="pi pi-trash" [outlined]="true" label="Cancelar" class="mx-1" severity="secondary"  />
+				<p-button  icon="pi pi-save" label="Subir Observación" class="mx-1" severity="success"  (click)="guardarfactura()"/>
+			</div></ng-template>
+	</p-dialog>
+}
+

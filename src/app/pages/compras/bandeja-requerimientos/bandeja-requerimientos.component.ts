@@ -2,7 +2,12 @@ import {Component, ViewChildren, ViewEncapsulation} from '@angular/core';
 import {NgbHighlight, NgbPaginationModule} from "@ng-bootstrap/ng-bootstrap";
 import {AsyncPipe, CommonModule, CurrencyPipe, DatePipe, DecimalPipe} from "@angular/common";
 import {FormsModule} from "@angular/forms";
-import {ObsevacionesReqModel, RequeremientosModel, RequeremientossaveModel} from "../../../model/requerimientosModel";
+import {
+	iterequerimientoModel,
+	ObsevacionesReqModel,
+	RequeremientosModel,
+	RequeremientossaveModel
+} from "../../../model/requerimientosModel";
 import {TagModule} from "primeng/tag";
 import {ButtonModule} from "primeng/button";
 import {CheckboxModule} from "primeng/checkbox";
@@ -22,6 +27,13 @@ import {InputTextareaModule} from "primeng/inputtextarea";
 import {FileUploadModule} from "primeng/fileupload";
 import {BadgeModule} from "primeng/badge";
 import {RequerimientosService} from "../../../services/compras/requerimientos.service";
+import {InputNumberModule} from "primeng/inputnumber";
+import {Router} from "@angular/router";
+import {cotizacionModel, itecotizacionModel} from "../../../model/cotizacionesModel";
+import {proveedorModel, soloproveedorModel} from "../../../model/proveedoresModel";
+import {ProveedorService} from "../../../services/compras/proveedor.service";
+import {CotizacionesService} from "../../../services/compras/cotizaciones.service";
+import {CargaComponent} from "../../../components/carga/carga.component";
 
 
 @Component({
@@ -30,7 +42,7 @@ import {RequerimientosService} from "../../../services/compras/requerimientos.se
 	imports: [CommonModule, DecimalPipe, FormsModule, AsyncPipe, NgbHighlight, NgbPaginationModule, DatePipe, CurrencyPipe, TagModule, ButtonModule,
 		CheckboxModule, TableModule, SliderModule, DropdownModule, IconFieldModule, InputIconModule,
 		SplitButtonModule, MultiSelectModule, InputTextModule, DialogModule, ToastModule,
-		CalendarModule,InputTextareaModule,FileUploadModule,BadgeModule],
+		CalendarModule, InputTextareaModule, FileUploadModule, BadgeModule, InputNumberModule, CargaComponent],
   templateUrl: './bandeja-requerimientos.component.html',
   styleUrl: './bandeja-requerimientos.component.scss',
 	providers: [MessageService],
@@ -43,27 +55,34 @@ export class BandejaRequerimientosComponent {
 	listaRequerimientos: RequeremientossaveModel[] = [];
 	listaRequerimientospaginado: RequeremientossaveModel[] = [];
 	selectedCustomers!: RequeremientosModel[];
+	selectedCotizacion:cotizacionModel=new cotizacionModel()
 	items: MenuItem[]=[];
 	representatives!: RequeremientosModel[];
 	sumaorder:number=0
+	sumacoti:number=0
 	verdetalle:boolean=false
-	statuses!: any[];
-	searchValue:any
+	spinner:boolean=false
 	loading: boolean = false;
 	verordencompra:boolean=false
+	vercotizacion:boolean=false
 	condicionpago:string=''
+	listaProveedores: soloproveedorModel[] = [];
+	selectedprov:proveedorModel=new proveedorModel()
 	fechaentrega: Date = new Date();
 	fila_select:RequeremientossaveModel = new RequeremientossaveModel()
 	verobservaciones:boolean=false
 	observaciones:ObsevacionesReqModel=new ObsevacionesReqModel()
 	activityValues: number[] = [0, 100];
 	files:File[] = [];
+	cargaprov:boolean=false
 
 	totalSize : number = 0;
 
 	totalSizePercent : number = 0;
 	constructor(private config: PrimeNGConfig,private messageService: MessageService,
-				private requerimietoService:RequerimientosService) {
+				private requerimietoService:RequerimientosService,
+				private router: Router,private proveedorService:ProveedorService,
+				private cotizacionService:CotizacionesService) {
 		this.loading=false
 		this.items = [
 			{
@@ -78,7 +97,12 @@ export class BandejaRequerimientosComponent {
 				label: 'Cotizaciones',
 				icon:'pi pi-flag',
 				command: () => {
-					this.update();
+					this.vercotizacion=true
+					this.sumacoti=0
+					this.cargaproveedores()
+					this.fila_select.iterequerimiento.forEach(e=>{
+						this.sumacoti+=e.impsubtotal
+					})
 				}
 			},
 			{
@@ -91,7 +115,7 @@ export class BandejaRequerimientosComponent {
 				label: 'Conformidad',
 				icon:'pi pi-check-circle',
 				command: () => {
-					this.update();
+					this.messageService.add({ severity: 'warn', summary: 'PENDIENTE', detail: 'Está en espera de Conformidad' });
 				}
 			},{
 				label: 'Observaciones',
@@ -104,7 +128,7 @@ export class BandejaRequerimientosComponent {
 				label: 'Validar Calidad',
 				icon:'pi pi-lock',
 				command: () => {
-					this.update();
+					this.messageService.add({ severity: 'warn', summary: 'PENDIENTE', detail: 'Está en espera de Validación' });
 				}
 			},{
 				label: 'Pago',
@@ -114,205 +138,15 @@ export class BandejaRequerimientosComponent {
 				}
 			},
 		];
-		// this.listaRequerimientos = [
-		// 	{
-		// 		codigo: 3001,
-		// 		fecha: new Date('2025-07-01'),
-		// 		origen: 'Laboratorio Central',
-		// 		estado: 'Pendiente',
-		// 		totalestimado: 1280.00,
-		// 		motivo: 'Formulación de crema antiacné',
-		// 		detalle: [
-		// 			{ descripcion: 'Ácido salicílico', cantidad: 1, unidad: 'kg', subtotal: 350 },
-		// 			{ descripcion: 'Glicerina vegetal', cantidad: 2, unidad: 'lt', subtotal: 280 },
-		// 			{ descripcion: 'Envases de 50ml', cantidad: 200, unidad: 'unid', subtotal: 400 }
-		// 		]
-		// 	},
-		// 	{
-		// 		codigo: 3002,
-		// 		fecha: new Date('2025-07-02'),
-		// 		origen: 'Control de Calidad',
-		// 		estado: 'Aprobado',
-		// 		totalestimado: 720.00,
-		// 		motivo: 'Análisis de lote de hidratante facial',
-		// 		detalle: [
-		// 			{ descripcion: 'Alcohol etílico 96%', cantidad: 1, unidad: 'lt', subtotal: 120 },
-		// 			{ descripcion: 'Tiras pH', cantidad: 100, unidad: 'unid', subtotal: 100 },
-		// 			{ descripcion: 'Vaselina blanca', cantidad: 2, unidad: 'kg', subtotal: 500 }
-		// 		]
-		// 	},
-		// 	{
-		// 		codigo: 3003,
-		// 		fecha: new Date('2025-07-03'),
-		// 		origen: 'Planta Piloto',
-		// 		estado: 'Pendiente',
-		// 		totalestimado: 935.00,
-		// 		motivo: 'Lote de prueba crema antiarrugas',
-		// 		detalle: [
-		// 			{ descripcion: 'Coenzima Q10', cantidad: 250, unidad: 'g', subtotal: 250 },
-		// 			{ descripcion: 'Aceite de jojoba', cantidad: 2, unidad: 'lt', subtotal: 300 },
-		// 			{ descripcion: 'Cajas plegables 100ml', cantidad: 150, unidad: 'unid', subtotal: 385 }
-		// 		]
-		// 	},
-		// 	{
-		// 		codigo: 3004,
-		// 		fecha: new Date('2025-07-03'),
-		// 		origen: 'Formulación',
-		// 		estado: 'Aprobado',
-		// 		totalestimado: 680.00,
-		// 		motivo: 'Ajuste de fórmula con nuevo emulsionante',
-		// 		detalle: [
-		// 			{ descripcion: 'Emulsionante tipo O/W', cantidad: 1, unidad: 'kg', subtotal: 320 },
-		// 			{ descripcion: 'Conservante parabeno-free', cantidad: 500, unidad: 'g', subtotal: 180 },
-		// 			{ descripcion: 'Frascos PET 200ml', cantidad: 100, unidad: 'unid', subtotal: 180 }
-		// 		]
-		// 	},
-		// 	{
-		// 		codigo: 3005,
-		// 		fecha: new Date('2025-07-04'),
-		// 		origen: 'Producción',
-		// 		estado: 'Pendiente',
-		// 		totalestimado: 1100.00,
-		// 		motivo: 'Preparación crema humectante',
-		// 		detalle: [
-		// 			{ descripcion: 'Urea', cantidad: 1, unidad: 'kg', subtotal: 300 },
-		// 			{ descripcion: 'Aceite de almendras', cantidad: 2, unidad: 'lt', subtotal: 400 },
-		// 			{ descripcion: 'Tarros 250ml', cantidad: 100, unidad: 'unid', subtotal: 400 }
-		// 		]
-		// 	},
-		// 	{
-		// 		codigo: 3006,
-		// 		fecha: new Date('2025-07-04'),
-		// 		origen: 'Almacén de Materias Primas',
-		// 		estado: 'Aprobado',
-		// 		totalestimado: 980.00,
-		// 		motivo: 'Reposición de insumos',
-		// 		detalle: [
-		// 			{ descripcion: 'Propilenglicol', cantidad: 3, unidad: 'lt', subtotal: 270 },
-		// 			{ descripcion: 'Cera lanette', cantidad: 1, unidad: 'kg', subtotal: 250 },
-		// 			{ descripcion: 'Etiquetas adhesivas', cantidad: 500, unidad: 'unid', subtotal: 460 }
-		// 		]
-		// 	},
-		// 	{
-		// 		codigo: 3007,
-		// 		fecha: new Date('2025-07-05'),
-		// 		origen: 'Sucursal Norte',
-		// 		estado: 'Pendiente',
-		// 		totalestimado: 600.00,
-		// 		motivo: 'Demanda de crema exfoliante',
-		// 		detalle: [
-		// 			{ descripcion: 'Microesferas de jojoba', cantidad: 500, unidad: 'g', subtotal: 300 },
-		// 			{ descripcion: 'Extracto de manzanilla', cantidad: 1, unidad: 'lt', subtotal: 300 }
-		// 		]
-		// 	},
-		// 	{
-		// 		codigo: 3008,
-		// 		fecha: new Date('2025-07-06'),
-		// 		origen: 'Sucursal Sur',
-		// 		estado: 'Rechazado',
-		// 		totalestimado: 540.00,
-		// 		motivo: 'Solicitud no autorizada',
-		// 		detalle: [
-		// 			{ descripcion: 'Aceite de rosa mosqueta', cantidad: 1, unidad: 'lt', subtotal: 400 },
-		// 			{ descripcion: 'Envases vidrio ámbar', cantidad: 50, unidad: 'unid', subtotal: 140 }
-		// 		]
-		// 	},
-		// 	{
-		// 		codigo: 3009,
-		// 		fecha: new Date('2025-07-06'),
-		// 		origen: 'Muestreo clínico',
-		// 		estado: 'Pendiente',
-		// 		totalestimado: 825.00,
-		// 		motivo: 'Fórmula con niacinamida',
-		// 		detalle: [
-		// 			{ descripcion: 'Niacinamida', cantidad: 250, unidad: 'g', subtotal: 200 },
-		// 			{ descripcion: 'Crema base neutra', cantidad: 5, unidad: 'kg', subtotal: 625 }
-		// 		]
-		// 	},
-		// 	{
-		// 		codigo: 3010,
-		// 		fecha: new Date('2025-07-07'),
-		// 		origen: 'Sucursal Este',
-		// 		estado: 'Aprobado',
-		// 		totalestimado: 1095.00,
-		// 		motivo: 'Lanzamiento de nuevo descripcion',
-		// 		detalle: [
-		// 			{ descripcion: 'Extracto de caléndula', cantidad: 1, unidad: 'lt', subtotal: 350 },
-		// 			{ descripcion: 'Aceite de coco', cantidad: 2, unidad: 'lt', subtotal: 400 },
-		// 			{ descripcion: 'Etiquetas color full', cantidad: 300, unidad: 'unid', subtotal: 345 }
-		// 		]
-		// 	},
-		// 	{
-		// 		codigo: 3011,
-		// 		fecha: new Date('2025-07-08'),
-		// 		origen: 'Departamento Técnico',
-		// 		estado: 'Pendiente',
-		// 		totalestimado: 710.00,
-		// 		motivo: 'Ensayo estabilidad crema nocturna',
-		// 		detalle: [
-		// 			{ descripcion: 'Vitamina E', cantidad: 250, unidad: 'g', subtotal: 250 },
-		// 			{ descripcion: 'Aceite de argán', cantidad: 1, unidad: 'lt', subtotal: 300 },
-		// 			{ descripcion: 'Envases tester', cantidad: 50, unidad: 'unid', subtotal: 160 }
-		// 		]
-		// 	},
-		// 	{
-		// 		codigo: 3012,
-		// 		fecha: new Date('2025-07-08'),
-		// 		origen: 'Distribución',
-		// 		estado: 'Pendiente',
-		// 		totalestimado: 430.00,
-		// 		motivo: 'Muestras a farmacias',
-		// 		detalle: [
-		// 			{ descripcion: 'Cajas pequeñas', cantidad: 100, unidad: 'unid', subtotal: 200 },
-		// 			{ descripcion: 'Stickers promocionales', cantidad: 500, unidad: 'unid', subtotal: 230 }
-		// 		]
-		// 	},
-		// 	{
-		// 		codigo: 3013,
-		// 		fecha: new Date('2025-07-09'),
-		// 		origen: 'Marketing',
-		// 		estado: 'Aprobado',
-		// 		totalestimado: 1340.00,
-		// 		motivo: 'Promoción en puntos de venta',
-		// 		detalle: [
-		// 			{ descripcion: 'Folletos informativos', cantidad: 1000, unidad: 'unid', subtotal: 400 },
-		// 			{ descripcion: 'Bolsas promocionales', cantidad: 500, unidad: 'unid', subtotal: 400 },
-		// 			{ descripcion: 'Displays de mostrador', cantidad: 20, unidad: 'unid', subtotal: 540 }
-		// 		]
-		// 	},
-		// 	{
-		// 		codigo: 3014,
-		// 		fecha: new Date('2025-07-09'),
-		// 		origen: 'Dirección Técnica',
-		// 		estado: 'Pendiente',
-		// 		totalestimado: 1080.00,
-		// 		motivo: 'Producción de crema con AHA',
-		// 		detalle: [
-		// 			{ descripcion: 'Ácido glicólico', cantidad: 500, unidad: 'g', subtotal: 400 },
-		// 			{ descripcion: 'Crema base emoliente', cantidad: 3, unidad: 'kg', subtotal: 480 },
-		// 			{ descripcion: 'Tarros 100ml', cantidad: 100, unidad: 'unid', subtotal: 200 }
-		// 		]
-		// 	},
-		// 	{
-		// 		codigo: 3015,
-		// 		fecha: new Date('2025-07-10'),
-		// 		origen: 'Formulación Magistral',
-		// 		estado: 'Aprobado',
-		// 		totalestimado: 965.00,
-		// 		motivo: 'Preparación de lotes personalizados',
-		// 		detalle: [
-		// 			{ descripcion: 'Extracto de té verde', cantidad: 1, unidad: 'lt', subtotal: 400 },
-		// 			{ descripcion: 'Base hipoalergénica', cantidad: 3, unidad: 'kg', subtotal: 565 }
-		// 		]
-		// 	}
-		// ];
 
-		// this.collectionSize = this.listaRequerimientos.length
 
 		this.refreshRequerimientos();
 	}
 
 	ngOnInit(){
+		this.cargarrequerimientos()
+	}
+	cargarrequerimientos(){
 		this.loading=true
 		this.requerimietoService.getRequerimientos().subscribe({
 			next:(data)=>{
@@ -328,24 +162,44 @@ export class BandejaRequerimientosComponent {
 			.map((req, i) => ({id: i + 1, ...req}))
 			.slice((this.page - 1) * this.pageSize, this.page * this.pageSize);
 	}
+	getEstadoLabel(estado: string | null | undefined): string {
+		if (!estado) return '';
+		switch (estado.toUpperCase()) {
+			case 'PENDIENTE': return 'Por Cotizar';
+			case 'COTIZADO': return 'Cotizado';
+			case 'APROBADO': return 'Aprobado';
+			case 'RECHAZADO': return 'Rechazado';
+			default: return estado;
+		}
+	}
+	// public getSeverity(status: string): string {
+	// 	switch (status) {
+	// 		case 'unqualified':
+	// 			return 'danger';
+	//
+	// 		case 'qualified':
+	// 			return 'success';
+	//
+	// 		case 'COTIZADO':
+	// 			return 'info';
+	//
+	// 		case 'PENDIENTE':
+	// 			return 'warning';
+	//
+	// 		default :
+	// 			return 'contrast';
+	// 	}
+	// }
+	getSeverity(estado: string | null | undefined): "success" | "info" | "warning" | "danger" | "secondary" | "contrast" | undefined {
+		if (!estado) return undefined;
 
-	getSeverity(status: string): string {
-		switch (status) {
-			case 'unqualified':
-				return 'danger';
-
-			case 'qualified':
-				return 'success';
-
-			case 'new':
-				return 'info';
-
-			case 'negotiation':
-				return 'warning';
-
-
-			default :
-				return '';
+		switch (estado.toUpperCase()) {
+			case 'PENDIENTE': return 'warning';  // Yellow/orange
+			case 'COTIZADO': return 'info';      // Blue
+			case 'ORDEN COMPRA': return 'success';   // Green
+			case 'FACTURA ENVIADA': return 'danger';   // Red
+			case 'VALIDACION MP': return 'contrast';
+			default: return 'secondary';         // Gray (fallback)
 		}
 	}
 	clear(table: Table) {
@@ -416,5 +270,62 @@ export class BandejaRequerimientosComponent {
 		const formattedSize = parseFloat((bytes / Math.pow(k, i)).toFixed(dm));
 
 		return `${formattedSize} ${sizes[i]}`;
+	}
+	cambiocosto(registro:iterequerimientoModel){
+		registro.impsubtotal=registro.costo_gramo*registro.cantidad_requerida
+		this.fila_select.iterequerimiento.forEach(e=>{
+			this.sumacoti+=e.impsubtotal
+		})
+	}
+
+	irARequerimientoManual() {
+		// Puedes hacer lógica previa aquí
+		this.router.navigate(['/pages/compras/requerimiento-manual']);
+	}
+	guardarcotizacion(){
+		this.selectedCotizacion=new cotizacionModel()
+		this.selectedCotizacion.idproveedor=this.selectedprov.idproveedor
+		this.selectedCotizacion.impigv=0
+		this.selectedCotizacion.imptotal=this.fila_select.imptotal
+		this.selectedCotizacion.responsable=this.fila_select.responsable
+		this.selectedCotizacion.itecotizacion
+		this.fila_select.iterequerimiento.forEach(e=>{
+			let registro:itecotizacionModel=new itecotizacionModel()
+			registro.impsubtotal=e.impsubtotal
+			registro.cantidad=e.cantidad_requerida
+			registro.cantidad_cotizada=e.cantidad_requerida
+			registro.id_requerimiento=this.fila_select.id_requerimiento
+			registro.id_materia_prima=e.id_materia_prima
+			registro.diasentrega=e.diasentrega
+			registro.condicion_adicional=e.condicion_adicional
+			this.selectedCotizacion.itecotizacion.push(registro)
+		})
+		this.spinner=true
+		this.vercotizacion=false
+		this.cotizacionService.registrarCotizacion(this.selectedCotizacion,1).subscribe({
+			next:(data)=>{
+				this.spinner=false
+				this.vercotizacion=false
+				this.cargarrequerimientos()
+				this.messageService.add({ severity: 'success', summary: 'ÉXITO', detail: 'El registro se guardó satisfactoriamente' });
+
+			},error:(err)=>{
+				this.spinner=false
+				this.vercotizacion=true
+				this.messageService.add({ severity: 'error', summary: 'ERROR', detail: 'Ocurrió un error al momento de guardar' });
+
+			}
+		})
+	}
+	cargaproveedores(){
+		this.cargaprov=true
+		this.proveedorService.getProveedor().subscribe({
+			next:(data)=>{
+				this.listaProveedores=data.data
+				this.cargaprov=false
+			},error:(err)=>{
+				this.cargaprov=false
+			}
+		})
 	}
 }

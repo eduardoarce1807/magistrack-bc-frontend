@@ -1,12 +1,13 @@
 @if (spinner){
 	<app-carga></app-carga>
+
 }
 <p-toast></p-toast>
 <div class="p-5" >
 	<p-table
 		#dt
-		[value]="listaProveedores"
-		dataKey="codigo"
+		[value]="listaCotizaciones"
+		dataKey="id_cotizacion"
 		[rowHover]="true"
 		[rows]="5"
 		[showCurrentPageReport]="true"
@@ -17,12 +18,14 @@
 		[filterDelay]="0"
 		styleClass="p-datatable-gridlines p-datatable-striped p-datatable-sm"
 		[tableStyle]="{'min-width': '40rem'}"
-		[globalFilterFields]="['idproveedor', 'descripcion', 'representante','correo','celular','direccion','ruc']"
+		[globalFilterFields]="['id_cotizacion', 'fechacotizacion', 'responsable','correo','celular','direccion','ruc']"
 	>
 		<ng-template pTemplate="caption">
 			<div class="flex justify-between items-center">
-				<h4 class="text-primary fw-bold flex items-center"><img src="assets/img/tarea.gif" width="50">Lista de Proveedores</h4>
+				<h4 class="p-text-secondary fw-bold flex items-center"><img src="assets/img/grocery.gif" width="50">Lista de Cotizaciones x Proveedor</h4>
+
 				<div>
+
 					<p-iconField iconPosition="left">
 						<p-inputIcon>
 							<i class="pi pi-search"></i>
@@ -35,67 +38,69 @@
 			</div>
 			<div class="row">
 				<div class="col-md-6 g-2">
-<!--					<p-button [outlined]="true" icon="pi pi-file-plus" label="Historial Req." class="mx-1" severity="success"  />-->
-<!--					<p-button  icon="pi pi-angle-double-up" label="Indicadores" severity="info"  class="mx-1"/>-->
-<!--					<p-button [outlined]="true" icon="pi pi-print" label="Reportes" severity="info"  class="mx-1"/>-->
+
+					<label class="mx-3" >Proveedor:</label>
+					<p-dropdown
+						[options]="listaProveedores"
+						[(ngModel)]="selectedprov"
+						optionLabel="descripcion"
+						[loading]="cargaprov"
+						(ngModelChange)="cambioproveedor()"
+						placeholder="Seleccionar Proveedor" />
+					<!--					<p-button [outlined]="true" icon="pi pi-file-plus" label="Historial Req." class="mx-1" severity="success"  />-->
+					<!--					<p-button  icon="pi pi-angle-double-up" label="Indicadores" severity="info"  class="mx-1"/>-->
+					<!--					<p-button [outlined]="true" icon="pi pi-print" label="Reportes" severity="info"  class="mx-1"/>-->
 				</div>
 				<div class="col-md-6 text-end g-2">
-					<p-button  icon="pi pi-plus" label="Nuevo Proveedor" class="mx-1" severity="success" (click)="nuevoproveedor()" />
+<!--					<p-button  icon="pi pi-plus" label="Nuevo Proveedor" class="mx-1" severity="success" (click)="nuevoproveedor()" />-->
 				</div>
 			</div>
 		</ng-template>
 		<ng-template pTemplate="header">
 			<tr>
-				<th pSortableColumn="idproveedor" style="min-width: 30px">
+				<th pSortableColumn="id_cotizacion" style="min-width: 30px">
 					<div class="flex justify-content-between align-items-center">
 						Id
-						<p-sortIcon field="idproveedor" />
-						<p-columnFilter type="text" field="idproveedor" display="menu" class="ml-auto" />
+						<p-sortIcon field="id_cotizacion" />
+						<p-columnFilter type="text" field="id_cotizacion" display="menu" class="ml-auto" />
 					</div>
 				</th>
-				<th pSortableColumn="descripcion" style="min-width: 14rem">
+				<th pSortableColumn="fechacotizacion" style="min-width: 14rem">
 					<div class="flex justify-content-between align-items-center">
-						Descripción
-						<p-sortIcon field="descripcion" />
-						<p-columnFilter type="text" field="descripcion" display="menu" class="ml-auto" />
+						Fecha Cot.
+						<p-sortIcon field="fechacotizacion" />
+						<p-columnFilter type="text" field="fechacotizacion" display="menu" class="ml-auto" />
 					</div>
 				</th>
-				<th pSortableColumn="representante" style="min-width: 40px">
+				<th pSortableColumn="responsable" style="min-width: 40px">
 					<div class="flex justify-content-between align-items-center">
-						Representante
-						<p-sortIcon field="representante" />
-						<p-columnFilter type="text" field="representante" display="menu" class="ml-auto" />
+						Responsable
+						<p-sortIcon field="responsable" />
+						<p-columnFilter type="text" field="responsable" display="menu" class="ml-auto" />
 					</div>
 				</th>
-				<th pSortableColumn="correo" style="min-width: 40px">
+				<th pSortableColumn="desproveedor" style="min-width: 40px">
 					<div class="flex justify-content-between align-items-center">
-						Correo
-						<p-sortIcon field="correo" />
-						<p-columnFilter type="text" field="correo" display="menu" class="ml-auto" />
+						Proveedor Ganador
+						<p-sortIcon field="desproveedor" />
+						<p-columnFilter type="text" field="desproveedor" display="menu" class="ml-auto" />
 					</div>
 				</th>
-				<th pSortableColumn="celular" style="min-width: 40px">
+				<th pSortableColumn="destipogan" style="min-width: 40px">
 					<div class="flex justify-content-between align-items-center">
-						Celular
-						<p-sortIcon field="celular" />
-						<p-columnFilter type="text" field="celular" display="menu" class="ml-auto" />
+						Tipo Ganador
+						<p-sortIcon field="destipogan" />
+						<p-columnFilter type="text" field="destipogan" display="menu" class="ml-auto" />
 					</div>
 				</th>
-				<th pSortableColumn="direccion" style="min-width: 40px">
+				<th pSortableColumn="imptotal" style="min-width: 40px">
 					<div class="flex justify-content-between align-items-center">
-						Dirección
-						<p-sortIcon field="direccion" />
-						<p-columnFilter type="text" field="direccion" display="menu" class="ml-auto" />
+						Importe Total
+						<p-sortIcon field="imptotal" />
+						<p-columnFilter type="text" field="imptotal" display="menu" class="ml-auto" />
 					</div>
 				</th>
-				<th pSortableColumn="ruc" style="min-width: 40px">
-					<div class="flex justify-content-between align-items-center">
-						RUC
-						<p-sortIcon field="ruc" />
-						<p-columnFilter type="text" field="ruc" display="menu" class="ml-auto" />
-					</div>
-				</th>
-				<th style="min-width: 10rem">
+				<th style="min-width: 40px">
 					<div class="flex justify-content-between align-items-center">
 						Acciones
 					</div>
@@ -103,27 +108,24 @@
 			</tr>
 		</ng-template>
 		<ng-template pTemplate="body" let-customer>
-			<tr class="p-selectable-row" >
+			<tr class="p-selectable-row">
 				<td>
-					{{ customer.idproveedor }}
+					{{ customer.id_cotizacion }}
 				</td>
 				<td>
-					{{ customer.descripcion }}
+					{{ customer.fechacotizacion }}
 				</td>
 				<td>
-					{{ customer.representante }}
+					{{ customer.responsable }}
 				</td>
 				<td>
-					{{ customer.correo }}
+					{{ customer.desproveedor }}
 				</td>
 				<td>
-					{{ customer.celular }}
+					<p-tag severity="warning" [value]="customer.destipogan" [severity]="getTipoGanador(customer.id_tipo_ganador)" [rounded]="true" />
 				</td>
 				<td>
-					{{ customer.direccion }}
-				</td>
-				<td>
-					{{ customer.ruc }}
+					S/ {{ customer.imptotal | currency:' ':'symbol':'1.2-2':'en-US'}}
 				</td>
 				<td>
 					<p-button  [rounded]="true" icon="pi pi-pencil" class="mx-1" severity="success"  (click)="editarproveedor(customer)"/>
@@ -201,8 +203,8 @@
 			</div>
 		</div>
 		<ng-template pTemplate="footer">
-			<p-button [outlined]="true" icon="pi pi-trash" label="Cancelar" class="mx-1" severity="danger" (click)="verdetalle=false;"  />
-			<p-button  icon="pi pi-save" label="Registrar Proveedor" class="mx-1" severity="success"  (click)="guardarproveedor()"/>
+			<p-button [outlined]="true" icon="pi pi-trash" label="Cancelar" class="mx-1" severity="danger" (click)="verdetalle=false;editarproveedor(fila_select)"  />
+			<p-button  icon="pi pi-save" label="Registrar Proveedor" class="mx-1" severity="success"  />
 		</ng-template>
 	</p-dialog>
 }

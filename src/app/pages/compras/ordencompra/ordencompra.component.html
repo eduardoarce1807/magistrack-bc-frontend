@@ -1,0 +1,489 @@
+@if (spinner){
+	<app-carga></app-carga>
+}
+<p-toast></p-toast>
+<div class="p-5" >
+	<p-table
+		#dt
+		[value]="listaOrdenes"
+		dataKey="id_orden_compra"
+		[rowHover]="true"
+		[rows]="5"
+		[showCurrentPageReport]="true"
+		[rowsPerPageOptions]="[5, 25, 50]"
+		[loading]="loading"
+		[paginator]="true"
+		currentPageReportTemplate="{first} hasta {last} de {totalRecords} registros"
+		[filterDelay]="0"
+		styleClass="p-datatable-gridlines p-datatable-striped p-datatable-sm"
+		[tableStyle]="{'min-width': '40rem'}"
+		[expandedRowKeys]="expandedRows"
+		[globalFilterFields]="['id_orden_compra', 'fechaemision', 'imptotal','estadoord','celular','direccion','ruc']"
+	>
+		<ng-template pTemplate="caption">
+			<div class="flex justify-between items-center">
+				<h4 class="p-text-secondary fw-bold flex items-center"><img src="assets/img/lista-de-deseos.gif" width="50">Ord. Compra x Proveedor</h4>
+
+				<div>
+
+					<p-iconField iconPosition="left">
+						<p-inputIcon>
+							<i class="pi pi-search"></i>
+						</p-inputIcon>
+						<input pInputText #input (input)="dt.filterGlobal(input.value, 'contains')" placeholder="Keyword" />
+						<!--					<input pInputText type="text" [(ngModel)]="searchValue" (input)="dt.filterGlobal($event.target.value, 'contains')" placeholder="Keyboard Search" />-->
+					</p-iconField>
+					<p-button [outlined]="true" icon="pi pi-filter-slash" label="Clear" (click)="clear(dt)" />
+
+				</div>
+			</div>
+			<div class="row">
+				<div class="col-md-6 g-2">
+
+					<label class="mx-3" >Proveedor:</label>
+					<p-dropdown
+						[options]="listaProveedores"
+						[(ngModel)]="selectedprov"
+						optionLabel="descripcion"
+						[loading]="cargaprov"
+						(ngModelChange)="cambioproveedor()"
+						placeholder="Seleccionar Proveedor" />
+					<!--					<p-button [outlined]="true" icon="pi pi-file-plus" label="Historial Req." class="mx-1" severity="success"  />-->
+					<!--					<p-button  icon="pi pi-angle-double-up" label="Indicadores" severity="info"  class="mx-1"/>-->
+					<!--					<p-button [outlined]="true" icon="pi pi-print" label="Reportes" severity="info"  class="mx-1"/>-->
+				</div>
+				<div class="col-md-6 text-end g-2">
+
+					<p-button label="Expand All" icon="pi pi-plus" text (onClick)="expandAll()" />
+					<p-button label="Collapse All" icon="pi pi-minus" text (onClick)="collapseAll()" />
+					<!--					<p-button  icon="pi pi-plus" label="Nuevo Proveedor" class="mx-1" severity="success" (click)="nuevoproveedor()" />-->
+				</div>
+			</div>
+		</ng-template>
+		<ng-template pTemplate="header">
+			<tr>
+				<th style="width: 5rem"></th>
+				<th pSortableColumn="id_orden_compra" style="min-width: 30px">
+					<div class="flex justify-content-between align-items-center">
+						Id
+						<p-sortIcon field="id_orden_compra" />
+						<p-columnFilter type="text" field="id_orden_compra" display="menu" class="ml-auto" />
+					</div>
+				</th>
+				<th style="min-width: 50px">
+					Validaciones
+				</th>
+				<th pSortableColumn="fechaemision" style="min-width: 100px">
+					<div class="flex justify-content-between align-items-center">
+						Fecha Emisión
+						<p-sortIcon field="fechaemision" />
+						<p-columnFilter type="text" field="fechaemision" display="menu" class="ml-auto" />
+					</div>
+				</th>
+				<th pSortableColumn="imptotal" style="min-width: 40px">
+					<div class="flex justify-content-between align-items-center">
+						ImpTotal
+						<p-sortIcon field="imptotal" />
+						<p-columnFilter type="text" field="imptotal" display="menu" class="ml-auto" />
+					</div>
+				</th>
+				<th pSortableColumn="estadoord" style="min-width: 40px">
+					<div class="flex justify-content-between align-items-center">
+						Estado OC
+						<p-sortIcon field="estadoord" />
+						<p-columnFilter type="text" field="estadoord" display="menu" class="ml-auto" />
+					</div>
+				</th>
+				<th pSortableColumn="fechaemisionfact" style="min-width: 100px">
+					<div class="flex justify-content-between align-items-center">
+						Fecha Em.Fact
+						<p-sortIcon field="fechaemisionfact" />
+						<p-columnFilter type="text" field="fechaemisionfact" display="menu" class="ml-auto" />
+					</div>
+				</th>
+				<th pSortableColumn="imptotalfact" style="min-width: 40px">
+					<div class="flex justify-content-between align-items-center">
+						ImpTotalFact
+						<p-sortIcon field="imptotalfact" />
+						<p-columnFilter type="text" field="imptotalfact" display="menu" class="ml-auto" />
+					</div>
+				</th>
+				<th style="min-width: 10rem">
+					<div class="flex justify-content-between align-items-center">
+						Acciones
+					</div>
+				</th>
+			</tr>
+		</ng-template>
+		<ng-template pTemplate="body" let-customer let-expanded="expanded">
+			<tr class="p-selectable-row">
+				<td>
+					<p-button type="button" pRipple [pRowToggler]="customer" [text]="true" [rounded]="true" [plain]="true" [icon]="expanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'" />
+				</td>
+				<td>
+					{{ customer.id_orden_compra }}
+					@if (getCumpleCount(customer.detalleorden)>0){
+						<i class="pi pi-bell p-text-secondary" pBadge style="font-size: 1.1rem"
+						   [value]="getCumpleCount(customer.detalleorden)" severity="danger"></i>
+
+					}
+				</td>
+				<td>
+					{{ getCumpleCount(customer.detalleorden) }} / {{ customer.detalleorden.length }}
+					@if (getCumpleCount(customer.detalleorden)==customer.detalleorden.length){
+						<i class="pi pi-check-circle" style="color: green;font-size: 1.5rem"></i>
+					} @else if (getCumpleCount(customer.detalleorden)>0){
+						<p-tag severity="warning" value="PARCIAL" [rounded]="true" />
+					} @else {
+						<p-tag severity="danger" value="EN ESPERA" [rounded]="true" />
+					}
+				</td>
+				<td>
+					{{ customer.fechaemision }}
+				</td>
+				<td>
+					{{ customer.imptotal | currency:' ':'symbol':'1.2-2':'en-US'}}
+				</td>
+				<td>
+					<p-tag severity="warning" [value]="customer.estadoord" [severity]="getEstadoOrden(customer.estadoord)" [rounded]="true" />
+				</td>
+				<td>
+					{{ customer.fechaemisionfact }}
+				</td>
+				<td class="text-end">
+					{{ customer.imptotalfact | currency:' ':'symbol':'1.2-2':'en-US'}}
+					@if (customer.path_factura){
+						<a
+							[href]="customer.path_factura"
+							target="_blank"
+							rel="noopener noreferrer"
+							pTooltip="Ver Factura"
+							tooltipPosition="right">
+							<i class="pi pi-file-check" style="color: #7e088c;font-size: 1.5rem;cursor:pointer"></i>
+						</a>
+
+
+					}
+				</td>
+				<td>
+					<p-button  [rounded]="true" icon="pi pi-verified" pTooltip="Validación"
+							   tooltipPosition="right" class="mx-1" severity="warning" (click)="vervalidacion=true;fila_select=customer"
+							   [disabled]="getCumpleCount(customer.detalleorden)==customer.detalleorden.length || customer.estado_fact !='BOUCHER CHECK'"/>
+					<p-button  [rounded]="true" icon="pi pi-bell" pTooltip="Conformidad"
+							   tooltipPosition="right" class="mx-1" severity="success" (click)="verconformidad=true;fila_select=customer"
+							   [disabled]="getCumpleCount(customer.detalleorden)!=customer.detalleorden.length || customer.estado_fact !='BOUCHER CHECK'"/>
+				</td>
+			</tr>
+		</ng-template>
+		<ng-template pTemplate="rowexpansion" let-product>
+			<tr class="back-tabla">
+				<td colspan="7">
+					<div class="p-3">
+						<p-table [value]="product.detalleorden" dataKey="item">
+							<ng-template pTemplate="header">
+								<tr>
+									<th pSortableColumn="id">Id <p-sortIcon field="price" /></th>
+									<th pSortableColumn="desmateria">Materia Prima <p-sortIcon field="desmateria" /></th>
+									<th pSortableColumn="cantidad">Cantidad <p-sortIcon field="cantidad" /></th>
+									<th pSortableColumn="cantidad">Cantidad Conf.<p-sortIcon field="cantidad" /></th>
+									<th pSortableColumn="impunit">S/ x unid <p-sortIcon field="impunit" /></th>
+									<th pSortableColumn="impsubtotal">Subtotal <p-sortIcon field="impsubtotal" /></th>
+								</tr>
+							</ng-template>
+							<ng-template pTemplate="body" let-order>
+								<tr>
+									<td>{{ order.item }}
+										@if (order.cumple==1){
+											<i class="pi pi-check-circle" style="color: green;font-size: 1.5rem"></i>
+										}
+									</td>
+									<td>{{ order.desmateria }}</td>
+									<td>{{ order.cantidad }}</td>
+									<td>{{ order.cantidad_conf_total }}</td>
+									<td>{{ order.impunit | currency:' ':'symbol':'1.2-2':'en-US' }}</td>
+									<td>{{ order.impsubtotal | currency:' ':'symbol':'1.2-2':'en-US' }}</td>
+								</tr>
+							</ng-template>
+							<ng-template pTemplate="emptymessage">
+								<tr>
+									<td colspan="6">No tiene detalle de Ordenes </td>
+								</tr>
+							</ng-template>
+						</p-table>
+					</div>
+				</td>
+			</tr>
+		</ng-template>
+		<ng-template pTemplate="emptymessage">
+			<tr>
+				<td colspan="8">No se encontraron órdenes de compras.</td>
+			</tr>
+		</ng-template>
+	</p-table>
+</div>
+
+@if (verconformidad){
+	<p-dialog
+		[modal]="true"
+		[(visible)]="verconformidad"
+		[style]="{ width: '50rem' }"
+		[breakpoints]="{ '1199px': '75vw', '575px': '90vw' }"
+		[maximizable]="true">
+		<ng-template pTemplate="header">
+
+			<img src="assets/img/lista-de-compras.gif" width="50"><h5 class="text-bg-success p-2 rounded-3"> Registrar Conformidad - {{fila_select.id_orden_compra}}</h5>
+		</ng-template>
+		<div class="row my-1">
+			<div class="col-md-6 col-sm-12">
+				<div class="d-flex flex-column fw-bold">
+
+					<label for="username" class="mt-1 ">Responsable</label>
+					<input pInputText id="username" aria-describedby="username-help" [(ngModel)]="fila_select.responsable" />
+					<label class="mt-1">Fecha de Emisión</label>
+					<p-calendar [(ngModel)]="fila_select.fechaemisionfact"
+								dateFormat="dd-mm-yy"
+								appendTo="body" [iconDisplay]="'input'"
+								[showIcon]="true" inputId="icondisplay"
+								pStyleClass="fs-11 example-full-width"
+								[style]="{ width: '100%' }"
+								[inputStyle]="{ width: '100%' }"/>
+					<!--					<small id="fecha-help">Enter your username to reset your password.</small>-->
+
+					<!--					<small id="username-help">Enter your username to reset your password.</small>-->
+				</div>
+			</div>
+			<div class="col-md-6 col-sm-12">
+				<label class="fw-bold">Descripción de la observación</label>
+
+				<textarea
+					rows="5"
+					cols="30"
+					placeholder="Ej:Faltan 5 unidades del producto ACEITES"
+					pInputTextarea
+					class="w-full"
+					[autoResize]="true"
+					[(ngModel)]="observaciones.observaciones">
+			</textarea>
+			</div>
+		</div>
+		<p-table [value]="fila_select.detalleorden"
+				 [tableStyle]="{'min-width': '30rem'}"
+				 styleClass="p-datatable-gridlines p-datatable-striped p-datatable-sm"
+				 sortMode="multiple">
+			<ng-template pTemplate="header">
+				<tr>
+					<th pSortableColumn="item" style="width:10%">
+						ID<p-sortIcon field="item" />
+					</th>
+					<th pSortableColumn="desmateria" style="width:30%">
+						Materia Prima <p-sortIcon field="desmateria" />
+					</th>
+					<th pSortableColumn="cantidad" style="width:10%">
+						Cantidad <p-sortIcon field="cantidad" />
+					</th>
+					<th pSortableColumn="cantidad_conf_total" style="width:10%">
+						Cantidad Conf.<p-sortIcon field="cantidad_conf_total" />
+					</th>
+				</tr>
+			</ng-template>
+			<ng-template pTemplate="body" let-product>
+				<tr>
+					<td>{{product.item}}</td>
+					<td>{{ product.desmateria }}</td>
+					<td>{{ product.cantidad }}
+					</td>
+					<td>
+						<p-inputNumber
+							[(ngModel)]="product.cantidad_conf_total"
+							mode="currency"
+							inputId="currency-peru"
+							currency="PEN"
+							locale="es-PE" />
+					</td>
+				</tr>
+			</ng-template>
+		</p-table>
+		<div class="row">
+			<div class="col-md-6 col-sm-12 text-end text-primary">
+				Todos los materias primas estan sellados?
+			</div>
+			<div class="col-md-6 col-sm-12">
+
+				<p-inputSwitch [(ngModel)]="checked_parametro1" />
+			</div>
+			<div class="col-md-6 col-sm-12 text-end text-primary">
+				Cumple con los parámetros 2?
+			</div>
+			<div class="col-md-6 col-sm-12 ">
+
+				<p-inputSwitch [(ngModel)]="checked_parametro2" />
+			</div>
+			<div class="col-md-6 col-sm-12 text-end text-primary">
+				Cumple con los parámetros 3?
+			</div>
+			<div class="col-md-6 col-sm-12">
+
+				<p-inputSwitch [(ngModel)]="checked_parametro3" />
+			</div>
+		</div>
+
+		<div class="p-5">
+			<p-panel [toggleable]="true">
+				<ng-template pTemplate="header">
+					<div class="flex align-items-center gap-2">
+						<img src="assets/img/bill.gif" width="50" style="border-radius:50%">
+						<span class="font-bold text-success fs-4">
+
+						PROCESO DE PAGO
+            </span>
+					</div>
+				</ng-template>
+				<div class="row my-1">
+					<div class="col-md-6 col-sm-12 d-flex flex-column">
+						<label class="fw-bold">Monto Pagado</label>
+						<p-inputNumber
+							[(ngModel)]="fila_select.imppagado"
+							mode="currency"
+							inputId="currency-peru"
+							currency="PEN"
+							locale="es-PE" />
+						<label class="fw-bold mt-1">Método de Pagos</label>
+						<p-dropdown
+							[options]="lstTiposPago"
+							[(ngModel)]="fila_select.metodo_pago"
+							optionLabel="descripcion"
+							placeholder="Seleccionar"
+							appendTo="body"/>
+						<label class="fw-bold mt-1">Número de Operacion</label>
+						<p-inputNumber
+							[(ngModel)]="fila_select.nrooperacion"
+							inputId="integeronly" />
+						<label class="fw-bold mt-1">Fecha de Pago</label>
+						<p-calendar [(ngModel)]="fila_select.fecha_pago"
+									dateFormat="dd-mm-yy"
+									appendTo="body" [iconDisplay]="'input'"
+									[showIcon]="true" inputId="icondisplay"
+									pStyleClass="fs-11 example-full-width"
+									[style]="{ width: '100%' }"
+									[inputStyle]="{ width: '100%' }"/>
+					</div>
+					<div class="col-md-6 col-sm-12 d-flex flex-column align-items-center">
+						<p-fileUpload
+							mode="basic"
+							name="demo[]"
+							class="my-1"
+							chooseIcon="pi pi-upload"
+							url="https://www.primefaces.org/cdn/api/upload.php"
+							accept="image/*,application/pdf"
+							maxFileSize="10000000"
+							(onSelect)="this.carga=true"
+							(onUpload)="onBasicUploadAuto($event);"
+							[auto]="true"
+							[disabled]="carga"
+							chooseLabel="Buscar Archivos" />
+						@if (carga){
+							<div class="d-flex align-items-center justify-content-center">
+								<i class="pi pi-spin pi-cog" style="font-size: 100px;color: #5698bb"></i>
+							</div>
+						}
+
+						@if (subirFactura.archivobase64 && !carga){
+							<img *ngIf="subirFactura.extensiondoc === 'jpeg' || subirFactura.extensiondoc === 'jpg' || subirFactura.extensiondoc === 'png'"
+								 [src]="subirFactura.archivobase64"
+								 style="max-width: 100%; max-height: 250px;" />
+
+							<!-- Mostrar PDF -->
+							<iframe *ngIf="subirFactura.extensiondoc === 'pdf' && !carga"
+									[src]="sanitizarPdf(subirFactura.archivobase64)"
+									width="100%"
+									height="250"
+									style="border: none"
+									allowfullscreen>
+							</iframe>
+						}
+
+					</div>
+				</div>
+			</p-panel>
+		</div>
+		<ng-template pTemplate="footer">
+			<div class="text-end mt-2">
+				<p-button  icon="pi pi-trash" [outlined]="true" label="Cancelar" (click)="verconformidad=false" class="mx-1" severity="secondary"  />
+				<p-button  icon="pi pi-save" label="Generar Conformidad" class="mx-1" severity="success"  />
+			</div>
+		</ng-template>
+	</p-dialog>
+}
+@if (vervalidacion){
+	<p-dialog
+		[modal]="true"
+		[(visible)]="vervalidacion"
+		[style]="{ width: '50rem' }"
+		[breakpoints]="{ '1199px': '75vw', '575px': '90vw' }"
+		[maximizable]="true">
+		<ng-template pTemplate="header">
+
+			<img src="assets/img/validation.gif" width="50"><h5 class="text-bg-warning p-2 rounded-3"> Validación de Calidad - {{fila_select.id_orden_compra}}</h5>
+		</ng-template>
+
+		<p-table [value]="fila_select.detalleorden"
+				 [tableStyle]="{'min-width': '30rem'}"
+				 styleClass="p-datatable-gridlines p-datatable-striped p-datatable-sm"
+				 sortMode="multiple">
+			<ng-template pTemplate="header">
+				<tr>
+					<th pSortableColumn="item" style="width:10%">
+						ID<p-sortIcon field="item" />
+					</th>
+					<th pSortableColumn="desmateria" style="width:30%">
+						Materia Prima <p-sortIcon field="desmateria" />
+					</th>
+					<th  style="width:10%">
+						Cumple
+					</th>
+					<th pSortableColumn="ph" style="width:10%">
+						pH<p-sortIcon field="ph" />
+					</th>
+					<th pSortableColumn="obs_validacion" style="width:40%">
+						Observaciones<p-sortIcon field="obs_validacion" />
+					</th>
+				</tr>
+			</ng-template>
+			<ng-template pTemplate="body" let-product>
+				<tr>
+					<td>{{product.item}}</td>
+					<td>{{ product.desmateria }}</td>
+					<td><p-inputSwitch [(ngModel)]="product.switchcumple" />
+					</td>
+					<td>
+						<p-inputNumber
+							[(ngModel)]="product.ph"
+							inputId="minmaxfraction"
+							mode="decimal"
+							class="w-full text-end"
+							[minFractionDigits]="1"
+							[maxFractionDigits]="5"
+						/>
+					</td>
+					<td>
+						<textarea
+							rows="4"
+							cols="10"
+							placeholder="Ej: Observación (si aplica)"
+							pInputTextarea
+							class="w-full"
+							[autoResize]="true"
+							[(ngModel)]="product.observaciones">
+			</textarea>
+					</td>
+				</tr>
+			</ng-template>
+		</p-table>
+		<ng-template pTemplate="footer">
+			<div class="text-end mt-2">
+				<p-button  icon="pi pi-trash" [outlined]="true" label="Cancelar" (click)="vervalidacion=false" class="mx-1" severity="secondary"  />
+				<p-button  icon="pi pi-save" label="Guardar Validacion" class="mx-1" severity="success" (click)="guardarvalidacion()" />
+			</div>
+		</ng-template>
+	</p-dialog>
+}

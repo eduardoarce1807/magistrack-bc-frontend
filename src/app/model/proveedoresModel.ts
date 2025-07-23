@@ -1,5 +1,5 @@
 export class proveedorModel {
-	codigo?: number;
+	idproveedor:string|null=null;
 	descripcion: string|null=null;
 	representante: string|null=null;
 	celular: string|null=null;
@@ -10,8 +10,27 @@ export class proveedorModel {
 }
 
 export class ListaMateriaModel {
-	codigo: string|null=null;
+	id_materia_prima:number=0;
+	nombre: string|null=null;
+	costo_gramo:number=0;
+	stock_materia:number=0;
+	stock_referencia:number=0;
+
+}
+export class soloproveedorModel {
+	idproveedor:string|null=null;
 	descripcion: string|null=null;
-	unidad:string|null=null;
-	subtotal:number=0;
+	representante: string|null=null;
+	celular: string|null=null;
+	correo: string|null=null;
+	ruc: string|null=null;
+	direccion: string|null=null;
+}
+
+export class materiaxproveedorModel {
+	id_materia_prima:number=0;
+	id_proveedor: string|null=null;
+	precio_prov:number=0;
+	estado:string|null=null;
+
 }
