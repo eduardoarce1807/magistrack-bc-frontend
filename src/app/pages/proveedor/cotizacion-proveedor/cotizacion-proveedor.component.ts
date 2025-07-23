@@ -14,6 +14,9 @@ import {RequerimientosService} from "../../../services/compras/requerimientos.se
 import {ProveedorService} from "../../../services/compras/proveedor.service";
 import {CotizacionesService} from "../../../services/compras/cotizaciones.service";
 import {CargaComponent} from "../../../components/carga/carga.component";
+import {cotizacionModel} from "../../../model/cotizacionesModel";
+import {CurrencyPipe} from "@angular/common";
+import {TagModule} from "primeng/tag";
 
 @Component({
   selector: 'app-cotizacion-proveedor',
@@ -28,7 +31,9 @@ import {CargaComponent} from "../../../components/carga/carga.component";
 		PrimeTemplate,
 		TableModule,
 		ToastModule,
-		CargaComponent
+		CargaComponent,
+		CurrencyPipe,
+		TagModule
 	],
   templateUrl: './cotizacion-proveedor.component.html',
   styleUrl: './cotizacion-proveedor.component.scss',
@@ -41,6 +46,7 @@ export class CotizacionProveedorComponent {
 	collectionSize = 0;
 	listaRequerimientos: RequeremientossaveModel[] = [];
 	listaProveedores: soloproveedorModel[] = [];
+	listaCotizaciones: cotizacionModel[] = [];
 	listaRequerimientospaginado: RequeremientossaveModel[] = [];
 	selectedprov:proveedorModel=new proveedorModel()
 	items: MenuItem[]=[];
@@ -231,7 +237,22 @@ export class CotizacionProveedorComponent {
 		this.cotizacionesService.getCotizacionesxProveedor(this.selectedprov.idproveedor!).subscribe({
 			next:(data)=>{
 				this.spinner=false
+				this.listaCotizaciones=data.data.listar
+			},error:(err)=>{
+				this.spinner=false
 			}
 		})
+	}
+	getTipoGanador(id_tipo_ganador: number): 'success' | 'info' | 'warning' | 'danger' | 'secondary' | 'contrast' | undefined {
+		switch (id_tipo_ganador) {
+			case 1:
+				return 'info';
+			case 2:
+				return 'success';
+			case 3:
+				return 'warning';
+			default:
+				return 'secondary';
+		}
 	}
 }

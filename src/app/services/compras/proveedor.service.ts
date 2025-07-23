@@ -4,8 +4,9 @@ import {HttpClient} from "@angular/common/http";
 import {Observable} from "rxjs";
 import {Response_Generico} from "../../model/reponseGeneric";
 import {Response_Generico_Read} from "../../model/responseGenericRead";
-import {RequeremientossaveModel} from "../../model/requerimientosModel";
-import {proveedorModel, soloproveedorModel} from "../../model/proveedoresModel";
+import {RequeremientossaveModel, respuestaGuardaModel} from "../../model/requerimientosModel";
+import {materiaxproveedorModel, proveedorModel, soloproveedorModel} from "../../model/proveedoresModel";
+import {ValidacionOrden} from "../../model/ordencompraModel";
 
 @Injectable({
   providedIn: 'root'
@@ -22,4 +23,11 @@ export class ProveedorService {
 	getProveedorxMateria(): Observable<Response_Generico<Response_Generico_Read<proveedorModel>>> {
 		return this.http.get<Response_Generico<Response_Generico_Read<proveedorModel>>>(`${this.baseUrl}/materia-prima-x-proveedor`);
 	}
+	registrarProveedor(proveedor:soloproveedorModel,op:number): Observable<Response_Generico<any>> {
+		return this.http.post<Response_Generico<any>>(`${this.baseUrl}/registrar/${op}`, proveedor);
+	}
+	registrarmateriaProveedor(idproveedor:String,proveedor:materiaxproveedorModel[]): Observable<Response_Generico<any>> {
+		return this.http.post<Response_Generico<any>>(`${this.baseUrl}/registrar-materia-prima/proveedor/${idproveedor}`, proveedor);
+	}
+
 }

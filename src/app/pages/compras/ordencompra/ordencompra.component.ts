@@ -1,38 +1,39 @@
 import {Component, ViewEncapsulation} from '@angular/core';
+import {BadgeModule} from "primeng/badge";
 import {Button} from "primeng/button";
+import {CalendarModule} from "primeng/calendar";
 import {CargaComponent} from "../../../components/carga/carga.component";
+import {CommonModule, CurrencyPipe, NgForOf, NgIf} from "@angular/common";
 import {DialogModule} from "primeng/dialog";
 import {DropdownModule} from "primeng/dropdown";
+import {FileUploadEvent, FileUploadModule} from "primeng/fileupload";
+import {FormsModule} from "@angular/forms";
 import {IconFieldModule} from "primeng/iconfield";
 import {InputIconModule} from "primeng/inputicon";
+import {InputNumberModule} from "primeng/inputnumber";
+import {InputSwitchModule} from "primeng/inputswitch";
 import {InputTextModule} from "primeng/inputtext";
-import {PaginatorModule} from "primeng/paginator";
+import {InputTextareaModule} from "primeng/inputtextarea";
 import {MenuItem, MessageService, PrimeNGConfig, PrimeTemplate} from "primeng/api";
+import {ProgressBarModule} from "primeng/progressbar";
 import {Table, TableModule, TableRowCollapseEvent, TableRowExpandEvent} from "primeng/table";
+import {TagModule} from "primeng/tag";
 import {ToastModule} from "primeng/toast";
-import {ObsevacionesReqModel, RequeremientosModel, RequeremientossaveModel} from "../../../model/requerimientosModel";
-import {materiaxproveedorModel, proveedorModel, soloproveedorModel} from "../../../model/proveedoresModel";
+import {TooltipModule} from "primeng/tooltip";
+import {FacturaOrden, ordencompraModel, ValidacionOrden} from "../../../model/ordencompraModel";
+import {proveedorModel, soloproveedorModel} from "../../../model/proveedoresModel";
+import {ObsevacionesReqModel} from "../../../model/requerimientosModel";
 import {RequerimientosService} from "../../../services/compras/requerimientos.service";
 import {ProveedorService} from "../../../services/compras/proveedor.service";
 import {OrdencompraService} from "../../../services/compras/ordencompra.service";
-import {FacturaOrden, ordencompraModel, ValidacionOrden} from "../../../model/ordencompraModel";
-import {CommonModule, CurrencyPipe, DatePipe, NgForOf, NgIf} from "@angular/common";
-import {TooltipModule} from "primeng/tooltip";
-import {BadgeModule} from "primeng/badge";
-import {FileUploadEvent, FileUploadModule} from "primeng/fileupload";
-import {InputTextareaModule} from "primeng/inputtextarea";
-import {ProgressBarModule} from "primeng/progressbar";
-import {FormsModule} from "@angular/forms";
-import {CalendarModule} from "primeng/calendar";
-import {InputSwitchModule} from "primeng/inputswitch";
 import {ValidacionesService} from "../../../services/compras/validaciones.service";
-import {TagModule} from "primeng/tag";
+import {PaginatorModule} from "primeng/paginator";
+import {PanelModule} from "primeng/panel";
+import {TipoPagoService} from "../../../services/tipo-pago.service";
 import {DomSanitizer, SafeResourceUrl} from "@angular/platform-browser";
-import {FuncionesService} from "../../../services/funciones.service";
-
 
 @Component({
-  selector: 'app-ordencompra-proveedor',
+  selector: 'app-ordencompra',
   standalone: true,
 	imports: [
 		Button,
@@ -52,19 +53,18 @@ import {FuncionesService} from "../../../services/funciones.service";
 		FileUploadModule,
 		InputTextareaModule,
 		ProgressBarModule,
-		FormsModule, CommonModule, CalendarModule,InputSwitchModule,TagModule
+		FormsModule, CommonModule, CalendarModule,InputSwitchModule,TagModule,PanelModule
 	],
-  templateUrl: './ordencompra-proveedor.component.html',
-  styleUrl: './ordencompra-proveedor.component.scss',
-	providers: [MessageService,DatePipe,FuncionesService],
+  templateUrl: './ordencompra.component.html',
+  styleUrl: './ordencompra.component.scss',
+	providers: [MessageService],
 	encapsulation: ViewEncapsulation.None,
 })
-export class OrdencompraProveedorComponent {
+export class OrdencompraComponent {
 	page = 1;
 	pageSize = 4;
 	collectionSize = 0;
 	expandedRows = {};
-	fechaemision:any=new Date()
 	listaOrdenes: ordencompraModel[] = [];
 	listaProveedores: soloproveedorModel[] = [];
 	selectedprov:proveedorModel=new proveedorModel()
@@ -73,22 +73,26 @@ export class OrdencompraProveedorComponent {
 	verconformidad:boolean=false
 	vervalidacion:boolean=false
 	spinner:boolean=false
-	carga:boolean=false
 	loading: boolean = false;
 	verordencompra:boolean=false
 	fila_select:ordencompraModel = new ordencompraModel()
 	verobservaciones:boolean=false
-	verfactura:boolean=false
+	carga:boolean=false
 	observaciones:ObsevacionesReqModel=new ObsevacionesReqModel()
 	files:File[] = [];
 	cargaprov:boolean=false
 	totalSize : number = 0;
-	subirFactura:FacturaOrden=new FacturaOrden()
+	checked_parametro1:boolean=false
+	checked_parametro2:boolean=false
+	checked_parametro3:boolean=false
+	listadovalidacion:ValidacionOrden[]=[]
+	lstTiposPago:any[]=[]
 	totalSizePercent : number = 0;
+	subirFactura:FacturaOrden=new FacturaOrden()
 	constructor(private config: PrimeNGConfig,private messageService: MessageService,
 				private requerimietoService:RequerimientosService, private proveedorService:ProveedorService,
 				private ordenService:OrdencompraService,private  validacionService:ValidacionesService,
-				private sanitizer: DomSanitizer,private funcionesService:FuncionesService,) {
+				private tipoPagoService: TipoPagoService,private sanitizer: DomSanitizer,) {
 		this.loading=false
 		this.items = [
 			{
@@ -152,6 +156,7 @@ export class OrdencompraProveedorComponent {
 				this.cargaprov=false
 			}
 		})
+		this.getTiposPago()
 	}
 
 
@@ -236,15 +241,16 @@ export class OrdencompraProveedorComponent {
 
 		return `${formattedSize} ${sizes[i]}`;
 	}
+	editarproveedor(registro:ordencompraModel){
+		this.fila_select=registro
+		this.verdetalle=true
+	}
 	cargarFactura(registro:ordencompraModel){
 		this.fila_select=registro
-		this.fila_select.imptotalfact=this.fila_select.imptotal
-		this.verfactura=true
-	}
-	cargarObservaciones(registro:ordencompraModel){
-		this.fila_select=registro
-		this.fila_select.imptotalfact=this.fila_select.imptotal
 		this.verobservaciones=true
+	}
+	nuevoproveedor(){
+		this.fila_select = new ordencompraModel()
 	}
 	cambioproveedor(){
 		// this.listaMateriaPrimaxProveedor=this.selectedprov.detalle
@@ -274,6 +280,37 @@ export class OrdencompraProveedorComponent {
 	collapseAll() {
 		this.expandedRows = {};
 	}
+	onRowExpand(event: TableRowExpandEvent) {
+		this.messageService.add({ severity: 'info', summary: 'Product Expanded', detail: event.data.name, life: 3000 });
+	}
+
+	onRowCollapse(event: TableRowCollapseEvent) {
+		this.messageService.add({ severity: 'success', summary: 'Product Collapsed', detail: event.data.name, life: 3000 });
+	}
+	guardarvalidacion(){
+		this.listadovalidacion=[]
+		this.fila_select.detalleorden.forEach(e=>{
+			let registro :ValidacionOrden=new ValidacionOrden()
+			registro.id_orden_compra=this.fila_select.id_orden_compra
+			registro.cumple=e.switchcumple?1:0
+			registro.observaciones=e.observaciones
+			registro.ph=e.ph
+			registro.item=e.item
+			this.listadovalidacion.push(registro)
+		})
+		this.spinner=true
+		this.vervalidacion=false
+		this.validacionService.registrarvalidaciomProveedor(this.listadovalidacion).subscribe({
+			next:(data)=>{
+				this.cambioproveedor()
+				this.vervalidacion=false
+				// this.spinner=false
+			},error:(err)=>{
+				this.spinner=false
+				this.vervalidacion=true
+			}
+		})
+	}
 	getCumpleCount(detalle: any[] | undefined): number {
 		return detalle?.filter(d => d.cumple === 1).length ?? 0;
 	}
@@ -291,52 +328,13 @@ export class OrdencompraProveedorComponent {
 				return 'secondary';
 		}
 	}
-
-	guardarfactura(){
-		this.verfactura=false
-		this.spinner=true
-		this.subirFactura.fechaemisionfact=this.funcionesService.convetir_de_fecha_y_hora_a_string(this.fechaemision);
-		this.subirFactura.imptotalfact=this.fila_select.imptotalfact
-		this.subirFactura.nrofactura=this.fila_select.nrofactura
-		this.subirFactura.path_factura=null
-		console.log(this.subirFactura)
-		this.ordenService.registrarFacturaOrdencompra(this.fila_select.id_orden_compra,this.subirFactura).subscribe({
-			next:(data)=>{
-				this.spinner=false
-				if(data.mensaje=='EXITO'){
-
-					this.subirFactura=new FacturaOrden()
-					this.messageService.add({
-						severity: 'success',
-						summary: 'ÈXITO',
-						detail: 'Se subió la observación y el archivo con éxito'
-					});
-					this.cambioproveedor()
-				}else{
-
-					this.messageService.add({
-						severity: 'error',
-						summary: 'ERROR',
-						detail: 'Ocurrió un problema al momento de guardar'
-					});
-					this.verfactura=true
-				}
-			},error:(err)=>{
-				this.spinner=false
-				this.verfactura=true
-				this.messageService.add({
-					severity: 'error',
-					summary: 'ERROR',
-					detail: 'Ocurrió un problema al momento de guardar'
-				});
+	getTiposPago() {
+		this.tipoPagoService.getTiposPago().subscribe( (data: any) => {
+			if(data){
+				this.lstTiposPago = data;
 			}
 		})
 	}
-	// onBasicUploadAuto(event: FileUploadEvent) {
-	// 	this.spinner=false
-	// 	this.messageService.add({ severity: 'info', summary: 'Success', detail: 'File Uploaded with Auto Mode' });
-	// 	console.log(event)
-	// }
 	onBasicUploadAuto(event: FileUploadEvent) {
 		this.carga = false;
 

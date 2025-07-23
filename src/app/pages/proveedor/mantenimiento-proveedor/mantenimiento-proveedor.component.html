@@ -1,4 +1,6 @@
-
+@if (spinner){
+	<app-carga></app-carga>
+}
 <p-toast></p-toast>
 <div class="p-5" >
 	<p-table
@@ -101,7 +103,7 @@
 			</tr>
 		</ng-template>
 		<ng-template pTemplate="body" let-customer>
-			<tr class="p-selectable-row">
+			<tr class="p-selectable-row" >
 				<td>
 					{{ customer.idproveedor }}
 				</td>
@@ -199,8 +201,8 @@
 			</div>
 		</div>
 		<ng-template pTemplate="footer">
-			<p-button [outlined]="true" icon="pi pi-trash" label="Cancelar" class="mx-1" severity="danger" (click)="verdetalle=false;editarproveedor(fila_select)"  />
-			<p-button  icon="pi pi-save" label="Registrar Proveedor" class="mx-1" severity="success"  />
+			<p-button [outlined]="true" icon="pi pi-trash" label="Cancelar" class="mx-1" severity="danger" (click)="verdetalle=false;"  />
+			<p-button  icon="pi pi-save" label="Registrar Proveedor" class="mx-1" severity="success"  (click)="guardarproveedor()"/>
 		</ng-template>
 	</p-dialog>
 }

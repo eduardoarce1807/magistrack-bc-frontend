@@ -26,3 +26,11 @@ export class soloproveedorModel {
 	ruc: string|null=null;
 	direccion: string|null=null;
 }
+
+export class materiaxproveedorModel {
+	id_materia_prima:number=0;
+	id_proveedor: string|null=null;
+	precio_prov:number=0;
+	estado:string|null=null;
+
+}

@@ -29,16 +29,17 @@ import {CheckboxModule} from "primeng/checkbox";
 import {SliderModule} from "primeng/slider";
 import {DropdownModule} from "primeng/dropdown";
 import {ProveedorService} from "../../../services/compras/proveedor.service";
+import {CargaComponent} from "../../../components/carga/carga.component";
 
 @Component({
   selector: 'app-mantenimiento-proveedor',
   standalone: true,
-    imports: [
+	imports: [
 		CommonModule, DecimalPipe, FormsModule, AsyncPipe, NgbHighlight, NgbPaginationModule, DatePipe, CurrencyPipe, TagModule, ButtonModule,
 		CheckboxModule, TableModule, SliderModule, DropdownModule, IconFieldModule, InputIconModule,
 		SplitButtonModule, MultiSelectModule, InputTextModule, DialogModule, ToastModule,
-		CalendarModule,InputTextareaModule,FileUploadModule,BadgeModule
-    ],
+		CalendarModule, InputTextareaModule, FileUploadModule, BadgeModule, CargaComponent
+	],
   templateUrl: './mantenimiento-proveedor.component.html',
   styleUrl: './mantenimiento-proveedor.component.scss',
 	providers: [MessageService],
@@ -53,13 +54,14 @@ export class MantenimientoProveedorComponent {
 	listaRequerimientospaginado: RequeremientossaveModel[] = [];
 	items: MenuItem[]=[];
 	verdetalle:boolean=false
+	spinner:boolean=false
 	loading: boolean = false;
 	verordencompra:boolean=false
 	fila_select:soloproveedorModel = new soloproveedorModel()
 	verobservaciones:boolean=false
 	observaciones:ObsevacionesReqModel=new ObsevacionesReqModel()
 	files:File[] = [];
-
+	op:number=1
 	totalSize : number = 0;
 
 	totalSizePercent : number = 0;
@@ -121,6 +123,9 @@ export class MantenimientoProveedorComponent {
 
 	ngOnInit(){
 		this.loading=true
+		this.cargarproveedores()
+	}
+	cargarproveedores(){
 		this.proveedorService.getProveedor().subscribe({
 			next:(data)=>{
 				this.listaProveedores=data.data
@@ -220,8 +225,26 @@ export class MantenimientoProveedorComponent {
 	editarproveedor(registro:soloproveedorModel){
 		this.fila_select=registro
 		this.verdetalle=true
+		this.op=2
 	}
 	nuevoproveedor(){
+		this.verdetalle=true
 		this.fila_select = new soloproveedorModel()
+		this.op=1
+	}
+	guardarproveedor(){
+		this.spinner=true
+		this.verdetalle=false
+		this.proveedorService.registrarProveedor(this.fila_select,this.op).subscribe({
+			next:(data)=>{
+				this.verdetalle=false
+				this.spinner=false
+				this.cargarproveedores()
+				this.messageService.add({ severity: 'success', summary: 'Aviso de usuario', detail: 'Se registrò con Éxito el proveedor' });
+			},error:(err)=>{
+				this.verdetalle=true
+				this.messageService.add({ severity: 'error', summary: 'Aviso de usuario', detail: 'Ocurriò un error al guardar' });
+			}
+		})
 	}
 }

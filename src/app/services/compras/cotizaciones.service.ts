@@ -22,4 +22,7 @@ export class CotizacionesService {
 	getCotizacionesxProveedor(idproveedor:string): Observable<Response_Generico<Response_Generico_Read<cotizacionModel>>> {
 		return this.http.get<Response_Generico<Response_Generico_Read<cotizacionModel>>>(`${this.baseUrl}/cotizaciones-x-proveedor/${idproveedor}`);
 	}
+	registrarCotizacion(cotizacion:cotizacionModel,op:number): Observable<Response_Generico<any>> {
+		return this.http.post<Response_Generico<any>>(`${this.baseUrl}/registrar/${op}`, cotizacion);
+	}
 }

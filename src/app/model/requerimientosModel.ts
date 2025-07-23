@@ -24,6 +24,7 @@ export class RequeremientossaveModel {
 	responsable:string|null=null;
 	areasolicitante:string|null=null;
 	idproveedor:string|null=null;
+	condicion_adicional:string|null=null;
 	iterequerimiento:iterequerimientoModel[]=[]
 }
 
@@ -36,6 +37,8 @@ export class iterequerimientoModel {
 	desmateriaprima:string|null=null;
 	costo_gramo: number=0;
 	cantidad_cotizada_total: number=0;
+	diasentrega:number=0
+	condicion_adicional:string|null=null
 }
 
 export class ObsevacionesReqModel {

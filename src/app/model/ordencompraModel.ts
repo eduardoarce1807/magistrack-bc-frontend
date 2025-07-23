@@ -12,6 +12,9 @@ export class ordencompraModel {
 	fechaemisionfact: string='';
 	path_factura:     string='';
 	estadofact:       string='';
+	fecha_pago:		  string='';
+	metodo_pago:		  string='';
+	nrooperacion:     number=0
 	detalleorden:     Detalleorden[]=[];
 }
 
@@ -28,4 +31,32 @@ export class Detalleorden {
 	desmateria:      string='';
 	id_proveedor:    string='';
 	impsubtotal:     number=0;
+	cantidad_conf_total:number=0;
+	ph:number=0
+	observaciones:string=''
+	cumple:number=0
+	switchcumple:boolean=false
+	impunit:number=0
+	respuestaprov:	  string=''
+	path_respuesta:   string=''
+}
+export class ValidacionOrden {
+	cumple: number=0;
+	id_orden_compra:string=''
+	ph:number|null=null
+	observaciones:string|null=null
+	item:number=0
+}
+export class FacturaOrden {
+	nrofactura:string|null=null
+	fechaemisionfact:string|null=null
+	imptotalfact: number=0;
+	archivobase64:string|null=null
+	path_factura:string|null=null
+	extensiondoc:string|null=null
+}
+export class respuestaFacturaModel{
+	id_orden_compra:string|null=null
+	nrofactura:string|null=null
+	path_factura:string|null=null
 }
