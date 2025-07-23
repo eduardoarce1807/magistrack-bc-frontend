@@ -116,24 +116,65 @@ export class BandejaProduccionComponent implements OnInit {
 	}
 
 	@ViewChild('procedimiento', { static: true }) procedimiento: TemplateRef<any> | null = null;
-	getHojaProduccion(idProducto: string): void {
-		this.productoService.getHojaProduccion(idProducto).subscribe(
-			(hojaProduccion) => {
-				console.log('Hoja de producción obtenida:', hojaProduccion);
-				this.procedimientoData = hojaProduccion;
-				if (this.procedimiento) {
-					this.openModalXL(this.procedimiento);
+	getHojaProduccion(idProductoMaestro: string): void {
+		this.productoService.getHojaProduccion(idProductoMaestro).subscribe(
+			(data) => {
+				console.log('Hoja de producción obtenida:', data);
+				if(data && data.idResultado == 1) {
+					this.procedimientoData = data.value;
+					if (this.procedimiento) {
+						this.openModalXL(this.procedimiento);
+					}
+				}else{
+					Swal.fire({
+						icon: 'warning',
+						title: '¡Oops!',
+						text: data.resultado,
+						showConfirmButton: true,
+					});
 				}
 			},
 			(error) => {
 				console.error('Error al obtener la hoja de producción', error);
 				Swal.fire({
-			icon: 'error',
-			title: 'Oops!',
-			text: 'No se pudo obtener la hoja de producción, inténtelo de nuevo.',
-			showConfirmButton: true,
-			});
-		}
+					icon: 'error',
+					title: 'Oops!',
+					text: 'No se pudo obtener la hoja de producción, inténtelo de nuevo.',
+					showConfirmButton: true,
+				});
+			}
+		);
+	}
+
+	@ViewChild('ingredientes', { static: true }) ingredientes: TemplateRef<any> | null = null;
+	productoMaestroCalculo: any = null;
+	getCalculoIngredientes(productoMaestro: any): void {
+		this.productoService.getHojaProduccion(productoMaestro.idProductoMaestro).subscribe(
+			(data) => {
+				if(data && data.idResultado == 1) {
+					this.procedimientoData = data.value;
+					this.productoMaestroCalculo = productoMaestro;
+					if (this.ingredientes) {
+						this.openModalLG(this.ingredientes);
+					}
+				}else{
+					Swal.fire({
+						icon: 'warning',
+						title: '¡Oops!',
+						text: data.resultado,
+						showConfirmButton: true,
+					});
+				}
+			},
+			(error) => {
+				console.error('Error al obtener el cálculo de ingredientes', error);
+				Swal.fire({
+					icon: 'error',
+					title: 'Oops!',
+					text: 'No se pudo obtener el cálculo de ingredientes, inténtelo de nuevo.',
+					showConfirmButton: true,
+				});
+			}
 		);
 	}
 
@@ -159,13 +200,17 @@ export class BandejaProduccionComponent implements OnInit {
 		this.modalService.open(content, { size: 'xl' });
 	}
 
+	openModalLG(content: TemplateRef<any>) {
+		this.modalService.open(content, { size: 'lg' });
+	}
+
 
 	recibirProducto(item: any) {
 
 		Swal.fire({
 			icon: 'question',
 			title: '¿Estás seguro?',
-			text: `¿Deseas recibir el producto "${item.idProducto}" en producción?`,
+			text: `¿Deseas recibir el producto "${item.nombreProducto}" en producción?`,
 			showConfirmButton: true,
 			showCancelButton: true,
 			cancelButtonText: 'Cancelar',
@@ -173,15 +218,15 @@ export class BandejaProduccionComponent implements OnInit {
 		}).then((result) => {
 			if (result.isConfirmed) {
 				this.productoService
-					.updateEstadoProducto({
-						idProducto: item.idProducto,
-						idPedido: item.idPedido,
-						idEstadoProducto: 3, // En producción
-						idEstadoPedido: 4, // En producción
-						idEstadoPedidoCliente: 3, // En producción
+					.updateEstadoProductoMaestro({
+						idProductoMaestro: item.idProductoMaestro,
+						idEstadoProductoActual: 2, // En cola
+						idEstadoProductoNuevo: 3, // En producción
+						idEstadoPedidoNuevo: 4, // En producción
+						idEstadoPedidoClienteNuevo: 3, // En producción
 						idCliente: this.dataService.getLoggedUser().cliente.idCliente,
 						accionRealizada: 'Producto recibido en producción',
-						observacion: '',
+						observacion: ''
 					})
 					.subscribe(
 						(response) => {
@@ -248,7 +293,7 @@ export class BandejaProduccionComponent implements OnInit {
 		Swal.fire({
 			icon: 'question',
 			title: '¿Estás seguro?',
-			text: `¿Deseas enviar el producto "${item.idProducto}" a calidad?`,
+			text: `¿Deseas enviar el producto "${item.nombreProducto}" a calidad?`,
 			showConfirmButton: true,
 			showCancelButton: true,
 			cancelButtonText: 'Cancelar',
@@ -256,15 +301,15 @@ export class BandejaProduccionComponent implements OnInit {
 		}).then((result) => {
 			if (result.isConfirmed) {
 				this.productoService
-					.updateEstadoProducto({
-						idProducto: item.idProducto,
-						idPedido: item.idPedido,
-						idEstadoProducto: 4, // En calidad
-						idEstadoPedido: 5, // En calidad
-						idEstadoPedidoCliente: 3, // En producción
+					.updateEstadoProductoMaestro({
+						idProductoMaestro: item.idProductoMaestro,
+						idEstadoProductoActual: 3, // En producción
+						idEstadoProductoNuevo: 4, // En calidad
+						idEstadoPedidoNuevo: 5, // En calidad
+						idEstadoPedidoClienteNuevo: 3, // En producción
 						idCliente: this.dataService.getLoggedUser().cliente.idCliente,
 						accionRealizada: 'Producto enviado a calidad',
-						observacion: '',
+						observacion: ''
 					})
 					.subscribe(
 						(response) => {
@@ -304,40 +349,33 @@ export class BandejaProduccionComponent implements OnInit {
 		);
 	}
 
-	// Check si un idProducto está seleccionado
-	isSeleccionado(idProducto: string, idPedido: string): boolean {
+	// Check si un idProductoMaestro está seleccionado
+	isSeleccionado(idProductoMaestro: string): boolean {
 		return this.lstProductosSeleccionados.some(
-			(item) =>
-				item.idProducto === idProducto && item.idPedido === idPedido
+			(item) => item.idProductoMaestro === idProductoMaestro
 		);
 	}
 
 	// Cambiar selección individual
 	toggleSeleccionIndividual(
-		idProducto: string,
-		idPedido: string,
+		idProductoMaestro: string,
 		event: Event
 	) {
 		let checked = (event.target as HTMLInputElement)?.checked;
 		if (checked) {
 			if (
 				!this.lstProductosSeleccionados.some(
-					(item) =>
-						item.idProducto === idProducto &&
-						item.idPedido === idPedido
+					(item) => item.idProductoMaestro === idProductoMaestro
 				)
 			) {
 				this.lstProductosSeleccionados.push({
-					idProducto: idProducto,
-					idPedido: idPedido,
+					idProductoMaestro: idProductoMaestro,
 				});
 			}
 		} else {
 			this.lstProductosSeleccionados =
 				this.lstProductosSeleccionados.filter(
-					(item) =>
-						item.idProducto !== idProducto ||
-						item.idPedido !== idPedido
+					(item) => item.idProductoMaestro !== idProductoMaestro
 				);
 		}
 		console.log('Productos seleccionados:', this.lstProductosSeleccionados);
@@ -347,16 +385,14 @@ export class BandejaProduccionComponent implements OnInit {
 	isTodosSeleccionadosPagina(): boolean {
 		// Determinar el estado a filtrar según tipoEnvio
 		const estadoFiltrar =
-			this.tipoEnvio === 0 ? 'En cola' : 'En producción';
+			this.tipoEnvio === 0 ? 2 : 3;
 		const productosPagina = this.productos.filter(
-			(p) => p.estadoPedido === estadoFiltrar
+			(p) => p.idEstadoProducto === estadoFiltrar
 		);
 		if (productosPagina.length === 0) return false;
 		return productosPagina.every((p) =>
 			this.lstProductosSeleccionados.some(
-				(item) =>
-					item.idProducto === p.idProducto &&
-					item.idPedido === p.idPedido
+				(item) => item.idProductoMaestro === p.idProductoMaestro
 			)
 		);
 	}
@@ -365,22 +401,19 @@ export class BandejaProduccionComponent implements OnInit {
 	toggleSeleccionTodosPagina(event: Event) {
 		let checked = (event.target as HTMLInputElement)?.checked;
 		// Determinar el estado a filtrar según tipoEnvio
-		let estadoFiltrar = this.tipoEnvio === 0 ? 'En cola' : 'En producción';
+		let estadoFiltrar = this.tipoEnvio === 0 ? 2 : 3;
 		const idsPagina = this.productos
-			.filter((p) => p.estadoPedido === estadoFiltrar)
-			.map((p) => ({ idProducto: p.idProducto, idPedido: p.idPedido }));
+			.filter((p) => p.idEstadoProducto === estadoFiltrar)
+			.map((p) => p.idProductoMaestro);
 		if (checked) {
-			idsPagina.forEach(({ idProducto, idPedido }) => {
+			idsPagina.forEach((idProductoMaestro) => {
 				if (
 					!this.lstProductosSeleccionados.some(
-						(item) =>
-							item.idProducto === idProducto &&
-							item.idPedido === idPedido
+						(item) => item.idProductoMaestro === idProductoMaestro
 					)
 				) {
 					this.lstProductosSeleccionados.push({
-						idProducto,
-						idPedido,
+						idProductoMaestro,
 					});
 				}
 			});
@@ -388,11 +421,7 @@ export class BandejaProduccionComponent implements OnInit {
 			this.lstProductosSeleccionados =
 				this.lstProductosSeleccionados.filter(
 					(item) =>
-						!idsPagina.some(
-							(p) =>
-								p.idProducto === item.idProducto &&
-								p.idPedido === item.idPedido
-						)
+						!idsPagina.includes(item.idProductoMaestro)
 				);
 		}
 		console.log('Productos seleccionados:', this.lstProductosSeleccionados);
@@ -419,15 +448,17 @@ export class BandejaProduccionComponent implements OnInit {
 	recibirProduccionMasivo() {
 		let lstProductos = '';
 		for (let i = 0; i < this.lstProductosSeleccionados.length; i++) {
-			lstProductos +=
-				this.lstProductosSeleccionados[i].idProducto + '<br>';
+			const idProductoMaestro = this.lstProductosSeleccionados[i].idProductoMaestro;
+			const producto = this.productosTable.find(p => p.idProductoMaestro === idProductoMaestro);
+			const nombreProducto = producto ? producto.nombreProducto : idProductoMaestro;
+			lstProductos += nombreProducto + '<br>';
 		}
 
 		Swal.fire({
 			title: '¿Estás seguro?',
 			html: `<p>¿Deseas recibir los productos seleccionados en producción?</p>
-        <p>Productos seleccionados:</p>
-        <div style="max-height: 200px; overflow-y: auto;">${lstProductos}</div>`,
+					<p>Productos seleccionados:</p>
+					<div style="max-height: 200px; overflow-y: auto;">${lstProductos}</div>`,
 			icon: 'question',
 			showCancelButton: true,
 			confirmButtonText: 'Sí, enviar',
@@ -435,11 +466,14 @@ export class BandejaProduccionComponent implements OnInit {
 		}).then((result) => {
 			if (result.isConfirmed) {
 				this.productoService
-					.updateEstadoProductoPedidoMasivo({
-						idProductos: this.lstProductosSeleccionados,
-						idEstadoProducto: 3, // En producción
-						idEstadoPedido: 4, // En producción
-						idEstadoPedidoCliente: 3, // En producción
+					.updateEstadoProductoPedidoMasivoMaestro({
+						idProductoMaestroList: this.lstProductosSeleccionados.map(
+							(item) => item.idProductoMaestro
+						),
+						idEstadoProductoActual: 2, // En cola
+						idEstadoProductoNuevo: 3, // En producción
+						idEstadoPedidoNuevo: 4, // En producción
+						idEstadoPedidoClienteNuevo: 3, // En producción
 						idCliente:
 							this.dataService.getLoggedUser().cliente.idCliente,
 						accionRealizada: 'Productos recibidos en producción',
@@ -477,8 +511,10 @@ export class BandejaProduccionComponent implements OnInit {
 	enviarCalidadMasivo() {
 		let lstProductos = '';
 		for (let i = 0; i < this.lstProductosSeleccionados.length; i++) {
-			lstProductos +=
-				this.lstProductosSeleccionados[i].idProducto + '<br>';
+			const idProductoMaestro = this.lstProductosSeleccionados[i].idProductoMaestro;
+			const producto = this.productosTable.find(p => p.idProductoMaestro === idProductoMaestro);
+			const nombreProducto = producto ? producto.nombreProducto : idProductoMaestro;
+			lstProductos += nombreProducto + '<br>';
 		}
 
 		Swal.fire({
@@ -493,11 +529,14 @@ export class BandejaProduccionComponent implements OnInit {
 		}).then((result) => {
 			if (result.isConfirmed) {
 				this.productoService
-					.updateEstadoProductoPedidoMasivo({
-						idProductos: this.lstProductosSeleccionados,
-						idEstadoProducto: 4, // En calidad
-						idEstadoPedido: 5, // En calidad
-						idEstadoPedidoCliente: 3, // En producción
+					.updateEstadoProductoPedidoMasivoMaestro({
+						idProductoMaestroList: this.lstProductosSeleccionados.map(
+							(item) => item.idProductoMaestro
+						),
+						idEstadoProductoActual: 3, // En producción
+						idEstadoProductoNuevo: 4, // En calidad
+						idEstadoPedidoNuevo: 5, // En calidad
+						idEstadoPedidoClienteNuevo: 3, // En producción
 						idCliente:
 							this.dataService.getLoggedUser().cliente.idCliente,
 						accionRealizada: 'Productos enviados a calidad',

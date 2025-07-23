@@ -5,18 +5,23 @@ import { ClienteService } from '../../../services/cliente.service';
 import { PedidoService } from '../../../services/pedido.service';
 import { Router } from '@angular/router';
 import Swal from 'sweetalert2';
+import { ButtonModule } from 'primeng/button';
+import { IconFieldModule } from 'primeng/iconfield';
+import { InputIconModule } from 'primeng/inputicon';
+import { InputTextModule } from 'primeng/inputtext';
+import { Table, TableModule } from 'primeng/table';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-mantenimiento-clientes',
   standalone: true,
-  imports: [FormsModule, NgbTypeaheadModule, NgbPaginationModule],
+  imports: [CommonModule, FormsModule, NgbTypeaheadModule, NgbPaginationModule, TableModule, ButtonModule, IconFieldModule, InputIconModule, InputTextModule],
   templateUrl: './mantenimiento-clientes.component.html',
   styleUrl: './mantenimiento-clientes.component.scss'
 })
 export class MantenimientoClientesComponent implements OnInit {
 
   clientes: any[] = [];
-	clientesTable: any[] = [];
 	page = 1;
 	pageSize = 5;
 	collectionSize = this.clientes.length;
@@ -33,46 +38,46 @@ export class MantenimientoClientesComponent implements OnInit {
 	cargarClientes(): void {
 		this.clienteService.getClientes().subscribe(
 			(clientes) => {
-				this.clientesTable = clientes;
-				this.collectionSize = this.clientesTable.length;
-				this.refreshClientes();
+        this.clientes = clientes;
+        this.clientes = this.clientes.map(cliente => ({
+          ...cliente,
+          nombreCompleto: `${cliente.nombres} ${cliente.apellidos}`
+        }));
+				this.collectionSize = this.clientes.length;
 			},
 			(error) => console.error('Error al cargar clientes', error)
 		);
 	}
 
-	refreshClientes() {
-		this.clientes = this.clientesTable
-			.map((cliente, i) => ({ id: i + 1, ...cliente }))
-			.slice(
-				(this.page - 1) * this.pageSize,
-				(this.page - 1) * this.pageSize + this.pageSize
-			);
-	}
+  searchValue = "";
+  clear(table: Table) {
+    table.clear(); // o lo que sea necesario
+  }
 
-  desactivarCliente(clienteId: number): void {
+
+  desactivarCliente(cliente: any): void {
     Swal.fire({
       title: '¿Estás seguro?',
-      text: 'Esta acción no se puede deshacer.',
+      text: `Por favor, confirma la desactivación del cliente "${cliente.nombreCompleto}".`,
       icon: 'warning',
       showCancelButton: true,
       confirmButtonText: 'Sí, desactivar',
       cancelButtonText: 'Cancelar'
     }).then((result) => {
       if (result.isConfirmed) {
-        this.clienteService.desactivarCliente(clienteId).subscribe(
+        this.clienteService.desactivarCliente(cliente.idCliente).subscribe(
           (data) => {
             if(data && data.idResultado === 1) {
               Swal.fire({
                 title: '¡Listo!',
-                text: data.resultado,
+                text: data.mensaje,
                 icon: 'success'
               });
               this.cargarClientes(); // Recargar la lista de clientes
             } else {
               Swal.fire({
                 title: 'Error',
-                text: data.resultado,
+                text: data.mensaje,
                 icon: 'error'
               });
             }
@@ -81,6 +86,46 @@ export class MantenimientoClientesComponent implements OnInit {
             Swal.fire({
               title: 'Error',
               text: 'No se pudo desactivar el cliente.',
+              icon: 'error'
+            });
+          }
+          
+        );
+      }
+    });
+  }
+
+  activarCliente(cliente: any){
+    Swal.fire({
+      title: '¿Estás seguro?',
+      text: `Por favor, confirma la activación del cliente "${cliente.nombreCompleto}".`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Sí, activar',
+      cancelButtonText: 'Cancelar'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.clienteService.activarCliente(cliente.idCliente).subscribe(
+          (data) => {
+            if(data && data.idResultado === 1) {
+              Swal.fire({
+                title: '¡Listo!',
+                text: data.mensaje,
+                icon: 'success'
+              });
+              this.cargarClientes(); // Recargar la lista de clientes
+            } else {
+              Swal.fire({
+                title: 'Error',
+                text: data.mensaje,
+                icon: 'error'
+              });
+            }
+          },
+          (error) => {
+            Swal.fire({
+              title: 'Error',
+              text: 'No se pudo activar el cliente.',
               icon: 'error'
             });
           }

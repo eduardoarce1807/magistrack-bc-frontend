@@ -203,7 +203,7 @@ export class BandejaPedidosAdministradorComponent implements OnInit {
 										fecha: new Date(),
 										idEstadoPedido: 3,
 										accionRealizada:
-											'Pedido enviado a producción',
+											'Pedido enviado a producción (En cola)',
 										idCliente:
 											this.dataService.getLoggedUser()
 												.cliente.idCliente,

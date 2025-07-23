@@ -54,7 +54,7 @@
 					</td>
 					<td>{{ item.idProducto }}</td>
 					<td>{{ item.nombre }}</td>
-					<td>{{ item.presentacion }}</td>
+					<td>{{ item.presentacion + " " + item.tipoPresentacion }}</td>
 					<td>{{ item.estadoProducto }}</td>
 					<td>
 						<span>{{ item.personalizado ? "Sí" : "No" }}</span>
@@ -262,7 +262,7 @@
         <div id="barcodeDiv">
             <div style="width: 100%; display: flex; flex-wrap: wrap; justify-content: center;">
                 @for (item of lstProductosSeleccionados; track $index) {
-                <div style="border: 1px dashed #ccc; padding: 10px;">
+                <div style="border: 1px dashed #ccc; padding: 4px;">
                     <svg
                         [id]="'barcode-' + $index"
                         class="barcode"

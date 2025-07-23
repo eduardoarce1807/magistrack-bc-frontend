@@ -24,12 +24,10 @@
 							
 						/>
 					</th>
-					<th scope="col">Código producto</th>
 					<th scope="col">Nombre producto</th>
-					<th scope="col">Presentación</th>
+					<th scope="col">Presentación Total</th>
 					<th scope="col">Estado</th>
 					<th scope="col">Personalizado</th>
-					<th scope="col">Cantidad</th>
 					<th scope="col">Acciones</th>
 				</tr>
 			</thead>
@@ -43,11 +41,10 @@
 						<input
 							class="form-check-input"
 							type="checkbox"
-							[checked]="isSeleccionado(item.idProducto, item.idPedido)"
+							[checked]="isSeleccionado(item.idProductoMaestro)"
 							(change)="
 								toggleSeleccionIndividual(
-									item.idProducto,
-									item.idPedido,
+									item.idProductoMaestro,
 									$event
 								)
 							"
@@ -55,14 +52,12 @@
 						/>
 					</td>
 
-					<td>{{ item.idProducto }}</td>
-					<td>{{ item.nombre }}</td>
-					<td>{{ item.presentacion }} {{item.tipoPresentacion}}</td>
+					<td>{{ item.nombreProducto }}</td>
+					<td>{{ item.presentacionTotal }} {{item.tipoPresentacion}}</td>
 					<td>{{ item.estadoProducto }}</td>
 					<td>
 						<span>{{ item.personalizado ? "Sí" : "No" }}</span>
 					</td>
-					<td>{{ item.cantidad }}</td>
 					<td>
 						<button
 							[disabled]="item.idEstadoProducto == 3"
@@ -73,9 +68,15 @@
 						</button>
 						<button
 							class="btn btn-dark me-2"
-							(click)="getHojaProduccion(item.idProducto)"
+							(click)="getHojaProduccion(item.idProductoMaestro)"
 						>
 							<i class="bi bi-journal-text"></i>
+						</button>
+						<button
+							class="btn btn-danger me-2"
+							(click)="getCalculoIngredientes(item)"
+						>
+							%
 						</button>
 						<button
 							[disabled]="item.idEstadoProducto == 2"
@@ -126,7 +127,7 @@
 				</div>
 				<div class="row mt-2">
 					<div class="col-2">
-						<select [(ngModel)]="tipoEnvio" name="tipoEnvio" class="form-select" style="width: 100%">
+						<select (change)="lstProductosSeleccionados = []" [(ngModel)]="tipoEnvio" name="tipoEnvio" class="form-select" style="width: 100%">
 							<option [ngValue]="0">Recibir</option>
 							<option [ngValue]="1">Enviar a Calidad</option>
 						</select>
@@ -142,6 +143,51 @@
 	</div>
 </div>
 
+<ng-template #ingredientes let-modal>
+	<div class="modal-header">
+		<h4 class="modal-title" id="modal-basic-title">Cálculo de Ingredientes</h4>
+		<button
+			type="button"
+			class="btn-close"
+			aria-label="Close"
+			(click)="modal.dismiss('Cross click')"
+		></button>
+	</div>
+	<div class="modal-body">
+		<form>
+			<span class="mb-2"><span style="font-weight: bold;">Nombre Producto:</span> {{procedimientoData.productoMaestro.nombre}}</span>
+			<br>
+			<span class="mb-2"><span style="font-weight: bold;">Descripción:</span> {{procedimientoData.productoMaestro.descripcion}}</span>
+			<hr>
+
+			@if (productoMaestroCalculo) {
+				<h5>Ingredientes para presentación de {{productoMaestroCalculo.presentacionTotal}} {{productoMaestroCalculo.tipoPresentacion}}</h5>
+			}@else{
+				<h5>Ingredientes</h5>
+			}
+			
+
+			<table class="table table-bordered">
+				<thead>
+					<tr>
+						<th>Ingrediente</th>
+						<th>Cálculo</th>
+						<th>Cantidad (%)</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr *ngFor="let ingrediente of procedimientoData.ingredientes">
+						<td>{{ ingrediente.materiaPrima.nombre }}</td>
+						<td>{{ (ingrediente.cantidad / 100) * (productoMaestroCalculo ? productoMaestroCalculo.presentacionTotal : 0) }}</td>
+						<td>{{ ingrediente.cantidad }} %</td>
+					</tr>
+				</tbody>
+			</table>
+
+		</form>
+	</div>
+</ng-template>
+
 <ng-template #procedimiento let-modal>
 	<div class="modal-header">
 		<h4 class="modal-title" id="modal-basic-title">Hoja de Procedimiento</h4>
@@ -154,28 +200,10 @@
 	</div>
 	<div class="modal-body">
 		<form>
-			<span class="mb-2"><span style="font-weight: bold;">ID Producto:</span> {{procedimientoData.producto.idProducto}}</span><br>
-			<span class="mb-2"><span style="font-weight: bold;">Nombre Producto:</span> {{procedimientoData.producto.nombre}}</span>
+			<span class="mb-2"><span style="font-weight: bold;">Nombre Producto:</span> {{procedimientoData.productoMaestro.nombre}}</span>
+			<br>
+			<span class="mb-2"><span style="font-weight: bold;">Descripción:</span> {{procedimientoData.productoMaestro.descripcion}}</span>
 			<hr>
-
-			<h5>Ingredientes</h5>
-
-			<table class="table table-bordered">
-				<thead>
-					<tr>
-						<th>Ingrediente</th>
-						<th>Cantidad (100g)</th>
-						<th>Total</th>
-					</tr>
-				</thead>
-				<tbody>
-					<tr *ngFor="let ingrediente of procedimientoData.ingredientes">
-						<td>{{ ingrediente.materiaPrima.nombre }}</td>
-						<td>{{ ingrediente.cantidad }}</td>
-						<td>{{ ingrediente.cantidad * 10 }}</td>
-					</tr>
-				</tbody>
-			</table>
 
 			<h4 style="text-align: center;">MODUS OPERANDI</h4>
 			<h5>Procedimiento</h5>

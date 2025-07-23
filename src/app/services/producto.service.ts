@@ -44,8 +44,18 @@ export class ProductoService {
     return this.http.post<any>(url, data);
   }
 
+  updateEstadoProductoMaestro(data: any): Observable<any> {
+    let url = `${this.baseUrl}/estado-producto-maestro`;
+    return this.http.post<any>(url, data);
+  }
+
   updateEstadoProductoPedidoMasivo(data: any): Observable<any> {
     let url = `${this.baseUrl}/estado-masivo`;
+    return this.http.post<any>(url, data);
+  }
+
+  updateEstadoProductoPedidoMasivoMaestro(data: any): Observable<any> {
+    let url = `${this.baseUrl}/estado-masivo-maestro`;
     return this.http.post<any>(url, data);
   }
 
@@ -54,8 +64,13 @@ export class ProductoService {
     return this.http.put<any>(url, data);
   }
 
-  getHojaProduccion(idProducto: string): Observable<any> {
-    let url = `${this.baseUrl}/hoja-produccion/${idProducto}`;
+  updatePedidoProductoMaestro(data: any): Observable<any> {
+    let url = `${this.baseUrl}/pedido-producto-maestro`;
+    return this.http.put<any>(url, data);
+  }
+
+  getHojaProduccion(idProductoMaestro: string): Observable<any> {
+    let url = `${this.baseUrl}/hoja-produccion-maestro/${idProductoMaestro}`;
     return this.http.get<any>(url);
   }
 
