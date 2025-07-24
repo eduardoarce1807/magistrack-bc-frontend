@@ -48,9 +48,6 @@
 		</ng-template>
 		<ng-template pTemplate="header">
 			<tr>
-				<th style="width: 4rem">
-					<p-tableHeaderCheckbox /> Cotización
-				</th>
 				<th pSortableColumn="id_requerimiento" style="min-width: 30px">
 					<div class="flex justify-content-between align-items-center">
 						Id
@@ -118,9 +115,6 @@
 		</ng-template>
 		<ng-template pTemplate="body" let-customer>
 			<tr class="p-selectable-row">
-				<td>
-					<p-tableCheckbox [value]="customer" />
-				</td>
 				<td>
 					<span class="p-column-title">Name</span>
 					{{ customer.id_requerimiento }}
@@ -260,26 +254,40 @@
 				 sortMode="multiple">
 			<ng-template pTemplate="header">
 				<tr>
-					<th pSortableColumn="itemitereq" style="width:10%">
-						ID<p-sortIcon field="itemitereq" />
+					<th pSortableColumn="itemitereq" style="width:10%" >
+						<div class="d-flex justify-content-center">
+							ID<p-sortIcon field="itemitereq" />
+						</div>
 					</th>
 					<th pSortableColumn="desmateriaprima" style="width:30%">
+						<div class="d-flex justify-content-center">
 						Materia Prima <p-sortIcon field="desmateriaprima" />
+						</div>
 					</th>
 					<th pSortableColumn="cantidad_requerida" style="width:10%">
+						<div class="d-flex justify-content-center">
 						Cantidad <p-sortIcon field="cantidad_requerida" />
+						</div>
 					</th>
 					<th pSortableColumn="costo_gramo" style="width:15%">
+						<div class="d-flex justify-content-center">
 						Precio Unitario(S/) <p-sortIcon field="costo_gramo" />
+						</div>
 					</th>
 					<th pSortableColumn="cantidad_requerida" style="width:20%">
+						<div class="d-flex justify-content-center">
 						Días Entrega <p-sortIcon field="cantidad_requerida" />
+						</div>
 					</th>
 					<th pSortableColumn="impsubtotal" style="width:15%">
+						<div class="d-flex justify-content-center">
 						Subtotal <p-sortIcon field="impsubtotal" />
+						</div>
 					</th>
 					<th pSortableColumn="condicion_adicional" style="width:15%">
+						<div class="d-flex justify-content-center">
 						Adicionar <p-sortIcon field="condicion_adicional" />
+						</div>
 					</th>
 				</tr>
 			</ng-template>

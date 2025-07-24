@@ -93,7 +93,7 @@ export class RequerimientoManualComponent {
 				this.spinner=false
 			},error:(err)=>{
 				this.spinner=false
-				this.messageService.add({ severity: 'danger', summary: 'Error', detail: 'Ocurrió un problema al lista las materias Primas' });
+				this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Ocurrió un problema al lista las materias Primas' });
 			}
 		})
 		this.cargaprov=true
@@ -304,9 +304,15 @@ export class RequerimientoManualComponent {
 			.reduce((sum, e) => sum + e.impsubtotal, 0);
 	}
 	cambioproveedor(){
-		this.listaMateriaPrimaxProveedor=this.selectedprov.detalle
-		this.listaMateriaPrimaSelected=[]
-		this.requerimientosave.imptotal=0
+		if(this.selectedprov && this.selectedprov.detalle.length>0){
+			this.listaMateriaPrimaxProveedor=this.selectedprov.detalle
+			this.listaMateriaPrimaSelected=[]
+			this.requerimientosave.imptotal=0
+
+		}else{
+			this.listaMateriaPrimaSelected=[]
+			this.listaMateriaPrimaxProveedor=[]
+		}
 	}
 	cambiocheck(){
 		this.requerimientosave.imptotal=0

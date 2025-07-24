@@ -20,7 +20,13 @@ import {Table, TableModule, TableRowCollapseEvent, TableRowExpandEvent} from "pr
 import {TagModule} from "primeng/tag";
 import {ToastModule} from "primeng/toast";
 import {TooltipModule} from "primeng/tooltip";
-import {FacturaOrden, ordencompraModel, ValidacionOrden} from "../../../model/ordencompraModel";
+import {
+	conformidadOrden,
+	Detalleconformidad,
+	FacturaOrden,
+	ordencompraModel,
+	ValidacionOrden
+} from "../../../model/ordencompraModel";
 import {proveedorModel, soloproveedorModel} from "../../../model/proveedoresModel";
 import {ObsevacionesReqModel} from "../../../model/requerimientosModel";
 import {RequerimientosService} from "../../../services/compras/requerimientos.service";
@@ -31,6 +37,7 @@ import {PaginatorModule} from "primeng/paginator";
 import {PanelModule} from "primeng/panel";
 import {TipoPagoService} from "../../../services/tipo-pago.service";
 import {DomSanitizer, SafeResourceUrl} from "@angular/platform-browser";
+import {ConformidadService} from "../../../services/compras/conformidad.service";
 
 @Component({
   selector: 'app-ordencompra',
@@ -79,9 +86,11 @@ export class OrdencompraComponent {
 	verobservaciones:boolean=false
 	carga:boolean=false
 	observaciones:ObsevacionesReqModel=new ObsevacionesReqModel()
+	conformidadRequest:conformidadOrden=new conformidadOrden()
 	files:File[] = [];
 	cargaprov:boolean=false
 	totalSize : number = 0;
+	sumaconformidad:number=0
 	checked_parametro1:boolean=false
 	checked_parametro2:boolean=false
 	checked_parametro3:boolean=false
@@ -92,7 +101,7 @@ export class OrdencompraComponent {
 	constructor(private config: PrimeNGConfig,private messageService: MessageService,
 				private requerimietoService:RequerimientosService, private proveedorService:ProveedorService,
 				private ordenService:OrdencompraService,private  validacionService:ValidacionesService,
-				private tipoPagoService: TipoPagoService,private sanitizer: DomSanitizer,) {
+				private tipoPagoService: TipoPagoService,private sanitizer: DomSanitizer,private conformidadService:ConformidadService) {
 		this.loading=false
 		this.items = [
 			{
@@ -314,6 +323,9 @@ export class OrdencompraComponent {
 	getCumpleCount(detalle: any[] | undefined): number {
 		return detalle?.filter(d => d.cumple === 1).length ?? 0;
 	}
+	getObservacionesCount(detalle: any[] | undefined): number {
+		return detalle?.filter(d => d.path_respuesta).length ?? 0;
+	}
 	getEstadoOrden(estadoord: string): 'success' | 'info' | 'warning' | 'danger' | 'secondary' | 'contrast' | undefined {
 		switch (estadoord) {
 			case 'ATENDIDO':
@@ -324,6 +336,8 @@ export class OrdencompraComponent {
 				return 'danger';
 			case 'PENDIENTE':
 				return 'warning';
+			case 'CONF. Y PAGADO':
+				return 'secondary';
 			default:
 				return 'secondary';
 		}
@@ -343,7 +357,7 @@ export class OrdencompraComponent {
 		const reader = new FileReader();
 		reader.onload = () => {
 			const base64: string = reader.result as string;
-			this.subirFactura.archivobase64=base64
+			this.conformidadRequest.archivobase64=base64
 			this.messageService.add({
 				severity: 'info',
 				summary: 'Success',
@@ -360,7 +374,7 @@ export class OrdencompraComponent {
 			// this.extensionArchivo = extension;
 
 			// console.log('Extensión:', extension);
-			this.subirFactura.extensiondoc=extension
+			this.conformidadRequest.extensiondoc=extension
 		};
 
 		reader.onerror = (err) => {
@@ -377,5 +391,53 @@ export class OrdencompraComponent {
 
 	sanitizarPdf(base64: string): SafeResourceUrl {
 		return this.sanitizer.bypassSecurityTrustResourceUrl(base64);
+	}
+	guardarconformidad(){
+		this.verconformidad=false
+		this.spinner=true
+		this.conformidadRequest.id_orden_compra=this.fila_select.id_orden_compra
+		this.conformidadRequest.imppagado=this.fila_select.imppagado
+		this.conformidadRequest.parametro_conf1=this.checked_parametro1?1:0
+		this.conformidadRequest.parametro_conf2=this.checked_parametro2?1:0
+		this.conformidadRequest.parametro_conf3=this.checked_parametro3?1:0
+		this.conformidadRequest.path_pago=''
+		this.conformidadRequest.cantidad_conf_total=this.sumaconformidad
+		this.conformidadRequest.id_tipo_pago=this.fila_select.metodo_pago
+		this.conformidadRequest.detalleconformidad=[]
+		this.fila_select.detalleorden.forEach(e=>{
+			let registro:Detalleconformidad=new Detalleconformidad()
+			registro.id_orden_compra=this.fila_select.id_orden_compra
+			registro.cantidad_conf_total=e.cantidad
+			registro.item=e.item
+			this.conformidadRequest.detalleconformidad.push(registro)
+		})
+		// console.log(this.conformidadRequest,"envio")
+		this.conformidadService.registrarConformidad(1,this.conformidadRequest).subscribe({
+			next:(data)=>{
+				console.log(data)
+				if(data.mensaje=='EXITO'){
+					this.messageService.add({ severity: 'success', summary: 'EXITO', detail: 'Se guardó exitosamente' });
+					this.verconformidad=false
+					this.spinner=false
+					this.conformidadRequest=new conformidadOrden()
+					this.cambioproveedor()
+				}else{
+					this.spinner=false
+					this.verconformidad=true
+					this.messageService.add({ severity: 'error', summary: 'ERROR', detail: 'ocurrió un problema al momento de guardar' });
+				}
+			},error:(err)=>{
+				this.verconformidad=true
+				this.spinner=false
+				this.messageService.add({ severity: 'error', summary: 'ERROR', detail: 'ocurrió un problema al momento de guardar' });
+
+			}
+		})
+	}
+	cambiocantidad(){
+		this.sumaconformidad=0
+		this.fila_select.detalleorden.forEach(e=>{
+			this.sumaconformidad+=e.cantidad_conf_total?e.cantidad_conf_total:0
+		})
 	}
 }

@@ -13,7 +13,7 @@ export class ordencompraModel {
 	path_factura:     string='';
 	estadofact:       string='';
 	fecha_pago:		  string='';
-	metodo_pago:		  string='';
+	metodo_pago:	  number=0;
 	nrooperacion:     number=0
 	detalleorden:     Detalleorden[]=[];
 }
@@ -39,6 +39,7 @@ export class Detalleorden {
 	impunit:number=0
 	respuestaprov:	  string=''
 	path_respuesta:   string=''
+	fechaobservaciones:string=''
 }
 export class ValidacionOrden {
 	cumple: number=0;
@@ -55,8 +56,39 @@ export class FacturaOrden {
 	path_factura:string|null=null
 	extensiondoc:string|null=null
 }
+export class RespuestaOrden {
+	respuestaprov:string|null=null
+	item: number=0;
+	archivobase64:string|null=null
+	path_respuesta:string|null=null
+	extensiondoc:string|null=null
+}
 export class respuestaFacturaModel{
 	id_orden_compra:string|null=null
 	nrofactura:string|null=null
 	path_factura:string|null=null
+}
+export class respuestaObservacionModel{
+	id_orden_compra:string|null=null
+	path_respuesta:string|null=null
+}
+
+export class conformidadOrden {
+	cantidad_conf_total: number=0;
+	id_orden_compra:     string='';
+	parametro_conf1:     number=0;
+	parametro_conf2:     number=0;
+	parametro_conf3:     number=0;
+	imppagado:           number=0;
+	archivobase64:		 string='';
+	path_pago:		     string='';
+	extensiondoc:		 string='';
+	id_tipo_pago:        number=0;
+	detalleconformidad:  Detalleconformidad[]=[];
+}
+
+export class Detalleconformidad {
+	cantidad_conf_total: number=0;
+	id_orden_compra:     string='';
+	item:                number=0;
 }
