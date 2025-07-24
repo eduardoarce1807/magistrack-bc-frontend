@@ -11,6 +11,7 @@ ul li a{
 img{
 	object-fit:contain;
 }
-::ng-deep span.p-inputnumber input{
+.p-inputnumber input{
 	width:100% !important;
+	text-align:end;
 }

@@ -59,8 +59,32 @@
 			@if (checkautomatico){
 				<h4 class="text-danger fw-bold d-flex align-items-center my-1">
 					<img src="assets/img/crema-organica.gif" width="50">
-					PROVEEDOR: <span *ngIf="selectedprov.descripcion" class="fw-lighter text-bg-warning p-1 border-2 mx-1">{{selectedprov.descripcion}}</span></h4>
-
+					PROVEEDOR:
+					<div *ngIf="checkautomatico" class="mx-1">
+						<p-dropdown
+							[options]="listaProveedores"
+							[(ngModel)]="selectedprov"
+							optionLabel="descripcion"
+							[checkmark]="true"
+							[showClear]="true"
+							[loading]="cargaprov"
+							(ngModelChange)="cambioproveedor()"
+							placeholder="Seleccionar Proveedor" >
+							<ng-template pTemplate="selectedItem">
+								<div class="flex align-items-center gap-2" *ngIf="selectedprov">
+									<i class="pi pi-share-alt" style="color: var(--primary-color)"></i>
+									<div class="fw-bold p-1 text-bg-warning">{{ selectedprov.idproveedor }} - {{ selectedprov.descripcion }}</div>
+								</div>
+							</ng-template>
+							<ng-template let-country pTemplate="item">
+								<div class="flex align-items-center gap-2">
+									<i class="pi pi-share-alt" style="color: var(--primary-color)"></i>
+									<div class="fw-bold text-bg-warning border-2 ">{{ country.idproveedor }} - {{ country.descripcion }}</div>
+								</div>
+							</ng-template>
+						</p-dropdown>
+					</div>
+				</h4>
 				<p-table
 					#dt
 					[value]="listaMateriaPrimaxProveedor"
@@ -240,16 +264,7 @@
 		</div>
 	</div>
 	<div class="col-md-7 col-sm-12 d-flex  flex-column">
-		<div *ngIf="checkautomatico" class="mt-2">
-			<label class="mx-3" >Proveedor:</label>
-			<p-dropdown
-				[options]="listaProveedores"
-				[(ngModel)]="selectedprov"
-				optionLabel="descripcion"
-				[loading]="cargaprov"
-				(ngModelChange)="cambioproveedor()"
-				placeholder="Seleccionar Proveedor" />
-		</div>
+
 		<div class="w-full p-1">
 			<p-panel [toggleable]="true">
 				<ng-template pTemplate="header">
@@ -308,7 +323,7 @@
 									#
 								</div>
 							</th>
-							<th pSortableColumn="desmateriaprima" style="width: 400px !important;">
+							<th pSortableColumn="desmateriaprima" style="width: 200px !important;">
 								<div class="flex justify-content-between align-items-center">
 									Materia
 									<p-sortIcon field="desmateriaprima" />
@@ -322,6 +337,16 @@
 									<p-columnFilter type="number" field="costo_gramo" display="menu" class="ml-auto" />
 								</div>
 							</th>
+							@if (selectedprov && selectedprov.idproveedor){
+								<th pSortableColumn="diasentrega" style="width: 200px" >
+									<div class="flex justify-content-between align-items-center">
+										Días Ent.
+										<p-sortIcon field="diasentrega" />
+										<p-columnFilter type="number" field="diasentrega" display="menu" class="ml-auto" />
+									</div>
+								</th>
+
+							}
 							<th  style="min-width: 50px">
 								Eliminar
 							</th>
@@ -347,7 +372,7 @@
 									[maxFractionDigits]="5"
 									(ngModelChange)="cambiocantidad(customer)"/>
 							</td>
-							<td class="d-flex flex-column">
+							<td class="d-flex flex-column text-end">
 								<p-inputNumber
 									[(ngModel)]="customer.costo_gramo"
 									inputId="minmaxfraction"
@@ -360,6 +385,14 @@
 <!--								<span class="text-danger fw-bold">{{ customer.costo_gramo | currency:' ':'symbol':'1.2-2':'en-US' }}</span>-->
 								Subtotal: S/ {{customer.impsubtotal | currency:' ':'symbol':'1.2-2':'en-US'}}
 							</td>
+							@if (selectedprov && selectedprov.idproveedor){
+							<td>
+								<p-inputNumber
+									[(ngModel)]="customer.diasentrega"
+									inputId="integeronly"
+								/>
+							</td>
+							}
 							<td>
 								<i class="pi pi-trash" style="color: red"
 								   pTooltip="Eliminar Registro"

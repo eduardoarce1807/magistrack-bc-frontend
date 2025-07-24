@@ -15,7 +15,13 @@ import {materiaxproveedorModel, proveedorModel, soloproveedorModel} from "../../
 import {RequerimientosService} from "../../../services/compras/requerimientos.service";
 import {ProveedorService} from "../../../services/compras/proveedor.service";
 import {OrdencompraService} from "../../../services/compras/ordencompra.service";
-import {FacturaOrden, ordencompraModel, ValidacionOrden} from "../../../model/ordencompraModel";
+import {
+	Detalleorden,
+	FacturaOrden,
+	ordencompraModel,
+	RespuestaOrden,
+	ValidacionOrden
+} from "../../../model/ordencompraModel";
 import {CommonModule, CurrencyPipe, DatePipe, NgForOf, NgIf} from "@angular/common";
 import {TooltipModule} from "primeng/tooltip";
 import {BadgeModule} from "primeng/badge";
@@ -77,6 +83,7 @@ export class OrdencompraProveedorComponent {
 	loading: boolean = false;
 	verordencompra:boolean=false
 	fila_select:ordencompraModel = new ordencompraModel()
+	detalle_select:Detalleorden=new Detalleorden()
 	verobservaciones:boolean=false
 	verfactura:boolean=false
 	observaciones:ObsevacionesReqModel=new ObsevacionesReqModel()
@@ -84,9 +91,10 @@ export class OrdencompraProveedorComponent {
 	cargaprov:boolean=false
 	totalSize : number = 0;
 	subirFactura:FacturaOrden=new FacturaOrden()
+	subirRespuesta:RespuestaOrden=new RespuestaOrden()
 	totalSizePercent : number = 0;
 	constructor(private config: PrimeNGConfig,private messageService: MessageService,
-				private requerimietoService:RequerimientosService, private proveedorService:ProveedorService,
+				private proveedorService:ProveedorService,
 				private ordenService:OrdencompraService,private  validacionService:ValidacionesService,
 				private sanitizer: DomSanitizer,private funcionesService:FuncionesService,) {
 		this.loading=false
@@ -241,8 +249,9 @@ export class OrdencompraProveedorComponent {
 		this.fila_select.imptotalfact=this.fila_select.imptotal
 		this.verfactura=true
 	}
-	cargarObservaciones(registro:ordencompraModel){
+	cargarObservaciones(registro:ordencompraModel,detalle:Detalleorden){
 		this.fila_select=registro
+		this.detalle_select=detalle
 		this.fila_select.imptotalfact=this.fila_select.imptotal
 		this.verobservaciones=true
 	}
@@ -332,15 +341,10 @@ export class OrdencompraProveedorComponent {
 			}
 		})
 	}
-	// onBasicUploadAuto(event: FileUploadEvent) {
-	// 	this.spinner=false
-	// 	this.messageService.add({ severity: 'info', summary: 'Success', detail: 'File Uploaded with Auto Mode' });
-	// 	console.log(event)
-	// }
 	onBasicUploadAuto(event: FileUploadEvent) {
 		this.carga = false;
 
-		const file: File = event.files[0]; // Tomamos el primer archivo
+		const file: File = event.files[0];
 
 		const reader = new FileReader();
 		reader.onload = () => {
@@ -352,16 +356,9 @@ export class OrdencompraProveedorComponent {
 				detail: 'Archivo en Espera para GUARDAR'
 			});
 
-			// Aquí puedes guardar el base64 para enviarlo al backend
-			// this.archivoBase64 = base64;
-
-			// Si necesitas extraer el tipo (pdf, jpeg, etc.):
 			const mime = file.type; // Ej: "application/pdf"
 			const extension = mime.split('/')[1]; // Ej: "pdf"
 			console.log(extension,'ext')
-			// this.extensionArchivo = extension;
-
-			// console.log('Extensión:', extension);
 			this.subirFactura.extensiondoc=extension
 		};
 
@@ -379,5 +376,81 @@ export class OrdencompraProveedorComponent {
 
 	sanitizarPdf(base64: string): SafeResourceUrl {
 		return this.sanitizer.bypassSecurityTrustResourceUrl(base64);
+	}
+
+	onBasicUploadAutoObs(event: FileUploadEvent) {
+		this.carga = false;
+
+		const file: File = event.files[0]; // Tomamos el primer archivo
+
+		const reader = new FileReader();
+		reader.onload = () => {
+			const base64: string = reader.result as string;
+			this.subirRespuesta.archivobase64=base64
+			this.messageService.add({
+				severity: 'info',
+				summary: 'Success',
+				detail: 'Archivo en Espera para GUARDAR'
+			});
+
+			const mime = file.type; // Ej: "application/pdf"
+			const extension = mime.split('/')[1]; // Ej: "pdf"
+			console.log(extension,'ext')
+			// this.extensionArchivo = extension;
+
+			// console.log('Extensión:', extension);
+			this.subirRespuesta.extensiondoc=extension
+		};
+
+		reader.onerror = (err) => {
+			console.error('Error al leer el archivo:', err);
+			this.messageService.add({
+				severity: 'error',
+				summary: 'Error',
+				detail: 'No se pudo convertir el archivo'
+			});
+		};
+
+		reader.readAsDataURL(file);
+	}
+
+	guardarobservacion(){
+		this.verobservaciones=false
+		this.spinner=true
+		this.subirRespuesta.path_respuesta=null
+		this.subirRespuesta.item=this.detalle_select.item
+		this.subirRespuesta.respuestaprov=this.detalle_select.respuestaprov
+		console.log(this.subirRespuesta)
+		this.ordenService.registrarObservacionOrdencompra(this.fila_select.id_orden_compra,this.subirRespuesta).subscribe({
+			next:(data)=>{
+				this.spinner=false
+				if(data.mensaje=='EXITO'){
+
+					this.subirRespuesta=new RespuestaOrden()
+					this.messageService.add({
+						severity: 'success',
+						summary: 'ÈXITO',
+						detail: 'Se subió la observación y el archivo con éxito'
+					});
+					this.cambioproveedor()
+				}else{
+
+					this.messageService.add({
+						severity: 'error',
+						summary: 'ERROR',
+						detail: 'Ocurrió un problema al momento de guardar'
+					});
+					this.verobservaciones=true
+				}
+			},error:(err)=>{
+				this.spinner=false
+				this.verobservaciones=true
+				this.messageService.add({
+					severity: 'error',
+					summary: 'ERROR',
+					detail: 'Ocurrió un problema al momento de guardar'
+				});
+			}
+		})
 	}
 }
