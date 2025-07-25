@@ -843,7 +843,7 @@ export class RegistroPedidoComponent implements OnInit, OnDestroy {
   }
 
   selectProducto(producto: Producto, busquedaAvanzada: boolean = false) {
-    this.query = producto.nombre;
+    this.query = producto.productoMaestro.nombre + " - " + producto.presentacion + " " + producto.tipoPresentacion.descripcion;
     this.productosBusqueda = [];
     this.productoSeleccionado = producto;
 
@@ -874,7 +874,9 @@ export class RegistroPedidoComponent implements OnInit, OnDestroy {
                 showConfirmButton: true
               });
               this.cargarProductosByIdPedido(this.idPedido!);
-              this.validarCodigoCupon();
+              if(this.codigoCupon && this.codigoCupon.trim() !== '') {
+                this.validarCodigoCupon();
+              }
             },
             error: (error) => {
               console.error('Error al eliminar producto del pedido', error);
