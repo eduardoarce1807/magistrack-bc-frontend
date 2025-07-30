@@ -49,10 +49,18 @@
 					<td>{{item.tipoPago ? item.tipoPago.descripcion : '-'}}</td>
                     <td>S/ {{item.pedido.montoTotal.toFixed(2)}}</td>
 					<td>{{item.numeroOperacion}}</td>
-					<td>{{item.cliente.nombres}} {{item.cliente.apellidos}}</td>
+					<td>{{item.pedido.cliente.nombres}} {{item.pedido.cliente.apellidos}}</td>
 					<td>{{item.fechaPago}}</td>
 					<td>{{item.banco ? item.banco.nombre : '-'}}</td>
-                    <td>-</td>
+                    <td>
+						@if(item.urlArchivo){
+							<a [href]="item.urlArchivo" target="_blank" class="btn btn-info">
+								<i class="bi bi-file-earmark-text"></i>
+							</a>
+						}@else {
+							<span class="text-muted">-</span>
+						}
+					</td>
 				</tr>
 				}
 			</tbody>

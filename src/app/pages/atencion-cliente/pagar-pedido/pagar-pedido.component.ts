@@ -26,6 +26,9 @@ interface PagoManual {
   idPedido: string;
   numeroOperacion: string | null;
   fechaPago: string;
+  archivoBase64: string;
+  nombreArchivo: string;
+  extensionArchivo: string;
 }
 
 @Component({
@@ -55,7 +58,10 @@ export class PagarPedidoComponent implements OnInit, AfterViewInit {
     idBanco: null,
     idPedido: '',
     numeroOperacion: '',
-    fechaPago: ''
+    fechaPago: '',
+    archivoBase64: '',
+    nombreArchivo: '',
+    extensionArchivo: ''
   };
 
   constructor(
@@ -389,12 +395,21 @@ export class PagarPedidoComponent implements OnInit, AfterViewInit {
     );
   }
 
-  nombreArchivo: string = '';
   onArchivoSeleccionado(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    if (input.files && input.files.length > 0) {
-      const documentoAdicional = input.files[0];
-      this.nombreArchivo = documentoAdicional.name;
+    const input = event.target as HTMLInputElement | null;
+    const file: File | undefined = input?.files?.[0];
+
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const base64 = reader.result as string;
+
+        // Armar la request completa
+        this.pagoManual.archivoBase64 = base64; // Incluye "data:application/pdf;base64,..." o similar
+        this.pagoManual.nombreArchivo = file.name.split('.').slice(0, -1).join('.');
+        this.pagoManual.extensionArchivo = file.name.split('.').pop()!;
+      };
+      reader.readAsDataURL(file); // genera base64 completo con encabezado
     }
   }
 

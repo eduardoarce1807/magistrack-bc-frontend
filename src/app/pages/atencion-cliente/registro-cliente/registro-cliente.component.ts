@@ -18,7 +18,6 @@ import { EmailService } from '../../../services/email.service';
 })
 export class RegistroClienteComponent implements OnInit {
   clienteForm: FormGroup;
-  nombreArchivo: string = '';
   tiposDocumento: any[] = [];
   mediosContacto: any[] = [];
   isCodigoReferidoValid: boolean | undefined = undefined;
@@ -212,8 +211,10 @@ export class RegistroClienteComponent implements OnInit {
       observaciones: formValues.observaciones,
       colegioProfesional: formValues.colegioProfesional,
       numeroColegiatura: formValues.numeroColegiatura,
-      documentoAdicional: 'C:/TestArchivos/' + this.nombreArchivo,
-      referidoPor: this.clienteForm.get('referidoPor')?.value
+      referidoPor: this.clienteForm.get('referidoPor')?.value,
+      archivoBase64: this.archivoBase64 || '',
+      nombreArchivo: this.nombreArchivo || '',
+      extensionArchivo: this.extensionArchivo || '',
     };
 
     console.log('Datos del cliente:', clienteData);
@@ -304,12 +305,24 @@ export class RegistroClienteComponent implements OnInit {
     }
   }
 
+  archivoBase64: string = '';
+  nombreArchivo: string = '';
+  extensionArchivo: string = '';
   onArchivoSeleccionado(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    if (input.files && input.files.length > 0) {
-      const documentoAdicional = input.files[0];
-      this.clienteForm.patchValue({ documentoAdicional });
-      this.nombreArchivo = documentoAdicional.name;
+    const input = event.target as HTMLInputElement | null;
+    const file: File | undefined = input?.files?.[0];
+
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const base64 = reader.result as string;
+
+        // Armar la request completa
+        this.archivoBase64 = base64; // Incluye "data:application/pdf;base64,..." o similar
+        this.nombreArchivo = file.name.split('.').slice(0, -1).join('.');
+        this.extensionArchivo = file.name.split('.').pop()!;
+      };
+      reader.readAsDataURL(file); // genera base64 completo con encabezado
     }
   }
 }

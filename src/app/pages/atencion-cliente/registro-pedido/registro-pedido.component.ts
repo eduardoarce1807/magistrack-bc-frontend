@@ -21,6 +21,7 @@ import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
 import { InputTextModule } from 'primeng/inputtext';
 import { Table, TableModule } from 'primeng/table';
+import { DocumentoService } from '../../../services/documento.service';
 
 interface PedidoRequest {
   idCliente: number;
@@ -138,8 +139,17 @@ export class RegistroPedidoComponent implements OnInit, OnDestroy {
   distritos: any[] = [];
 
   codigoCupon: string = '';
+  dniCliente: string = '';
+  nombreCompletoCliente: string = '';
+
+  rucCliente = '';
+  razonSocialCliente = '';
 
   private modalService = inject(NgbModal);
+
+  searchFocused = false;
+
+  tipoComprobante = 0;
 
   ngOnInit(): void {
     this.routeSubscription = this.route.paramMap.subscribe(params => {
@@ -193,7 +203,8 @@ export class RegistroPedidoComponent implements OnInit, OnDestroy {
     private direccionService: DireccionService,
     private ubigeoService: UbigeoService,
     private clienteService: ClienteService,
-    private cuponService: CuponService
+    private cuponService: CuponService,
+    private documentoService: DocumentoService
   ) {
     this.idRol = this.dataService.getLoggedUser().rol.idRol;
     console.log('ID del Rol:', this.idRol);
@@ -472,6 +483,17 @@ export class RegistroPedidoComponent implements OnInit, OnDestroy {
           }else{
             this.disabledPagar = true; // Deshabilitar el botón de pagar si no hay método de entrega o dirección
           }
+
+          //validar datos de comprobante
+          if(this.pedido.documento){
+            console.log('Datos del documento:', this.pedido.documento);
+            this.tipoComprobante = this.pedido.documento.tipoComprobante === "03" ? 1 :
+                        this.pedido.documento.tipoComprobante === "01" ? 2 : 0;
+            this.dniCliente = this.tipoComprobante == 1 ? this.pedido.documento.numeroDocumentoCliente : '';
+            this.nombreCompletoCliente = this.tipoComprobante == 1 ? this.pedido.documento.nombreCliente : '';
+            this.rucCliente = this.tipoComprobante == 2 ? this.pedido.documento.numeroDocumentoCliente : '';
+            this.razonSocialCliente = this.tipoComprobante == 2 ? this.pedido.documento.razonSocialCliente : '';
+          }
         }
         console.log('Pedido:', pedido);
       },
@@ -549,6 +571,7 @@ export class RegistroPedidoComponent implements OnInit, OnDestroy {
     if (this.query) {
       this.productoService.getBuscarProductos(this.query).subscribe((data: any) => {
         this.productosBusqueda = data;
+        this.searchFocused = true;
       },
       (error) => {
         console.error('Error al registrar cliente', error);
@@ -720,6 +743,16 @@ export class RegistroPedidoComponent implements OnInit, OnDestroy {
 
   totalPedido = 0;
   agregarProducto() {
+
+    if (!this.productoSeleccionado || !this.productoSeleccionado.idProducto) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Oops!',
+        text: 'Por favor, seleccione un producto antes de agregarlo al pedido.',
+        showConfirmButton: true
+      });
+      return;
+    }
 
     const productoExistente = this.productosPedido.some(p => p.idProducto === this.productoSeleccionado.idProducto);
     if (productoExistente) {
@@ -903,5 +936,143 @@ export class RegistroPedidoComponent implements OnInit, OnDestroy {
 	showDanger(template: TemplateRef<any>) {
 		this.toastService.show({ template, classname: 'bg-danger text-light', delay: 3000 });
 	}
+
+  onSearchBlur() {
+    setTimeout(() => {
+      this.searchFocused = false;
+    }, 200);
+  }
+
+  isValidDni(dni: string): boolean {
+    return /^\d{8}$/.test(dni);
+  }
+
+  isValidRuc(ruc: string): boolean {
+    return /^\d{11}$/.test(ruc);
+  }
+
+  onDniKeyup() {
+    if (typeof this.dniCliente === 'string') {
+      this.dniCliente = this.dniCliente.replace(/[^0-9]/g, '').slice(0, 8);
+    }
+  }
+
+  onRucKeyup() {
+    if (this.rucCliente) {
+      this.rucCliente = this.rucCliente.replace(/[^0-9]/g, '').slice(0, 11);
+    }
+  }
+
+  changeTipoComprobante() {
+    if (this.tipoComprobante === 2) { // Factura
+      if (this.pedido.cliente.tipoDocumento.idTipoDocumento === 2) {
+        this.rucCliente = this.pedido.cliente.ruc || '';
+        this.razonSocialCliente = this.pedido.cliente.razonSocial || '';
+        this.dniCliente = '';
+        this.nombreCompletoCliente = '';
+      } else {
+        this.rucCliente = '';
+        this.razonSocialCliente = '';
+        this.dniCliente = '';
+        this.nombreCompletoCliente = '';
+      }
+    } else if (this.tipoComprobante === 1) { // Boleta
+      if (this.pedido.cliente.tipoDocumento.idTipoDocumento === 1) {
+        this.rucCliente = '';
+        this.razonSocialCliente = '';
+        this.dniCliente = this.pedido.cliente.numeroDocumento || '';
+        this.nombreCompletoCliente = (this.pedido.cliente.nombres || '') + " " + (this.pedido.cliente.apellidos || '');
+      } else {
+        this.rucCliente = '';
+        this.razonSocialCliente = '';
+        this.dniCliente = '';
+        this.nombreCompletoCliente = '';
+      }
+    }
+  }
+
+  guardarDatosCliente() {
+    if (this.tipoComprobante === 2) { // Factura
+      if (!this.isValidRuc(this.rucCliente)) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Oops!',
+          text: 'El RUC debe tener 11 dígitos.',
+          showConfirmButton: true
+        });
+        return;
+      }
+      if (this.razonSocialCliente.trim() === '') {
+        Swal.fire({
+          icon: 'error',
+          title: 'Oops!',
+          text: 'La razón social no puede estar vacía.',
+          showConfirmButton: true
+        });
+        return;
+      }
+    } else if (this.tipoComprobante === 1) { // Boleta
+      if (!this.isValidDni(this.dniCliente)) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Oops!',
+          text: 'El DNI debe tener 8 dígitos.',
+          showConfirmButton: true
+        });
+        return;
+      }
+      if (this.nombreCompletoCliente.trim() === '') {
+        Swal.fire({
+          icon: 'error',
+          title: 'Oops!',
+          text: 'El nombre completo no puede estar vacío.',
+          showConfirmButton: true
+        });
+        return;
+      }
+    }
+
+    //Falta validar si el cliente ya tiene un documento creado, y luego selecciona SIN COMPROBANTE
+
+    const tipoComprobanteStr = this.tipoComprobante === 1 ? "03" : this.tipoComprobante === 2 ? "01" : "";
+    this.documentoService.crearDocumento({
+      idPedido: this.idPedido!,
+      tipoComprobante: tipoComprobanteStr,
+      tipoDocumentoCliente: this.tipoComprobante === 2 ? '6' : '1',
+      numeroDocumentoCliente: this.tipoComprobante === 2 ? this.rucCliente : this.tipoComprobante === 1 ? this.dniCliente : null,
+      razonSocialCliente: this.tipoComprobante === 2 ? this.razonSocialCliente : null,
+      nombreCliente: this.tipoComprobante === 1 ? this.nombreCompletoCliente : null,
+      direccionCliente: ""
+    }).subscribe(
+      (data) => {
+        if(data && data.idResultado && data.idResultado > 0) {
+          //Actualizar el pedido con el documento creado
+          this.getPedidoById(this.idPedido!);
+          Swal.fire({
+            icon: 'success',
+            title: '¡Listo!',
+            text: "Información para el comprobante actualizada correctamente.",
+            showConfirmButton: true
+          });
+        }else{
+          Swal.fire({
+            icon: 'error',
+            title: 'Oops!',
+            text: data.resultado,
+            showConfirmButton: true
+          });
+        }
+      },
+      (error) => {
+        console.error('Error al actualizar datos del cliente', error);
+        Swal.fire({
+          icon: 'error',
+          title: 'Oops!',
+          text: 'No se pudo actualizar los datos del cliente, inténtelo de nuevo.',
+          showConfirmButton: true
+        });
+      }
+    );
+  }
 
 }

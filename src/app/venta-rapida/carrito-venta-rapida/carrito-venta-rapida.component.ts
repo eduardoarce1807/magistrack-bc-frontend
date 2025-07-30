@@ -38,7 +38,7 @@ interface PedidoRequest {
   styleUrls: ['./carrito-venta-rapida.component.scss']
 })
 export class CarritoVentaRapidaComponent implements OnInit {
-  carrito: Producto[] = [];
+  carrito: any[] = [];
   total = 0;
   lstTiposPago: any = [];
   lstBancos: any = [];
@@ -52,6 +52,10 @@ export class CarritoVentaRapidaComponent implements OnInit {
   dni = '';
   nombreCliente = '';
   celular = '';
+
+  tipoComprobante = 'ticket'; // Por defecto, se envía un ticket
+  ruc = '';
+  razonSocial = '';
 
   private modalService = inject(NgbModal);
 
@@ -92,13 +96,22 @@ export class CarritoVentaRapidaComponent implements OnInit {
   }
 
   idPedido: string = '';
+  loadingCreatePedido = false;
   crearPedido(){
-
+    this.loadingCreatePedido = true;
     if(this.carrito.length === 0) {
       Swal.fire({
         icon: 'warning',
         title: 'Carrito vacío',
         text: 'No hay productos en el carrito para procesar la venta.',
+        showConfirmButton: true
+      });
+      return;
+    }else if (this.idTipoPago === 0) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Tipo de pago no seleccionado',
+        text: 'Por favor, seleccione un tipo de pago para continuar.',
         showConfirmButton: true
       });
       return;
@@ -132,6 +145,7 @@ export class CarritoVentaRapidaComponent implements OnInit {
       })),
     };
     this.pedidoService.createPedidoVentaRapida(request).subscribe((data: any) => {
+      this.loadingCreatePedido = false;
       if(data){
         this.idPedido = data.idPedido;
         Swal.fire({
@@ -141,6 +155,8 @@ export class CarritoVentaRapidaComponent implements OnInit {
           showCancelButton: true,
           confirmButtonText: 'Sí, enviar Comprobante',
           cancelButtonText: 'No',
+          allowEscapeKey: false,
+          allowOutsideClick: false
         }).then((result) => {
           this.carritoService.vaciarCarrito();
           this.efectivoRecibido = 0;
@@ -154,14 +170,125 @@ export class CarritoVentaRapidaComponent implements OnInit {
       }
     }, error => {
       console.error('Error al crear pedido', error);
+      this.loadingCreatePedido = false;
       Swal.fire({
         icon: 'error',
         title: 'Oops!',
-        text: 'No se pudo guardar la venta, inténtelo de nuevo.',
+        text: error.error.message || 'No se pudo guardar la venta, inténtelo de nuevo.',
         showConfirmButton: true
       });
     });
     
+  }
+
+  isValidDni(dni: string): boolean {
+    return /^\d{8}$/.test(dni);
+  }
+
+  isValidRuc(ruc: string): boolean {
+    return /^\d{11}$/.test(ruc);
+  }
+
+  // Only allow numeric input for RUC field
+  onlyAllowNumbers(event: KeyboardEvent): void {
+    const key = event.key;
+    if (key < '0' || key > '9') {
+      event.preventDefault();
+    }
+  }
+
+  guardarDatosCliente() {
+    if (this.tipoComprobante == "factura") { // Factura
+      if (!this.isValidRuc(this.ruc)) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Oops!',
+          text: 'El RUC debe tener 11 dígitos.',
+          showConfirmButton: true
+        });
+        return;
+      }
+      if (this.razonSocial.trim() === '') {
+        Swal.fire({
+          icon: 'error',
+          title: 'Oops!',
+          text: 'La razón social no puede estar vacía.',
+          showConfirmButton: true
+        });
+        return;
+      }
+    } else if (this.tipoComprobante == "boleta") { // Boleta
+      if (!this.isValidDni(this.dni)) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Oops!',
+          text: 'El DNI debe tener 8 dígitos.',
+          showConfirmButton: true
+        });
+        return;
+      }
+      if (this.nombreCliente.trim() === '') {
+        Swal.fire({
+          icon: 'error',
+          title: 'Oops!',
+          text: 'El nombre completo no puede estar vacío.',
+          showConfirmButton: true
+        });
+        return;
+      }
+    }
+
+    //Falta validar si el cliente ya tiene un documento creado, y luego selecciona SIN COMPROBANTE
+
+    const tipoComprobanteStr = this.tipoComprobante == "boleta" ? "03" : this.tipoComprobante === "factura" ? "01" : this.tipoComprobante === "boleta-simple" ? "03" : "";
+    this.documentoService.crearDocumento({
+      idPedido: this.idPedido!,
+      tipoComprobante: tipoComprobanteStr,
+      tipoDocumentoCliente: this.tipoComprobante === "factura" ? '6' : '1',
+      numeroDocumentoCliente: this.tipoComprobante === "factura"
+      ? this.ruc
+      : this.tipoComprobante === "boleta"
+        ? this.dni
+        : this.tipoComprobante === "boleta-simple"
+        ? "99999999"
+        : null,
+      razonSocialCliente: this.tipoComprobante === "factura" ? this.razonSocial : null,
+      nombreCliente: this.tipoComprobante === "boleta" 
+      ? this.nombreCliente 
+      : this.tipoComprobante === "boleta-simple"
+        ? "CLIENTES VARIOS"
+        : null,
+      direccionCliente: ""
+    }).subscribe(
+      (data) => {
+      if(data && data.idResultado && data.idResultado > 0) {
+
+        if(this.tipoComprobante == "boleta"){
+        this.generarBoleta();
+        } else if(this.tipoComprobante == "boleta-simple"){
+        this.generarBoletaSimple();
+        }else if(this.tipoComprobante == "factura"){
+        this.generarFactura();
+        }
+      }else{
+        Swal.fire({
+        icon: 'error',
+        title: 'Oops!',
+        text: data.resultado,
+        showConfirmButton: true
+        });
+      }
+      },
+      (error) => {
+      console.error('Error al actualizar datos del cliente', error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Oops!',
+        text: 'No se pudo actualizar los datos del cliente, inténtelo de nuevo.',
+        showConfirmButton: true
+      });
+      }
+    );
   }
 
   @ViewChild('enviarComprobante', { static: true })
@@ -169,6 +296,145 @@ export class CarritoVentaRapidaComponent implements OnInit {
   openModal(content: TemplateRef<any>) {
     this.modalService.dismissAll(); // Cierra cualquier modal abierto antes de abrir uno nuevo
     this.modalService.open(content, {backdrop: 'static', keyboard: false});
+  }
+
+  loadingComprobante = false;
+
+  generarBoletaSimple(){
+    this.loadingComprobante = true;
+    this.documentoService.generarBoleta(this.idPedido).subscribe({
+      next: (data) => {
+        this.loadingComprobante = false;
+        if(data && data.idResultado && data.idResultado === 1) {
+          this.modalService.dismissAll();
+          Swal.fire({
+            icon: 'success',
+            title: '¡Listo!',
+            text: data.resultado || 'Comprobante generado correctamente.',
+            showConfirmButton: true,
+            showCancelButton: true,
+            confirmButtonText: 'Enviar por WhatsApp',
+            cancelButtonText: 'Cerrar',
+          }).then((result) => {
+            if (result.isConfirmed) {
+              let urlWpp = `https://wa.me/51${this.celular}?text=Hola, aquí está tu Boleta Simple:%0A${data.value}%0ABELLACURET`;
+              window.open(urlWpp, '_blank');
+            }
+          });
+        }else{
+          Swal.fire({
+            icon: 'error',
+            title: 'Oops!',
+            text: data.resultado || 'No se pudo generar el comprobante, inténtelo de nuevo.',
+            showConfirmButton: true,
+          });
+        }
+      },
+      error: (error) => {
+        this.loadingComprobante = false;
+        console.error('Error al generar comprobante', error);
+        Swal.fire({
+          icon: 'error',
+          title: 'Oops!',
+          text: `No se pudo generar el comprobante, inténtelo de nuevo.`,
+          showConfirmButton: true,
+        });
+      },
+    });
+  }
+
+  generarBoleta(){
+    this.loadingComprobante = true;
+    this.documentoService.generarBoletaManual(this.idPedido, this.dni, this.nombreCliente).subscribe({
+      next: (data) => {
+        this.loadingComprobante = false;
+        if(data && data.idResultado && data.idResultado === 1) {
+          this.modalService.dismissAll();
+          Swal.fire({
+            icon: 'success',
+            title: '¡Listo!',
+            text: data.resultado || 'Comprobante generado correctamente.',
+            showConfirmButton: true,
+            showCancelButton: true,
+            confirmButtonText: 'Enviar por WhatsApp',
+            cancelButtonText: 'Cerrar',
+          }).then((result) => {
+            if (result.isConfirmed) {
+              let urlWpp = `https://wa.me/51${this.celular}?text=Hola, aquí está tu Boleta:%0A${data.value}%0ABELLACURET`;
+              window.open(urlWpp, '_blank');
+            }
+          });
+        }else{
+          Swal.fire({
+            icon: 'error',
+            title: 'Oops!',
+            text: data.resultado || 'No se pudo generar el comprobante, inténtelo de nuevo.',
+            showConfirmButton: true,
+          });
+        }
+      },
+      error: (error) => {
+        this.loadingComprobante = false;
+        console.error('Error al generar comprobante', error);
+        Swal.fire({
+          icon: 'error',
+          title: 'Oops!',
+          text: `No se pudo generar el comprobante, inténtelo de nuevo.`,
+          showConfirmButton: true,
+        });
+      },
+    });
+  }
+
+  generarFactura(){
+    this.loadingComprobante = true;
+    this.documentoService.generarFacturaManual(this.idPedido, this.ruc, this.razonSocial).subscribe({
+      next: (data) => {
+        this.loadingComprobante = false;
+        if(data && data.idResultado && data.idResultado === 1) {
+          this.modalService.dismissAll();
+          Swal.fire({
+            icon: 'success',
+            title: '¡Listo!',
+            text: data.resultado || 'Comprobante generado correctamente.',
+            showConfirmButton: true,
+            showCancelButton: true,
+            confirmButtonText: 'Enviar por WhatsApp',
+            cancelButtonText: 'Cerrar',
+          }).then((result) => {
+            if (result.isConfirmed) {
+              let urlWpp = `https://wa.me/51${this.celular}?text=Hola, aquí está tu Factura:%0A${data.value}%0ABELLACURET`;
+              window.open(urlWpp, '_blank');
+            }
+          });
+        }else{
+          Swal.fire({
+            icon: 'error',
+            title: 'Oops!',
+            text: data.resultado || 'No se pudo generar el comprobante, inténtelo de nuevo.',
+            showConfirmButton: true,
+          });
+        }
+      },
+      error: (error) => {
+        this.loadingComprobante = false;
+        console.error('Error al generar comprobante', error);
+        Swal.fire({
+          icon: 'error',
+          title: 'Oops!',
+          text: `No se pudo generar el comprobante, inténtelo de nuevo.`,
+          showConfirmButton: true,
+        });
+      },
+    });
+  }
+
+  generarComprobante(){
+    if(this.tipoComprobante == "ticket"){
+      this.ticketVenta();
+    }else if(this.tipoComprobante == "boleta" || this.tipoComprobante == "factura" || this.tipoComprobante == "boleta-simple"){
+      this.guardarDatosCliente();
+    }
   }
 
   ticketVenta(){

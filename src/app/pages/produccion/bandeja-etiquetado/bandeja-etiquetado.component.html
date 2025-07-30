@@ -25,6 +25,7 @@
 					<th scope="col">Código producto</th>
 					<th scope="col">Nombre producto</th>
 					<th scope="col">Presentación</th>
+					<th scope="col">Cantidad</th>
 					<th scope="col">Estado</th>
 					<th scope="col">Personalizado</th>
 					<th scope="col">Acciones</th>
@@ -54,7 +55,8 @@
 					</td> -->
 					<td>{{ item.idProducto }}</td>
 					<td>{{ item.nombre }}</td>
-					<td>{{ item.presentacion }}</td>
+					<td>{{ item.presentacion }} {{ item.tipoPresentacion }}</td>
+					<td>{{ item.cantidad }}</td>
 					<td>{{ item.estadoProducto }}</td>
 					<td>
 						<span>{{ item.personalizado ? "Sí" : "No" }}</span>

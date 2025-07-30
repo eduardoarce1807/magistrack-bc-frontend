@@ -137,9 +137,9 @@ export class BandejaProduccionComponent implements OnInit {
 			(error) => {
 				console.error('Error al obtener la hoja de producción', error);
 				Swal.fire({
-					icon: 'error',
+					icon: 'warning',
 					title: 'Oops!',
-					text: 'No se pudo obtener la hoja de producción, inténtelo de nuevo.',
+					text: 'Este producto no tiene hoja de producción.',
 					showConfirmButton: true,
 				});
 			}
@@ -169,9 +169,9 @@ export class BandejaProduccionComponent implements OnInit {
 			(error) => {
 				console.error('Error al obtener el cálculo de ingredientes', error);
 				Swal.fire({
-					icon: 'error',
+					icon: 'warning',
 					title: 'Oops!',
-					text: 'No se pudo obtener el cálculo de ingredientes, inténtelo de nuevo.',
+					text: 'No se pudo obtener el cálculo de ingredientes del producto, ya que no tiene hoja de producción.',
 					showConfirmButton: true,
 				});
 			}
@@ -461,7 +461,7 @@ export class BandejaProduccionComponent implements OnInit {
 					<div style="max-height: 200px; overflow-y: auto;">${lstProductos}</div>`,
 			icon: 'question',
 			showCancelButton: true,
-			confirmButtonText: 'Sí, enviar',
+			confirmButtonText: 'Sí, recibir',
 			cancelButtonText: 'Cancelar',
 		}).then((result) => {
 			if (result.isConfirmed) {

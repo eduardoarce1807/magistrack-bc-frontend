@@ -19,8 +19,8 @@ export class CarritoService {
 
   carrito$ = this.carritoSubject.asObservable();
 
-  agregarProducto(producto: Producto) {
-    const existente = this.carrito.find(p => p.nombre === producto.nombre);
+  agregarProducto(producto: any) {
+    const existente = this.carrito.find((p: any) => p.idProducto === producto.idProducto);
     if (existente) {
       existente.cantidadSeleccionada += producto.cantidadSeleccionada;
     } else {

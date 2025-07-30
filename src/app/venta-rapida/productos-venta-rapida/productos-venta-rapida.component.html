@@ -12,8 +12,9 @@
 			class="form-control"
 			placeholder="Buscar producto"
 			[(ngModel)]="buscar"
+			(keyup.enter)="buscarProducto()"
 		/>
-		<button class="btn btn-danger" type="button" (click)="buscarProducto()">
+		<button [disabled]="loadingProductos" class="btn btn-danger" type="button" (click)="buscarProducto()">
 			Buscar
 		</button>
 	</div>
@@ -28,7 +29,7 @@
 						alt="producto"
 						style="height: 60px"
 					/>
-					<h6 class="fw-bold text-start">{{ producto.nombre }}</h6>
+					<h6 class="fw-bold text-start">{{ producto.productoMaestro.nombre }}</h6>
 					<p class="text-muted small text-start">{{ producto.presentacion + ' ' + producto.tipoPresentacion.descripcion }}</p>
 					<p class="fw-bold text-start">S/{{ producto.precio.toFixed(2) }}</p>
 				</div>

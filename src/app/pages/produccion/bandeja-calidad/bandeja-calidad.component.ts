@@ -515,6 +515,7 @@ export class BandejaCalidadComponent implements OnInit {
 						idProductoMaestroList: this.lstProductosSeleccionados.map(
 							(item) => item.idProductoMaestro
 						),
+						idEstadoProductoActual: 4, // En calidad
 						idEstadoProductoNuevo: 3, // En producción
 						idEstadoPedidoNuevo: 4, // En producción
 						idEstadoPedidoClienteNuevo: 3, // En producción
@@ -577,6 +578,7 @@ export class BandejaCalidadComponent implements OnInit {
 						idProductoMaestroList: this.lstProductosSeleccionados.map(
 							(item) => item.idProductoMaestro
 						),
+						idEstadoProductoActual: 4, // En calidad
 						idEstadoProductoNuevo: 5, // En envasado
 						idEstadoPedidoNuevo: 6, // En envasado
 						idEstadoPedidoClienteNuevo: 3, // En producción
