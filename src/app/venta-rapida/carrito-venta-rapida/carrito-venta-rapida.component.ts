@@ -98,7 +98,6 @@ export class CarritoVentaRapidaComponent implements OnInit {
   idPedido: string = '';
   loadingCreatePedido = false;
   crearPedido(){
-    this.loadingCreatePedido = true;
     if(this.carrito.length === 0) {
       Swal.fire({
         icon: 'warning',
@@ -144,6 +143,7 @@ export class CarritoVentaRapidaComponent implements OnInit {
         cantidad: producto.cantidadSeleccionada,
       })),
     };
+    this.loadingCreatePedido = true;
     this.pedidoService.createPedidoVentaRapida(request).subscribe((data: any) => {
       this.loadingCreatePedido = false;
       if(data){
