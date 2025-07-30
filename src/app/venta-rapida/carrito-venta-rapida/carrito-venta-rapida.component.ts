@@ -430,14 +430,6 @@ export class CarritoVentaRapidaComponent implements OnInit {
   }
 
   generarComprobante(){
-    if(this.tipoComprobante == "ticket"){
-      this.ticketVenta();
-    }else if(this.tipoComprobante == "boleta" || this.tipoComprobante == "factura" || this.tipoComprobante == "boleta-simple"){
-      this.guardarDatosCliente();
-    }
-  }
-
-  ticketVenta(){
 
     // Eliminar espacios en blanco antes de validar
     this.celular = this.celular.replace(/\s+/g, '');
@@ -451,6 +443,15 @@ export class CarritoVentaRapidaComponent implements OnInit {
       });
       return;
     }
+
+    if(this.tipoComprobante == "ticket"){
+      this.ticketVenta();
+    }else if(this.tipoComprobante == "boleta" || this.tipoComprobante == "factura" || this.tipoComprobante == "boleta-simple"){
+      this.guardarDatosCliente();
+    }
+  }
+
+  ticketVenta(){
 
     this.documentoService.sendNotaVenta(this.idPedido).subscribe({
       next: (url: string) => {
