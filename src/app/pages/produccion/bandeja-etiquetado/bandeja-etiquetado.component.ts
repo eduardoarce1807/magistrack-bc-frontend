@@ -141,9 +141,9 @@ export class BandejaEtiquetadoComponent implements OnInit {
       (producto) => {
         if (producto) {
           this.idProductoValidado = producto.idProducto;
-          this.nombreProductoValidado = producto.nombre;
-          this.descripcionProductoValidado = producto.descripcion;
-          this.presentacionProductoValidado = producto.presentacion;
+          this.nombreProductoValidado = producto.productoMaestro.nombre;
+          this.descripcionProductoValidado = producto.productoMaestro.descripcion;
+          this.presentacionProductoValidado = producto.presentacion + ' ' + producto.tipoPresentacion.descripcion;
           this.modalService.dismissAll();
           this.codigoProductoValidar = '';
 

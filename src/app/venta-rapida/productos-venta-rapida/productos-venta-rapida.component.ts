@@ -18,6 +18,7 @@ export class ProductosVentaRapidaComponent implements OnInit {
   cantidad: number = 1;
   buscar = '';
   productoSelected: any = null;
+  loadingProductos = false;
 
   constructor(public router: Router, private productoService: ProductoService, private carritoService: CarritoService) {}
   ngOnInit(): void {
@@ -25,18 +26,23 @@ export class ProductosVentaRapidaComponent implements OnInit {
   }
 
   getProductos() {
+    this.loadingProductos = true;
     this.productoService.getProductos().subscribe((data) => {
+      this.loadingProductos = false;
       this.productos = data;
     });
   }
 
   buscarProducto(){
     if (this.buscar) {
+      this.loadingProductos = true;
       this.productoService.getBuscarProductos(this.buscar).subscribe((data: any) => {
+        this.loadingProductos = false;
         this.productos = data;
       },
       (error) => {
         console.error('Error al registrar cliente', error);
+        this.loadingProductos = false;
         Swal.fire({
           icon: 'error',
           title: 'Oops!',
@@ -64,7 +70,7 @@ export class ProductosVentaRapidaComponent implements OnInit {
     Swal.fire({
       icon: 'success',
       title: 'Producto agregado',
-      text: `${producto.nombre} ha sido agregado al carrito.`,
+      text: `${producto.productoMaestro.nombre} - ${producto.presentacion} ${producto.tipoPresentacion.descripcion} ha sido agregado al carrito.`,
       showConfirmButton: true
     });
     // Aquí puedes emitir un evento o comunicar con el carrito

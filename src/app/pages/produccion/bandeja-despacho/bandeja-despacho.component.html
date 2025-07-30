@@ -74,6 +74,13 @@
 							<i class="bi bi-person-lines-fill"></i>
 						</button>
 						<button
+							[disabled]="item.estadoPedido.idEstadoPedido != 9"
+							class="btn btn-success me-2"
+							(click)="openModalComprobante(datosComprobante, item)"
+						>
+							<i class="bi bi-file-earmark-check"></i>
+						</button>
+						<button
 							class="btn btn-secondary"
 							(click)="openModalNota(item, nota)"
 						>
@@ -178,6 +185,51 @@
                     <label class="form-label">Departamento</label>
                     <input type="text" class="form-control" [value]="clienteSeleccionado.departamento" readonly />
                 </div>
+            </form>
+		</div>
+	</div>
+</ng-template>
+
+<ng-template #datosComprobante let-modal>
+	<div class="modal-header">
+		<h4 class="modal-title" id="modal-basic-title">Datos del Comprobante</h4>
+		<button
+			type="button"
+			class="btn-close"
+			aria-label="Close"
+			(click)="modal.dismiss('Cross click')"
+		></button>
+	</div>
+	<div class="modal-body">
+		<div style="width: 100%">
+            <form>
+                <div class="mb-3">
+                    <label class="form-label">Tipo Documento</label>
+					<select class="form-select" [(ngModel)]="documentoSeleccionado.tipoDocumentoCliente" name="tipoDocumentoCliente" disabled>
+						<option [ngValue]="'1'">DNI</option>
+						<option [ngValue]="'6'">RUC</option>
+					</select>
+                </div>
+				<div class="mb-3">
+                    <label class="form-label">Número Documento</label>
+                    <input type="text" class="form-control" [value]="documentoSeleccionado.numeroDocumentoCliente" readonly />
+                </div>
+				@if(documentoSeleccionado.tipoComprobante === '01'){
+					<div class="mb-3">
+						<label class="form-label">Razón Social</label>
+						<input type="text" class="form-control" [value]="documentoSeleccionado.razonSocial" readonly />
+					</div>
+				}@else if(documentoSeleccionado.tipoComprobante === '03'){
+					<div class="mb-3">
+						<label class="form-label">Nombre Cliente</label>
+						<input type="text" class="form-control" [value]="documentoSeleccionado.nombreCliente" readonly />
+					</div>
+				}
+				<div class="mb-3">
+					<button [disabled]="loadingComprobante" class="btn btn-success w-100" (click)="generarComprobante(documentoSeleccionado.idPedido)">
+						Generar {{documentoSeleccionado.tipoComprobante === '01' ? 'Factura' : 'Boleta'}}
+					</button>
+				</div>
             </form>
 		</div>
 	</div>

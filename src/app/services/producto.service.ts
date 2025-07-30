@@ -3,14 +3,6 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 
-interface Producto {
-  idProducto: string;
-  nombre: string;
-  descripcion: string;
-  precio: number;
-  presentacion: string;
-}
-
 @Injectable({
   providedIn: 'root'
 })
@@ -26,12 +18,12 @@ export class ProductoService {
 
   getBuscarProductos(nombre: string): Observable<any[]> {
     let url = `${this.baseUrl}/buscar`;
-      return this.http.get<Producto[]>(url, { params: { nombre } });
+      return this.http.get<any[]>(url, { params: { nombre } });
     }
 
-  getProductoById(idProducto: string): Observable<Producto> {
+  getProductoById(idProducto: string): Observable<any> {
     let url = `${this.baseUrl}/${idProducto}`;
-    return this.http.get<Producto>(url);
+    return this.http.get<any>(url);
   }
 
   getBandejaProduccion(): Observable<any[]> {

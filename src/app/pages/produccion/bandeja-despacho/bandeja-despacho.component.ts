@@ -18,6 +18,7 @@ import { PedidoService } from '../../../services/pedido.service';
 import { ProductoService } from '../../../services/producto.service';
 import { PedidoAuditoriaService } from '../../../services/pedido-auditoria.service';
 import { Router } from '@angular/router';
+import { DocumentoService } from '../../../services/documento.service';
 
 interface ClienteSeleccionado {
 	metodoEntrega: string;
@@ -54,6 +55,7 @@ export class BandejaDespachoComponent implements OnInit {
 		private productoService: ProductoService,
 		private dataService: DataService,
 		private pedidoAuditoriaService: PedidoAuditoriaService,
+		private documentoService: DocumentoService,
     public router: Router
 	) {}
 
@@ -109,6 +111,21 @@ export class BandejaDespachoComponent implements OnInit {
 			this.clienteSeleccionado.provincia = pedido.direccion.provincia.nombre;
 			this.clienteSeleccionado.departamento =
 				pedido.direccion.departamento.nombre;
+			this.modalService.open(content, { backdrop: 'static' });
+		});
+	}
+
+	documentoSeleccionado: any = {};
+	openModalComprobante(content: TemplateRef<any>, item: any) {
+		this.pedidoService.getPedidoById(item.idPedido).subscribe((pedido) => {
+			console.log('Pedido obtenido:', pedido);
+			this.documentoSeleccionado.idPedido = pedido.idPedido;
+			this.documentoSeleccionado.nombreCliente = pedido.documento.tipoComprobante == "03" ? pedido.documento.nombreCliente : null;
+			this.documentoSeleccionado.razonSocial = pedido.documento.tipoComprobante == "01" ? pedido.documento.razonSocialCliente : null;
+			this.documentoSeleccionado.numeroDocumentoCliente = pedido.documento.numeroDocumentoCliente;
+			this.documentoSeleccionado.tipoComprobante = pedido.documento.tipoComprobante;
+			this.documentoSeleccionado.tipoDocumentoCliente = pedido.documento.tipoDocumentoCliente;
+			this.documentoSeleccionado.celular = pedido.cliente.telefono;
 			this.modalService.open(content, { backdrop: 'static' });
 		});
 	}
@@ -354,5 +371,92 @@ export class BandejaDespachoComponent implements OnInit {
 				});
 			}
 		});
+	}
+
+	loadingComprobante: boolean = false;
+	generarComprobante(idPedido: string ) {
+		this.loadingComprobante = true;
+
+		if(this.documentoSeleccionado.tipoComprobante === '01') {
+			this.documentoService.generarFactura(idPedido).subscribe({
+				next: (data) => {
+					this.loadingComprobante = false;
+					if(data && data.idResultado && data.idResultado === 1) {
+						this.modalService.dismissAll();
+						Swal.fire({
+							icon: 'success',
+							title: '¡Listo!',
+							text: data.resultado || 'Comprobante generado correctamente.',
+							showConfirmButton: true,
+							showCancelButton: true,
+							confirmButtonText: 'Enviar por WhatsApp',
+							cancelButtonText: 'Cerrar',
+						}).then((result) => {
+							if (result.isConfirmed) {
+								let urlWpp = `https://wa.me/51${this.documentoSeleccionado.celular}?text=Hola, aquí está tu ${this.documentoSeleccionado.tipoComprobante === '01' ? 'Factura' : 'Boleta'}:%0A${data.value}%0ABELLACURET`;
+								window.open(urlWpp, '_blank');
+							}
+						});
+					}else{
+						Swal.fire({
+							icon: 'error',
+							title: 'Oops!',
+							text: data.resultado || 'No se pudo generar el comprobante, inténtelo de nuevo.',
+							showConfirmButton: true,
+						});
+					}
+				},
+				error: (error) => {
+					this.loadingComprobante = false;
+					console.error('Error al generar comprobante', error);
+					Swal.fire({
+						icon: 'error',
+						title: 'Oops!',
+						text: `No se pudo generar el comprobante, inténtelo de nuevo.`,
+						showConfirmButton: true,
+					});
+				},
+			});
+		}else if(this.documentoSeleccionado.tipoComprobante === '03') {
+			this.documentoService.generarBoleta(idPedido).subscribe({
+				next: (data) => {
+					this.loadingComprobante = false;
+					if(data && data.idResultado && data.idResultado === 1) {
+						this.modalService.dismissAll();
+						Swal.fire({
+							icon: 'success',
+							title: '¡Listo!',
+							text: data.resultado || 'Comprobante generado correctamente.',
+							showConfirmButton: true,
+							showCancelButton: true,
+							confirmButtonText: 'Enviar por WhatsApp',
+							cancelButtonText: 'Cerrar',
+						}).then((result) => {
+							if (result.isConfirmed) {
+								let urlWpp = `https://wa.me/51${this.documentoSeleccionado.celular}?text=Hola, aquí está tu ${this.documentoSeleccionado.tipoComprobante === '01' ? 'Factura' : 'Boleta'}:%0A${data.value}%0ABELLACURET`;
+								window.open(urlWpp, '_blank');
+							}
+						});
+					}else{
+						Swal.fire({
+							icon: 'error',
+							title: 'Oops!',
+							text: data.resultado || 'No se pudo generar el comprobante, inténtelo de nuevo.',
+							showConfirmButton: true,
+						});
+					}
+				},
+				error: (error) => {
+					this.loadingComprobante = false;
+					console.error('Error al generar comprobante', error);
+					Swal.fire({
+						icon: 'error',
+						title: 'Oops!',
+						text: `No se pudo generar el comprobante, inténtelo de nuevo.`,
+						showConfirmButton: true,
+					});
+				},
+			});
+		}
 	}
 }

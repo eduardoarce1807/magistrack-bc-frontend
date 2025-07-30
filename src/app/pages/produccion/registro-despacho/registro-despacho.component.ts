@@ -185,10 +185,10 @@ export class RegistroDespachoComponent implements OnInit {
 				(producto) => {
 					if (producto) {
 						this.idProductoValidado = producto.idProducto;
-						this.nombreProductoValidado = producto.nombre;
-						this.descripcionProductoValidado = producto.descripcion;
+						this.nombreProductoValidado = producto.productoMaestro.nombre;
+						this.descripcionProductoValidado = producto.productoMaestro.descripcion;
 						this.presentacionProductoValidado =
-							producto.presentacion;
+							producto.presentacion + ' ' + producto.tipoPresentacion.descripcion;
 
             const productoSeleccionado = this.lstProductosSeleccionados.find(
               (item) => item.idProducto === this.idProductoValidado
