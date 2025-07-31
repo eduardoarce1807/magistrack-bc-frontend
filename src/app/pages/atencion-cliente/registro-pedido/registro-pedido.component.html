@@ -311,6 +311,7 @@
 						[(ngModel)]="idMetodoEntregaSeleccionado"
 						(change)="onMetodoEntregaChange()"
 						[disabled]="pedido.estadoPedido.idEstadoPedido > 1"
+						name="metodoEntrega"
 					>
 						<option value="0" disabled selected>Seleccione un método de entrega</option>
 						<option *ngFor="let metodo of lstMetodosEntrega" [ngValue]="metodo.idMetodoEntrega">
@@ -369,7 +370,8 @@
 							!rucCliente || 
 							!isValidRuc(rucCliente) ||
 							pedido.documento == null
-						))"
+						)) ||
+						idMetodoEntregaSeleccionado === 0"
 					(click)="router.navigate(['/pages/atencion-cliente/pagar-pedido', idPedido])"
 				>
 					<i class="bi bi-wallet2"></i> Registrar Pago
