@@ -34,6 +34,8 @@ import {CargaComponent} from "../../../components/carga/carga.component";
 import {EmailService} from "../../../services/email.service";
 import Swal from "sweetalert2";
 import {emailordenModel} from "../../../model/enviarEmailModel";
+import {Router} from "@angular/router";
+import {UppercaseDirective} from "../../../directives/uppercase.directive";
 
 @Component({
   selector: 'app-requerimiento-manual',
@@ -41,7 +43,7 @@ import {emailordenModel} from "../../../model/enviarEmailModel";
 	imports: [CommonModule, DecimalPipe, FormsModule, AsyncPipe, NgbHighlight, NgbPaginationModule, DatePipe, CurrencyPipe, TagModule, ButtonModule,
 		CheckboxModule, TableModule, SliderModule, DropdownModule, IconFieldModule, InputIconModule,
 		SplitButtonModule, MultiSelectModule, InputTextModule, DialogModule, ToastModule,
-		CalendarModule, InputTextareaModule, FileUploadModule, BadgeModule, TooltipModule, PanelModule, InputNumberModule, CargaComponent
+		CalendarModule, InputTextareaModule, FileUploadModule, BadgeModule, TooltipModule, PanelModule, InputNumberModule, CargaComponent, UppercaseDirective
 	],
   templateUrl: './requerimiento-manual.component.html',
   styleUrl: './requerimiento-manual.component.scss',
@@ -67,7 +69,7 @@ export class RequerimientoManualComponent {
 	listaMateriaPrima:materiasprimasModel[]=[]
 	listaMateriaPrimaSelected:iterequerimientoModel[]=[]
 	visiblecorreo:boolean=false
-	checkautomatico:boolean=false
+	checkautomatico:boolean=true
 	mensaje:string=''
 	files:File[] = [];
 	enviaremail: emailordenModel = new emailordenModel()
@@ -77,7 +79,7 @@ export class RequerimientoManualComponent {
 	totalSizePercent : number = 0;
 	constructor(private config: PrimeNGConfig,private messageService: MessageService,
 				private materiaprimaService:MateriaPrimaService,private requerimietoService:RequerimientosService,
-				private proveedorService:ProveedorService,private emailService:EmailService) {
+				private proveedorService:ProveedorService,private emailService:EmailService,public router: Router) {
 		this.loading=false
 
 
@@ -105,6 +107,8 @@ export class RequerimientoManualComponent {
 				this.cargaprov=false
 			}
 		})
+		this.enviaremail.asunto='ORDEN DE COMPRA'
+		this.enviaremail.mensaje='CONFIRMACIÓN DE LA GENERACIÓN PARA ORDEN DE COMPRA'
 	}
 
 	getSeverity(status: string): string {
@@ -246,6 +250,7 @@ export class RequerimientoManualComponent {
 	}
 
 	guardarRequermiento(){
+
 		let op :number=1
 		this.requerimientosave.estadorequerimiento='PENDIENTE'
 		this.requerimientosave.iterequerimiento=this.listaMateriaPrimaSelected
@@ -253,41 +258,100 @@ export class RequerimientoManualComponent {
 		if(this.checkautomatico){
 			this.requerimientosave.idproveedor=this.selectedprov.idproveedor
 			op=3
+			Swal.fire({
+				title: "Está seguro de guardar el REQUERIMIENTO?",
+				text: "Se registrará una ORDEN DE COMPRA directa",
+				icon: "warning",
+				showCancelButton: true,
+				confirmButtonColor: "#3085d6",
+				cancelButtonColor: "#d33",
+				confirmButtonText: "Si, guardar!"
+			}).then((result) => {
+				if (result.isConfirmed) {
+
+					this.spinner=true
+					this.requerimietoService.registrarRequerimientos(this.requerimientosave,op).subscribe({
+						next:(data)=>{
+							this.requerimientosave=new RequeremientossaveModel()
+							this.listaMateriaPrimaSelected=[]
+							this.spinner=false
+							this.messageService.add({ severity: 'success', summary: 'Éxito', detail: 'Se guardó el registro correctamente' });
+							if(op==3){
+								this.ordencompra=data.data.id_orden_compra!
+								Swal.fire({
+									title: "Desea Enviar el Correo?",
+									text: "Escribir el asunto y detalle",
+									icon: "warning",
+									showCancelButton: true,
+									confirmButtonColor: "#3085d6",
+									cancelButtonColor: "#d33",
+									confirmButtonText: "Si, enviar"
+								}).then((result) => {
+									if (result.isConfirmed) {
+										this.visiblecorreo=true
+										this.enviaremail.para=this.selectedprov.correo
+
+
+									}
+								});
+							}
+
+						},error:(err)=>{
+							this.spinner=false
+							this.messageService.add({ severity: 'error', summary: 'Eliminado', detail: 'Ocurrió un error al guardar el requerimiento' });
+						}
+					})
+				}
+			});
 		}else{
 			op=1
-		}
-		this.spinner=true
-		this.requerimietoService.registrarRequerimientos(this.requerimientosave,op).subscribe({
-			next:(data)=>{
-				this.requerimientosave=new RequeremientossaveModel()
-				this.listaMateriaPrimaSelected=[]
-				this.spinner=false
-				this.messageService.add({ severity: 'success', summary: 'Éxito', detail: 'Se guardó el registro correctamente' });
-				if(op==3){
-					this.ordencompra=data.data.id_orden_compra!
-					Swal.fire({
-						title: "Desea Enviar el Correo?",
-						text: "Escribir el asunto y detalle",
-						icon: "warning",
-						showCancelButton: true,
-						confirmButtonColor: "#3085d6",
-						cancelButtonColor: "#d33",
-						confirmButtonText: "Si, enviar"
-					}).then((result) => {
-						if (result.isConfirmed) {
-							this.visiblecorreo=true
-							this.enviaremail.para=this.selectedprov.correo
+
+			Swal.fire({
+				title: "Está seguro de guardar el REQUERIMIENTO?",
+				text: "Estará en espera de COTIZACIÓN",
+				icon: "warning",
+				showCancelButton: true,
+				confirmButtonColor: "#3085d6",
+				cancelButtonColor: "#d33",
+				confirmButtonText: "Si, guardar!"
+			}).then((result) => {
+				if (result.isConfirmed) {
+
+					this.spinner=true
+					this.requerimietoService.registrarRequerimientos(this.requerimientosave,op).subscribe({
+						next:(data)=>{
+							this.requerimientosave=new RequeremientossaveModel()
+							this.listaMateriaPrimaSelected=[]
+							this.spinner=false
+							this.messageService.add({ severity: 'success', summary: 'Éxito', detail: 'Se guardó el registro correctamente' });
+							if(op==3){
+								this.ordencompra=data.data.id_orden_compra!
+								Swal.fire({
+									title: "Desea Enviar el Correo?",
+									text: "Escribir el asunto y detalle",
+									icon: "warning",
+									showCancelButton: true,
+									confirmButtonColor: "#3085d6",
+									cancelButtonColor: "#d33",
+									confirmButtonText: "Si, enviar"
+								}).then((result) => {
+									if (result.isConfirmed) {
+										this.visiblecorreo=true
+										this.enviaremail.para=this.selectedprov.correo
 
 
+									}
+								});
+							}
+
+						},error:(err)=>{
+							this.spinner=false
+							this.messageService.add({ severity: 'error', summary: 'Eliminado', detail: 'Ocurrió un error al guardar el requerimiento' });
 						}
-					});
+					})
 				}
-
-			},error:(err)=>{
-				this.spinner=false
-				this.messageService.add({ severity: 'error', summary: 'Eliminado', detail: 'Ocurrió un error al guardar el requerimiento' });
-			}
-		})
+			});
+		}
 	}
 	eliminarRegistro(registro:iterequerimientoModel){
 		this.listaMateriaPrimaSelected = this.listaMateriaPrimaSelected.filter(
@@ -331,6 +395,7 @@ export class RequerimientoManualComponent {
 					text: "Su correo fue enviado con ÉXITO",
 					icon: "success"
 				});
+				this.router.navigate(['/pages/compras/bandeja-requerimientos']);
 			},error:(err)=>{
 				this.spinner=false
 				this.visiblecorreo=true

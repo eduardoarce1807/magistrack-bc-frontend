@@ -202,6 +202,23 @@ export class SidebarComponent {
 							command: () => this.irA('pages/proveedor/ordencompra-proveedor')
 						}
 					]
+				},
+				{
+					key: '5',
+					label: 'Inventario',
+					icon: 'pi pi-folder-open',
+					items: [
+						{
+							key: '5_0',
+							label: 'Control Materia Prima',
+							command: () => this.irA('pages/inventario/inventario-matprima')
+						},
+						{
+							key: '5_1',
+							label: 'kardex x Mat.Prima',
+							command: () => this.irA('pages/inventario/kardex-producto/0')
+						}
+					]
 				}
 			] : [])
 		];

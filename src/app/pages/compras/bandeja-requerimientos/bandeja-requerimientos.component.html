@@ -180,7 +180,7 @@
 			<p>{{fila_select.fecha | date:'dd-MM-yyyy'}}</p>
 			<p>{{fila_select.areasolicitante}}</p>
 			<p>{{fila_select.estadorequerimiento}}</p>
-			<p>{{fila_select.imptotal | currency:' ':'symbol':'1.2-2':'en-US'}}</p>
+			<p>S/ {{fila_select.imptotal | currency:' ':'symbol':'1.2-2':'en-US'}}</p>
 		</div>
 	</div>
 	<p-table [value]="fila_select.iterequerimiento"
@@ -236,6 +236,7 @@
 					[options]="listaProveedores"
 					[(ngModel)]="selectedprov"
 					optionLabel="descripcion"
+					optionValue="idproveedor"
 					[loading]="cargaprov"
 					placeholder="Seleccionar Proveedor" />
 			</div>
@@ -271,7 +272,7 @@
 					</th>
 					<th pSortableColumn="costo_gramo" style="width:15%">
 						<div class="d-flex justify-content-center">
-						Precio Unitario(S/) <p-sortIcon field="costo_gramo" />
+						ImpUnit.(S/) <p-sortIcon field="costo_gramo" />
 						</div>
 					</th>
 					<th pSortableColumn="cantidad_requerida" style="width:20%">
@@ -328,7 +329,7 @@
 		<ng-template pTemplate="footer">
 			<div class="text-end mt-2">
 				<p-button  icon="pi pi-trash" [outlined]="true" label="Cancelar" (click)="vercotizacion=false" class="mx-1" severity="secondary"  />
-				<p-button  icon="pi pi-save" label="Generar Cotización" class="mx-1" severity="success" (click)="guardarcotizacion()" />
+				<p-button  icon="pi pi-save" label="Generar Cotización" class="mx-1" severity="success" (click)="guardarcotizacion()" [disabled]="fila_select.idproveedor" />
 			</div>
 		</ng-template>
 	</p-dialog>
@@ -347,16 +348,16 @@
 		<div class="row my-2">
 			<div class="col-md-6">
 				<div class="d-flex flex-column">
-					<label for="username">Fecha de Entrega estimada</label>
-					<p-calendar [(ngModel)]="fechaentrega" dateFormat="dd-mm-yy" appendTo="body" [iconDisplay]="'input'" [showIcon]="true" inputId="icondisplay" />
-<!--					<small id="fecha-help">Enter your username to reset your password.</small>-->
+					<label >Condiciones de Pago</label>
+					<input pInputText aria-describedby="username-help" [(ngModel)]="condicionpago" />
+<!--					<small id="username-help">Enter your username to reset your password.</small>-->
 				</div>
 			</div>
 			<div class="col-md-6">
 				<div class="d-flex flex-column">
-					<label for="username">Condiciones de Pago</label>
-					<input pInputText id="username" aria-describedby="username-help" [(ngModel)]="condicionpago" />
-<!--					<small id="username-help">Enter your username to reset your password.</small>-->
+					<label >Fecha de Entrega estimada</label>
+					<p-calendar [(ngModel)]="fechaentrega" dateFormat="dd-mm-yy" appendTo="body" [iconDisplay]="'input'" [showIcon]="true" inputId="icondisplay" />
+					<!--					<small id="fecha-help">Enter your username to reset your password.</small>-->
 				</div>
 			</div>
 		</div>
@@ -393,7 +394,7 @@
 		</p-table>
 		<div class="text-end mt-2">
 			<p-button  icon="pi pi-trash" [outlined]="true" label="Cancelar" class="mx-1" severity="secondary"  />
-			<p-button  icon="pi pi-save" label="Generar Orden" class="mx-1" severity="success"  />
+			<p-button  icon="pi pi-save" label="Generar Orden" class="mx-1" severity="success" [disabled]="fila_select.estadorequerimiento!='COTIZADO'" />
 		</div>
 	</p-dialog>
 }
@@ -410,8 +411,8 @@
 			<h5 class="text-bg-light p-2 rounded-3 fw-bold"> Observaciones del Requerimiento - {{fila_select.id_requerimiento}}</h5>
 		</ng-template>
 		<div class="d-flex flex-column my-2">
-			<label for="item">Producto o Ìtem observado</label>
-			<input pInputText id="item" aria-describedby="username-help" [(ngModel)]="observaciones.item" />
+			<label>Producto o Ìtem observado</label>
+			<input pInputText aria-describedby="username-help" [(ngModel)]="observaciones.item" />
 			<label>Descripción de la observación</label>
 
 			<textarea

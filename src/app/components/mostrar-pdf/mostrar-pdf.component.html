@@ -1,0 +1,11 @@
+<canvas #pdfCanvas style="width: 100%; border: 1px solid #ccc; margin-bottom: 1rem;"></canvas>
+
+<p-paginator
+	[rows]="1"
+	[totalRecords]="totalPages"
+	[first]="(currentPage - 1)"
+	(onPageChange)="onPageChange($event)"
+	[pageLinkSize]="3"
+	styleClass="custom-paginator"
+>
+</p-paginator>

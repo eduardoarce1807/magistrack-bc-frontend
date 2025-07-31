@@ -29,6 +29,11 @@ export const pagesRoutes: Routes = [
 		loadChildren: () => import('./proveedor/proveedor.routes').then(m => m.proveedorRoutes),
 		canActivate: [AuthGuard]
 	},
+	{
+		path: 'inventario',
+		loadChildren: () => import('./inventario/inventario.routes').then(m => m.inventarioRoutes),
+		canActivate: [AuthGuard]
+	},
 	{ path: '**', redirectTo: 'auth/login' }
 
 ];

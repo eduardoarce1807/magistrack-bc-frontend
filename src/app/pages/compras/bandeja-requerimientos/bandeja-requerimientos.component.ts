@@ -67,7 +67,8 @@ export class BandejaRequerimientosComponent {
 	vercotizacion:boolean=false
 	condicionpago:string=''
 	listaProveedores: soloproveedorModel[] = [];
-	selectedprov:proveedorModel=new proveedorModel()
+	// selectedprov:proveedorModel=new proveedorModel()
+	selectedprov:string=''
 	fechaentrega: Date = new Date();
 	fila_select:RequeremientossaveModel = new RequeremientossaveModel()
 	verobservaciones:boolean=false
@@ -284,7 +285,7 @@ export class BandejaRequerimientosComponent {
 	}
 	guardarcotizacion(){
 		this.selectedCotizacion=new cotizacionModel()
-		this.selectedCotizacion.idproveedor=this.selectedprov.idproveedor
+		this.selectedCotizacion.idproveedor=this.selectedprov
 		this.selectedCotizacion.impigv=0
 		this.selectedCotizacion.imptotal=this.fila_select.imptotal
 		this.selectedCotizacion.responsable=this.fila_select.responsable
@@ -323,6 +324,7 @@ export class BandejaRequerimientosComponent {
 			next:(data)=>{
 				this.listaProveedores=data.data
 				this.cargaprov=false
+				this.fila_select.idproveedor?this.selectedprov=this.fila_select.idproveedor:null
 			},error:(err)=>{
 				this.cargaprov=false
 			}

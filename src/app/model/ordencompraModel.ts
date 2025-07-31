@@ -14,7 +14,11 @@ export class ordencompraModel {
 	estadofact:       string='';
 	fecha_pago:		  string='';
 	metodo_pago:	  number=0;
-	nrooperacion:     number=0
+	nrooperacion:     string='';
+	obsconformidad:   string='';
+	parametro_conf1:	number=0;
+	parametro_conf2:	number=0;
+	parametro_conf3:	number=0
 	detalleorden:     Detalleorden[]=[];
 }
 
@@ -29,6 +33,7 @@ export class Detalleorden {
 	estadoconf:      string='';
 	estadoval:       string='';
 	desmateria:      string='';
+	id_materia_prima:number=0;
 	id_proveedor:    string='';
 	impsubtotal:     number=0;
 	cantidad_conf_total:number=0;
@@ -59,7 +64,7 @@ export class FacturaOrden {
 export class RespuestaOrden {
 	respuestaprov:string|null=null
 	item: number=0;
-	archivobase64:string|null=null
+	archivobase64:string=''
 	path_respuesta:string|null=null
 	extensiondoc:string|null=null
 }
@@ -84,6 +89,9 @@ export class conformidadOrden {
 	path_pago:		     string='';
 	extensiondoc:		 string='';
 	id_tipo_pago:        number=0;
+	nrooperacion:		 string='';
+	obsconformidad:		 string='';
+	id_materia_prima_conf:number=0
 	detalleconformidad:  Detalleconformidad[]=[];
 }
 
@@ -91,4 +99,5 @@ export class Detalleconformidad {
 	cantidad_conf_total: number=0;
 	id_orden_compra:     string='';
 	item:                number=0;
+	id_materia_prima_conf:number=0;
 }

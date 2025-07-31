@@ -1,0 +1,760 @@
+@if (spinner){
+	<app-carga></app-carga>
+}
+<p-toast></p-toast>
+<div class="p-5" >
+	<p-table
+		#dt
+		[value]="listaMaterias"
+		dataKey="id_materia_prima"
+		[rowHover]="true"
+		[rows]="5"
+		[showCurrentPageReport]="true"
+		[rowsPerPageOptions]="[5, 25, 50]"
+		[paginator]="true"
+		currentPageReportTemplate="{first} hasta {last} de {totalRecords} registros"
+		[filterDelay]="0"
+		styleClass="p-datatable-gridlines p-datatable-striped p-datatable-sm"
+		[tableStyle]="{'min-width': '40rem'}"
+		[globalFilterFields]="['id_materia_prima', 'nombre', 'representante','correo','celular','direccion','ruc']"
+	>
+		<ng-template pTemplate="caption">
+			<div class="flex justify-between items-center">
+				<h4 class="text-danger fw-bold flex items-center"><img src="assets/img/crema.gif" width="50">Inventario de Materias Primas</h4>
+				<div>
+					<p-iconField iconPosition="left">
+						<p-inputIcon>
+							<i class="pi pi-search"></i>
+						</p-inputIcon>
+						<input pInputText  #input (input)="dt.filterGlobal(input.value, 'contains')" placeholder="Keyword" />
+						<!--					<input pInputText type="text" [(ngModel)]="searchValue" (input)="dt.filterGlobal($event.target.value, 'contains')" placeholder="Keyboard Search" />-->
+					</p-iconField>
+					<p-button [outlined]="true" icon="pi pi-filter-slash" label="Clear" (click)="clear(dt)" />
+					<p-button  icon="pi pi-plus" label="Nueva Materia Prima" class="mx-1" severity="success" (click)="nuevamateriaprima()" />
+
+				</div>
+			</div>
+		</ng-template>
+		<ng-template pTemplate="header">
+			<tr>
+				<th pSortableColumn="id_materia_prima" style="min-width: 30px">
+					<div class="flex justify-content-between align-items-center">
+						Id
+						<p-sortIcon field="id_materia_prima" />
+						<p-columnFilter type="numeric" field="id_materia_prima" display="menu" class="ml-auto" />
+					</div>
+				</th>
+				<th pSortableColumn="nombre" style="min-width: 200px">
+					<div class="flex justify-content-between align-items-center">
+						Nombre
+						<p-sortIcon field="nombre" />
+						<p-columnFilter type="text" field="nombre" display="menu" class="ml-auto" />
+					</div>
+				</th>
+				<th pSortableColumn="stock_materia" style="min-width: 40px">
+					<div class="flex justify-content-between align-items-center">
+						Cant. Actual
+						<p-sortIcon field="stock_materia" />
+						<p-columnFilter type="numeric" field="stock_materia" display="menu" class="ml-auto" />
+					</div>
+				</th>
+				<th pSortableColumn="umbral_min" style="min-width: 40px">
+					<div class="flex justify-content-between align-items-center">
+						Umbral mín.
+						<p-sortIcon field="umbral_min" />
+						<p-columnFilter type="numeric" field="umbral_min" display="menu" class="ml-auto" />
+					</div>
+				</th>
+				<th pSortableColumn="stock_referencia" style="min-width: 40px">
+					<div class="flex justify-content-between align-items-center">
+						Referencia
+						<p-sortIcon field="stock_referencia" />
+						<p-columnFilter type="numeric" field="stock_referencia" display="menu" class="ml-auto" />
+					</div>
+				</th>
+				<th pSortableColumn="costo_gramo" style="min-width: 40px">
+					<div class="flex justify-content-between align-items-center">
+						S/ unid
+						<p-sortIcon field="costo_gramo" />
+						<p-columnFilter type="numeric" field="costo_gramo" display="menu" class="ml-auto" />
+					</div>
+				</th>
+				<th pSortableColumn="estado" style="min-width: 100px">
+					<div class="flex justify-content-between align-items-center">
+						Estado
+						<p-sortIcon field="estado" />
+						<p-columnFilter type="text" field="estado" display="menu" class="ml-auto" />
+					</div>
+				</th>
+				<th style="min-width: 50px">
+					<div class="flex justify-content-between align-items-center">
+						Acciones
+					</div>
+				</th>
+			</tr>
+		</ng-template>
+		<ng-template pTemplate="body" let-customer>
+			<tr class="p-selectable-row" >
+				<td>
+					{{ customer.id_materia_prima }}
+				</td>
+				<td>
+					{{ customer.nombre }} - ({{ customer.abreviado }})
+				</td>
+				<td>
+					<div class="d-flex align-items-center text-end">
+
+					@if(customer.id_requerimiento_stock){
+						<p-tag [value]="customer.id_requerimiento_stock" severity="warning" class="mx-1" [rounded]="true" />
+					}
+					@if(customer.estado=='GENERAR REQUERIMIENTO'){
+						<p-tag [value]="customer.stock_materia" [severity]="getSeverity(customer.estado)" [rounded]="true" />
+						<i class="pi pi-send mx-2" *ngIf="!customer.id_requerimiento_stock" pBadge style="font-size: 1.2rem;color:#0a747e;background:#e0faff;padding:5px;
+							border-radius: 50%" value="-30%"
+						   pTooltip="Generar Requerimiento" severity="info"
+						   tooltipPosition="left" (click)="fila_select=customer;generarrequerimiento();"></i>
+					} @else if (customer.estado=='REQUIERE REPOSICIÓN'){
+						<p-tag [value]="customer.stock_materia" [severity]="getSeverity(customer.estado)" [rounded]="true" />
+					}
+					@else{
+						{{ customer.stock_materia }}
+					}
+					</div>
+					@if(customer.estadorequerimiento){
+						{{customer.estadorequerimiento}}
+					}
+				</td>
+				<td>
+					@if(customer.estado=='REQUIERE REPOSICIÓN'){
+						<div class="d-flex align-items-center justify-content-center">
+							<p-tag [value]="customer.umbral_min" [severity]="getSeverity(customer.estado)" [rounded]="true" />
+						</div>
+					}@else{
+						{{ customer.umbral_min }}
+					}
+				</td>
+				<td>
+					@if(customer.estado=='GENERAR REQUERIMIENTO'){
+						<p-tag [value]="customer.stock_referencia" [severity]="getSeverity(customer.estado)" [rounded]="true" />
+					}@else{
+					{{ customer.stock_referencia }}
+					}
+				</td>
+				<td>
+					{{ customer.costo_gramo }}
+				</td>
+				<td>
+					@if (customer.estado){
+
+						<p-tag severity="warning" class="text-center" [value]="customer.estado" [severity]="getSeverity(customer.estado)" [rounded]="true" />
+
+					}
+				</td>
+				<td>
+					<p-button (onClick)="menu.toggle($event);fila_select=customer"
+							  [text]="true"
+							  pTooltip="Opciones de Menú"
+							  tooltipPosition="left"
+							  icon="pi pi-ellipsis-v"/>
+				</td>
+			</tr>
+		</ng-template>
+		<ng-template pTemplate="emptymessage">
+			<tr>
+				<td colspan="8">No tiene materias primas registradas.</td>
+			</tr>
+		</ng-template>
+	</p-table>
+</div>
+@if (verdetalle){
+	<p-dialog
+		[modal]="true"
+		[(visible)]="verdetalle"
+		[style]="{ width: '50vw' }"
+		[breakpoints]="{ '1199px': '75vw', '575px': '90vw' }"
+		[maximizable]="true">
+		<ng-template pTemplate="header">
+			@if (op==1){
+				<h5 class="text-danger-emphasis border-3 rounded-3 bg-danger-subtle p-2 d-flex justify-content-center align-items-center"><img src="assets/img/jabon.gif" width="40" style="border-radius: 50%;padding: 5px"> Nueva Materia Prima</h5>
+			} @else {
+				<h5 class="text-danger-emphasis border-3 rounded-3 bg-danger-subtle p-2 d-flex justify-content-center align-items-center"><img src="assets/img/jabon.gif" width="40" style="border-radius: 50%;padding: 5px"> Detalle Materia Prima - {{fila_select.id_materia_prima}}</h5>
+			}
+		</ng-template>
+		<div class="row">
+			<div class="col-md-6 d-flex flex-column">
+				<label class="text-info-emphasis fw-bold">ID Materia Prima</label>
+				<input
+					class="w-full"
+					type="number"
+					pInputText
+					readonly
+					[(ngModel)]="fila_select.id_materia_prima" />
+
+				<label class="text-info-emphasis fw-bold">Nombre</label>
+				<input
+					class="w-full"
+					type="text"
+					pInputText
+					[(ngModel)]="fila_select.nombre" />
+
+				<label class="text-info-emphasis fw-bold">Costo Unitario S/</label>
+				<p-inputNumber
+					[(ngModel)]="fila_select.costo_gramo"
+					inputId="minmaxfraction"
+					mode="decimal"
+					[minFractionDigits]="4"
+					[maxFractionDigits]="5" />
+
+				<label class="text-info-emphasis fw-bold">Umbral mínimo</label>
+				<p-inputNumber
+					inputId="integeronly"
+					[(ngModel)]="fila_select.umbral_min" />
+			</div>
+			<div class="col-md-6 d-flex flex-column">
+
+				<label class="text-info-emphasis fw-bold">Unidad Med</label>
+				<p-dropdown
+					[options]="listaUnidades"
+					[(ngModel)]="fila_select.id_unimed"
+					optionLabel="descripcion"
+					optionValue="id_unimed"
+					[loading]="cargamaterias"
+					placeholder="Seleccionar unidad">
+					<ng-template pTemplate="selectedItem" let-unidad>
+							<div>({{ unidad.abreviado }}) - {{ unidad.descripcion }}</div>
+					</ng-template>
+					<ng-template let-unidad pTemplate="item">
+							<div>({{ unidad.abreviado }}) - {{ unidad.descripcion }}</div>
+					</ng-template>
+				</p-dropdown>
+
+				<label class="text-info-emphasis fw-bold">Cantidad Inicial</label>
+				<p-inputNumber
+					inputId="integeronly"
+					[(ngModel)]="fila_select.stock_materia" />
+				<label class="text-info-emphasis fw-bold">Cantidad Referencial</label>
+				<p-inputNumber
+					inputId="integeronly"
+					[(ngModel)]="fila_select.stock_referencia" />
+			</div>
+		</div>
+		<div class="row">
+			<div class="col-md-12 d-flex flex-column">
+				<label class="text-info-emphasis fw-bold">Observaciones</label>
+				<textarea
+					rows="5"
+					cols="30"
+					pInputTextarea
+					[(ngModel)]="fila_select.observaciones">
+				</textarea>
+			</div>
+		</div>
+		<ng-template pTemplate="footer">
+			<p-button [outlined]="true" icon="pi pi-trash" label="Cancelar" class="mx-1" severity="danger" (click)="verdetalle=false;"  />
+			<p-button  icon="pi pi-save" label="Registrar Materia" class="mx-1" severity="success"  (click)="guardarmateria()"/>
+		</ng-template>
+	</p-dialog>
+}
+@if (verdardebaja){
+	<p-dialog
+		[modal]="true"
+		[(visible)]="verdardebaja"
+		[style]="{ width: '45vw' }"
+		[breakpoints]="{ '1199px': '75vw', '575px': '90vw' }"
+		[maximizable]="true">
+		<ng-template pTemplate="header">
+				<h5 class="text-danger border-3 rounded-3 bg-danger-subtle p-2 d-flex justify-content-center align-items-center">
+					<img src="assets/img/crema-organica.gif" width="40" style="border-radius: 50%;padding: 5px">
+					Dar de baja materia prima: {{fila_select.nombre}}<i class="pi pi-exclamation-triangle ml-2" style="color: #bb1b1b; font-size:1.5rem;"></i>
+				</h5>
+
+		</ng-template>
+		<div class="row">
+			<div class="col-md-12 d-flex flex-column">
+				<label class="text-info-emphasis fw-bold">Materia Prima</label>
+				<div class="row">
+					<div class="col-md-3">
+						<input
+							class="w-full"
+							type="number"
+							pInputText
+							readonly
+							[(ngModel)]="fila_select.id_materia_prima" />
+					</div>
+					<div class="col-md-9">
+						<input
+							class="w-full"
+							type="text"
+							pInputText
+							readonly
+							[(ngModel)]="fila_select.nombre" />
+					</div>
+				</div>
+
+				<div class="row">
+					<div class="col-md-6 d-flex flex-column">
+						<label class="text-info-emphasis fw-bold">Stock Actual</label>
+						<p-inputNumber
+							inputId="integeronly"
+							readonly
+							[(ngModel)]="fila_select.stock_materia" /></div>
+					<div class="col-md-6 d-flex flex-column">
+						<label class="text-info-emphasis fw-bold">Cantidad a dar de baja</label>
+						<p-inputNumber
+							inputId="integeronly"
+							[(ngModel)]="subirBaja.cant_salida"
+							[max]="fila_select.stock_materia"
+							[min]="1"/></div>
+				</div>
+
+				<label class="text-info-emphasis fw-bold">Motivo para dar de Baja</label>
+				<textarea
+					rows="3"
+					cols="30"
+					pInputTextarea
+					[(ngModel)]="subirBaja.observaciones">
+				</textarea>
+
+				<div class="row">
+					<div class="col-md-4 col-sm-12 d-flex flex-column">
+						<label class="text-info-emphasis fw-bold mt-2">Tipo Movimiento</label>
+						<p-dropdown
+							[options]="listaTipomovimiento"
+							[(ngModel)]="tipomovimiento"
+							optionLabel="descripcion"
+							optionValue="id_tipomovimiento"
+							[loading]="cargatipomovimiento"
+							appendTo="body"
+							placeholder="Seleccionar Tipo"
+							(ngModelChange)="cambiotipomovimento()">
+							<ng-template pTemplate="selectedItem" let-tipomovimiento>
+								<div>({{ tipomovimiento.id_tipomovimiento }}) - {{ tipomovimiento.descripcion }}</div>
+							</ng-template>
+							<ng-template let-tipomovimiento pTemplate="item">
+								<div>({{ tipomovimiento.id_tipomovimiento }}) - {{ tipomovimiento.descripcion }}</div>
+							</ng-template>
+						</p-dropdown>
+
+						<label class="text-info-emphasis fw-bold mt-2">Movimiento</label>
+						<p-dropdown
+							[options]="listaMovimiento"
+							[(ngModel)]="subirBaja.id_movimiento"
+							optionLabel="movimiento"
+							optionValue="id_movimiento"
+							[loading]="cargamovimiento"
+							appendTo="body"
+							placeholder="Seleccionar Tipo">
+							<ng-template pTemplate="selectedItem" let-movimiento>
+								<div>({{ movimiento.id_movimiento }}) - {{ movimiento.movimiento }}</div>
+							</ng-template>
+							<ng-template let-movimiento pTemplate="item">
+								<div>({{ movimiento.id_movimiento }}) - {{ movimiento.movimiento }}</div>
+							</ng-template>
+						</p-dropdown>
+
+
+						<label class="mt-2">Adjuntar archivo (PDF,images*)</label>
+						<p-fileUpload
+							mode="basic"
+							name="demo[]"
+							chooseIcon="pi pi-upload"
+							url="https://www.primefaces.org/cdn/api/upload.php"
+							accept="image/*,application/pdf"
+							maxFileSize="10000000"
+							(onSelect)="this.carga=true"
+							(onUpload)="onBasicUploadAuto($event);"
+							[auto]="true"
+							[disabled]="carga"
+							chooseLabel="Buscar Archivos" />
+					</div>
+					<div class="col-md-8 col-sm-12 d-flex justify-content-center align-items-center">
+							@if (carga){
+								<div class="d-flex align-items-center justify-content-center">
+									<i class="pi pi-spin pi-cog" style="font-size: 100px;color: #5698bb"></i>
+								</div>
+							}
+
+							@if (subirBaja.archivobase64 && !carga){
+								<img *ngIf="subirBaja.extensiondoc === 'jpeg' || subirBaja.extensiondoc === 'jpg' || subirBaja.extensiondoc === 'png'"
+									 [src]="subirBaja.archivobase64"
+									 style="max-width: 100%; max-height: 250px;" class="mt-2" />
+
+								@if(subirBaja.extensiondoc === 'pdf' && !carga){
+
+									<app-mostrar-pdf [base64pdf]="subirBaja.archivobase64" class="mt-2"></app-mostrar-pdf>
+								}
+<!--								<iframe *ngIf="subirBaja.extensiondoc === 'pdf' && !carga"-->
+<!--										[src]="sanitizarPdf(subirBaja.archivobase64)"-->
+<!--										width="100%"-->
+<!--										height="250"-->
+<!--										style="border: none"-->
+<!--										allowfullscreen>-->
+<!--								</iframe>-->
+<!--								<button (click)="abrirPdf(subirBaja.archivobase64)">Abrir PDF en nueva pestaña</button>-->
+
+							}
+					</div>
+				</div>
+			</div>
+		</div>
+		<ng-template pTemplate="footer">
+			<p-button [outlined]="true" icon="pi pi-trash" label="Cancelar" class="mx-1" severity="danger" (click)="verdetalle=false;"  />
+			<p-button  icon="pi pi-save" label="Confirmar baja" class="mx-1" severity="success"  (click)="guardarbaja()"/>
+		</ng-template>
+	</p-dialog>
+}
+@if (veradicionar){
+	<p-dialog
+		[modal]="true"
+		[(visible)]="veradicionar"
+		[style]="{ width: '45vw' }"
+		[breakpoints]="{ '1199px': '75vw', '575px': '90vw' }"
+		[maximizable]="true">
+		<ng-template pTemplate="header">
+			<h5 class="text-success border-3 rounded-3 bg-success-subtle p-2 d-flex justify-content-center align-items-center">
+				<img src="assets/img/crema-organica.gif" width="40" style="border-radius: 50%;padding: 5px">
+				Adicionar materia prima: {{fila_select.nombre}}
+			</h5>
+
+		</ng-template>
+		<div class="row">
+			<div class="col-md-12 d-flex flex-column">
+				<label class="text-info-emphasis fw-bold">Materia Prima</label>
+				<div class="row">
+					<div class="col-md-3">
+						<input
+							class="w-full"
+							type="number"
+							pInputText
+							readonly
+							[(ngModel)]="fila_select.id_materia_prima" />
+					</div>
+					<div class="col-md-9">
+						<input
+							class="w-full"
+							type="text"
+							pInputText
+							readonly
+							[(ngModel)]="fila_select.nombre" />
+					</div>
+				</div>
+
+				<div class="row">
+					<div class="col-md-6 d-flex flex-column">
+						<label class="text-info-emphasis fw-bold">Stock Actual</label>
+						<p-inputNumber
+							inputId="integeronly"
+							readonly
+							[(ngModel)]="fila_select.stock_materia" /></div>
+					<div class="col-md-6 d-flex flex-column">
+						<label class="text-info-emphasis fw-bold">Cantidad adicional</label>
+						<p-inputNumber
+							inputId="integeronly"
+							[(ngModel)]="subirBaja.cant_entrada"
+							[min]="1"/></div>
+				</div>
+
+				<label class="text-info-emphasis fw-bold">Motivo del ajuste manual</label>
+				<textarea
+					rows="3"
+					cols="30"
+					pInputTextarea
+					[(ngModel)]="subirBaja.observaciones">
+				</textarea>
+
+			</div>
+		</div>
+		<ng-template pTemplate="footer">
+			<p-button [outlined]="true" icon="pi pi-trash" label="Cancelar" class="mx-1" severity="danger" (click)="verdetalle=false;"  />
+			<p-button  icon="pi pi-save" label="Confirmar Ajuste" class="mx-1" severity="success"  (click)="guardarbaja()"/>
+		</ng-template>
+	</p-dialog>
+}
+@if (verreducir){
+	<p-dialog
+		[modal]="true"
+		[(visible)]="verreducir"
+		[style]="{ width: '45vw' }"
+		[breakpoints]="{ '1199px': '75vw', '575px': '90vw' }"
+		[maximizable]="true">
+		<ng-template pTemplate="header">
+			<h5 class="text-danger border-3 rounded-3 bg-danger-subtle p-2 d-flex justify-content-center align-items-center">
+				<img src="assets/img/crema-organica.gif" width="40" style="border-radius: 50%;padding: 5px">
+				Reducir materia prima: {{fila_select.nombre}}<i class="pi pi-exclamation-triangle ml-2" style="color: #bb1b1b; font-size:1.5rem;"></i>
+			</h5>
+
+		</ng-template>
+		<div class="row">
+			<div class="col-md-12 d-flex flex-column">
+				<label class="text-info-emphasis fw-bold">Materia Prima</label>
+				<div class="row">
+					<div class="col-md-3">
+						<input
+							class="w-full"
+							type="number"
+							pInputText
+							readonly
+							[(ngModel)]="fila_select.id_materia_prima" />
+					</div>
+					<div class="col-md-9">
+						<input
+							class="w-full"
+							type="text"
+							pInputText
+							readonly
+							[(ngModel)]="fila_select.nombre" />
+					</div>
+				</div>
+
+				<div class="row">
+					<div class="col-md-6 d-flex flex-column">
+						<label class="text-info-emphasis fw-bold">Stock Actual</label>
+						<p-inputNumber
+							inputId="integeronly"
+							readonly
+							[(ngModel)]="fila_select.stock_materia" /></div>
+					<div class="col-md-6 d-flex flex-column">
+						<label class="text-info-emphasis fw-bold">Cantidad a dar de baja</label>
+						<p-inputNumber
+							inputId="integeronly"
+							[(ngModel)]="subirBaja.cant_salida"
+							[max]="fila_select.stock_materia"
+							[min]="1"/></div>
+				</div>
+
+				<label class="text-info-emphasis fw-bold">Motivo para dar de Baja</label>
+				<textarea
+					rows="3"
+					cols="30"
+					pInputTextarea
+					[(ngModel)]="subirBaja.observaciones">
+				</textarea>
+
+			</div>
+		</div>
+		<ng-template pTemplate="footer">
+			<p-button [outlined]="true" icon="pi pi-trash" label="Cancelar" class="mx-1" severity="danger" (click)="verdetalle=false;"  />
+			<p-button  icon="pi pi-save" label="Confirmar baja" class="mx-1" severity="success"  (click)="guardarbaja()"/>
+		</ng-template>
+	</p-dialog>
+}
+@if (verrequerimiento){
+	<p-dialog
+		[modal]="true"
+		[(visible)]="verrequerimiento"
+		[style]="{ width: '45vw' }"
+		[breakpoints]="{ '1199px': '75vw', '575px': '90vw' }"
+		[maximizable]="true">
+		<ng-template pTemplate="header">
+			<h5 class="text-warning border-3 rounded-3 bg-warning-subtle p-2 d-flex justify-content-center align-items-center">
+				<img src="assets/img/jabon.gif" width="40" style="border-radius: 50%;padding: 5px">
+				Requerimiento automático: {{fila_select.nombre}}<i class="pi pi-exclamation-triangle ml-2" style="color: #bb1b1b; font-size:1.5rem;"></i>
+			</h5>
+
+		</ng-template>
+		<div class="w-full p-1">
+			<p-panel [toggleable]="true">
+				<ng-template pTemplate="header">
+					<div class="flex align-items-center  gap-2">
+						<img src="assets/img/lista-de-compras.gif" width="50">
+						<span class="font-bold text-bg-warning p-2">
+							   Nuevo Requerimiento
+							</span>
+						<span class="fw-bold text-success fs-3">
+							Total : S/ {{this.requerimientosave.imptotal  | currency:' ':'symbol':'1.2-2':'en-US'}}
+						</span>
+					</div>
+				</ng-template>
+				<ng-template pTemplate="footer">
+					<div class="flex flex-wrap align-items-center justify-content-between gap-3">
+						<div class="flex align-items-center gap-2">
+							<!--							<p-button icon="pi pi-user" rounded="true" text="true" />-->
+							<!--							<p-button icon="pi pi-bookmark" severity="secondary" rounded="true" text="true" />-->
+						</div>
+						<span class="p-text-secondary">
+            </span>
+					</div>
+				</ng-template>
+				<ng-template pTemplate="icons">
+					<!--					<button class="p-panel-header-icon p-link mr-2" (click)="menu.toggle($event)">-->
+					<!--						<span class="pi pi-cog"></span>-->
+					<!--					</button>-->
+					<!--					<p-menu #menu id="config_menu" [model]="items" [popup]="true" />-->
+				</ng-template>
+				<div class="row">
+					<div class="col-md-6">
+
+						<p class="m-1">
+							<span class="fw-bold">GLOSA:</span> {{requerimientosave.glosa}}
+						</p>
+						<p class="m-1">
+							<span class="fw-bold">RESPONSABLE:</span> {{requerimientosave.responsable}}
+						</p>
+						<p class="m-1">
+							<span class="fw-bold">ÁREA:</span> {{requerimientosave.areasolicitante}}
+						</p>
+					</div>
+					<div class="col-md-6">
+						<h4 class="text-danger fw-bold d-flex flex-column my-1">
+							<img src="assets/img/crema-organica.gif" width="50">
+							PROVEEDORES DISPONIBLES:
+							<div *ngIf="listaProveedores.length>0" class="mx-1">
+								<p-dropdown
+									[options]="listaProveedores"
+									[(ngModel)]="selectedprov"
+									optionLabel="descripcion"
+									[checkmark]="true"
+									[showClear]="true"
+									[loading]="cargaprov"
+									placeholder="Seleccionar Proveedor" >
+									<ng-template pTemplate="selectedItem">
+										<div class="flex align-items-center gap-2" *ngIf="selectedprov">
+											<i class="pi pi-share-alt" style="color: var(--primary-color)"></i>
+											<div class="fw-bold p-1 text-bg-warning">{{ selectedprov.idproveedor }} - {{ selectedprov.descripcion }}</div>
+										</div>
+									</ng-template>
+									<ng-template let-country pTemplate="item">
+										<div class="flex align-items-center gap-2">
+											<i class="pi pi-share-alt" style="color: var(--primary-color)"></i>
+											<div class="fw-bold text-bg-warning border-2 ">{{ country.idproveedor }} - {{ country.descripcion }}</div>
+										</div>
+									</ng-template>
+								</p-dropdown>
+							</div>
+						</h4>
+					</div>
+				</div>
+				<p-table
+					#dt
+					[value]="listaMateriaPrimaSelected"
+					dataKey="idMateriaPrima"
+					[rowHover]="true"
+					[loading]="loading"
+					[filterDelay]="0"
+					styleClass="p-datatable-gridlines p-datatable-striped p-datatable-sm mt-1"
+					[tableStyle]="{'min-width': '30rem'}"
+					[scrollable]="true"
+					scrollHeight="350px"
+				>
+					<ng-template pTemplate="header">
+						<tr>
+							<th style="width: 20px">
+								<div class="flex justify-content-between align-items-center">
+									#
+								</div>
+							</th>
+							<th pSortableColumn="desmateriaprima" style="width: 200px !important;">
+								<div class="flex justify-content-between align-items-center">
+									Materia
+									<p-sortIcon field="desmateriaprima" />
+									<p-columnFilter type="text" field="desmateriaprima" display="menu" class="ml-auto" />
+								</div>
+							</th>
+							<th pSortableColumn="costo_gramo" style="width: 180px">
+								<div class="flex justify-content-between align-items-center">
+									S/. gramo
+									<p-sortIcon field="costo_gramo" />
+									<p-columnFilter type="number" field="costo_gramo" display="menu" class="ml-auto" />
+								</div>
+							</th>
+							@if (selectedprov && selectedprov.idproveedor){
+								<th pSortableColumn="diasentrega" style="width: 200px" >
+									<div class="flex justify-content-between align-items-center">
+										Días Ent.
+										<p-sortIcon field="diasentrega" />
+										<p-columnFilter type="number" field="diasentrega" display="menu" class="ml-auto" />
+									</div>
+								</th>
+
+							}
+						</tr>
+
+					</ng-template>
+					<ng-template pTemplate="body" let-customer let-rowIndex="rowIndex">
+						<tr class="p-selectable-row"  >
+							<td>
+								{{ rowIndex+1 }}
+							</td>
+							<td>
+								<!--					<img src="https://primefaces.org/cdn/primeng/images/demo/flag/flag_placeholder.png" [class]="'flag flag-' + customer.country.code" style="width: 20px" />-->
+								<span class="ml-1 vertical-align-middle text-danger fw-bold">{{ customer.desmateriaprima }}</span>
+
+								<p-inputNumber
+									[(ngModel)]="customer.cantidad_requerida"
+									inputId="minmaxfraction"
+									mode="decimal"
+									class="w-full text-end"
+									suffix="(g)"
+									[minFractionDigits]="0"
+									[maxFractionDigits]="5"
+									(ngModelChange)="cambiocantidad(customer)"/>
+							</td>
+							<td class="d-flex flex-column text-end">
+								<p-inputNumber
+									[(ngModel)]="customer.costo_gramo"
+									inputId="minmaxfraction"
+									mode="decimal"
+									class="w-full text-end"
+									prefix="(S/) "
+									[minFractionDigits]="4"
+									[maxFractionDigits]="5"
+									(ngModelChange)="cambiocantidad(customer)"/>
+								<!--								<span class="text-danger fw-bold">{{ customer.costo_gramo | currency:' ':'symbol':'1.2-2':'en-US' }}</span>-->
+								Subtotal: S/ {{customer.impsubtotal | currency:' ':'symbol':'1.2-2':'en-US'}}
+							</td>
+							@if (selectedprov && selectedprov.idproveedor){
+								<td>
+									<p-inputNumber
+										[(ngModel)]="customer.diasentrega"
+										inputId="integeronly"
+									/>
+								</td>
+							}
+						</tr>
+					</ng-template>
+					<ng-template pTemplate="emptymessage">
+						<tr>
+							<td colspan="3">No se encontraron Materias Primas.</td>
+						</tr>
+					</ng-template>
+				</p-table>
+			</p-panel>
+		</div>
+		<ng-template pTemplate="footer">
+			<p-button [outlined]="true" icon="pi pi-trash" label="Cancelar" class="mx-1" severity="danger" (click)="verdetalle=false;"  />
+			<p-button  icon="pi pi-save" label="Generar Requerimiento" class="mx-1" severity="success"  (click)="guardarRequermiento()"/>
+		</ng-template>
+	</p-dialog>
+}
+
+@if (visiblecorreo){
+
+	<p-dialog header="Información de Correo" [modal]="true" [(visible)]="visiblecorreo" [style]="{ width: '25rem' }">
+		<div class="d-flex align-items-center flex-column mt-1">
+			<label class="font-semibold w-6rem">Para:</label>
+			<input pInputText id="para" class="w-full" autocomplete="off" [(ngModel)]="enviaremail.para"/>
+		</div>
+		<div class="d-flex align-items-center flex-column mt-1">
+			<label class="font-semibold w-6rem">Asunto</label>
+			<input pInputText  id="asunto" class="w-full" autocomplete="off" [(ngModel)]="enviaremail.asunto"/>
+		</div>
+		<div class="d-flex align-items-center flex-column mt-1">
+			<label class="font-semibold w-6rem">Mensaje</label>
+			<textarea
+				class="w-full"
+				rows="5"
+				cols="30"
+				pInputTextarea
+
+				placeholder="Ej:Solicitud urgente de insumos en producción"
+				[autoResize]="true"
+				[(ngModel)]="enviaremail.mensaje">
+					</textarea>
+		</div>
+		<div class="d-flex justify-content-end gap-2 mt-2">
+			<p-button label="Cancel" [outlined]="true" severity="secondary" (onClick)="visiblecorreo = false;this.router.navigate(['/pages/compras/bandeja-requerimientos']);" />
+			<p-button label="Enviar" icon="pi pi-send" (onClick)="confirmarcorreo()" />
+		</div>
+	</p-dialog>
+}
+<p-menu #menu [model]="items" [popup]="true" />
