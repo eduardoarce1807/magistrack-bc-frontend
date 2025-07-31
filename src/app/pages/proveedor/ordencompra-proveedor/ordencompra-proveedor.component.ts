@@ -35,6 +35,7 @@ import {ValidacionesService} from "../../../services/compras/validaciones.servic
 import {TagModule} from "primeng/tag";
 import {DomSanitizer, SafeResourceUrl} from "@angular/platform-browser";
 import {FuncionesService} from "../../../services/funciones.service";
+import {UppercaseDirective} from "../../../directives/uppercase.directive";
 
 
 @Component({
@@ -58,7 +59,7 @@ import {FuncionesService} from "../../../services/funciones.service";
 		FileUploadModule,
 		InputTextareaModule,
 		ProgressBarModule,
-		FormsModule, CommonModule, CalendarModule,InputSwitchModule,TagModule
+		FormsModule, CommonModule, CalendarModule, InputSwitchModule, TagModule, UppercaseDirective
 	],
   templateUrl: './ordencompra-proveedor.component.html',
   styleUrl: './ordencompra-proveedor.component.scss',
@@ -93,6 +94,7 @@ export class OrdencompraProveedorComponent {
 	subirFactura:FacturaOrden=new FacturaOrden()
 	subirRespuesta:RespuestaOrden=new RespuestaOrden()
 	totalSizePercent : number = 0;
+	sanitizedPdfUrl: SafeResourceUrl | null = null;
 	constructor(private config: PrimeNGConfig,private messageService: MessageService,
 				private proveedorService:ProveedorService,
 				private ordenService:OrdencompraService,private  validacionService:ValidacionesService,
@@ -453,4 +455,11 @@ export class OrdencompraProveedorComponent {
 			}
 		})
 	}
+	setSubirRespuesta(respuesta: any) {
+		this.subirRespuesta = respuesta;
+		if (this.subirRespuesta.extensiondoc === 'pdf') {
+			this.sanitizedPdfUrl = this.sanitizarPdf(this.subirRespuesta.archivobase64);
+		}
+	}
+
 }

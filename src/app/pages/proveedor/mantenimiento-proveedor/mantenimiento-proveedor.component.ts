@@ -22,14 +22,13 @@ import {
 	RequeremientosModel,
 	RequeremientossaveModel
 } from "../../../model/requerimientosModel";
-import {MateriaPrimaService} from "../../../services/materia-prima.service";
-import {RequerimientosService} from "../../../services/compras/requerimientos.service";
 import {NgbHighlight, NgbPaginationModule} from "@ng-bootstrap/ng-bootstrap";
 import {CheckboxModule} from "primeng/checkbox";
 import {SliderModule} from "primeng/slider";
 import {DropdownModule} from "primeng/dropdown";
 import {ProveedorService} from "../../../services/compras/proveedor.service";
 import {CargaComponent} from "../../../components/carga/carga.component";
+import {UppercaseDirective} from "../../../directives/uppercase.directive";
 
 @Component({
   selector: 'app-mantenimiento-proveedor',
@@ -38,7 +37,7 @@ import {CargaComponent} from "../../../components/carga/carga.component";
 		CommonModule, DecimalPipe, FormsModule, AsyncPipe, NgbHighlight, NgbPaginationModule, DatePipe, CurrencyPipe, TagModule, ButtonModule,
 		CheckboxModule, TableModule, SliderModule, DropdownModule, IconFieldModule, InputIconModule,
 		SplitButtonModule, MultiSelectModule, InputTextModule, DialogModule, ToastModule,
-		CalendarModule, InputTextareaModule, FileUploadModule, BadgeModule, CargaComponent
+		CalendarModule, InputTextareaModule, FileUploadModule, BadgeModule, CargaComponent, UppercaseDirective
 	],
   templateUrl: './mantenimiento-proveedor.component.html',
   styleUrl: './mantenimiento-proveedor.component.scss',

@@ -187,7 +187,7 @@
 							   tooltipPosition="right" class="mx-1" severity="warning" (click)="vervalidacion=true;fila_select=customer"
 							   [disabled]="getCumpleCount(customer.detalleorden)==customer.detalleorden.length || customer.estado_fact !='BOUCHER CHECK'"/>
 					<p-button  [rounded]="true" icon="pi pi-bell" pTooltip="Conformidad"
-							   tooltipPosition="right" class="mx-1" severity="success" (click)="verconformidad=true;fila_select=customer;sumaconformidad=0"
+							   tooltipPosition="right" class="mx-1" severity="success" (click)="visualizarconf(customer)"
 							   [disabled]="getCumpleCount(customer.detalleorden)!=customer.detalleorden.length || customer.estado_fact !='BOUCHER CHECK' ||
 								customer.estadoord =='CONF. Y PAGADO'"/>
 				</td>
@@ -280,8 +280,8 @@
 			<div class="col-md-6 col-sm-12">
 				<div class="d-flex flex-column fw-bold">
 
-					<label for="username" class="mt-1 ">Responsable</label>
-					<input pInputText id="username" aria-describedby="username-help" [(ngModel)]="fila_select.responsable" />
+					<label class="mt-1 ">Responsable</label>
+					<input pInputText aria-describedby="username-help" [(ngModel)]="fila_select.responsable" />
 					<label class="mt-1">Fecha de Emisión</label>
 					<p-calendar [(ngModel)]="fila_select.fechaemisionfact"
 								dateFormat="dd-mm-yy"
@@ -305,7 +305,7 @@
 					pInputTextarea
 					class="w-full"
 					[autoResize]="true"
-					[(ngModel)]="observaciones.observaciones">
+					[(ngModel)]="fila_select.obsconformidad">
 			</textarea>
 			</div>
 		</div>
@@ -330,9 +330,9 @@
 						Cantidad <p-sortIcon field="cantidad" />
 						</div>
 					</th>
-					<th pSortableColumn="cantidad_conf_total" style="width:10%">
+					<th pSortableColumn="cant_total_conf" style="width:10%">
 						<div class="d-flex justify-content-center">
-						Cantidad Conf.<p-sortIcon field="cantidad_conf_total" />
+						Cantidad Conf.<p-sortIcon field="cant_total_conf" />
 						</div>
 					</th>
 				</tr>
@@ -345,7 +345,7 @@
 					</td>
 					<td>
 						<p-inputNumber
-							[(ngModel)]="product.cantidad_conf_total"
+							[(ngModel)]="product.cant_total_conf"
 							inputId="integeronly"
 							(ngModelChange)="cambiocantidad()"/>
 					</td>
@@ -364,104 +364,104 @@
 			</div>
 			<div class="col-md-6 col-sm-12">
 
-				<p-inputSwitch [(ngModel)]="checked_parametro1" />
+				<p-inputSwitch [(ngModel)]="checked_parametro1" (click)="cambiocheck()"/>
 			</div>
 			<div class="col-md-6 col-sm-12 text-end text-primary">
 				Cumple con los parámetros 2?
 			</div>
 			<div class="col-md-6 col-sm-12 ">
 
-				<p-inputSwitch [(ngModel)]="checked_parametro2" />
+				<p-inputSwitch [(ngModel)]="checked_parametro2" (click)="cambiocheck()"/>
 			</div>
 			<div class="col-md-6 col-sm-12 text-end text-primary">
 				Cumple con los parámetros 3?
 			</div>
 			<div class="col-md-6 col-sm-12">
 
-				<p-inputSwitch [(ngModel)]="checked_parametro3" />
+				<p-inputSwitch [(ngModel)]="checked_parametro3" (click)="cambiocheck()"/>
 			</div>
 		</div>
+		@if(valorswitch>2){
 
-		<div class="p-5">
-			<p-panel [toggleable]="true">
-				<ng-template pTemplate="header">
-					<div class="flex align-items-center gap-2">
-						<img src="assets/img/bill.gif" width="50" style="border-radius:50%">
-						<span class="font-bold text-success fs-4">
+			<div class="p-5" >
+				<p-panel [toggleable]="true">
+					<ng-template pTemplate="header">
+						<div class="flex align-items-center gap-2">
+							<img src="assets/img/bill.gif" width="50" style="border-radius:50%">
+							<span class="font-bold text-success fs-4">
 
 						PROCESO DE PAGO
             </span>
-					</div>
-				</ng-template>
-				<div class="row my-1">
-					<div class="col-md-6 col-sm-12 d-flex flex-column">
-						<label class="fw-bold">Monto Pagado</label>
-						<p-inputNumber
-							[(ngModel)]="fila_select.imppagado"
-							mode="currency"
-							inputId="currency-peru"
-							currency="PEN"
-							locale="es-PE" />
-						<label class="fw-bold mt-1">Método de Pagos</label>
-						<p-dropdown
-							[options]="lstTiposPago"
-							[(ngModel)]="fila_select.metodo_pago"
-							optionLabel="descripcion"
-							optionValue="idTipoPago"
-							placeholder="Seleccionar"
-							appendTo="body"/>
-						<label class="fw-bold mt-1">Número de Operacion</label>
-						<p-inputNumber
-							[(ngModel)]="fila_select.nrooperacion"
-							inputId="integeronly" />
-						<label class="fw-bold mt-1">Fecha de Pago</label>
-						<p-calendar [(ngModel)]="fila_select.fecha_pago"
-									dateFormat="dd-mm-yy"
-									appendTo="body" [iconDisplay]="'input'"
-									[showIcon]="true" inputId="icondisplay"
-									pStyleClass="fs-11 example-full-width"
-									[style]="{ width: '100%' }"
-									[inputStyle]="{ width: '100%' }"/>
-					</div>
-					<div class="col-md-6 col-sm-12 d-flex flex-column align-items-center">
-						<p-fileUpload
-							mode="basic"
-							name="demo[]"
-							class="my-1"
-							chooseIcon="pi pi-upload"
-							url="https://www.primefaces.org/cdn/api/upload.php"
-							accept="image/*,application/pdf"
-							maxFileSize="10000000"
-							(onSelect)="this.carga=true"
-							(onUpload)="onBasicUploadAuto($event);"
-							[auto]="true"
-							[disabled]="carga"
-							chooseLabel="Buscar Archivos" />
-						@if (carga){
-							<div class="d-flex align-items-center justify-content-center">
-								<i class="pi pi-spin pi-cog" style="font-size: 100px;color: #5698bb"></i>
-							</div>
-						}
+						</div>
+					</ng-template>
+					<div class="row my-1">
+						<div class="col-md-6 col-sm-12 d-flex flex-column">
+							<label class="fw-bold">Monto Pagado</label>
+							<p-inputNumber
+								[(ngModel)]="fila_select.imppagado"
+								mode="currency"
+								inputId="currency-peru"
+								currency="PEN"
+								locale="es-PE" />
+							<label class="fw-bold mt-1">Método de Pagos</label>
+							<p-dropdown
+								[options]="lstTiposPago"
+								[(ngModel)]="fila_select.metodo_pago"
+								optionLabel="descripcion"
+								optionValue="idTipoPago"
+								placeholder="Seleccionar"
+								appendTo="body"/>
+							<label class="fw-bold mt-1">Número de Operación</label>
+							<input pInputText aria-describedby="username-help" [(ngModel)]="fila_select.nrooperacion" />
+							<label class="fw-bold mt-1">Fecha de Pago</label>
+							<p-calendar [(ngModel)]="fila_select.fecha_pago"
+										dateFormat="dd-mm-yy"
+										appendTo="body" [iconDisplay]="'input'"
+										[showIcon]="true" inputId="icondisplay"
+										pStyleClass="fs-11 example-full-width"
+										[style]="{ width: '100%' }"
+										[inputStyle]="{ width: '100%' }"/>
+						</div>
+						<div class="col-md-6 col-sm-12 d-flex flex-column align-items-center">
+							<p-fileUpload
+								mode="basic"
+								name="demo[]"
+								class="my-1"
+								chooseIcon="pi pi-upload"
+								url="https://www.primefaces.org/cdn/api/upload.php"
+								accept="image/*,application/pdf"
+								maxFileSize="10000000"
+								(onSelect)="this.carga=true"
+								(onUpload)="onBasicUploadAuto($event);"
+								[auto]="true"
+								[disabled]="carga"
+								chooseLabel="Buscar Archivos" />
+							@if (carga){
+								<div class="d-flex align-items-center justify-content-center">
+									<i class="pi pi-spin pi-cog" style="font-size: 100px;color: #5698bb"></i>
+								</div>
+							}
 
-						@if (conformidadRequest.archivobase64 && !carga){
-							<img *ngIf="conformidadRequest.extensiondoc === 'jpeg' || conformidadRequest.extensiondoc === 'jpg' || conformidadRequest.extensiondoc === 'png'"
-								 [src]="conformidadRequest.archivobase64"
-								 style="max-width: 100%; max-height: 250px;" />
+							@if (conformidadRequest.archivobase64 && !carga){
+								<img *ngIf="conformidadRequest.extensiondoc === 'jpeg' || conformidadRequest.extensiondoc === 'jpg' || conformidadRequest.extensiondoc === 'png'"
+									 [src]="conformidadRequest.archivobase64"
+									 style="max-width: 100%; max-height: 250px;" />
 
-							<!-- Mostrar PDF -->
-							<iframe *ngIf="conformidadRequest.extensiondoc === 'pdf' && !carga"
-									[src]="sanitizarPdf(conformidadRequest.archivobase64)"
-									width="100%"
-									height="250"
-									style="border: none"
-									allowfullscreen>
-							</iframe>
-						}
+								<!-- Mostrar PDF -->
+								<iframe *ngIf="conformidadRequest.extensiondoc === 'pdf' && !carga"
+										[src]="sanitizarPdf(conformidadRequest.archivobase64)"
+										width="100%"
+										height="250"
+										style="border: none"
+										allowfullscreen>
+								</iframe>
+							}
 
+						</div>
 					</div>
-				</div>
-			</p-panel>
-		</div>
+				</p-panel>
+			</div>
+		}
 		<ng-template pTemplate="footer">
 			<div class="text-end mt-2">
 				<p-button  icon="pi pi-trash" [outlined]="true" label="Cancelar" (click)="verconformidad=false" class="mx-1" severity="secondary"  />

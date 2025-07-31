@@ -31,10 +31,11 @@
 						rows="5"
 						cols="30"
 						pInputTextarea
+
 						placeholder="Ej:Solicitud urgente de insumos en producción"
 						[autoResize]="true"
 						[(ngModel)]="requerimientosave.glosa">
-			</textarea>
+					</textarea>
 				</div>
 				<div class="col-md-5 col-sm-12 d-flex flex-column mt-1" >
 
@@ -44,6 +45,7 @@
 						class="w-full"
 						type="text"
 						pInputText
+
 						[(ngModel)]="requerimientosave.responsable" />
 
 					<label class="mt-1">Área Solicitante</label>
@@ -52,6 +54,7 @@
 						class="w-full"
 						type="text"
 						pInputText
+
 						[(ngModel)]="requerimientosave.areasolicitante" />
 				</div>
 			</div>
@@ -101,7 +104,7 @@
 					[filterDelay]="0"
 					styleClass="p-datatable-gridlines p-datatable-striped p-datatable-sm mt-1"
 					[tableStyle]="{'min-width': '30rem'}"
-					[globalFilterFields]="['id_materia_prima', 'nombre','costo_gramo']"
+					[globalFilterFields]="['id_materia_prima', 'nombre','costo_gramo','stock_materia']"
 				>
 					<ng-template pTemplate="caption">
 						<div class="flex justify-between items-center">
@@ -111,7 +114,7 @@
 									<p-inputIcon>
 										<i class="pi pi-search"></i>
 									</p-inputIcon>
-									<input pInputText #input (input)="dt.filterGlobal(input.value, 'contains')" placeholder="Materia Prima" />
+									<input pInputText  #input (input)="dt.filterGlobal(input.value, 'contains')" placeholder="Materia Prima" />
 									<!--					<input pInputText type="text" [(ngModel)]="searchValue" (input)="dt.filterGlobal($event.target.value, 'contains')" placeholder="Keyboard Search" />-->
 								</p-iconField>
 								<p-button [outlined]="true" icon="pi pi-filter-slash" label="Clear" (click)="clear(dt)" />
@@ -121,12 +124,7 @@
 					</ng-template>
 					<ng-template pTemplate="header">
 						<tr>
-							<th  style="width: 20px">
-								<div class="flex justify-content-between align-items-center">
-									Id
-								</div>
-							</th>
-							<th pSortableColumn="nombre" style="min-width: 220px">
+							<th pSortableColumn="nombre" style="min-width: 200px">
 								<div class="flex justify-content-between align-items-center">
 									Nombre
 									<p-sortIcon field="nombre" />
@@ -137,7 +135,12 @@
 								<div class="flex justify-content-between align-items-center">
 									S/. gramo
 									<p-sortIcon field="costo_gramo" />
-									<p-columnFilter type="number" field="costo_gramo" display="menu" class="ml-auto" />
+								</div>
+							</th>
+							<th pSortableColumn="stock_materia" style="min-width: 50px">
+								<div class="flex justify-content-between align-items-center">
+									Stock
+									<p-sortIcon field="stock_materia" />
 								</div>
 							</th>
 							<th  style="min-width: 50px">
@@ -148,14 +151,14 @@
 					<ng-template pTemplate="body" let-customer>
 						<tr class="p-selectable-row"  [pSelectableRow]="customer" (click)="onRowSelectProveedor($event)">
 							<td>
-								{{ customer.id_materia_prima }}
-							</td>
-							<td>
 								<!--					<img src="https://primefaces.org/cdn/primeng/images/demo/flag/flag_placeholder.png" [class]="'flag flag-' + customer.country.code" style="width: 20px" />-->
 								<span class="ml-1 vertical-align-middle">{{ customer.nombre }}</span>
 							</td>
 							<td>
 								{{ customer.costo_gramo | currency:' ':'symbol':'1.2-2':'en-US' }}
+							</td>
+							<td>
+								{{ customer.stock_materia }}
 							</td>
 							<td>
 								<i class="pi pi-send" style="color: var(--primary-color)"
@@ -198,7 +201,7 @@
 									<p-inputIcon>
 										<i class="pi pi-search"></i>
 									</p-inputIcon>
-									<input pInputText #input (input)="dt.filterGlobal(input.value, 'contains')" placeholder="Materia Prima" />
+									<input pInputText  #input (input)="dt.filterGlobal(input.value, 'contains')" placeholder="Materia Prima" />
 									<!--					<input pInputText type="text" [(ngModel)]="searchValue" (input)="dt.filterGlobal($event.target.value, 'contains')" placeholder="Keyboard Search" />-->
 								</p-iconField>
 								<p-button [outlined]="true" icon="pi pi-filter-slash" label="Clear" (click)="clear(dt)" />
@@ -415,20 +418,29 @@
 @if (visiblecorreo){
 
 	<p-dialog header="Información de Correo" [modal]="true" [(visible)]="visiblecorreo" [style]="{ width: '25rem' }">
-		<div class="d-flex align-items-center gap-3 mb-3">
+		<div class="d-flex align-items-center flex-column mt-1">
 			<label class="font-semibold w-6rem">Para:</label>
-			<input pInputText id="para" class="flex-auto" autocomplete="off" [(ngModel)]="enviaremail.para"/>
+			<input pInputText id="para" class="w-full" autocomplete="off" [(ngModel)]="enviaremail.para"/>
 		</div>
-		<div class="d-flex align-items-center gap-3 mb-3">
+		<div class="d-flex align-items-center flex-column mt-1">
 			<label class="font-semibold w-6rem">Asunto</label>
-			<input pInputText id="asunto" class="flex-auto" autocomplete="off" [(ngModel)]="enviaremail.asunto"/>
+			<input pInputText  id="asunto" class="w-full" autocomplete="off" [(ngModel)]="enviaremail.asunto"/>
 		</div>
-		<div class="d-flex align-items-center gap-3 mb-5">
+		<div class="d-flex align-items-center flex-column mt-1">
 			<label class="font-semibold w-6rem">Mensaje</label>
-			<input pInputText id="mensaje" class="flex-auto" autocomplete="off" [(ngModel)]="enviaremail.mensaje"/>
+			<textarea
+				class="w-full"
+				rows="5"
+				cols="30"
+				pInputTextarea
+
+				placeholder="Ej:Solicitud urgente de insumos en producción"
+				[autoResize]="true"
+				[(ngModel)]="enviaremail.mensaje">
+					</textarea>
 		</div>
-		<div class="d-flex justify-content-end gap-2">
-			<p-button label="Cancel" [outlined]="true" severity="secondary" (onClick)="visiblecorreo = false" />
+		<div class="d-flex justify-content-end gap-2 mt-2">
+			<p-button label="Cancel" [outlined]="true" severity="secondary" (onClick)="visiblecorreo = false;this.router.navigate(['/pages/compras/bandeja-requerimientos']);" />
 			<p-button label="Enviar" icon="pi pi-send" (onClick)="confirmarcorreo()" />
 		</div>
 	</p-dialog>

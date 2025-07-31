@@ -38,6 +38,7 @@ import {PanelModule} from "primeng/panel";
 import {TipoPagoService} from "../../../services/tipo-pago.service";
 import {DomSanitizer, SafeResourceUrl} from "@angular/platform-browser";
 import {ConformidadService} from "../../../services/compras/conformidad.service";
+import {UppercaseDirective} from "../../../directives/uppercase.directive";
 
 @Component({
   selector: 'app-ordencompra',
@@ -60,7 +61,7 @@ import {ConformidadService} from "../../../services/compras/conformidad.service"
 		FileUploadModule,
 		InputTextareaModule,
 		ProgressBarModule,
-		FormsModule, CommonModule, CalendarModule,InputSwitchModule,TagModule,PanelModule
+		FormsModule, CommonModule, CalendarModule, InputSwitchModule, TagModule, PanelModule, UppercaseDirective
 	],
   templateUrl: './ordencompra.component.html',
   styleUrl: './ordencompra.component.scss',
@@ -90,6 +91,7 @@ export class OrdencompraComponent {
 	files:File[] = [];
 	cargaprov:boolean=false
 	totalSize : number = 0;
+	op:number=0
 	sumaconformidad:number=0
 	checked_parametro1:boolean=false
 	checked_parametro2:boolean=false
@@ -98,6 +100,7 @@ export class OrdencompraComponent {
 	lstTiposPago:any[]=[]
 	totalSizePercent : number = 0;
 	subirFactura:FacturaOrden=new FacturaOrden()
+	valorswitch:number=0
 	constructor(private config: PrimeNGConfig,private messageService: MessageService,
 				private requerimietoService:RequerimientosService, private proveedorService:ProveedorService,
 				private ordenService:OrdencompraService,private  validacionService:ValidacionesService,
@@ -403,16 +406,20 @@ export class OrdencompraComponent {
 		this.conformidadRequest.path_pago=''
 		this.conformidadRequest.cantidad_conf_total=this.sumaconformidad
 		this.conformidadRequest.id_tipo_pago=this.fila_select.metodo_pago
+		this.conformidadRequest.obsconformidad=this.fila_select.obsconformidad
+		this.conformidadRequest.nrooperacion=this.fila_select.nrooperacion
 		this.conformidadRequest.detalleconformidad=[]
 		this.fila_select.detalleorden.forEach(e=>{
 			let registro:Detalleconformidad=new Detalleconformidad()
 			registro.id_orden_compra=this.fila_select.id_orden_compra
-			registro.cantidad_conf_total=e.cantidad
+			registro.cantidad_conf_total=e.cant_total_conf
 			registro.item=e.item
+			registro.id_materia_prima_conf=e.id_materia_prima
 			this.conformidadRequest.detalleconformidad.push(registro)
 		})
+		this.valorswitch>2?this.op=1:this.op=2
 		// console.log(this.conformidadRequest,"envio")
-		this.conformidadService.registrarConformidad(1,this.conformidadRequest).subscribe({
+		this.conformidadService.registrarConformidad(this.op,this.conformidadRequest).subscribe({
 			next:(data)=>{
 				console.log(data)
 				if(data.mensaje=='EXITO'){
@@ -437,7 +444,22 @@ export class OrdencompraComponent {
 	cambiocantidad(){
 		this.sumaconformidad=0
 		this.fila_select.detalleorden.forEach(e=>{
-			this.sumaconformidad+=e.cantidad_conf_total?e.cantidad_conf_total:0
+			this.sumaconformidad+=e.cant_total_conf?e.cant_total_conf:0
 		})
+	}
+	cambiocheck(){
+		this.valorswitch=0
+		this.valorswitch+=this.checked_parametro1?1:0
+		this.valorswitch+=this.checked_parametro2?1:0
+		this.valorswitch+=this.checked_parametro3?1:0
+	}
+	visualizarconf(registro:ordencompraModel){
+		this.verconformidad=true;
+		this.fila_select=registro;
+		this.checked_parametro1=this.fila_select.parametro_conf1 == 1
+		this.checked_parametro2=this.fila_select.parametro_conf2 == 2
+		this.checked_parametro3=this.fila_select.parametro_conf3 == 3
+		this.fila_select.imppagado=this.fila_select.imptotalfact
+		this.cambiocantidad()
 	}
 }

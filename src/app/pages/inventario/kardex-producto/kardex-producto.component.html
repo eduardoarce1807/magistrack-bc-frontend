@@ -1,0 +1,199 @@
+@if (spinner){
+	<app-carga></app-carga>
+}
+<p-toast></p-toast>
+<div class="p-5" >
+	<p-table
+		#dt
+		[value]="listaKardex"
+		dataKey="id_kardex"
+		[rowHover]="true"
+		[rows]="5"
+		[showCurrentPageReport]="true"
+		[rowsPerPageOptions]="[5, 25, 50]"
+		[paginator]="true"
+		currentPageReportTemplate="{first} hasta {last} de {totalRecords} registros"
+		[filterDelay]="0"
+		styleClass="p-datatable-gridlines p-datatable-striped p-datatable-sm"
+		[tableStyle]="{'min-width': '40rem'}"
+		[globalFilterFields]="['id_materia_prima', 'id_kardex','fecha']"
+	>
+		<ng-template pTemplate="caption">
+			<div class="flex justify-between items-center">
+				<h4 class="text-success fw-bold flex items-center"><img src="assets/img/crema.gif" width="50">Kardex por Inventario {{id_materia_prima}}</h4>
+				<div>
+					<p-iconField iconPosition="left">
+						<p-inputIcon>
+							<i class="pi pi-search"></i>
+						</p-inputIcon>
+						<input pInputText  #input (input)="dt.filterGlobal(input.value, 'contains')" placeholder="Keyword" />
+						<!--					<input pInputText type="text" [(ngModel)]="searchValue" (input)="dt.filterGlobal($event.target.value, 'contains')" placeholder="Keyboard Search" />-->
+					</p-iconField>
+					<p-button [outlined]="true" icon="pi pi-filter-slash" label="Clear" (click)="clear(dt)" />
+
+				</div>
+			</div>
+		</ng-template>
+		<ng-template pTemplate="header">
+			<tr>
+				<th pSortableColumn="fecha" style="min-width: 40px">
+					<div class="flex justify-content-between align-items-center">
+						Fecha
+						<p-sortIcon field="fecha" />
+						<p-columnFilter type="date" field="fecha" display="menu" class="ml-auto" />
+					</div>
+				</th>
+				<th pSortableColumn="movimiento" style="min-width: 100px">
+					<div class="flex justify-content-between align-items-center">
+						Movimiento
+						<p-sortIcon field="movimiento" />
+						<p-columnFilter type="text" field="movimiento" display="menu" class="ml-auto" />
+					</div>
+				</th>
+				<th pSortableColumn="documento" style="min-width: 100px">
+					<div class="flex justify-content-between align-items-center">
+						Documento
+						<p-sortIcon field="documento" />
+						<p-columnFilter type="text" field="documento" display="menu" class="ml-auto" />
+					</div>
+				</th>
+				<th style="min-width:100px" class="text-success">
+					<div class="flex align-items-center">
+						Entrada
+						<p-columnFilter field="cant_entrada" matchMode="between" display="menu" [showMatchModes]="false" [showOperator]="false" [showAddButton]="false">
+							<ng-template pTemplate="filter" let-filter="filterCallback">
+								<p-slider [(ngModel)]="activityValuesEntrada" [range]="true" (onSlideEnd)="filter($event.values)" [max]="9999" styleClass="m-3" />
+								<div class="flex align-items-center px-2">
+									<span>{{ activityValuesEntrada[0] }} - </span>
+									<span> {{ activityValuesEntrada[1] }}</span>
+								</div>
+							</ng-template>
+						</p-columnFilter>
+					</div>
+				</th>
+				<th style="min-width:100px" class="text-danger">
+					<div class="flex align-items-center">
+						Salida
+						<p-columnFilter field="cant_salida" matchMode="between" display="menu" [showMatchModes]="false" [showOperator]="false" [showAddButton]="false">
+							<ng-template pTemplate="filter" let-filter="filterCallback">
+								<p-slider [(ngModel)]="activityValuesSalida" [range]="true" (onSlideEnd)="filter($event.values)" [max]="9999" styleClass="m-3" />
+								<div class="flex align-items-center px-2">
+									<span>{{ activityValuesSalida[0] }} - </span>
+									<span> {{ activityValuesSalida[1] }}</span>
+								</div>
+							</ng-template>
+						</p-columnFilter>
+					</div>
+				</th>
+				<th style="min-width:100px">
+					<div class="flex align-items-center">
+						Stock
+						<p-columnFilter field="cant_actual" matchMode="between" display="menu" [showMatchModes]="false" [showOperator]="false" [showAddButton]="false">
+							<ng-template pTemplate="filter" let-filter="filterCallback">
+								<p-slider [(ngModel)]="activityValuesActual" [range]="true" (onSlideEnd)="filter($event.values)" [max]="9999" styleClass="m-3" />
+								<div class="flex align-items-center px-2">
+									<span>{{ activityValuesActual[0] }} - </span>
+									<span> {{ activityValuesActual[1] }}</span>
+								</div>
+							</ng-template>
+						</p-columnFilter>
+					</div>
+				</th>
+				<th pSortableColumn="impunit" style="min-width: 40px">
+					<div class="flex justify-content-between align-items-center">
+						ImpUnitario
+						<p-sortIcon field="impunit" />
+						<p-columnFilter type="numeric" field="impunit" display="menu" class="ml-auto" />
+					</div>
+				</th>
+				<th pSortableColumn="observaciones" style="min-width: 40px">
+					<div class="flex justify-content-between align-items-center">
+						Observaciones
+						<p-sortIcon field="observaciones" />
+						<p-columnFilter type="numeric" field="observaciones" display="menu" class="ml-auto" />
+					</div>
+				</th>
+
+<!--				<th style="min-width: 50px">-->
+<!--					<div class="flex justify-content-between align-items-center">-->
+<!--						Acciones-->
+<!--					</div>-->
+<!--				</th>-->
+			</tr>
+		</ng-template>
+		<ng-template pTemplate="body" let-customer>
+			<tr class="p-selectable-row" >
+				<td>
+					{{ customer.fecha|date:'dd-MM-yyyy' }}
+				</td>
+				<td>
+					@if (customer.id_tipomovimiento=='E'){
+						<div class="d-flex justify-content-center">
+							<p-tag icon="pi pi-sort-numeric-up" severity="success" [value]="customer.movimiento"/>
+						</div>
+					} @else {
+						<div class="d-flex justify-content-center">
+							<p-tag icon="pi pi-sort-numeric-down" severity="danger" [value]="customer.movimiento"/>
+						</div>
+					}
+				</td>
+				<td>
+					{{ customer.documento }}
+				</td>
+				<td>
+					@if (customer.cant_entrada>0){
+						<div class="d-flex justify-content-center">
+						<p class="text-success mx-1">{{ customer.cant_entrada }}</p>
+						<i class="pi pi-plus" style="color: green;font-size:0.8rem"></i>
+						</div>
+					} @else {
+						{{ customer.cant_entrada }}
+
+					}
+				</td>
+				<td>
+					@if (customer.cant_salida>0){
+						<div class="d-flex justify-content-center">
+							<p class="text-danger mx-1">{{ customer.cant_salida }}</p>
+							<i class="pi pi-minus text-danger" style="font-size:0.8rem"></i>
+						</div>
+					}@else{
+						{{ customer.cant_salida }}
+					}
+				</td>
+				<td>
+					{{ customer.cant_actual }}
+				</td>
+				<td>
+					{{ customer.impunit }}
+				</td>
+				<td>
+					@if (customer.path_kardex){
+						<a
+							[href]="customer.path_kardex"
+							target="_blank"
+							rel="noopener noreferrer"
+							pTooltip="Ver Archivo"
+							tooltipPosition="right">
+							<i class="pi pi-file-check" style="color: #7e088c;font-size: 1.5rem;cursor:pointer"></i>
+						</a>
+
+
+					}{{ customer.observaciones }}
+				</td>
+<!--				<td>-->
+<!--					<p-button (onClick)="menu.toggle($event);fila_select=customer"-->
+<!--							  [text]="true"-->
+<!--							  pTooltip="Opciones de Menú"-->
+<!--							  tooltipPosition="left"-->
+<!--							  icon="pi pi-ellipsis-v"/>-->
+<!--				</td>-->
+			</tr>
+		</ng-template>
+		<ng-template pTemplate="emptymessage">
+			<tr>
+				<td colspan="8">No tiene materias primas registradas.</td>
+			</tr>
+		</ng-template>
+	</p-table>
+</div>
