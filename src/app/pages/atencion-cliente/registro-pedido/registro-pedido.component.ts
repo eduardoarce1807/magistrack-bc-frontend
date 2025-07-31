@@ -400,6 +400,15 @@ export class RegistroPedidoComponent implements OnInit, OnDestroy {
     if (this.idMetodoEntregaSeleccionado === 2) { // Si es "Delivery"
       this.getDireccionesByClienteId(this.pedido.cliente.idCliente, firstRequest);
     }
+    if(this.idMetodoEntregaSeleccionado === 3) { // Entrega directa
+      this.idDireccionSeleccionada = 0; // Seleccionar la primera dirección por defecto
+      if(!firstRequest){
+        this.guardarEntrega();
+      }
+      this.disabledPagar = false;
+      this.lstDirecciones = []; // Limpiar las direcciones
+    }
+
   }
 
   lstMetodosEntrega: any[] = [];
@@ -481,6 +490,7 @@ export class RegistroPedidoComponent implements OnInit, OnDestroy {
             this.idDireccionSeleccionada = pedido.direccion ? pedido.direccion.idDireccion : 0; // Asignar la dirección del pedido
             this.onMetodoEntregaChange(true);
           }else{
+            this.idMetodoEntregaSeleccionado = pedido.metodoEntrega.idMetodoEntrega || 0;
             this.disabledPagar = true; // Deshabilitar el botón de pagar si no hay método de entrega o dirección
           }
 
