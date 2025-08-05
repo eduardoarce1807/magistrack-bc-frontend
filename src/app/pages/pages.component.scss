@@ -1,0 +1,24 @@
+.sidebar {
+
+	@media (max-width: 1200px) {
+		display: none !important;
+	}
+}
+.boton-sidebar{
+	display: none;
+	@media (max-width: 1200px) {
+		display: block !important;
+		//position:absolute;
+		//top:0;
+		//left:0;
+	}
+}
+.completo{
+	--bs-gutter-x:0;
+	height: calc(100vh - 61.4px);
+}
+.fondo-img{
+	background:#ffffff;
+	object-fit:contain;
+	height:61.4px;
+}

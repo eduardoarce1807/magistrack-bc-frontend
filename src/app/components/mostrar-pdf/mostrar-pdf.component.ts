@@ -9,7 +9,7 @@ import {
 import * as pdfjsLib from 'pdfjs-dist';
 import {CommonModule} from "@angular/common";
 import {PaginatorModule} from "primeng/paginator";
-pdfjsLib.GlobalWorkerOptions.workerSrc = '/assets/pdf.worker.mjs';
+pdfjsLib.GlobalWorkerOptions.workerSrc = './assets/pdf.worker.js';
 @Component({
   selector: 'app-mostrar-pdf',
   standalone: true,

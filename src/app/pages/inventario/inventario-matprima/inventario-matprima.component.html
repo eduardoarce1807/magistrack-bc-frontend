@@ -110,7 +110,7 @@
 					@if(customer.estado=='GENERAR REQUERIMIENTO'){
 						<p-tag [value]="customer.stock_materia" [severity]="getSeverity(customer.estado)" [rounded]="true" />
 						<i class="pi pi-send mx-2" *ngIf="!customer.id_requerimiento_stock" pBadge style="font-size: 1.2rem;color:#0a747e;background:#e0faff;padding:5px;
-							border-radius: 50%" value="-30%"
+							border-radius: 50%" [value]="'-'+valorparamae.valornum+'%'"
 						   pTooltip="Generar Requerimiento" severity="info"
 						   tooltipPosition="left" (click)="fila_select=customer;generarrequerimiento();"></i>
 					} @else if (customer.estado=='REQUIERE REPOSICIÓN'){

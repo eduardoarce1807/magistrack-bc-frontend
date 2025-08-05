@@ -1,12 +1,44 @@
+<div class="d-flex justify-content-center align-items-center">
+	<div class="boton-sidebar">
+		@if(!sidebarVisible){
 
-<app-navbar></app-navbar>
-<div class="w-full flex h-screen overflow-hidden">
-	<div class="w-1/6 h-full bg-gray-100 p-3 overflow-y-auto">
+			<p-button
+				type="button"
+				severity="warning"
+				(click)="sidebarVisible = true"
+				icon="pi pi-bars"
+				[style]="{ height: '61.6px', width: '61.6px'}"/>
+		} @else {
+
+			<p-button
+				type="button"
+				severity="warning"
+				(click)="sidebarVisible = true"
+				icon="pi pi-chevron-left"
+				[style]="{ height: '61.6px', width: '61.6px'}"/>
+		}
+	</div>
+	<img src="assets/img/bella-curet-logotipo.png"  class="fondo-img">
+	<div class="w-full">
+
+		<app-navbar></app-navbar>
+	</div>
+</div>
+<div class="row w-full completo">
+	<div class="col-xl-2 sidebar bg-gray-100 p-3 overflow-y-auto">
 		<app-sidebar></app-sidebar>
 
 	</div>
-	<div class="w-5/6 h-full overflow-y-auto">
+	<div class="col-xl-10 col-sm-12 w-full ">
 		<router-outlet></router-outlet>
 	</div>
 </div>
+@if (sidebarVisible){
+		<p-sidebar [(visible)]="sidebarVisible" position="left">
+			<ng-template pTemplate="header">
+				<span class="font-semibold text-xl w-full text-info"><img src="assets/img/bella-curet-logotipo.png" width="80"> Barra de Selección</span>
+			</ng-template>
+			<app-sidebar></app-sidebar>
+		</p-sidebar>
 
+}

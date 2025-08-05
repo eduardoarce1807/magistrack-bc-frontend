@@ -29,6 +29,8 @@ import {RequerimientosService} from "../../../services/compras/requerimientos.se
 import {ProveedorService} from "../../../services/compras/proveedor.service";
 import {emailordenModel} from "../../../model/enviarEmailModel";
 import {EmailService} from "../../../services/email.service";
+import {paramaeModel} from "../../../model/paramaeModel";
+import {ParamaeService} from "../../../services/paramae.service";
 
 @Component({
   selector: 'app-inventario-matprima',
@@ -101,10 +103,11 @@ export class InventarioMatprimaComponent {
 	selectedprov:proveedorModel=new proveedorModel()
 	cargaprov:boolean=false
 	enviaremail: emailordenModel = new emailordenModel()
+	valorparamae:paramaeModel=new paramaeModel()
 	constructor(private config: PrimeNGConfig,private messageService: MessageService,
 				private materiaService: MateriaprimaService,private kardexService:KardexService,
 				private route:Router,private requerimietoService:RequerimientosService,private proveedorService:ProveedorService,
-				private emailService:EmailService,public router: Router
+				private emailService:EmailService,public router: Router,private paramaeService:ParamaeService
 				) {
 		this.loading=false
 
@@ -188,6 +191,7 @@ export class InventarioMatprimaComponent {
 		this.cargarmateriaprima()
 		this.cargarunidades()
 		this.cargartipomovimiento()
+		this.cargarstockmin()
 	}
 	cargarunidades(){
 		this.cargamaterias=true
@@ -223,6 +227,16 @@ export class InventarioMatprimaComponent {
 				this.spinner=false
 			}
 		})
+	}
+	cargarstockmin(){
+		this.paramaeService.getDatosParamae('STO','MINIMO').subscribe({
+			next:(data)=>{
+				this.valorparamae=data.data
+			},error:(err)=>{
+
+			}
+		})
+		this.valorparamae
 	}
 	refreshRequerimientos() {
 		this.listaRequerimientospaginado = this.listaRequerimientos
