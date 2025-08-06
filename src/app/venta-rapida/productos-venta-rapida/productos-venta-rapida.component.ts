@@ -5,6 +5,7 @@ import { Router, RouterModule } from '@angular/router';
 import { ProductoService } from '../../services/producto.service';
 import Swal from 'sweetalert2';
 import { CarritoService } from '../../services/carrito.service';
+import { DataService } from '../../services/data.service';
 
 @Component({
   selector: 'app-productos-venta-rapida',
@@ -20,14 +21,14 @@ export class ProductosVentaRapidaComponent implements OnInit {
   productoSelected: any = null;
   loadingProductos = false;
 
-  constructor(public router: Router, private productoService: ProductoService, private carritoService: CarritoService) {}
+  constructor(public router: Router, private productoService: ProductoService, private carritoService: CarritoService, private dataService: DataService) {}
   ngOnInit(): void {
     this.getProductos();
   }
 
   getProductos() {
     this.loadingProductos = true;
-    this.productoService.getProductos().subscribe((data) => {
+    this.productoService.getCatalogoProductosByRol(10).subscribe((data) => {
       this.loadingProductos = false;
       this.productos = data;
     });
@@ -36,7 +37,7 @@ export class ProductosVentaRapidaComponent implements OnInit {
   buscarProducto(){
     if (this.buscar) {
       this.loadingProductos = true;
-      this.productoService.getBuscarProductos(this.buscar).subscribe((data: any) => {
+      this.productoService.getBuscarProductosByRol(10, this.buscar).subscribe((data: any) => {
         this.loadingProductos = false;
         this.productos = data;
       },
@@ -46,7 +47,7 @@ export class ProductosVentaRapidaComponent implements OnInit {
         Swal.fire({
           icon: 'error',
           title: 'Oops!',
-          text: 'No se pudo registrar el cliente, inténtelo de nuevo.',
+          text: 'Ocurrió un error al realizar la búsqueda, inténtelo de nuevo.',
           showConfirmButton: true
         });
       });

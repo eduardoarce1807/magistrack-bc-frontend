@@ -514,7 +514,7 @@ export class RegistroPedidoComponent implements OnInit, OnDestroy {
   }
 
   getProductosBusquedaAvanzada(content: TemplateRef<any>) {
-    this.productoService.getProductos().subscribe((data: any) => {
+    this.productoService.getCatalogoProductosByCliente(this.dataService.getLoggedUser().cliente.idCliente).subscribe((data: any) => {
       this.productosBusquedaAvanzada = data;
       this.collectionSize = data.length;
       this.modalService.open(content, {backdrop: 'static', keyboard: false, size: 'xl'});
@@ -547,7 +547,52 @@ export class RegistroPedidoComponent implements OnInit, OnDestroy {
 
   searchValue = "";
   clear(table: Table) {
-    table.clear(); // o lo que sea necesario
+    table.clear();
+    this.searchValue = "";
+  }
+
+  // Filtro personalizado mejorado para búsqueda inteligente
+  filtrarTabla(table: Table, searchValue: string): void {
+    if (!searchValue || searchValue.trim() === '') {
+      table.clear();
+      return;
+    }
+
+    // Convertir el valor de búsqueda a minúsculas, normalizar acentos y dividir en palabras
+    const palabrasBusqueda = this.normalizarTexto(searchValue).trim().split(/\s+/);
+    
+    // Filtrar los datos
+    const datosFiltrados = this.productosBusquedaAvanzada.filter(item => {
+      // Crear una cadena de texto con todos los campos buscables
+      const textoBuscable = [
+        item.idProducto?.toString() || '',
+        item.productoMaestro?.nombre || '',
+        item.productoMaestro?.descripcion || '',
+        item.presentacion?.toString() || '',
+        item.tipoPresentacion?.descripcion || ''
+      ].join(' ');
+
+      // Normalizar el texto buscable
+      const textoBuscableNormalizado = this.normalizarTexto(textoBuscable);
+
+      // Verificar que todas las palabras de búsqueda estén presentes en el texto
+      return palabrasBusqueda.every(palabra => 
+        textoBuscableNormalizado.includes(palabra)
+      );
+    });
+
+    // Aplicar el filtro a la tabla
+    table.filteredValue = datosFiltrados;
+  }
+
+  // Método auxiliar para normalizar texto (quitar acentos y convertir a minúsculas)
+  private normalizarTexto(texto: string): string {
+    return texto
+      .toLowerCase()
+      .normalize('NFD') // Descompone los caracteres acentuados
+      .replace(/[\u0300-\u036f]/g, '') // Elimina los diacríticos (acentos, tildes, etc.)
+      .replace(/[^\w\s]/g, ' ') // Reemplaza caracteres especiales con espacios
+      .replace(/\s+/g, ' '); // Reemplaza múltiples espacios con uno solo
   }
 
   onSearch(event: Event) {
@@ -559,7 +604,7 @@ export class RegistroPedidoComponent implements OnInit, OnDestroy {
     // Iniciamos un nuevo timeout para esperar 1 segundo
     this.timeoutId = setTimeout(() => {
       if (value) {
-        this.productoService.getBuscarProductos(value).subscribe((data: any) => {
+        this.productoService.getBuscarProductos(this.dataService.getLoggedUser().cliente.idCliente, value).subscribe((data: any) => {
           this.productosBusqueda = data;
         },
         (error) => {
@@ -579,7 +624,7 @@ export class RegistroPedidoComponent implements OnInit, OnDestroy {
 
   buscarProducto(){
     if (this.query) {
-      this.productoService.getBuscarProductos(this.query).subscribe((data: any) => {
+      this.productoService.getBuscarProductos(this.dataService.getLoggedUser().cliente.idCliente, this.query).subscribe((data: any) => {
         this.productosBusqueda = data;
         this.searchFocused = true;
       },
