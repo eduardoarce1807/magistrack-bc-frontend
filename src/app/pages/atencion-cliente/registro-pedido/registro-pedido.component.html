@@ -483,8 +483,11 @@
 								<p-inputIcon>
 									<i class="pi pi-search"></i>
 								</p-inputIcon>
-								<input pInputText #input (input)="dt1.filterGlobal(input.value, 'contains')" placeholder="Buscar..." />
-								<!--					<input pInputText type="text" [(ngModel)]="searchValue" (input)="dt.filterGlobal($event.target.value, 'contains')" placeholder="Keyboard Search" />-->
+								<input 
+									pInputText 
+									[(ngModel)]="searchValue"
+									(input)="filtrarTabla(dt1, searchValue)" 
+									placeholder="Buscar por código, nombre, descripción..." />
 							</p-iconField>
 							<p-button [outlined]="true" icon="pi pi-filter-slash" label="Clear" (click)="clear(dt1)" />
 						</div>

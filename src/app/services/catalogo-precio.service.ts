@@ -11,6 +11,14 @@ export interface CatalogoProductoDTO {
   precio: number;
 }
 
+export interface CatalogoProductoUpdateDTO {
+  idCatalogoProducto: number;
+  costo: number;
+  margen: number;
+  precio: number;
+  estado: boolean;
+}
+
 export interface RolDTO {
   idRol: number;
   nombre: string;
@@ -49,5 +57,9 @@ export class CatalogoPrecioService {
 
   crearCatalogo(request: CatalogoPrecioRequestDTO): Observable<ResponseDTO> {
     return this.http.post<ResponseDTO>(`${this.url}`, request);
+  }
+
+  actualizarProductoCatalogo(item: CatalogoProductoUpdateDTO): Observable<ResponseDTO> {
+    return this.http.put<ResponseDTO>(`${this.url}/catalogo-producto/actualizar`, item);
   }
 }

@@ -16,10 +16,23 @@ export class ProductoService {
     return this.http.get<any[]>(this.baseUrl);
   }
 
-  getBuscarProductos(nombre: string): Observable<any[]> {
-    let url = `${this.baseUrl}/buscar`;
-      return this.http.get<any[]>(url, { params: { nombre } });
-    }
+  getCatalogoProductosByCliente(idCliente: number): Observable<any[]> {
+    return this.http.get<any[]>(`${this.baseUrl}/por-cliente?idCliente=${idCliente}`);
+  }
+
+  getCatalogoProductosByRol(idRol: number): Observable<any[]> {
+    return this.http.get<any[]>(`${this.baseUrl}/por-rol?idRol=${idRol}`);
+  }
+
+  getBuscarProductos(idCliente: number, nombre: string): Observable<any[]> {
+    let url = `${this.baseUrl}/buscar-por-cliente`;
+    return this.http.get<any[]>(url, { params: { idCliente, nombre } });
+  }
+
+  getBuscarProductosByRol(idRol: number, nombre: string): Observable<any[]> {
+    let url = `${this.baseUrl}/buscar-por-rol`;
+    return this.http.get<any[]>(url, { params: { idRol, nombre } });
+  }
 
   getProductoById(idProducto: string): Observable<any> {
     let url = `${this.baseUrl}/${idProducto}`;
