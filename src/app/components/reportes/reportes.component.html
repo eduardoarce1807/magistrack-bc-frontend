@@ -1,0 +1,18 @@
+
+@if(carga == 2){
+	<app-carga></app-carga>
+}
+<p-toast></p-toast>
+<!--<p-button-->
+<!--  label="IMPRIMIR"-->
+<!--  class="mt-2"-->
+<!--  [outlined]="true"-->
+<!--  severity="info"-->
+<!--  icon="pi pi-print"-->
+<!--  (click)="imprimirIframe(iframeRef?.nativeElement)"-->
+<!--  pBadge value="alt + P"-->
+<!--&gt;</p-button>-->
+@if(carga == 1){
+	<iframe #iframeRef  width="100%" height="90%" [src]="urlSafe"></iframe>
+
+}

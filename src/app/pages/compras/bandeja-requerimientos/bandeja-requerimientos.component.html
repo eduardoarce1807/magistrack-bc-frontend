@@ -37,9 +37,9 @@
 			</div>
 			<div class="row">
 				<div class="col-md-6 g-2">
-					<p-button [outlined]="true" icon="pi pi-file-plus" label="Historial Req." class="mx-1" severity="success"  />
-					<p-button  icon="pi pi-angle-double-up" label="Indicadores" severity="info"  class="mx-1"/>
-					<p-button [outlined]="true" icon="pi pi-print" label="Reportes" severity="info"  class="mx-1"/>
+<!--					<p-button [outlined]="true" icon="pi pi-file-plus" label="Historial Req." class="mx-1" severity="success"  />-->
+<!--					<p-button  icon="pi pi-angle-double-up" label="Indicadores" severity="info"  class="mx-1"/>-->
+					<p-button [outlined]="true" icon="pi pi-print" label="Resumen Requerimientos" severity="info"  class="mx-1" (click)="imprimir_requerimientos()"/>
 				</div>
 				<div class="col-md-6 text-end g-2">
 					<p-button  icon="pi pi-plus" label="Nuevo Requerimiento" class="mx-1" severity="success" (click)="irARequerimientoManual()" />
@@ -147,7 +147,7 @@
 				</td>
 				<td style="text-align: center">
 <!--					<p-button severity="secondary" icon="pi pi-cog"/>-->
-				 	<p-splitButton label="Información"  [model]="items" raised severity="info" appendTo="body" (click)="calcularSuma(customer)"/>
+				 	<p-splitButton label="Seguimiento" (click)="calcularSuma(customer);" [model]="items" raised severity="info" appendTo="body" />
 				</td>
 			</tr>
 		</ng-template>

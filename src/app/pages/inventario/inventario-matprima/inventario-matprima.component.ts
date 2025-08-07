@@ -162,16 +162,16 @@ export class InventarioMatprimaComponent {
 							this.verdardebaja=false
 						}
 					},
-					{
-						label: 'Reducir M.P.',
-						icon: 'pi pi-minus-circle',
-						command: () => {
-							this.subirBaja.cant_entrada=0
-							this.subirBaja.cant_salida=0
-							this.subirBaja.observaciones=''
-							this.verreducir=true
-						}
-					},
+					// {
+					// 	label: 'Reducir M.P.',
+					// 	icon: 'pi pi-minus-circle',
+					// 	command: () => {
+					// 		this.subirBaja.cant_entrada=0
+					// 		this.subirBaja.cant_salida=0
+					// 		this.subirBaja.observaciones=''
+					// 		this.verreducir=true
+					// 	}
+					// },
 					{
 						label: 'Ver Kardex',
 						icon: 'pi pi-inbox',
@@ -553,5 +553,8 @@ export class InventarioMatprimaComponent {
 				this.messageService.add({ severity: 'error', summary: 'ERROR', detail: 'Ocurrió un error al enviar el correo' });
 			}
 		})
+	}
+	cargarfila(customer: MateriaprimaModel) {
+		this.fila_select = { ...customer };
 	}
 }
