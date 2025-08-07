@@ -104,7 +104,7 @@
 				<td>
 					<div class="d-flex align-items-center text-end">
 
-					@if(customer.id_requerimiento_stock){
+					@if(customer.id_requerimiento_stock && customer.estado=='GENERAR REQUERIMIENTO'){
 						<p-tag [value]="customer.id_requerimiento_stock" severity="warning" class="mx-1" [rounded]="true" />
 					}
 					@if(customer.estado=='GENERAR REQUERIMIENTO'){
@@ -120,7 +120,7 @@
 						{{ customer.stock_materia }}
 					}
 					</div>
-					@if(customer.estadorequerimiento){
+					@if(customer.estadorequerimiento && customer.estado=='GENERAR REQUERIMIENTO'){
 						{{customer.estadorequerimiento}}
 					}
 				</td>
@@ -151,7 +151,7 @@
 					}
 				</td>
 				<td>
-					<p-button (onClick)="menu.toggle($event);fila_select=customer"
+					<p-button (onClick)="menu.toggle($event);cargarfila(customer)"
 							  [text]="true"
 							  pTooltip="Opciones de Menú"
 							  tooltipPosition="left"
@@ -465,7 +465,7 @@
 			</div>
 		</div>
 		<ng-template pTemplate="footer">
-			<p-button [outlined]="true" icon="pi pi-trash" label="Cancelar" class="mx-1" severity="danger" (click)="verdetalle=false;"  />
+			<p-button [outlined]="true" icon="pi pi-trash" label="Cancelar" class="mx-1" severity="danger" (click)="veradicionar=false;"  />
 			<p-button  icon="pi pi-save" label="Confirmar Ajuste" class="mx-1" severity="success"  (click)="guardarbaja()"/>
 		</ng-template>
 	</p-dialog>
@@ -533,7 +533,7 @@
 			</div>
 		</div>
 		<ng-template pTemplate="footer">
-			<p-button [outlined]="true" icon="pi pi-trash" label="Cancelar" class="mx-1" severity="danger" (click)="verdetalle=false;"  />
+			<p-button [outlined]="true" icon="pi pi-trash" label="Cancelar" class="mx-1" severity="danger" (click)="verreducir=false;"  />
 			<p-button  icon="pi pi-save" label="Confirmar baja" class="mx-1" severity="success"  (click)="guardarbaja()"/>
 		</ng-template>
 	</p-dialog>

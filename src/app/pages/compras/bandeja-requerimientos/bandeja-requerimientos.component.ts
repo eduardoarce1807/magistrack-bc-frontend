@@ -34,6 +34,8 @@ import {proveedorModel, soloproveedorModel} from "../../../model/proveedoresMode
 import {ProveedorService} from "../../../services/compras/proveedor.service";
 import {CotizacionesService} from "../../../services/compras/cotizaciones.service";
 import {CargaComponent} from "../../../components/carga/carga.component";
+import {ReportesComponent} from "../../../components/reportes/reportes.component";
+import {DialogService} from "primeng/dynamicdialog";
 
 
 @Component({
@@ -45,7 +47,7 @@ import {CargaComponent} from "../../../components/carga/carga.component";
 		CalendarModule, InputTextareaModule, FileUploadModule, BadgeModule, InputNumberModule, CargaComponent],
   templateUrl: './bandeja-requerimientos.component.html',
   styleUrl: './bandeja-requerimientos.component.scss',
-	providers: [MessageService],
+	providers: [MessageService,DialogService ],
 	encapsulation: ViewEncapsulation.None,
 })
 export class BandejaRequerimientosComponent {
@@ -83,7 +85,8 @@ export class BandejaRequerimientosComponent {
 	constructor(private config: PrimeNGConfig,private messageService: MessageService,
 				private requerimietoService:RequerimientosService,
 				private router: Router,private proveedorService:ProveedorService,
-				private cotizacionService:CotizacionesService) {
+				private cotizacionService:CotizacionesService,
+				public dialogService: DialogService,) {
 		this.loading=false
 		this.items = [
 			{
@@ -93,51 +96,58 @@ export class BandejaRequerimientosComponent {
 					// this.update();
 					this.verdetalle=true
 				}
-			},
-			{
-				label: 'Cotizaciones',
-				icon:'pi pi-flag',
-				command: () => {
-					this.vercotizacion=true
-					this.sumacoti=0
-					this.cargaproveedores()
-					this.fila_select.iterequerimiento.forEach(e=>{
-						this.sumacoti+=e.impsubtotal
-					})
-				}
-			},
-			{
-				label: 'Orden de Compra',
-				icon:'pi pi-cart-plus',
-				command: () => {
-					this.verordencompra=true
-				}
 			},{
-				label: 'Conformidad',
-				icon:'pi pi-check-circle',
-				command: () => {
-					this.messageService.add({ severity: 'warn', summary: 'PENDIENTE', detail: 'Está en espera de Conformidad' });
-				}
-			},{
-				label: 'Observaciones',
-				icon:'pi pi-key',
+				label: 'Reporte Seguimiento',
+				icon:'pi pi-print',
 				command: () => {
 					// this.update();
-					this.verobservaciones=true
+					this.imprimir_seguimiento_requerimientos(this.fila_select.id_requerimiento!)
 				}
-			},{
-				label: 'Validar Calidad',
-				icon:'pi pi-lock',
-				command: () => {
-					this.messageService.add({ severity: 'warn', summary: 'PENDIENTE', detail: 'Está en espera de Validación' });
-				}
-			},{
-				label: 'Pago',
-				icon:'pi pi-money-bill',
-				command: () => {
-					this.update();
-				}
-			},
+			}
+			// {
+			// 	label: 'Cotizaciones',
+			// 	icon:'pi pi-flag',
+			// 	command: () => {
+			// 		this.vercotizacion=true
+			// 		this.sumacoti=0
+			// 		this.cargaproveedores()
+			// 		this.fila_select.iterequerimiento.forEach(e=>{
+			// 			this.sumacoti+=e.impsubtotal
+			// 		})
+			// 	}
+			// },
+			// {
+			// 	label: 'Orden de Compra',
+			// 	icon:'pi pi-cart-plus',
+			// 	command: () => {
+			// 		this.verordencompra=true
+			// 	}
+			// },{
+			// 	label: 'Conformidad',
+			// 	icon:'pi pi-check-circle',
+			// 	command: () => {
+			// 		this.messageService.add({ severity: 'warn', summary: 'PENDIENTE', detail: 'Está en espera de Conformidad' });
+			// 	}
+			// },{
+			// 	label: 'Observaciones',
+			// 	icon:'pi pi-key',
+			// 	command: () => {
+			// 		// this.update();
+			// 		this.verobservaciones=true
+			// 	}
+			// },{
+			// 	label: 'Validar Calidad',
+			// 	icon:'pi pi-lock',
+			// 	command: () => {
+			// 		this.messageService.add({ severity: 'warn', summary: 'PENDIENTE', detail: 'Está en espera de Validación' });
+			// 	}
+			// },{
+			// 	label: 'Pago',
+			// 	icon:'pi pi-money-bill',
+			// 	command: () => {
+			// 		this.update();
+			// 	}
+			// },
 		];
 
 
@@ -329,5 +339,40 @@ export class BandejaRequerimientosComponent {
 				this.cargaprov=false
 			}
 		})
+	}
+	imprimir_requerimientos() {
+		let json = {
+			data: {
+			},
+			tipo_proceso: "1",
+			tipo_reporte: "listado",
+		};
+		this.dialogService.open(ReportesComponent, {
+			header: "Reporte Requerimientos",
+			width: "80%",
+			height: "97%",
+			contentStyle: { overflow: "auto" },
+			baseZIndex: 99999,
+			maximizable: true,
+			data: json,
+		});
+	}
+	imprimir_seguimiento_requerimientos(id_requerimiento:string) {
+		let json = {
+			data: {
+				id_requerimiento:id_requerimiento
+			},
+			tipo_proceso: "2",
+			tipo_reporte: "seguimiento",
+		};
+		this.dialogService.open(ReportesComponent, {
+			header: "Reporte Seguimiento del requerimiento",
+			width: "80%",
+			height: "97%",
+			contentStyle: { overflow: "auto" },
+			baseZIndex: 99999,
+			maximizable: true,
+			data: json,
+		});
 	}
 }

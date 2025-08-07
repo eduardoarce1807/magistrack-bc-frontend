@@ -163,11 +163,11 @@ export class SidebarComponent {
 							label: 'Requerimiento manual',
 							command: () => this.irA('pages/compras/requerimiento-manual')
 						},
-						{
-							key: '3_2',
-							label: 'Seleccionar Proveedor x Cotización',
-							command: () => this.irA('pages/compras/seleccionar-proveedor')
-						},
+						// {
+						// 	key: '3_2',
+						// 	label: 'Seleccionar Proveedor x Cotización',
+						// 	command: () => this.irA('pages/compras/seleccionar-proveedor')
+						// },
 						{
 							key: '3_3',
 							label: 'Ordenes de Compras',
@@ -191,11 +191,11 @@ export class SidebarComponent {
 							command: () => this.irA('pages/proveedor/asignar-proveedor')
 						},
 
-						{
-							key: '4_2',
-							label: 'Cotizaciones Proveedor',
-							command: () => this.irA('pages/proveedor/cotizacion-proveedor')
-						},
+						// {
+						// 	key: '4_2',
+						// 	label: 'Cotizaciones Proveedor',
+						// 	command: () => this.irA('pages/proveedor/cotizacion-proveedor')
+						// },
 						{
 							key: '4_3',
 							label: 'Orden Compra Proveedor',
