@@ -1,0 +1,161 @@
+<div class="container-fluid mt-5" style="padding: 0px 60px;">
+	<div class="card shadow-lg p-4 rounded-4">
+
+		<button style="position: absolute;" class="btn btn-link text-decoration-none p-0" (click)="router.navigate(['/pages/home'])">
+			<i class="bi bi-arrow-left"></i> Home
+		</button>
+
+		<h2 class="mb-4 text-center">Mantenimiento de Productos</h2>
+
+		<!-- Botones de acciones superiores -->
+		<div class="row mb-3">
+			<div class="col-auto ms-auto">
+				<button class="btn btn-success me-2" (click)="router.navigate(['/pages/gestion-producto/registro-producto'])">
+					<i class="bi bi-plus-circle"></i> Nuevo Producto
+				</button>
+			</div>
+		</div>
+
+		<p-table
+			#dt1
+			*ngIf="productosMaestros.length > 0"
+			[value]="productosMaestros"
+			[paginator]="true"
+			[rows]="pageSize"
+			[totalRecords]="collectionSize"
+			[responsiveLayout]="'scroll'"
+			class="mt-2"
+			[showCurrentPageReport]="true"
+			currentPageReportTemplate="{first} a {last} de {totalRecords} registros"
+			[filterDelay]="0"
+			styleClass="p-datatable-gridlines p-datatable-striped p-datatable-sm mt-1"
+			[tableStyle]="{'min-width': '50rem'}"
+			[rowsPerPageOptions]="[5, 25, 50]"
+			dataKey="idProductoMaestro"
+			[globalFilterFields]="['idProductoMaestro', 'nombre', 'descripcion', 'phDefinidoMin', 'phDefinidoMax']"
+		>
+			<ng-template pTemplate="caption">
+					<div class="flex justify-between items-center">
+
+						<div class="text-end">
+							<p-iconField iconPosition="left">
+								<p-inputIcon>
+									<i class="pi pi-search"></i>
+								</p-inputIcon>
+								<input 
+									pInputText 
+									[(ngModel)]="searchValue"
+									(input)="filtrarTabla(dt1, searchValue)" 
+									placeholder="Buscar por nombre, descripción, pH..." />
+							</p-iconField>
+							<p-button [outlined]="true" icon="pi pi-filter-slash" label="Clear" (click)="clear(dt1)" />
+						</div>
+					</div>
+
+				</ng-template>
+			<ng-template pTemplate="header">
+				<tr>
+					<th pSortableColumn="idProductoMaestro" style="width: 10%">
+						<div class="flex justify-content-between align-items-center">
+							ID
+							<p-sortIcon field="idProductoMaestro" />
+							<p-columnFilter type="text" field="idProductoMaestro" display="menu" class="ml-auto" />
+						</div>
+					</th>
+					<th pSortableColumn="nombre" style="width: 25%">
+						<div class="flex justify-content-between align-items-center">
+							Nombre
+							<p-sortIcon field="nombre" />
+							<p-columnFilter type="text" field="nombre" display="menu" class="ml-auto" />
+						</div>
+					</th>
+					<th pSortableColumn="descripcion" style="width: 30%">
+						<div class="flex justify-content-between align-items-center">
+							Descripción
+							<p-sortIcon field="descripcion" />
+							<p-columnFilter type="text" field="descripcion" display="menu" class="ml-auto" />
+						</div>
+					</th>
+					<th pSortableColumn="phDefinidoMin">
+						<div class="flex justify-content-between align-items-center">
+							pH Mínimo
+							<p-sortIcon field="phDefinidoMin" />
+							<p-columnFilter type="number" field="phDefinidoMin" display="menu" class="ml-auto" />
+						</div>
+					</th>
+					<th pSortableColumn="phDefinidoMax">
+						<div class="flex justify-content-between align-items-center">
+							pH Máximo
+							<p-sortIcon field="phDefinidoMax" />
+							<p-columnFilter type="number" field="phDefinidoMax" display="menu" class="ml-auto" />
+						</div>
+					</th>
+					<th pSortableColumn="estado">
+						<div class="flex justify-content-between align-items-center">
+							Estado
+							<p-sortIcon field="estado" />
+							<p-columnFilter type="boolean" field="estado" display="menu" class="ml-auto" />
+						</div>
+					</th>
+					<th style="min-width: 200px;">Acciones</th>
+				</tr>
+			</ng-template>
+			<ng-template pTemplate="body" let-item>
+				<tr>
+					<td>{{item.idProductoMaestro}}</td>
+					<td>{{item.nombre || 'N/A'}}</td>
+					<td>{{item.descripcion || 'Sin descripción'}}</td>
+					<td class="text-center">{{item.phDefinidoMin || 'N/A'}}</td>
+					<td class="text-center">{{item.phDefinidoMax || 'N/A'}}</td>
+					<td>
+						@if (item.estado) {
+							<span class="badge bg-success">Activo</span>
+						} @else {
+							<span class="badge bg-danger">Inactivo</span>
+						}
+					</td>
+					<td>
+						<div class="btn-group" role="group">
+							
+							<!-- Botón Editar -->
+							<button 
+								class="btn btn-primary btn-sm" 
+								(click)="editarProducto(item)"
+								title="Editar producto maestro">
+								<i class="bi bi-pencil-square"></i>
+							</button>
+							
+							<!-- Botón Activar/Desactivar -->
+							@if(item.estado) {
+								<button 
+									class="btn btn-warning btn-sm" 
+									(click)="desactivarProducto(item)"
+									title="Desactivar producto maestro">
+									<i class="bi bi-toggle-on"></i>
+								</button>
+							} @else {
+								<button 
+									class="btn btn-success btn-sm" 
+									(click)="activarProducto(item)"
+									title="Activar producto maestro">
+									<i class="bi bi-toggle-off"></i>
+								</button>
+							}
+						</div>
+					</td>
+				</tr>
+			</ng-template>
+		</p-table>
+
+		<!-- Mensaje cuando no hay productos maestros -->
+		<div *ngIf="productosMaestros.length === 0" class="text-center mt-4">
+			<div class="alert alert-info">
+				<h4>No hay productos maestros registrados</h4>
+				<p>Comienza agregando tu primer producto maestro haciendo clic en el botón "Nuevo Producto Maestro".</p>
+				<button class="btn btn-success" (click)="router.navigate(['/pages/gestion-producto/registro-producto-maestro'])">
+					<i class="bi bi-plus-circle"></i> Crear Primer Producto Maestro
+				</button>
+			</div>
+		</div>
+	</div>
+</div>

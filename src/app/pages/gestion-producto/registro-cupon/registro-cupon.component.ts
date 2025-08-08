@@ -86,15 +86,16 @@ export class RegistroCuponComponent implements OnInit {
               stock: cupon.stock,
               fechaInicio: cupon.fechaInicio,
               fechaFin: cupon.fechaFin,
-              idRoles: [],
-              idProductos: []
+              idRoles: cupon.roles.map((rol: any) => rol.idRol),
+              idProductos: cupon.productos.map((producto: any) => producto.idProducto)
             };
 
-            // Cargar roles seleccionados
-            this.rolesSeleccionados = this.roles.filter(rol => cupon.roles.some((r: any) => r.idRol === rol.idRol));
+            if( this.isEditing) {
+              this.rolesSeleccionados = this.roles.filter(rol => 
+                this.cupon.idRoles.includes(rol.idRol)
+              );
+            }
 
-            // Cargar productos seleccionados
-            this.productosSeleccionados = this.productos.filter(producto => cupon.productos.some((p: any) => p.idProducto === producto.idProducto));
           },
           (error) => {
             console.error('Error al obtener cupón', error);
@@ -147,10 +148,7 @@ export class RegistroCuponComponent implements OnInit {
   listarRoles(): void {
     this.rolService.getRoles().subscribe(
       (roles) => {
-        this.roles = roles.map(rol => ({
-          idRol: rol.idRol,
-          nombre: rol.nombre
-        }));
+        this.roles = roles;
       },
       (error) => console.error('Error al cargar roles', error)
     );
@@ -161,8 +159,15 @@ export class RegistroCuponComponent implements OnInit {
       (productos) => {
         this.productos = productos.map(producto => ({
           idProducto: producto.idProducto,
-          nombre: producto.nombre + ' - ' + producto.presentacion + ' ' + producto.tipoPresentacion.descripcion
+          nombre: producto.productoMaestro.nombre + ' - ' + producto.presentacion + ' ' + producto.tipoPresentacion.descripcion
         }));
+
+        if( this.isEditing) {
+          // Si estamos editando, filtrar los productos seleccionados
+          this.productosSeleccionados = this.productos.filter(producto => 
+            this.cupon.idProductos.includes(producto.idProducto)
+          );
+        }
       },
       (error) => console.error('Error al cargar productos', error)
     );
