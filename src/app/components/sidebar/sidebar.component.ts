@@ -133,16 +133,21 @@ export class SidebarComponent {
 						},
 						{
 							key: '2_1',
+							label: 'Mantenimiento de Producto',
+							command: () => this.irA('pages/gestion-producto/mantenimiento-producto')
+						},
+						{
+							key: '2_2',
 							label: 'Registro de Cupón',
 							command: () => this.irA('pages/gestion-producto/registro-cupon')
 						},
 						{
-							key: '2_2',
+							key: '2_3',
 							label: 'Listado de Cupones',
 							command: () => this.irA('pages/gestion-producto/listado-cupones')
 						},
 						{
-							key: '2_3',
+							key: '2_4',
 							label: 'Catálogo de Precios',
 							command: () => this.irA('pages/gestion-producto/catalogo-precios')
 						}

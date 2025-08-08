@@ -1,5 +1,6 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { FormGroup, FormBuilder, Validators, ReactiveFormsModule, FormArray, FormsModule } from '@angular/forms';
+import { ActivatedRoute, Router } from '@angular/router';
 import { ClienteService } from '../../../services/cliente.service';
 import { MedioContactoService } from '../../../services/medio-contacto.service';
 import { TipoDocumentoService } from '../../../services/tipo-documento.service';
@@ -46,6 +47,7 @@ export interface Procedimiento {
 }
 
 export interface Presentacion {
+  idProducto?: string | null;
   idTipoPresentacion: number;
   presentacion: number | null;
   precio: number | null;
@@ -65,6 +67,11 @@ export class RegistroProductoComponent implements OnInit {
   materiasPrimas: any[] = [];
 
   currentStep = 0;
+  
+  // Variables para modo edición
+  isEditing = false;
+  idProductoMaestro: number | null = null;
+  productoGuardadoExitosamente = false;
 
   @ViewChild('productoStepper') productoStepper: any;
 
@@ -82,7 +89,7 @@ export class RegistroProductoComponent implements OnInit {
       { orden: 1, descripcion: '' }
     ],
     presentaciones: [
-      { idTipoPresentacion: 1, presentacion: null, precio: null, estado: true }
+      { idProducto: null, idTipoPresentacion: 1, presentacion: null, precio: null, estado: true }
     ],
     elementosSeguridadPersonal: '',
     utillaje: '',
@@ -103,6 +110,8 @@ export class RegistroProductoComponent implements OnInit {
 		private productoService: ProductoService,
     private tipoPresentacionService: TipoPresentacionService,
     private materiaPrimaService: MateriaPrimaService,
+    private route: ActivatedRoute,
+    private router: Router,
 	) {
     this.events = [
             { status: 'Ordered', date: '15/10/2020 10:30', icon: 'pi pi-shopping-cart', color: '#9C27B0', image: 'game-controller.jpg' },
@@ -115,7 +124,91 @@ export class RegistroProductoComponent implements OnInit {
 	ngOnInit(): void {
     this.cargarTiposPresentacion();
     this.cargarMateriasPrimas();
+    this.verificarModoEdicion();
 	}
+
+  verificarModoEdicion(): void {
+    this.route.paramMap.subscribe(params => {
+      const id = params.get('idProductoMaestro');
+      if (id) {
+        this.isEditing = true;
+        this.idProductoMaestro = parseInt(id);
+        this.cargarProductoMaestro(this.idProductoMaestro);
+      }
+    });
+  }
+
+  cargarProductoMaestro(idProductoMaestro: number): void {
+    this.productoService.getProductoMaestroCompleto(idProductoMaestro).subscribe({
+      next: (data) => {
+        this.setearDatosProducto(data);
+      },
+      error: (error) => {
+        console.error('Error al cargar producto maestro:', error);
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'No se pudo cargar la información del producto maestro',
+        });
+        this.router.navigate(['/pages/gestion-producto/mantenimiento-producto']);
+      }
+    });
+  }
+
+  setearDatosProducto(data: any): void {
+    // Setear datos del producto maestro
+    this.producto.nombre = data.productoMaestro.nombre || '';
+    this.producto.descripcion = data.productoMaestro.descripcion || '';
+    this.producto.phDefinidoMin = data.productoMaestro.phDefinidoMin || null;
+    this.producto.phDefinidoMax = data.productoMaestro.phDefinidoMax || null;
+    this.producto.estado = data.productoMaestro.estado || true;
+
+    // Setear materias primas (ingredientes)
+    if (data.materiasPrimas && data.materiasPrimas.length > 0) {
+      this.producto.ingredientes = data.materiasPrimas.map((mp: any) => ({
+        idMateriaPrima: mp.idMateriaPrima,
+        cantidad: mp.cantidad
+      }));
+    }
+
+    // Setear procedimientos
+    if (data.procedimientos && data.procedimientos.length > 0) {
+      this.producto.procedimientos = data.procedimientos.map((proc: any) => ({
+        orden: proc.orden,
+        descripcion: proc.descripcion
+      }));
+    }
+
+    // Setear presentaciones
+    if (data.presentaciones && data.presentaciones.length > 0) {
+      this.producto.presentaciones = data.presentaciones.map((pres: any) => ({
+        idProducto: pres.idProducto, // Preservar el ID del producto existente
+        idTipoPresentacion: pres.tipoPresentacion.idTipoPresentacion,
+        presentacion: pres.presentacion,
+        precio: pres.precio,
+        estado: pres.estado
+      }));
+    }
+
+    // Setear datos de producción
+    if (data.produccion) {
+      this.producto.elementosSeguridadPersonal = data.produccion.elementosSeguridadPersonal || '';
+      this.producto.utillaje = data.produccion.utillaje || '';
+      this.producto.controlCalidad = data.produccion.controlCalidad || '';
+      this.producto.tipoEnvase = data.produccion.tipoEnvase || '';
+      this.producto.colorEtiqueta = data.produccion.colorEtiqueta || '';
+      this.producto.indicacionesPosologia = data.produccion.indicacionesPosologia || '';
+      this.producto.conservacion = data.produccion.conservacion || '';
+      this.producto.reaccionesAdversas = data.produccion.reaccionesAdversas || '';
+      this.producto.precaucionesContraindicaciones = data.produccion.precaucionesContraindicaciones || '';
+      this.producto.observaciones = data.produccion.observaciones || '';
+      this.producto.bibliografia = data.produccion.bibliografia || '';
+    }
+  }
+
+  navegarVolver(): void {
+    this.router.navigate(['/pages/gestion-producto/mantenimiento-producto']);
+  }
 
   cargarTiposPresentacion(): void {
     this.tipoPresentacionService.getTiposPresentacion().subscribe(
@@ -165,7 +258,13 @@ export class RegistroProductoComponent implements OnInit {
   }
 
   agregarPresentacion(): void {
-    const nuevaPresentacion: Presentacion = { idTipoPresentacion: 1, presentacion: null, precio: null, estado: true };
+    const nuevaPresentacion: Presentacion = { 
+      idProducto: null, 
+      idTipoPresentacion: 1, 
+      presentacion: null, 
+      precio: null, 
+      estado: true 
+    };
     this.producto.presentaciones.push(nuevaPresentacion);
   }
 
@@ -212,35 +311,74 @@ export class RegistroProductoComponent implements OnInit {
 
   productosCreados = [];
   guardarProducto(callback: any): void {
-    // Aquí puedes implementar la lógica para guardar el producto
     console.log('Producto a guardar:', this.producto);
     
-    this.productoService.saveProducto(this.producto).subscribe(
-      (data) => {
-        if(data && data.productoMaestro) {
-          this.productosCreados = data.productos;
-          callback.emit();
-          // Swal.fire({
-          //   icon: 'success',
-          //   title: '¡Listo!',
-          //   text: 'Producto registrado correctamente.',
-          // });
-        }else{
+    if (this.isEditing && this.idProductoMaestro) {
+      // Modo edición - actualizar producto existente
+      const productoParaActualizar = {
+        ...this.producto,
+        idProductoMaestro: this.idProductoMaestro
+      };
+      
+      this.productoService.updateProductoMaestro(productoParaActualizar).subscribe({
+        next: (data) => {
+          if (data && data.productoMaestro) {
+            this.productosCreados = data.productos || [];
+            this.productoGuardadoExitosamente = true;
+            callback.emit();
+            Swal.fire({
+              icon: 'success',
+              title: '¡Actualizado!',
+              text: 'Producto maestro actualizado correctamente.',
+            });
+          } else {
+            Swal.fire({
+              icon: 'error',
+              title: '¡Error!',
+              text: 'Ha ocurrido un error al actualizar el producto maestro.',
+            });
+          }
+        },
+        error: (error) => {
+          console.error('Error al actualizar producto:', error);
+          Swal.fire({
+            icon: 'error',
+            title: '¡Error!',
+            text: 'Ha ocurrido un error al actualizar el producto maestro.',
+          });
+        }
+      });
+    } else {
+      // Modo creación - crear nuevo producto
+      this.productoService.saveProducto(this.producto).subscribe({
+        next: (data) => {
+          if (data && data.productoMaestro) {
+            this.productosCreados = data.productos || [];
+            this.productoGuardadoExitosamente = true;
+            callback.emit();
+            // Swal.fire({
+            //   icon: 'success',
+            //   title: '¡Listo!',
+            //   text: 'Producto registrado correctamente.',
+            // });
+          } else {
+            Swal.fire({
+              icon: 'error',
+              title: '¡Error!',
+              text: 'Ha ocurrido un error al registrar el producto.',
+            });
+          }
+        },
+        error: (error) => {
+          console.error('Error al guardar producto:', error);
           Swal.fire({
             icon: 'error',
             title: '¡Error!',
             text: 'Ha ocurrido un error al registrar el producto.',
           });
         }
-      },
-      (error) => {
-        Swal.fire({
-          icon: 'error',
-          title: '¡Error!',
-          text: 'Ha ocurrido un error al registrar el producto.',
-        });
-      }
-    );
+      });
+    }
   }
 
   limpiarFormulario(): void {
@@ -252,7 +390,7 @@ export class RegistroProductoComponent implements OnInit {
       estado: true,
       ingredientes: [{ idMateriaPrima: 0, cantidad: 0 }],
       procedimientos: [{ orden: 1, descripcion: '' }],
-      presentaciones: [{ idTipoPresentacion: 1, presentacion: null, precio: null, estado: true }],
+      presentaciones: [{ idProducto: null, idTipoPresentacion: 1, presentacion: null, precio: null, estado: true }],
       elementosSeguridadPersonal: '',
       utillaje: '',
       controlCalidad: '',
@@ -268,6 +406,21 @@ export class RegistroProductoComponent implements OnInit {
     this.tiposPresentacion = [];
     this.materiasPrimas = [];
     this.currentStep = 0;
+    this.productoGuardadoExitosamente = false;
+  }
+
+  regresarMantenimiento(): void {
+    this.router.navigate(['/pages/gestion-producto/mantenimiento-producto']);
+  }
+
+  // Método para prevenir navegación hacia atrás en el stepper cuando está en resumen después de guardar
+  onStepChange(event: any): void {
+    // Si ya se guardó exitosamente y está en el resumen (step 3), no permitir ir hacia atrás
+    if (this.productoGuardadoExitosamente && this.currentStep === 3 && event.index < 3) {
+      event.preventDefault();
+      return;
+    }
+    this.currentStep = event.index;
   }
 
 }

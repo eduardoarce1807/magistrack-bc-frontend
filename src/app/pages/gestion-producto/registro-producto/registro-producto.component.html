@@ -1,8 +1,18 @@
 <div class="container-fluid mt-5" style="padding: 0px 60px;">
   <div class="card shadow-lg p-4 rounded-4">
-    <h2 class="mb-4 text-center">Registro de Producto</h2>
+    
+    <!-- Botón de navegación -->
+    <button style="position: absolute;" class="btn btn-link text-decoration-none p-0" 
+            (click)="navegarVolver()">
+      <i class="bi bi-arrow-left"></i>Mantenimiento Productos
+    </button>
 
-    <p-stepper [linear]="true" [(activeStep)]="currentStep">
+    <h2 class="mb-4 text-center">{{ isEditing ? 'Actualizar Producto Maestro' : 'Registro de Producto' }}</h2>
+
+    <p-stepper 
+        [linear]="!(productoGuardadoExitosamente && currentStep >= 3)" 
+        [(activeStep)]="currentStep"
+        (onStepChange)="onStepChange($event)">
         <p-stepperPanel header="Datos producto y procedimiento">
             <ng-template pTemplate="content" let-nextCallback="nextCallback" let-index="index">
                 <div class="flex flex-column h-12rem">
@@ -226,7 +236,17 @@
                                                 <label for="precio" class="form-label">Precio</label>
                                                 <div class="input-group">
                                                     <span class="input-group-text">S/</span>
-                                                    <input type="number" id="precio" [(ngModel)]="presentacion.precio" min="0" name="precio" class="form-control" placeholder="Ingrese el precio" [min]="0" required />
+                                                    <input 
+                                                        type="number" 
+                                                        id="precio" 
+                                                        [(ngModel)]="presentacion.precio" 
+                                                        min="0" 
+                                                        name="precio" 
+                                                        class="form-control" 
+                                                        placeholder="Ingrese el precio" 
+                                                        [min]="0" 
+                                                        [disabled]="isEditing && !!presentacion.idProducto"
+                                                        required />
                                                 </div>
                                             </div>
                                             <div class="col-md-2">
@@ -251,7 +271,7 @@
                 <div class="flex pt-4 justify-content-between">
                     <p-button label="Atrás" icon="pi pi-arrow-left" (onClick)="prevCallback.emit()" />
                     <p-button 
-                        label="Guardar Producto" 
+                        [label]="isEditing ? 'Actualizar Producto' : 'Guardar Producto'" 
                         icon="pi pi-arrow-right" 
                         iconPos="right" 
                         (onClick)="guardarProducto(nextCallback)"
@@ -297,8 +317,13 @@
                 </div>
                 <div class="flex pt-4 justify-content-end">
                     <p-button 
+                        *ngIf="!isEditing"
                         label="Crear nuevo producto"
                         (onClick)="limpiarFormulario()"/>
+                    <p-button 
+                        *ngIf="isEditing"
+                        label="Regresar a mantenimiento de productos"
+                        (onClick)="regresarMantenimiento()"/>
                 </div>
             </ng-template>
         </p-stepperPanel>
