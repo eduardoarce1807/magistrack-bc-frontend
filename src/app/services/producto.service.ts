@@ -101,4 +101,9 @@ export class ProductoService {
     let url = `${this.baseUrl}/estado-producto-maestro/${idProductoMaestro}`;
     return this.http.put<any>(url, null, { params: { estado: estado.toString() } });
   }
+
+  updateEstadoProductoBulk(data: any): Observable<any> {
+    let url = `${this.baseUrl}/estado-producto-bulk`;
+    return this.http.post<any>(url, data);
+  }
 }

@@ -10,6 +10,33 @@
 			Bandeja Despacho <i class="bi bi-arrow-right"></i>
 		</button>
 
+		<!-- Búsqueda por ID Producto -->
+		<div class="row mb-3">
+			<div class="col-md-8">
+				<label for="idProductoBusqueda" class="form-label">Buscar por ID Producto:</label>
+				<input 
+					type="text" 
+					id="idProductoBusqueda"
+					class="form-control" 
+					placeholder="Ingrese el ID Producto a buscar..."
+					[(ngModel)]="idProductoBusqueda"
+					[disabled]="isSearching"
+					(keyup.enter)="buscarPorIdProducto()"
+				/>
+			</div>
+			<div class="col-md-4 d-flex align-items-end">
+				<button 
+					class="btn btn-primary"
+					(click)="buscarPorIdProducto()"
+					[disabled]="isSearching || !idProductoBusqueda.trim()"
+				>
+					<span *ngIf="isSearching" class="spinner-border spinner-border-sm me-2" role="status"></span>
+					<i class="bi bi-search me-1"></i>
+					{{ isSearching ? 'Buscando...' : 'Buscar' }}
+				</button>
+			</div>
+		</div>
+
 		<!-- Tabla de Pedidos -->
 		<table class="table table-bordered align-middle mt-0">
 			<thead class="table-primary">
@@ -32,6 +59,16 @@
 				</tr>
 			</thead>
 			<tbody>
+				@if (productos.length === 0 && !isSearching) {
+					<tr>
+						<td colspan="7" class="text-center py-4">
+							<div class="text-muted">
+								<i class="bi bi-search fs-1"></i>
+								<p class="mt-2">{{ idProductoBusqueda.trim() ? 'No se encontraron productos para este ID Producto.' : 'Ingrese un ID Producto para buscar productos en etiquetado.' }}</p>
+							</div>
+						</td>
+					</tr>
+				}
 				@for (item of productos; track $index) {
 				<tr>
 					<!-- <td>
@@ -62,24 +99,18 @@
 						<span>{{ item.personalizado ? "Sí" : "No" }}</span>
 					</td>
 					<td>
-						<!-- <button
-							class="btn btn-info btn-sm me-2"
-							(click)="enviarDespacho(item)"
-						>
-							Enviar
-						</button> -->
-                        <button
-							class="btn btn-success me-2"
-							(click)="openModalValidar(validarProductoModal, item)"
-						>
-							<i class="bi bi-clipboard-check"></i>
-						</button>
 						<button
+							class="btn btn-info me-2"
+							(click)="enviarDespachoDirecto(item)"
+						>
+							<i class="bi bi-send"></i>
+						</button>
+						<!-- <button
 							class="btn btn-dark me-2"
 							(click)="getHojaProduccion(item.idProducto)"
 						>
 							<i class="bi bi-journal-text"></i>
-						</button>
+						</button> -->
 						<button
 							class="btn btn-secondary"
 							(click)="openModalNota(item, nota)"

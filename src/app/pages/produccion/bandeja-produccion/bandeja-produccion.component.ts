@@ -16,6 +16,7 @@ import { DataService } from '../../../services/data.service';
 import { ProductoService } from '../../../services/producto.service';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
+import JsBarcode from 'jsbarcode';
 
 // Define ProcedimientoProducto type with all required properties for the form
 type ProcedimientoProducto = {
@@ -101,6 +102,166 @@ export class BandejaProduccionComponent implements OnInit {
 		this.getProductosAll();
 	}
 
+	// Métodos para impresión de código de barras
+	@ViewChild('codigoBarraIndividual', { static: true }) codigoBarraIndividual: TemplateRef<any> | null = null;
+	itemCodigoBarras: any = null;
+
+	openModalCodigoBarraIndividual(item: any) {
+		if (!item.idBulk) {
+			Swal.fire({
+				icon: 'warning',
+				title: '¡Atención!',
+				text: 'Este producto no tiene un código bulk asignado.',
+				showConfirmButton: true,
+			});
+			return;
+		}
+		this.itemCodigoBarras = item;
+		if (this.codigoBarraIndividual) {
+			this.modalService.open(this.codigoBarraIndividual, { size: 'lg' });
+			setTimeout(() => {
+				this.initBarcodeIndividual();
+			}, 100);
+		}
+	}
+
+	initBarcodeIndividual(): void {
+		if (this.itemCodigoBarras && this.itemCodigoBarras.idBulk) {
+			JsBarcode('#barcode-individual', this.itemCodigoBarras.idBulk, {
+				width: 2,
+				height: 100,
+				displayValue: true,
+				fontSize: 16
+			});
+		}
+	}
+
+	imprimirCodigoBarraIndividual(divId: string): void {
+		const printContents = document.getElementById(divId)?.innerHTML;
+		if (!printContents) {
+			Swal.fire({
+				icon: 'error',
+				title: 'Oops!',
+				text: 'No se encontró el contenido para imprimir.',
+				showConfirmButton: true,
+			});
+			return;
+		}
+		const printWindow = window.open('', '', 'height=600,width=800');
+		if (printWindow) {
+			printWindow.document.write('<html><head><title>Código de Barras</title>');
+			printWindow.document.write('<style>body{margin:0;padding:20px;text-align:center;} @media print { body { -webkit-print-color-adjust: exact; } }</style>');
+			printWindow.document.write('</head><body>');
+			printWindow.document.write(printContents);
+			printWindow.document.write('</body></html>');
+			printWindow.document.close();
+			printWindow.focus();
+			setTimeout(() => {
+				printWindow.print();
+				printWindow.close();
+			}, 500);
+		}
+	}
+
+	mostrarOpcionesCodigoBarrasMasivo(idsProductoMaestro: string[]): void {
+		// Buscar los productos actualizados con sus nuevos estados y fechaCreacionBulk más reciente
+		const productosRecibidos = this.productosTable.filter(p => 
+			idsProductoMaestro.includes(p.idProductoMaestro) && 
+			p.idEstadoProducto === 3 && 
+			p.fechaCreacionBulk
+		);
+		
+		// Para cada idProductoMaestro, obtener solo el más reciente según fechaCreacionBulk
+		const productosUnicos: any[] = [];
+		idsProductoMaestro.forEach(idProductoMaestro => {
+			const productosDelMismo = productosRecibidos.filter(p => p.idProductoMaestro === idProductoMaestro);
+			if (productosDelMismo.length > 0) {
+				// Ordenar por fechaCreacionBulk descendente y tomar el más reciente
+				const productoMasReciente = productosDelMismo.sort((a, b) => 
+					new Date(b.fechaCreacionBulk).getTime() - new Date(a.fechaCreacionBulk).getTime()
+				)[0];
+				productosUnicos.push(productoMasReciente);
+			}
+		});
+		
+		const productosConBulk = productosUnicos.filter(p => p.idBulk);
+		
+		if (productosConBulk.length === 0) {
+			Swal.fire({
+				icon: 'info',
+				title: 'Información',
+				text: 'Los productos recibidos no tienen códigos bulk asignados para imprimir.',
+				showConfirmButton: true,
+			});
+			return;
+		}
+
+		// Si hay productos con bulk, preguntar si quiere imprimir códigos de barras
+		let productosHtml = '';
+		productosConBulk.forEach(p => {
+			productosHtml += `<li>${p.nombreProducto} (Bulk: ${p.idBulk})</li>`;
+		});
+
+		Swal.fire({
+			title: '¿Imprimir Códigos de Barras?',
+			html: `<p>Los siguientes productos han sido recibidos en producción y tienen códigos bulk disponibles:</p>
+				   <ul style="text-align: left; margin: 10px 0;">${productosHtml}</ul>
+				   <p>¿Deseas imprimir los códigos de barras ahora?</p>`,
+			icon: 'question',
+			showCancelButton: true,
+			confirmButtonText: 'Sí, imprimir',
+			cancelButtonText: 'No, después',
+			allowOutsideClick: false
+		}).then((result) => {
+			if (result.isConfirmed) {
+				// Abrir el primer producto y dar la opción de continuar con los demás
+				this.imprimirCodigosBarrasSecuencial(productosConBulk, 0);
+			}
+		});
+	}
+
+	imprimirCodigosBarrasSecuencial(productos: any[], indice: number): void {
+		if (indice >= productos.length) return;
+
+		const producto = productos[indice];
+		this.itemCodigoBarras = producto;
+		
+		if (this.codigoBarraIndividual) {
+			const modalRef = this.modalService.open(this.codigoBarraIndividual, { size: 'lg' });
+			setTimeout(() => {
+				this.initBarcodeIndividual();
+			}, 100);
+			
+			// Si hay más productos, preguntar si quiere continuar
+			if (indice < productos.length - 1) {
+				modalRef.result.then(() => {
+					// Modal cerrado, preguntar si quiere continuar con el siguiente
+					this.preguntarSiguienteCodigoBarras(productos, indice + 1);
+				}).catch(() => {
+					// Modal cancelado, preguntar si quiere continuar
+					this.preguntarSiguienteCodigoBarras(productos, indice + 1);
+				});
+			}
+		}
+	}
+
+	preguntarSiguienteCodigoBarras(productos: any[], indice: number): void {
+		if (indice >= productos.length) return;
+
+		Swal.fire({
+			title: 'Siguiente código de barras',
+			text: `¿Deseas imprimir el código de barras del siguiente producto: ${productos[indice].nombreProducto}?`,
+			icon: 'question',
+			showCancelButton: true,
+			confirmButtonText: 'Sí, continuar',
+			cancelButtonText: 'No, terminar'
+		}).then((result) => {
+			if (result.isConfirmed) {
+				this.imprimirCodigosBarrasSecuencial(productos, indice);
+			}
+		});
+	}
+
 	getProductosAll(): void {
 		this.productoService.getBandejaProduccion().subscribe(
 			(productos) => {
@@ -115,47 +276,18 @@ export class BandejaProduccionComponent implements OnInit {
 		);
 	}
 
-	@ViewChild('procedimiento', { static: true }) procedimiento: TemplateRef<any> | null = null;
-	getHojaProduccion(idProductoMaestro: string): void {
-		this.productoService.getHojaProduccion(idProductoMaestro).subscribe(
-			(data) => {
-				console.log('Hoja de producción obtenida:', data);
-				if(data && data.idResultado == 1) {
-					this.procedimientoData = data.value;
-					if (this.procedimiento) {
-						this.openModalXL(this.procedimiento);
-					}
-				}else{
-					Swal.fire({
-						icon: 'warning',
-						title: '¡Oops!',
-						text: data.resultado,
-						showConfirmButton: true,
-					});
-				}
-			},
-			(error) => {
-				console.error('Error al obtener la hoja de producción', error);
-				Swal.fire({
-					icon: 'warning',
-					title: 'Oops!',
-					text: 'Este producto no tiene hoja de producción.',
-					showConfirmButton: true,
-				});
-			}
-		);
-	}
-
-	@ViewChild('ingredientes', { static: true }) ingredientes: TemplateRef<any> | null = null;
+	@ViewChild('informacionCompleta', { static: true }) informacionCompleta: TemplateRef<any> | null = null;
 	productoMaestroCalculo: any = null;
-	getCalculoIngredientes(productoMaestro: any): void {
+	
+	getInformacionCompleta(productoMaestro: any): void {
 		this.productoService.getHojaProduccion(productoMaestro.idProductoMaestro).subscribe(
 			(data) => {
+				console.log('Información completa obtenida:', data);
 				if(data && data.idResultado == 1) {
 					this.procedimientoData = data.value;
 					this.productoMaestroCalculo = productoMaestro;
-					if (this.ingredientes) {
-						this.openModalLG(this.ingredientes);
+					if (this.informacionCompleta) {
+						this.openModalXL(this.informacionCompleta);
 					}
 				}else{
 					Swal.fire({
@@ -167,11 +299,11 @@ export class BandejaProduccionComponent implements OnInit {
 				}
 			},
 			(error) => {
-				console.error('Error al obtener el cálculo de ingredientes', error);
+				console.error('Error al obtener la información del producto', error);
 				Swal.fire({
 					icon: 'warning',
 					title: 'Oops!',
-					text: 'No se pudo obtener el cálculo de ingredientes del producto, ya que no tiene hoja de producción.',
+					text: 'Este producto no tiene información de producción disponible.',
 					showConfirmButton: true,
 				});
 			}
@@ -238,6 +370,32 @@ export class BandejaProduccionComponent implements OnInit {
 							}).then(() => {
 								this.getProductosAll();
 								this.lstProductosSeleccionados = [];
+								// Después de actualizar la lista, abrir automáticamente el modal de código de barras
+								setTimeout(() => {
+									// Buscar el producto con la fechaCreacionBulk más reciente
+									const productosConBulk = this.productosTable.filter(p => 
+										p.idProductoMaestro === item.idProductoMaestro && 
+										p.idEstadoProducto === 3 && 
+										p.fechaCreacionBulk
+									);
+									
+									if (productosConBulk.length > 0) {
+										// Ordenar por fechaCreacionBulk descendente y tomar el más reciente
+										const productoMasReciente = productosConBulk.sort((a, b) => 
+											new Date(b.fechaCreacionBulk).getTime() - new Date(a.fechaCreacionBulk).getTime()
+										)[0];
+										
+										this.openModalCodigoBarraIndividual(productoMasReciente);
+									} else {
+										// Si no se encuentra producto con fechaCreacionBulk, buscar por idProductoMaestro como fallback
+										const productoActualizado = this.productosTable.find(p => 
+											p.idProductoMaestro === item.idProductoMaestro && p.idEstadoProducto === 3
+										);
+										if (productoActualizado) {
+											this.openModalCodigoBarraIndividual(productoActualizado);
+										}
+									}
+								}, 500); // Delay para asegurar que la lista se haya actualizado
 							});
 						},
 						(error) => {
@@ -313,6 +471,31 @@ export class BandejaProduccionComponent implements OnInit {
 					})
 					.subscribe(
 						(response) => {
+							// Llamada adicional al endpoint de estado-producto-bulk
+							if (item.idBulk) {
+								const bulkData = {
+									idBulk: item.idBulk,
+									idProductoMaestro: item.idProductoMaestro,
+									idEstadoProductoActual: 3, // En producción
+									idEstadoProductoNuevo: 4, // En calidad
+									idEstadoPedido: 5, // En calidad
+									idEstadoPedidoCliente: 3, // En producción
+									idCliente: this.dataService.getLoggedUser().cliente.idCliente,
+									accionRealizada: 'Producto enviado a calidad',
+									observacion: ''
+								};
+
+								this.productoService.updateEstadoProductoBulk(bulkData).subscribe(
+									(bulkResponse) => {
+										console.log('Estado bulk actualizado correctamente:', bulkResponse);
+									},
+									(bulkError) => {
+										console.error('Error al actualizar estado bulk:', bulkError);
+										// No mostramos error al usuario ya que la operación principal fue exitosa
+									}
+								);
+							}
+
 							Swal.fire({
 								icon: 'success',
 								title: '¡Listo!',
@@ -487,8 +670,14 @@ export class BandejaProduccionComponent implements OnInit {
 								text: 'Productos recibidos en producción correctamente.',
 								showConfirmButton: true,
 							}).then(() => {
+								// Guardar los IDs de los productos procesados antes de limpiar la selección
+								const productosRecibidos = this.lstProductosSeleccionados.map(item => item.idProductoMaestro);
 								this.getProductosAll();
 								this.lstProductosSeleccionados = [];
+								// Después de actualizar la lista, mostrar opciones para imprimir códigos de barras
+								setTimeout(() => {
+									this.mostrarOpcionesCodigoBarrasMasivo(productosRecibidos);
+								}, 500);
 							});
 						},
 						(error) => {
