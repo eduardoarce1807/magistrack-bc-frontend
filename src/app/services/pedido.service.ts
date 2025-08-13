@@ -111,14 +111,29 @@ export class PedidoService {
 		return this.http.get<any[]>(url);
 	}
 
+	getProductoCalidadByIdBulk(idBulk: string): Observable<any> {
+		let url = `${this.baseUrl}/productos/calidad/${idBulk}`;
+		return this.http.get<any>(url);
+	}
+
 	getProductosEnvasado(): Observable<any[]> {
 		let url = `${this.baseUrl}/productos/envasado`;
 		return this.http.get<any[]>(url);
 	}
 
+	getProductosEnvasadoByIdBulk(idBulk: string): Observable<any> {
+		let url = `${this.baseUrl}/productos/envasado/${idBulk}`;
+		return this.http.get<any>(url);
+	}
+
 	getProductosEtiquetado(): Observable<any[]> {
 		let url = `${this.baseUrl}/productos/etiquetado`;
 		return this.http.get<any[]>(url);
+	}
+
+	getProductosEtiquetadoByIdProducto(idProducto: string): Observable<any> {
+		let url = `${this.baseUrl}/productos/etiquetado/${idProducto}`;
+		return this.http.get<any>(url);
 	}
 
 	getProductosDespacho(): Observable<any[]> {

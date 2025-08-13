@@ -31,9 +31,15 @@ export class BandejaEnvasadoComponent implements OnInit {
   lstProductosSeleccionados: any[] = [];
   private modalService = inject(NgbModal);
 
+  idBulkBusqueda: string = '';
+  isSearching: boolean = false;
+
   idPedidoNota: string | null = null;
   idProductoNota: string | null = null;
   observacionNota: string = '';
+
+  // Para modal de código de barras individual
+  productoCodigoBarras: any = null;
 
   tipoEnvio = 0;
 
@@ -47,7 +53,8 @@ export class BandejaEnvasadoComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.getProductosAll();
+    // Ya no se cargan automáticamente los productos
+    // this.getProductosAll();
   }
 
   getProductosAll(): void {
@@ -66,6 +73,54 @@ export class BandejaEnvasadoComponent implements OnInit {
           text: 'No se pudieron cargar los productos, inténtelo de nuevo.',
           showConfirmButton: true,
         });
+      }
+    );
+  }
+
+  buscarPorIdBulk(): void {
+    if (!this.idBulkBusqueda.trim()) {
+      Swal.fire({
+        icon: 'warning',
+        title: '¡Atención!',
+        text: 'Por favor ingrese un ID Bulk para buscar.',
+        showConfirmButton: true,
+      });
+      return;
+    }
+
+    this.isSearching = true;
+    this.pedidoService.getProductosEnvasadoByIdBulk(this.idBulkBusqueda.trim()).subscribe(
+      (response: any) => {
+        console.log('Respuesta búsqueda por idBulk:', response);
+        
+        // Verificar si hay error (idResultado = 0)
+        if (response && response.idResultado === 0) {
+          Swal.fire({
+            icon: 'warning',
+            title: 'Productos no encontrados',
+            text: response.mensaje || 'El ID Bulk ingresado no existe en envasado.',
+            showConfirmButton: true,
+          });
+          this.productosTable = [];
+          this.refreshProductos();
+        } else {
+          // Si no hay idResultado ni mensaje, es una lista válida de productos
+          // Como puede retornar un array, lo asignamos directamente
+          this.productosTable = Array.isArray(response) ? response : [response];
+          this.collectionSize = this.productosTable.length;
+          this.refreshProductos();
+        }
+        this.isSearching = false;
+      },
+      (error: any) => {
+        console.error('Error al buscar productos por idBulk', error);
+        Swal.fire({
+          icon: 'error',
+          title: 'Error de búsqueda',
+          text: 'No se pudo realizar la búsqueda, inténtelo de nuevo.',
+          showConfirmButton: true,
+        });
+        this.isSearching = false;
       }
     );
   }
@@ -164,6 +219,10 @@ export class BandejaEnvasadoComponent implements OnInit {
     }
   }
 
+  imprimirCodigoBarraIndividual(): void {
+    this.imprimirCodigosBarra('codigoBarraIndividualPrint');
+  }
+
   openModalCodigoBarras(content: TemplateRef<any>) {
     if (this.lstProductosSeleccionados.length === 0) {
       Swal.fire({
@@ -178,6 +237,38 @@ export class BandejaEnvasadoComponent implements OnInit {
     setTimeout(() => {
       this.initBarcodes();
     }, 0);
+  }
+
+  openModalCodigoBarrasIndividual(content: TemplateRef<any>, producto: any) {
+    this.productoCodigoBarras = producto;
+    const modalRef = this.modalService.open(content, { 
+      size: 'lg',
+      centered: true
+    });
+    
+    // Cuando se cierre el modal, limpiar input y tabla
+    modalRef.result.then(() => {
+      // Modal cerrado con botón de cerrar o acción
+      this.limpiarBusqueda();
+    }).catch(() => {
+      // Modal cerrado con ESC o click fuera
+      this.limpiarBusqueda();
+    });
+    
+    setTimeout(() => {
+      this.initBarcodeIndividual();
+    }, 0);
+  }
+
+  initBarcodeIndividual(): void {
+    if (this.productoCodigoBarras) {
+      JsBarcode('#barcode-individual', this.productoCodigoBarras.idProducto, {
+        width: 2, 
+        height: 60, 
+        displayValue: true, 
+        fontSize: 16
+      });
+    }
   }
 
   initBarcodes(): void {
@@ -196,6 +287,25 @@ export class BandejaEnvasadoComponent implements OnInit {
       );
   }
 
+  actualizarListaProductos(): void {
+    // Si hay un idBulk en búsqueda, volver a buscar por ese idBulk
+    if (this.idBulkBusqueda.trim()) {
+      this.buscarPorIdBulk();
+    } else {
+      // Si no hay búsqueda específica, cargar todos (método original)
+      this.getProductosAll();
+    }
+  }
+
+  limpiarBusqueda(): void {
+    this.idBulkBusqueda = '';
+    this.productosTable = [];
+    this.productos = [];
+    this.collectionSize = 0;
+    this.lstProductosSeleccionados = [];
+    this.refreshProductos();
+  }
+
   saveObservacion(): void {
     this.pedidoService
       .saveObservacionPedido({
@@ -211,7 +321,7 @@ export class BandejaEnvasadoComponent implements OnInit {
             text: 'Observación guardada correctamente.',
             showConfirmButton: true,
           });
-          this.getProductosAll();
+          this.actualizarListaProductos();
           this.modalService.dismissAll();
           this.observacionNota = '';
           this.idPedidoNota = null;
@@ -371,7 +481,7 @@ export class BandejaEnvasadoComponent implements OnInit {
                 text: 'Productos enviados a etiquetado correctamente.',
                 showConfirmButton: true,
               }).then(() => {
-                this.getProductosAll();
+                this.actualizarListaProductos();
                 this.lstProductosSeleccionados = [];
               });
             },
@@ -392,11 +502,13 @@ export class BandejaEnvasadoComponent implements OnInit {
     });
   }
 
+  @ViewChild('codigoBarrasIndividual', { static: true }) codigoBarrasIndividual: TemplateRef<any> | null = null;
+
   enviarEtiquetado(item: any) {
 
     Swal.fire({
       title: '¿Estás seguro?',
-      html: `<p>¿Deseas enviar el producto <strong>${item.idProducto}</strong> a etiquetado?</p>`,
+      html: `<p>¿Deseas enviar <strong>${item.cantidad} ${item.nombre} - ${item.presentacion} ${item.tipoPresentacion}</strong> a etiquetado?</p>`,
       icon: 'question',
       showCancelButton: true,
       confirmButtonText: 'Sí, enviar',
@@ -422,8 +534,14 @@ export class BandejaEnvasadoComponent implements OnInit {
                 text: 'Producto enviado a etiquetado correctamente.',
                 showConfirmButton: true,
               }).then(() => {
-                this.getProductosAll();
+                // No actualizar lista aquí, solo mostrar modal de código de barras
+                // La limpieza se hará cuando se cierre el modal del código de barras
                 this.lstProductosSeleccionados = [];
+                
+                // Mostrar modal de código de barras
+                if (this.codigoBarrasIndividual) {
+                  this.openModalCodigoBarrasIndividual(this.codigoBarrasIndividual, item);
+                }
               });
             },
             (error) => {
