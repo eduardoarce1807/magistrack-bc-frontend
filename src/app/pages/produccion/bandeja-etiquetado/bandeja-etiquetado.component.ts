@@ -31,6 +31,9 @@ export class BandejaEtiquetadoComponent implements OnInit {
   lstProductosSeleccionados: any[] = [];
   private modalService = inject(NgbModal);
 
+  idProductoBusqueda: string = '';
+  isSearching: boolean = false;
+
   idPedidoNota: string | null = null;
   idProductoNota: string | null = null;
   observacionNota: string = '';
@@ -48,7 +51,8 @@ export class BandejaEtiquetadoComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.getProductosAll();
+    // Iniciamos sin cargar productos automáticamente
+    // this.getProductosAll();
   }
 
   getProductosAll(): void {
@@ -67,6 +71,54 @@ export class BandejaEtiquetadoComponent implements OnInit {
           text: 'No se pudieron cargar los productos, inténtelo de nuevo.',
           showConfirmButton: true,
         });
+      }
+    );
+  }
+
+  buscarPorIdProducto(): void {
+    if (!this.idProductoBusqueda.trim()) {
+      Swal.fire({
+        icon: 'warning',
+        title: '¡Atención!',
+        text: 'Por favor ingrese un ID Producto para buscar.',
+        showConfirmButton: true,
+      });
+      return;
+    }
+
+    this.isSearching = true;
+    this.pedidoService.getProductosEtiquetadoByIdProducto(this.idProductoBusqueda.trim()).subscribe(
+      (response: any) => {
+        console.log('Respuesta búsqueda por idProducto:', response);
+        
+        // Verificar si hay error (idResultado = 0)
+        if (response && response.idResultado === 0) {
+          Swal.fire({
+            icon: 'warning',
+            title: 'Productos no encontrados',
+            text: response.mensaje || 'El ID Producto ingresado no existe en etiquetado.',
+            showConfirmButton: true,
+          });
+          this.productosTable = [];
+          this.refreshProductos();
+        } else {
+          // Si no hay idResultado ni mensaje, es una lista válida de productos
+          // Como puede retornar un array, lo asignamos directamente
+          this.productosTable = Array.isArray(response) ? response : [response];
+          this.collectionSize = this.productosTable.length;
+          this.refreshProductos();
+        }
+        this.isSearching = false;
+      },
+      (error: any) => {
+        console.error('Error al buscar productos por idProducto', error);
+        Swal.fire({
+          icon: 'error',
+          title: 'Error de búsqueda',
+          text: 'No se pudo realizar la búsqueda, inténtelo de nuevo.',
+          showConfirmButton: true,
+        });
+        this.isSearching = false;
       }
     );
   }
@@ -188,6 +240,25 @@ export class BandejaEtiquetadoComponent implements OnInit {
       );
   }
 
+  actualizarListaProductos(): void {
+    // Si hay un idProducto en búsqueda, volver a buscar por ese idProducto
+    if (this.idProductoBusqueda.trim()) {
+      this.buscarPorIdProducto();
+    } else {
+      // Si no hay búsqueda específica, cargar todos (método original)
+      this.getProductosAll();
+    }
+  }
+
+  limpiarBusqueda(): void {
+    this.idProductoBusqueda = '';
+    this.productosTable = [];
+    this.productos = [];
+    this.collectionSize = 0;
+    this.lstProductosSeleccionados = [];
+    this.refreshProductos();
+  }
+
   saveObservacion(): void {
     this.pedidoService
       .saveObservacionPedido({
@@ -203,7 +274,7 @@ export class BandejaEtiquetadoComponent implements OnInit {
             text: 'Observación guardada correctamente.',
             showConfirmButton: true,
           });
-          this.getProductosAll();
+          this.actualizarListaProductos();
           this.modalService.dismissAll();
           this.observacionNota = '';
           this.idPedidoNota = null;
@@ -363,7 +434,7 @@ export class BandejaEtiquetadoComponent implements OnInit {
                 text: 'Productos enviados a despacho correctamente.',
                 showConfirmButton: true,
               }).then(() => {
-                this.getProductosAll();
+                this.actualizarListaProductos();
                 this.lstProductosSeleccionados = [];
               });
             },
@@ -416,7 +487,7 @@ export class BandejaEtiquetadoComponent implements OnInit {
                 text: 'Producto enviado a despacho correctamente.',
                 showConfirmButton: true,
               }).then(() => {
-                this.getProductosAll();
+                this.actualizarListaProductos();
                 this.lstProductosSeleccionados = [];
               });
             },
@@ -433,6 +504,53 @@ export class BandejaEtiquetadoComponent implements OnInit {
       }
     });
     
+  }
+
+  enviarDespachoDirecto(item: any) {
+    Swal.fire({
+      title: '¿Estás seguro?',
+      html: `<p>¿Deseas enviar <strong>${item.cantidad} ${item.nombre} - ${item.presentacion} ${item.tipoPresentacion}</strong> a DESPACHO?</p>`,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: 'Sí, enviar',
+      cancelButtonText: 'Cancelar',
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.productoService
+          .updateEstadoProducto({
+            idProducto: item.idProducto,
+            idPedido: item.idPedido,
+            idEstadoProducto: 7, // En despacho
+            idEstadoPedido: 8, // En despacho
+            idEstadoPedidoCliente: 4, // En despacho
+            idCliente: this.dataService.getLoggedUser().cliente.idCliente,
+            accionRealizada: 'Producto enviado a despacho',
+            observacion: '',
+          })
+          .subscribe(
+            (response) => {
+              Swal.fire({
+                icon: 'success',
+                title: '¡Listo!',
+                text: 'Producto enviado a despacho correctamente.',
+                showConfirmButton: true,
+              }).then(() => {
+                // Limpiar input y tabla
+                this.limpiarBusqueda();
+              });
+            },
+            (error) => {
+              console.error('Error al enviar producto a despacho', error);
+              Swal.fire({
+                icon: 'error',
+                title: 'Oops!',
+                text: 'No se pudo enviar el producto a despacho, inténtelo de nuevo.',
+                showConfirmButton: true,
+              });
+            }
+          );
+      }
+    });
   }
 }
 

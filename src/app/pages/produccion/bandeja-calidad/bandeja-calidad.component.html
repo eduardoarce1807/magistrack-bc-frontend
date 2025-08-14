@@ -10,6 +10,33 @@
 			Bandeja Envasado <i class="bi bi-arrow-right"></i>
 		</button>
 
+		<!-- Búsqueda por ID Bulk -->
+		<div class="row mb-3">
+			<div class="col-md-8">
+				<label for="idBulkBusqueda" class="form-label">Buscar por ID Bulk:</label>
+				<input 
+					type="text" 
+					id="idBulkBusqueda"
+					class="form-control" 
+					placeholder="Ingrese el ID Bulk a buscar..."
+					[(ngModel)]="idBulkBusqueda"
+					[disabled]="isSearching"
+					(keyup.enter)="buscarPorIdBulk()"
+				/>
+			</div>
+			<div class="col-md-4 d-flex align-items-end">
+				<button 
+					class="btn btn-primary"
+					(click)="buscarPorIdBulk()"
+					[disabled]="isSearching || !idBulkBusqueda.trim()"
+				>
+					<span *ngIf="isSearching" class="spinner-border spinner-border-sm me-2" role="status"></span>
+					<i class="bi bi-search me-1"></i>
+					{{ isSearching ? 'Buscando...' : 'Buscar' }}
+				</button>
+			</div>
+		</div>
+
 		<!-- Tabla de Pedidos -->
 		<table class="table table-bordered align-middle mt-0">
 			<thead class="table-primary">
@@ -33,6 +60,16 @@
 				</tr>
 			</thead>
 			<tbody>
+				@if (productos.length === 0 && !isSearching) {
+					<tr>
+						<td colspan="8" class="text-center py-4">
+							<div class="text-muted">
+								<i class="bi bi-search fs-1"></i>
+								<p class="mt-2">{{ idBulkBusqueda.trim() ? 'No se encontraron productos para este ID Bulk.' : 'Ingrese un ID Bulk para buscar productos en calidad.' }}</p>
+							</div>
+						</td>
+					</tr>
+				}
 				@for (item of productos; track $index) {
 				<tr>
 					<td>
@@ -88,14 +125,8 @@
 							(click)="enviarEnvasado(item)">
 							<i class="bi bi-send"></i>
 						</button>
-						<button class="btn btn-dark me-2" (click)="getHojaProduccion(item.idProductoMaestro)">
+						<button class="btn btn-dark me-2" (click)="getInformacionCompleta(item)" title="Ver información completa del producto">
 							<i class="bi bi-journal-text"></i>
-						</button>
-						<button
-							class="btn btn-danger me-2"
-							(click)="getCalculoIngredientes(item)"
-						>
-							%
 						</button>
 						<button class="btn btn-danger me-2" (click)="regresarAProduccion(item)" [disabled]="
 								!(item.phCalidadPromedio === null ||
@@ -114,6 +145,7 @@
 			</tbody>
 		</table>
 
+		@if (productos.length > 0) {
 		<div class="d-flex justify-content-between p-2">
 			<ngb-pagination
 				[collectionSize]="collectionSize"
@@ -152,6 +184,7 @@
 				</div>
 			</div>
 		</div>
+		}
 
 		<!-- <div class="d-flex justify-content-center align-items-center mb-4">
 			@if (lstProductosSeleccionados.length > 0) {
@@ -163,9 +196,9 @@
 </div>
 
 
-<ng-template #ingredientes let-modal>
+<ng-template #informacionCompleta let-modal>
 	<div class="modal-header">
-		<h4 class="modal-title" id="modal-basic-title">Cálculo de Ingredientes</h4>
+		<h4 class="modal-title" id="modal-basic-title">Información Completa del Producto</h4>
 		<button
 			type="button"
 			class="btn-close"
@@ -180,112 +213,104 @@
 			<span class="mb-2"><span style="font-weight: bold;">Descripción:</span> {{procedimientoData.productoMaestro.descripcion}}</span>
 			<hr>
 
-			@if (productoMaestroCalculo) {
-				<h5>Ingredientes para presentación de {{productoMaestroCalculo.presentacionTotal}} {{productoMaestroCalculo.tipoPresentacion}}</h5>
-			}@else{
-				<h5>Ingredientes</h5>
-			}
-			
+			<!-- Sección de Cálculo de Ingredientes -->
+			<div class="mb-4">
+				@if (productoMaestroCalculo) {
+					<h5 class="text-primary">Ingredientes para presentación de {{productoMaestroCalculo.presentacionTotal}} {{productoMaestroCalculo.tipoPresentacion}}</h5>
+				}@else{
+					<h5 class="text-primary">Ingredientes</h5>
+				}
+				
+				<table class="table table-bordered">
+					<thead class="table-light">
+						<tr>
+							<th>Ingrediente</th>
+							<th>Cálculo</th>
+							<th>Cantidad (%)</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr *ngFor="let ingrediente of procedimientoData.ingredientes">
+							<td>{{ ingrediente.materiaPrima.nombre }}</td>
+							<td>{{ (ingrediente.cantidad / 100) * (productoMaestroCalculo ? productoMaestroCalculo.presentacionTotal : 0) }}</td>
+							<td>{{ ingrediente.cantidad }} %</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
 
-			<table class="table table-bordered">
-				<thead>
-					<tr>
-						<th>Ingrediente</th>
-						<th>Cálculo</th>
-						<th>Cantidad (%)</th>
-					</tr>
-				</thead>
-				<tbody>
-					<tr *ngFor="let ingrediente of procedimientoData.ingredientes">
-						<td>{{ ingrediente.materiaPrima.nombre }}</td>
-						<td>{{ (ingrediente.cantidad / 100) * (productoMaestroCalculo ? productoMaestroCalculo.presentacionTotal : 0) }}</td>
-						<td>{{ ingrediente.cantidad }} %</td>
-					</tr>
-				</tbody>
-			</table>
-
-		</form>
-	</div>
-</ng-template>
-
-<ng-template #procedimiento let-modal>
-	<div class="modal-header">
-		<h4 class="modal-title" id="modal-basic-title">Hoja de Procedimiento</h4>
-		<button
-			type="button"
-			class="btn-close"
-			aria-label="Close"
-			(click)="modal.dismiss('Cross click')"
-		></button>
-	</div>
-	<div class="modal-body">
-		<form>
-			<span class="mb-2"><span style="font-weight: bold;">Nombre Producto:</span> {{procedimientoData.productoMaestro.nombre}}</span>
-			<br>
-			<span class="mb-2"><span style="font-weight: bold;">Descripción:</span> {{procedimientoData.productoMaestro.descripcion}}</span>
 			<hr>
 
-			<h4 style="text-align: center;">MODUS OPERANDI</h4>
-			<h5>Procedimiento</h5>
+			<!-- Sección de Hoja de Procedimiento -->
+			<div class="mb-4">
+				<h4 style="text-align: center;" class="text-success">MODUS OPERANDI</h4>
+				<h5 class="text-primary">Procedimiento</h5>
 
-			<table class="table table-bordered">
-				<thead>
-					<tr>
-						<th>Orden</th>
-						<th>Procedimiento</th>
-					</tr>
-				</thead>
-				<tbody>
-					<tr *ngFor="let procedimiento of procedimientoData.procedimientos">
-						<td>{{ procedimiento.orden }}</td>
-						<td>{{ procedimiento.descripcion }}</td>
-					</tr>
-				</tbody>
-			</table>
+				<table class="table table-bordered">
+					<thead class="table-light">
+						<tr>
+							<th>Orden</th>
+							<th>Procedimiento</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr *ngFor="let procedimiento of procedimientoData.procedimientos">
+							<td>{{ procedimiento.orden }}</td>
+							<td>{{ procedimiento.descripcion }}</td>
+						</tr>
+					</tbody>
+				</table>
 
-			<div class="mb-2">
-				<label class="form-label" style="font-weight: bold;">Elementos de Seguridad Personal</label>
-				<input type="text" class="form-control" [value]="procedimientoData.elementosSeguridadPersonal" readonly>
-			</div>
-			<div class="mb-2">
-				<label class="form-label" style="font-weight: bold;">Utillaje</label>
-				<input type="text" class="form-control" [value]="procedimientoData.utillaje" readonly>
-			</div>
-			<div class="mb-2">
-				<label class="form-label" style="font-weight: bold;">Control de Calidad</label>
-				<input type="text" class="form-control" [value]="procedimientoData.controlCalidad" readonly>
-			</div>
-			<div class="mb-2">
-				<label class="form-label" style="font-weight: bold;">Tipo de Envase</label>
-				<input type="text" class="form-control" [value]="procedimientoData.tipoEnvase" readonly>
-			</div>
-			<div class="mb-2">
-				<label class="form-label" style="font-weight: bold;">Color de Etiqueta</label>
-				<input type="text" class="form-control" [value]="procedimientoData.colorEtiqueta" readonly>
-			</div>
-			<div class="mb-2">
-				<label class="form-label" style="font-weight: bold;">Indicaciones Posología</label>
-				<input type="text" class="form-control" [value]="procedimientoData.indicacionesPosologia" readonly>
-			</div>
-			<div class="mb-2">
-				<label class="form-label" style="font-weight: bold;">Conservación</label>
-				<input type="text" class="form-control" [value]="procedimientoData.conservacion" readonly>
-			</div>
-			<div class="mb-2">
-				<label class="form-label" style="font-weight: bold;">Reacciones Adversas</label>
-				<input type="text" class="form-control" [value]="procedimientoData.reaccionesAdversas" readonly>
-			</div>
-			<div class="mb-2">
-				<label class="form-label" style="font-weight: bold;">Precauciones y Contraindicaciones</label>
-				<input type="text" class="form-control" [value]="procedimientoData.precaucionesContraindicaciones" readonly>
-			</div>
-			<div class="mb-2">
-				<label class="form-label" style="font-weight: bold;">Observaciones</label>
-				<input type="text" class="form-control" [value]="procedimientoData.observaciones" readonly>
-			</div>
-			<div class="mb-2">
-				<label class="form-label" style="font-weight: bold;">Bibliografía</label>
-				<input type="text" class="form-control" [value]="procedimientoData.bibliografia" readonly>
+				<div class="row">
+					<div class="col-md-6">
+						<div class="mb-2">
+							<label class="form-label" style="font-weight: bold;">Elementos de Seguridad Personal</label>
+							<input type="text" class="form-control" [value]="procedimientoData.elementosSeguridadPersonal" readonly>
+						</div>
+						<div class="mb-2">
+							<label class="form-label" style="font-weight: bold;">Utillaje</label>
+							<input type="text" class="form-control" [value]="procedimientoData.utillaje" readonly>
+						</div>
+						<div class="mb-2">
+							<label class="form-label" style="font-weight: bold;">Control de Calidad</label>
+							<input type="text" class="form-control" [value]="procedimientoData.controlCalidad" readonly>
+						</div>
+						<div class="mb-2">
+							<label class="form-label" style="font-weight: bold;">Tipo de Envase</label>
+							<input type="text" class="form-control" [value]="procedimientoData.tipoEnvase" readonly>
+						</div>
+						<div class="mb-2">
+							<label class="form-label" style="font-weight: bold;">Color de Etiqueta</label>
+							<input type="text" class="form-control" [value]="procedimientoData.colorEtiqueta" readonly>
+						</div>
+						<div class="mb-2">
+							<label class="form-label" style="font-weight: bold;">Indicaciones Posología</label>
+							<input type="text" class="form-control" [value]="procedimientoData.indicacionesPosologia" readonly>
+						</div>
+					</div>
+					<div class="col-md-6">
+						<div class="mb-2">
+							<label class="form-label" style="font-weight: bold;">Conservación</label>
+							<input type="text" class="form-control" [value]="procedimientoData.conservacion" readonly>
+						</div>
+						<div class="mb-2">
+							<label class="form-label" style="font-weight: bold;">Reacciones Adversas</label>
+							<input type="text" class="form-control" [value]="procedimientoData.reaccionesAdversas" readonly>
+						</div>
+						<div class="mb-2">
+							<label class="form-label" style="font-weight: bold;">Precauciones y Contraindicaciones</label>
+							<input type="text" class="form-control" [value]="procedimientoData.precaucionesContraindicaciones" readonly>
+						</div>
+						<div class="mb-2">
+							<label class="form-label" style="font-weight: bold;">Observaciones</label>
+							<input type="text" class="form-control" [value]="procedimientoData.observaciones" readonly>
+						</div>
+						<div class="mb-2">
+							<label class="form-label" style="font-weight: bold;">Bibliografía</label>
+							<input type="text" class="form-control" [value]="procedimientoData.bibliografia" readonly>
+						</div>
+					</div>
+				</div>
 			</div>
 		</form>
 	</div>

@@ -16,6 +16,14 @@ export class ProductoService {
     return this.http.get<any[]>(this.baseUrl);
   }
 
+  getProductosMaestros(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.baseUrl}/maestros`);
+  }
+
+  getProductoMaestroCompleto(idProductoMaestro: number): Observable<any> {
+    return this.http.get<any>(`${this.baseUrl}/completo/${idProductoMaestro}`);
+  }
+
   getCatalogoProductosByCliente(idCliente: number): Observable<any[]> {
     return this.http.get<any[]>(`${this.baseUrl}/por-cliente?idCliente=${idCliente}`);
   }
@@ -82,5 +90,20 @@ export class ProductoService {
   saveProducto(producto: any): Observable<any> {
     let url = `${this.baseUrl}/guardar`;
     return this.http.post<any>(url, producto);
+  }
+
+  updateProductoMaestro(producto: any): Observable<any> {
+    let url = `${this.baseUrl}/actualizar`;
+    return this.http.put<any>(url, producto);
+  }
+
+  updateEstadoProductoMaestroById(idProductoMaestro: number, estado: boolean): Observable<any> {
+    let url = `${this.baseUrl}/estado-producto-maestro/${idProductoMaestro}`;
+    return this.http.put<any>(url, null, { params: { estado: estado.toString() } });
+  }
+
+  updateEstadoProductoBulk(data: any): Observable<any> {
+    let url = `${this.baseUrl}/estado-producto-bulk`;
+    return this.http.post<any>(url, data);
   }
 }

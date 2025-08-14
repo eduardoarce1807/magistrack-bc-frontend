@@ -47,6 +47,9 @@ export class BandejaCalidadComponent implements OnInit {
 	lstProductosSeleccionados: any[] = [];
 	private modalService = inject(NgbModal);
 
+	idBulkBusqueda: string = '';
+	isSearching: boolean = false;
+
 	idPedidoNota: string | null = null;
 	idProductoNota: string | null = null;
 	observacionNota: string = '';
@@ -63,7 +66,8 @@ export class BandejaCalidadComponent implements OnInit {
 	) {}
 
 	ngOnInit(): void {
-		this.getProductosAll();
+		// Ya no se cargan automáticamente los productos
+		// this.getProductosAll();
 	}
 
 	getProductosAll(): void {
@@ -86,6 +90,54 @@ export class BandejaCalidadComponent implements OnInit {
 		);
 	}
 
+	buscarPorIdBulk(): void {
+		if (!this.idBulkBusqueda.trim()) {
+			Swal.fire({
+				icon: 'warning',
+				title: '¡Atención!',
+				text: 'Por favor ingrese un ID Bulk para buscar.',
+				showConfirmButton: true,
+			});
+			return;
+		}
+
+		this.isSearching = true;
+		this.pedidoService.getProductoCalidadByIdBulk(this.idBulkBusqueda.trim()).subscribe(
+			(response: any) => {
+				console.log('Respuesta búsqueda por idBulk:', response);
+				
+				// Verificar si hay error (idResultado = 0)
+				if (response && response.idResultado === 0) {
+					Swal.fire({
+						icon: 'warning',
+						title: 'Producto no encontrado',
+						text: response.mensaje || 'El ID Bulk ingresado no existe en calidad.',
+						showConfirmButton: true,
+					});
+					this.productosTable = [];
+					this.refreshProductos();
+				} else {
+					// Si no hay idResultado ni mensaje, es un producto válido
+					// Como retorna un objeto único, lo convertimos en array
+					this.productosTable = [response];
+					this.collectionSize = this.productosTable.length;
+					this.refreshProductos();
+				}
+				this.isSearching = false;
+			},
+			(error: any) => {
+				console.error('Error al buscar producto por idBulk', error);
+				Swal.fire({
+					icon: 'error',
+					title: 'Error de búsqueda',
+					text: 'No se pudo realizar la búsqueda, inténtelo de nuevo.',
+					showConfirmButton: true,
+				});
+				this.isSearching = false;
+			}
+		);
+	}
+
 	openModalNota(item: any, content: TemplateRef<any>) {
 		this.modalService.open(content, { size: 'lg' });
 		this.observacionNota = item.observacion;
@@ -101,47 +153,18 @@ export class BandejaCalidadComponent implements OnInit {
 		this.modalService.open(content, { size: 'lg' });
 	}
 
-	@ViewChild('procedimiento', { static: true }) procedimiento: TemplateRef<any> | null = null;
-	getHojaProduccion(idProductoMaestro: string): void {
-		this.productoService.getHojaProduccion(idProductoMaestro).subscribe(
-			(data) => {
-				console.log('Hoja de producción obtenida:', data);
-				if(data && data.idResultado == 1) {
-					this.procedimientoData = data.value;
-					if (this.procedimiento) {
-						this.openModalXL(this.procedimiento);
-					}
-				}else{
-					Swal.fire({
-						icon: 'warning',
-						title: '¡Oops!',
-						text: data.resultado,
-						showConfirmButton: true,
-					});
-				}
-			},
-			(error) => {
-				console.error('Error al obtener la hoja de producción', error);
-				Swal.fire({
-					icon: 'error',
-					title: 'Oops!',
-					text: 'No se pudo obtener la hoja de producción, inténtelo de nuevo.',
-					showConfirmButton: true,
-				});
-			}
-		);
-	}
-
-	@ViewChild('ingredientes', { static: true }) ingredientes: TemplateRef<any> | null = null;
+	@ViewChild('informacionCompleta', { static: true }) informacionCompleta: TemplateRef<any> | null = null;
 	productoMaestroCalculo: any = null;
-	getCalculoIngredientes(productoMaestro: any): void {
+	
+	getInformacionCompleta(productoMaestro: any): void {
 		this.productoService.getHojaProduccion(productoMaestro.idProductoMaestro).subscribe(
 			(data) => {
+				console.log('Información completa obtenida:', data);
 				if(data && data.idResultado == 1) {
 					this.procedimientoData = data.value;
 					this.productoMaestroCalculo = productoMaestro;
-					if (this.ingredientes) {
-						this.openModalLG(this.ingredientes);
+					if (this.informacionCompleta) {
+						this.openModalXL(this.informacionCompleta);
 					}
 				}else{
 					Swal.fire({
@@ -153,11 +176,11 @@ export class BandejaCalidadComponent implements OnInit {
 				}
 			},
 			(error) => {
-				console.error('Error al obtener el cálculo de ingredientes', error);
+				console.error('Error al obtener la información del producto', error);
 				Swal.fire({
-					icon: 'error',
+					icon: 'warning',
 					title: 'Oops!',
-					text: 'No se pudo obtener el cálculo de ingredientes, inténtelo de nuevo.',
+					text: 'Este producto no tiene información de producción disponible.',
 					showConfirmButton: true,
 				});
 			}
@@ -214,7 +237,7 @@ export class BandejaCalidadComponent implements OnInit {
 					(data: any) => {
 						if (data) {
 							this.showSuccess(this.successTpl);
-							this.getProductosAll();
+							this.actualizarListaProductos();
 							this.isLoading = false;
 						}
 					},
@@ -264,6 +287,16 @@ export class BandejaCalidadComponent implements OnInit {
 			);
 	}
 
+	actualizarListaProductos(): void {
+		// Si hay un idBulk en búsqueda, volver a buscar por ese idBulk
+		if (this.idBulkBusqueda.trim()) {
+			this.buscarPorIdBulk();
+		} else {
+			// Si no hay búsqueda específica, cargar todos (método original)
+			this.getProductosAll();
+		}
+	}
+
 	saveObservacion(): void {
 		this.pedidoService
 			.saveObservacionPedido({
@@ -279,7 +312,7 @@ export class BandejaCalidadComponent implements OnInit {
 						text: 'Observación guardada correctamente.',
 						showConfirmButton: true,
 					});
-					this.getProductosAll();
+					this.actualizarListaProductos();
 					this.modalService.dismissAll();
 					this.observacionNota = '';
 					this.idPedidoNota = null;
@@ -627,31 +660,34 @@ export class BandejaCalidadComponent implements OnInit {
       cancelButtonText: 'Cancelar',
     }).then((result) => {
       if (result.isConfirmed) {
-        this.productoService
-          .updateEstadoProductoMaestro({
+        if (item.idBulk) {
+          const bulkData = {
+            idBulk: item.idBulk,
             idProductoMaestro: item.idProductoMaestro,
-			idEstadoProductoActual: 4, // En calidad
-			idEstadoProductoNuevo: 3, // En producción
-			idEstadoPedidoNuevo: 4, // En producción
-			idEstadoPedidoClienteNuevo: 3, // En producción
-			idCliente: this.dataService.getLoggedUser().cliente.idCliente,
-			accionRealizada: 'Producto regresado a producción',
-			observacion: ''
-          })
-          .subscribe(
-            (response) => {
+            idEstadoProductoActual: 4, // En calidad
+            idEstadoProductoNuevo: 3, // En producción
+            idEstadoPedido: 4, // En producción
+            idEstadoPedidoCliente: 3, // En producción
+            idCliente: this.dataService.getLoggedUser().cliente.idCliente,
+            accionRealizada: 'Producto regresado a producción',
+            observacion: ''
+          };
+
+          this.productoService.updateEstadoProductoBulk(bulkData).subscribe(
+            (bulkResponse) => {
+              console.log('Estado bulk actualizado correctamente:', bulkResponse);
               Swal.fire({
                 icon: 'success',
                 title: '¡Listo!',
                 text: 'Producto regresado a producción correctamente.',
                 showConfirmButton: true,
               }).then(() => {
-                this.getProductosAll();
+                this.actualizarListaProductos();
                 this.lstProductosSeleccionados = [];
               });
             },
-            (error) => {
-              console.error('Error al regresar producto a producción', error);
+            (bulkError) => {
+              console.error('Error al actualizar estado bulk:', bulkError);
               Swal.fire({
                 icon: 'error',
                 title: 'Oops!',
@@ -660,6 +696,14 @@ export class BandejaCalidadComponent implements OnInit {
               });
             }
           );
+        } else {
+          Swal.fire({
+            icon: 'warning',
+            title: 'Atención',
+            text: 'Este producto no tiene un código bulk asociado.',
+            showConfirmButton: true,
+          });
+        }
       }
     });
 
@@ -676,31 +720,34 @@ export class BandejaCalidadComponent implements OnInit {
       cancelButtonText: 'Cancelar',
     }).then((result) => {
       if (result.isConfirmed) {
-        this.productoService
-			.updateEstadoProductoMaestro({
-				idProductoMaestro: item.idProductoMaestro,
-				idEstadoProductoActual: 4, // En calidad
-				idEstadoProductoNuevo: 5, // En envasado
-				idEstadoPedidoNuevo: 6, // En envasado
-				idEstadoPedidoClienteNuevo: 3, // En producción
-				idCliente: this.dataService.getLoggedUser().cliente.idCliente,
-				accionRealizada: 'Producto enviado a envasado',
-				observacion: ''
-			})
-          	.subscribe(
-            (response) => {
+        if (item.idBulk) {
+          const bulkData = {
+            idBulk: item.idBulk,
+            idProductoMaestro: item.idProductoMaestro,
+            idEstadoProductoActual: 4, // En calidad
+            idEstadoProductoNuevo: 5, // En envasado
+            idEstadoPedido: 6, // En envasado
+            idEstadoPedidoCliente: 3, // En producción
+            idCliente: this.dataService.getLoggedUser().cliente.idCliente,
+            accionRealizada: 'Producto enviado a envasado',
+            observacion: ''
+          };
+
+          this.productoService.updateEstadoProductoBulk(bulkData).subscribe(
+            (bulkResponse) => {
+              console.log('Estado bulk actualizado correctamente:', bulkResponse);
               Swal.fire({
                 icon: 'success',
                 title: '¡Listo!',
                 text: 'Producto enviado a envasado correctamente.',
                 showConfirmButton: true,
               }).then(() => {
-                this.getProductosAll();
+                this.actualizarListaProductos();
                 this.lstProductosSeleccionados = [];
               });
             },
-            (error) => {
-              console.error('Error al enviar producto a envasado', error);
+            (bulkError) => {
+              console.error('Error al actualizar estado bulk:', bulkError);
               Swal.fire({
                 icon: 'error',
                 title: 'Oops!',
@@ -709,6 +756,14 @@ export class BandejaCalidadComponent implements OnInit {
               });
             }
           );
+        } else {
+          Swal.fire({
+            icon: 'warning',
+            title: 'Atención',
+            text: 'Este producto no tiene un código bulk asociado.',
+            showConfirmButton: true,
+          });
+        }
       }
     });
 

@@ -10,6 +10,33 @@
 			Bandeja Etiquetado <i class="bi bi-arrow-right"></i>
 		</button>
 
+		<!-- Búsqueda por ID Bulk -->
+		<div class="row mb-3">
+			<div class="col-md-8">
+				<label for="idBulkBusqueda" class="form-label">Buscar por ID Bulk:</label>
+				<input 
+					type="text" 
+					id="idBulkBusqueda"
+					class="form-control" 
+					placeholder="Ingrese el ID Bulk a buscar..."
+					[(ngModel)]="idBulkBusqueda"
+					[disabled]="isSearching"
+					(keyup.enter)="buscarPorIdBulk()"
+				/>
+			</div>
+			<div class="col-md-4 d-flex align-items-end">
+				<button 
+					class="btn btn-primary"
+					(click)="buscarPorIdBulk()"
+					[disabled]="isSearching || !idBulkBusqueda.trim()"
+				>
+					<span *ngIf="isSearching" class="spinner-border spinner-border-sm me-2" role="status"></span>
+					<i class="bi bi-search me-1"></i>
+					{{ isSearching ? 'Buscando...' : 'Buscar' }}
+				</button>
+			</div>
+		</div>
+
 		<!-- Tabla de Pedidos -->
 		<table class="table table-bordered align-middle mt-0">
 			<thead class="table-primary">
@@ -32,6 +59,16 @@
 				</tr>
 			</thead>
 			<tbody>
+				@if (productos.length === 0 && !isSearching) {
+					<tr>
+						<td colspan="8" class="text-center py-4">
+							<div class="text-muted">
+								<i class="bi bi-search fs-1"></i>
+								<p class="mt-2">{{ idBulkBusqueda.trim() ? 'No se encontraron productos para este ID Bulk.' : 'Ingrese un ID Bulk para buscar productos en envasado.' }}</p>
+							</div>
+						</td>
+					</tr>
+				}
 				@for (item of productos; track $index) {
 				<tr>
 					<td>
@@ -313,5 +350,41 @@
 		>
 			Guardar
 		</button>
+	</div>
+</ng-template>
+
+<ng-template #codigoBarrasIndividual let-modal>
+	<div class="modal-header">
+		<h4 class="modal-title" id="modal-basic-title">Código de Barras - Producto Enviado a Etiquetado</h4>
+		<button
+			type="button"
+			class="btn-close"
+			aria-label="Close"
+			(click)="modal.dismiss('Cross click')"
+		></button>
+	</div>
+	<div class="modal-body">
+		@if (productoCodigoBarras) {
+		<div class="text-center mb-3">
+			<h5>{{ productoCodigoBarras.nombre }}</h5>
+			<p class="text-muted">Producto: {{ productoCodigoBarras.idProducto }}</p>
+		</div>
+		<div id="codigoBarraIndividualPrint" class="text-center">
+			<div style="border: 2px solid #ccc; padding: 20px; border-radius: 8px; background: white; display: flex; flex-direction: column; align-items: center;">
+				<svg
+					id="barcode-individual"
+					class="barcode"
+				></svg>
+				<div class="mt-2">
+					<strong>{{ productoCodigoBarras.idProducto }}</strong>
+				</div>
+			</div>
+		</div>
+		<div class="d-flex justify-content-center mt-4">
+			<button class="btn btn-primary" (click)="imprimirCodigoBarraIndividual()">
+				<i class="bi bi-printer-fill"></i> Imprimir Código de Barras
+			</button>
+		</div>
+		}
 	</div>
 </ng-template>
