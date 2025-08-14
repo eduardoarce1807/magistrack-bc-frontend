@@ -22,6 +22,7 @@
 		<ng-template pTemplate="caption">
 			<div class="flex justify-between items-center">
 				<h4 class="text-primary fw-bold flex items-center"><img src="assets/img/tarea.gif" width="50">Lista de Proveedores</h4>
+				<p-button  icon="pi pi-plus" label="Nuevo Proveedor" class="mx-1" severity="success" (click)="nuevoproveedor()" />
 				<div>
 					<p-iconField iconPosition="left">
 						<p-inputIcon>
@@ -31,16 +32,6 @@
 						<!--					<input pInputText type="text" [(ngModel)]="searchValue" (input)="dt.filterGlobal($event.target.value, 'contains')" placeholder="Keyboard Search" />-->
 					</p-iconField>
 					<p-button [outlined]="true" icon="pi pi-filter-slash" label="Clear" (click)="clear(dt)" />
-				</div>
-			</div>
-			<div class="row">
-				<div class="col-md-6 g-2">
-<!--					<p-button [outlined]="true" icon="pi pi-file-plus" label="Historial Req." class="mx-1" severity="success"  />-->
-<!--					<p-button  icon="pi pi-angle-double-up" label="Indicadores" severity="info"  class="mx-1"/>-->
-<!--					<p-button [outlined]="true" icon="pi pi-print" label="Reportes" severity="info"  class="mx-1"/>-->
-				</div>
-				<div class="col-md-6 text-end g-2">
-					<p-button  icon="pi pi-plus" label="Nuevo Proveedor" class="mx-1" severity="success" (click)="nuevoproveedor()" />
 				</div>
 			</div>
 		</ng-template>
@@ -95,6 +86,41 @@
 						<p-columnFilter type="text" field="ruc" display="menu" class="ml-auto" />
 					</div>
 				</th>
+				<th pSortableColumn="desrubro" style="min-width: 40px">
+					<div class="flex justify-content-between align-items-center">
+						RUBRO
+						<p-sortIcon field="desrubro" />
+						<p-columnFilter type="text" field="desrubro" display="menu" class="ml-auto" />
+					</div>
+				</th>
+				<th pSortableColumn="desbanco" style="min-width: 40px">
+					<div class="flex justify-content-between align-items-center">
+						BANCO
+						<p-sortIcon field="desbanco" />
+						<p-columnFilter type="text" field="desbanco" display="menu" class="ml-auto" />
+					</div>
+				</th>
+				<th pSortableColumn="cuenta_soles" style="min-width: 40px">
+					<div class="flex justify-content-between align-items-center">
+						CTA SOLES
+						<p-sortIcon field="cuenta_soles" />
+						<p-columnFilter type="text" field="cuenta_soles" display="menu" class="ml-auto" />
+					</div>
+				</th>
+				<th pSortableColumn="cuenta_dolares" style="min-width: 40px">
+					<div class="flex justify-content-between align-items-center">
+						CTA DOLARES
+						<p-sortIcon field="cuenta_dolares" />
+						<p-columnFilter type="text" field="cuenta_dolares" display="menu" class="ml-auto" />
+					</div>
+				</th>
+				<th pSortableColumn="cci" style="min-width: 40px">
+					<div class="flex justify-content-between align-items-center">
+						CCI
+						<p-sortIcon field="cci" />
+						<p-columnFilter type="text" field="cci" display="menu" class="ml-auto" />
+					</div>
+				</th>
 				<th style="min-width: 10rem">
 					<div class="flex justify-content-between align-items-center">
 						Acciones
@@ -126,13 +152,28 @@
 					{{ customer.ruc }}
 				</td>
 				<td>
+					{{ customer.desrubro }}
+				</td>
+				<td>
+					{{ customer.desbanco }}
+				</td>
+				<td>
+					{{ customer.cuenta_soles }}
+				</td>
+				<td>
+					{{ customer.cuenta_dolares }}
+				</td>
+				<td>
+					{{ customer.cci }}
+				</td>
+				<td>
 					<p-button  [rounded]="true" icon="pi pi-pencil" class="mx-1" severity="success"  (click)="editarproveedor(customer)"/>
 				</td>
 			</tr>
 		</ng-template>
 		<ng-template pTemplate="emptymessage">
 			<tr>
-				<td colspan="8">No customers found.</td>
+				<td colspan="8">No se encontraron proveedores.</td>
 			</tr>
 		</ng-template>
 	</p-table>
@@ -145,32 +186,39 @@
 		[breakpoints]="{ '1199px': '75vw', '575px': '90vw' }"
 		[maximizable]="true">
 		<ng-template pTemplate="header">
-
-			<h5 class="text-danger-emphasis border-3 rounded-3 bg-danger-subtle p-2 ">Ver Detalle del Proveedor - {{fila_select.idproveedor}}</h5>
+			@if (op==1){
+				<h5 class="text-danger-emphasis border-3 rounded-3 bg-danger-subtle p-2 ">Nuevo Proveedor</h5>
+			} @else {
+				<h5 class="text-danger-emphasis border-3 rounded-3 bg-danger-subtle p-2 ">Ver Detalle del Proveedor - {{fila_select.idproveedor}}</h5>
+			}
 		</ng-template>
 		<div class="row">
-			<div class="col-md-6">
-				<label class="text-info-emphasis fw-bold">ID Proveedor</label>
-				<input
-					class="w-full"
-					type="text"
-					pInputText
-					readonly
-					[(ngModel)]="fila_select.idproveedor" />
-				<label class="text-info-emphasis fw-bold">Nombre</label>
+			<div class="col-md-4 col-sm-12">
+				@if (op==2){
+					<label class="p-text-secondary fw-bold">ID Proveedor</label>
+					<input
+						class="w-full"
+						type="text"
+						pInputText
+						readonly
+						[(ngModel)]="fila_select.idproveedor" />
+				} @else {
+					<img src="assets/img/gestion.png" width="65">
+				}
+				<label class="p-text-secondary fw-bold">Nombre</label>
 				<input
 					class="w-full"
 					type="text"
 					pInputText
 					[(ngModel)]="fila_select.descripcion" />
-				<label class="text-info-emphasis fw-bold">Representante</label>
+				<label class="p-text-secondary fw-bold">Representante</label>
 				<input
 					class="w-full"
 					type="text"
 					pInputText
 					[(ngModel)]="fila_select.representante" />
 
-				<label class="text-info-emphasis fw-bold">Ruc</label>
+				<label class="p-text-secondary fw-bold">Ruc</label>
 				<input
 					class="w-full"
 					type="text"
@@ -178,26 +226,61 @@
 					pInputText
 					[(ngModel)]="fila_select.ruc" />
 			</div>
-			<div class="col-md-6">
+			<div class="col-md-4 col-sm-12">
 
-				<label class="text-info-emphasis fw-bold">Correo</label>
+				<label class="p-text-secondary fw-bold">Correo</label>
 				<input
 					class="w-full"
 					type="text"
 					pInputText
 					[(ngModel)]="fila_select.correo" />
-				<label class="text-info-emphasis fw-bold">Celular</label>
+				<label class="p-text-secondary fw-bold">Celular</label>
 				<input
 					class="w-full"
 					type="text"
 					pInputText
 					[(ngModel)]="fila_select.celular" />
-				<label class="text-info-emphasis fw-bold">Dirección</label>
+				<label class="p-text-secondary fw-bold">Dirección</label>
 				<input
 					class="w-full"
 					type="text"
 					pInputText
 					[(ngModel)]="fila_select.direccion" />
+				<label class="p-text-secondary fw-bold">CCi</label>
+				<input
+					class="w-full"
+					type="text"
+					pInputText
+					[(ngModel)]="fila_select.cci" />
+			</div>
+			<div class="col-md-4 col-sm-12 d-flex flex-column">
+
+				<label class="p-text-secondary fw-bold">Banco</label>
+				<p-dropdown
+					[options]="listaBancos"
+					[(ngModel)]="fila_select.id_banco"
+					optionLabel="nombre"
+					optionValue="idBanco"
+					placeholder="Seleccionar Banco" />
+				<label class="p-text-secondary fw-bold">Rubros</label>
+				<p-dropdown
+					[options]="listaRubros"
+					[(ngModel)]="fila_select.id_rubros"
+					optionLabel="rubro"
+					optionValue="id_rubros"
+					placeholder="Seleccionar Rubro" />
+				<label class="p-text-secondary fw-bold">Cuenta Soles</label>
+				<input
+					class="w-full"
+					type="text"
+					pInputText
+					[(ngModel)]="fila_select.cuenta_soles" />
+				<label class="p-text-secondary fw-bold">Cuenta Dolares</label>
+				<input
+					class="w-full"
+					type="text"
+					pInputText
+					[(ngModel)]="fila_select.cuenta_dolares" />
 			</div>
 		</div>
 		<ng-template pTemplate="footer">

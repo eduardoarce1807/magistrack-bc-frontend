@@ -8,3 +8,6 @@ ul li a{
 	text-decoration: none !important;
 
 }
+:host ::ng-deep .p-dropdown{
+	width:100%;
+}

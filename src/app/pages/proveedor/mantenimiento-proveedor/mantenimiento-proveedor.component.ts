@@ -16,7 +16,7 @@ import {SplitButtonModule} from "primeng/splitbutton";
 import {Table, TableModule} from "primeng/table";
 import {TagModule} from "primeng/tag";
 import {ToastModule} from "primeng/toast";
-import { soloproveedorModel} from "../../../model/proveedoresModel";
+import {rubrosproveedorModel, soloproveedorModel} from "../../../model/proveedoresModel";
 import {
 	ObsevacionesReqModel,
 	RequeremientosModel,
@@ -29,6 +29,7 @@ import {DropdownModule} from "primeng/dropdown";
 import {ProveedorService} from "../../../services/compras/proveedor.service";
 import {CargaComponent} from "../../../components/carga/carga.component";
 import {UppercaseDirective} from "../../../directives/uppercase.directive";
+import {BancoService} from "../../../services/banco.service";
 
 @Component({
   selector: 'app-mantenimiento-proveedor',
@@ -59,13 +60,15 @@ export class MantenimientoProveedorComponent {
 	fila_select:soloproveedorModel = new soloproveedorModel()
 	verobservaciones:boolean=false
 	observaciones:ObsevacionesReqModel=new ObsevacionesReqModel()
+	listaRubros:rubrosproveedorModel[]=[]
+	listaBancos:any[]=[]
 	files:File[] = [];
 	op:number=1
 	totalSize : number = 0;
 
 	totalSizePercent : number = 0;
 	constructor(private config: PrimeNGConfig,private messageService: MessageService,
-				private proveedorService:ProveedorService) {
+				private proveedorService:ProveedorService, private bancosService:BancoService) {
 		this.loading=false
 		this.items = [
 			{
@@ -123,11 +126,33 @@ export class MantenimientoProveedorComponent {
 	ngOnInit(){
 		this.loading=true
 		this.cargarproveedores()
+		this.cargarrubros()
+		this.cargarbancos()
 	}
 	cargarproveedores(){
 		this.proveedorService.getProveedor().subscribe({
 			next:(data)=>{
 				this.listaProveedores=data.data
+				this.loading=false
+			},error:(err)=>{
+				this.loading=false
+			}
+		})
+	}
+	cargarrubros(){
+		this.proveedorService.getrubrosxProveedor().subscribe({
+			next:(data)=>{
+				this.listaRubros=data.data
+				this.loading=false
+			},error:(err)=>{
+				this.loading=false
+			}
+		})
+	}
+	cargarbancos(){
+		this.bancosService.getBancos().subscribe({
+			next:(data)=>{
+				this.listaBancos=data
 				this.loading=false
 			},error:(err)=>{
 				this.loading=false
