@@ -61,6 +61,16 @@
 							<i class="bi bi-journal-plus"></i>
 						</button>
 						<button
+							class="btn btn-warning me-2"
+							(click)="imprimirHojaPedido(item.idPedido)"
+							[disabled]="loadingPDF[item.idPedido]"
+						>
+							<i class="bi bi-file-earmark-pdf"></i>
+							@if (loadingPDF[item.idPedido]) {
+								<span class="spinner-border spinner-border-sm ms-2" role="status" aria-hidden="true"></span>
+							}
+						</button>
+						<button
 							class="btn btn-info me-2"
 							(click)="confirmarEntrega(item)"
 							[disabled]="item.estadoPedido.idEstadoPedido == 10 || item.estadoPedido.idEstadoPedido == 8"
@@ -214,6 +224,18 @@
                     <label class="form-label">Número Documento</label>
                     <input type="text" class="form-control" [value]="documentoSeleccionado.numeroDocumentoCliente" readonly />
                 </div>
+				<div class="mb-3">
+                    <label class="form-label">Celular</label>
+                    <input 
+                        type="text" 
+                        class="form-control" 
+                        [(ngModel)]="documentoSeleccionado.celular" 
+                        name="celular" 
+                        pattern="[0-9]*"
+                        maxlength="16"
+                        (input)="onlyNumbers($event)"
+                    />
+                </div>
 				@if(documentoSeleccionado.tipoComprobante === '01'){
 					<div class="mb-3">
 						<label class="form-label">Razón Social</label>
@@ -228,6 +250,9 @@
 				<div class="mb-3">
 					<button [disabled]="loadingComprobante" class="btn btn-success w-100" (click)="generarComprobante(documentoSeleccionado.idPedido)">
 						Generar {{documentoSeleccionado.tipoComprobante === '01' ? 'Factura' : 'Boleta'}}
+						@if (loadingComprobante) {
+							<span class="spinner-border spinner-border-sm ms-2" role="status" aria-hidden="true"></span>
+						}
 					</button>
 				</div>
             </form>
@@ -247,11 +272,9 @@
 	</div>
 	<div class="modal-body">
 		<span style="font-weight: bold">Pedido:</span> {{ idPedidoNota }}<br />
-		<span style="font-weight: bold">Producto:</span> {{ idProductoNota
-		}}<br />
 		<form>
 			<div class="mt-3">
-				<label for="nota">Nota</label>
+				<label for="nota">Observaciones</label>
 				<textarea
 					[(ngModel)]="observacionNota"
 					name="nota"
