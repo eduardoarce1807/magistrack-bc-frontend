@@ -32,6 +32,7 @@ export class CalculadoraMaestraComponent implements OnInit {
   idPedido: string | null = null;
   idProducto: string | null = null;
   private routeSubscription: Subscription | null = null;
+  isStandaloneMode: boolean = false; // Flag para identificar acceso directo sin parámetros
 
   nombrePersonalizado: string = '';
   descripcionPersonalizada: string = '';
@@ -99,6 +100,12 @@ export class CalculadoraMaestraComponent implements OnInit {
             console.error('Error al cargar el producto personalizado', error);
           }
         );
+      }else{
+        // Acceso directo sin parámetros de pedido/producto
+        this.isStandaloneMode = true;
+        this.getMateriasPrimas();
+        this.getBasesProductos();
+        this.getPedidoProductoById();
       }
     });
   }

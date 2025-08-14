@@ -56,13 +56,15 @@
 					<th scope="col">Personalizado</th>
 					<th scope="col">pH Definido</th>
                     <th scope="col">pH Calidad</th>
-					<th scope="col">Acciones</th>
+					<th scope="col">Car. Organolépticas</th>
+					<th scope="col">Viscosidad</th>
+					<th scope="col" style="min-width: 180px;">Acciones</th>
 				</tr>
 			</thead>
 			<tbody>
 				@if (productos.length === 0 && !isSearching) {
 					<tr>
-						<td colspan="8" class="text-center py-4">
+						<td colspan="10" class="text-center py-4">
 							<div class="text-muted">
 								<i class="bi bi-search fs-1"></i>
 								<p class="mt-2">{{ idBulkBusqueda.trim() ? 'No se encontraron productos para este ID Bulk.' : 'Ingrese un ID Bulk para buscar productos en calidad.' }}</p>
@@ -112,7 +114,27 @@
 							class="form-control form-control-sm"
 							min="1"
 							[value]="item.phCalidadPromedio" 
-              				(change)="changePhCalidad(item, $event)" 
+              				(input)="changeCalidadFields(item, $event, 'phCalidadPromedio')" 
+						/>
+					</td>
+					<td>
+						<input
+							type="text"
+							class="form-control form-control-sm"
+							maxlength="25"
+							[value]="item.carOrganolepticasCalidad || ''" 
+              				(input)="changeCalidadFields(item, $event, 'carOrganolepticasCalidad')" 
+							placeholder="Características organolépticas"
+						/>
+					</td>
+					<td>
+						<input
+							type="text"
+							class="form-control form-control-sm"
+							maxlength="25"
+							[value]="item.viscosidadCalidad || ''" 
+              				(input)="changeCalidadFields(item, $event, 'viscosidadCalidad')" 
+							placeholder="Viscosidad"
 						/>
 					</td>
 					<td>
@@ -136,9 +158,9 @@
 							">
 							<i class="bi bi-backspace"></i>
 						</button>
-                        <button class="btn btn-secondary" (click)="openModalNota(item, nota)">
+                        <!-- <button class="btn btn-secondary" (click)="openModalNota(item, nota)">
                             <i class="bi bi-stickies"></i>
-                        </button>
+                        </button> -->
 					</td>
 				</tr>
 				}
@@ -215,11 +237,7 @@
 
 			<!-- Sección de Cálculo de Ingredientes -->
 			<div class="mb-4">
-				@if (productoMaestroCalculo) {
-					<h5 class="text-primary">Ingredientes para presentación de {{productoMaestroCalculo.presentacionTotal}} {{productoMaestroCalculo.tipoPresentacion}}</h5>
-				}@else{
-					<h5 class="text-primary">Ingredientes</h5>
-				}
+				<h5 class="text-primary">Ingredientes</h5>
 				
 				<table class="table table-bordered">
 					<thead class="table-light">
@@ -336,5 +354,5 @@
 	</div>
 </ng-template>
 
-<ng-template #successTpl>pH de Calidad actualizado correctamente.</ng-template>
+<ng-template #successTpl>Campos de calidad actualizados correctamente.</ng-template>
 <app-toasts aria-live="polite" aria-atomic="true"></app-toasts>

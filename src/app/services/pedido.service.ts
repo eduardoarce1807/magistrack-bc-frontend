@@ -16,6 +16,11 @@ export class PedidoService {
 		return this.http.get<any>(url);
 	}
 
+	getProductosByPedidoId(idPedido: string): Observable<any[]> {
+		let url = `${this.baseUrl}/${idPedido}/productos`;
+		return this.http.get<any[]>(url);
+	}
+
 	getPedidosAll(): Observable<any[]> {
 		return this.http.get<any[]>(this.baseUrl);
 	}
@@ -52,6 +57,16 @@ export class PedidoService {
 	updatePedidoPago(data: any) {
 		let url = `${this.baseUrl}/pago/${data.idPedido}`;
 		return this.http.put<any>(url, data);
+	}
+
+	updateFechaEstimadaEntrega(idPedido: string, fechaEstimadaEntrega: string): Observable<any> {
+		let url = `${this.baseUrl}/fecha-estimada`;
+		return this.http.put<any>(url, null, { 
+			params: { 
+				idPedido: idPedido,
+				fechaEstimadaEntrega: fechaEstimadaEntrega
+			} 
+		});
 	}
 
 	getProductosByIdPedido(idPedido: string): Observable<any[]> {
@@ -149,6 +164,16 @@ export class PedidoService {
 	saveObservacionPedido(data: any): Observable<any> {
 		let url = `${this.baseUrl}/observacion`;
 		return this.http.post<any>(url, data);
+	}
+
+	updateObservacionPedido(idPedido: string, observacion: string): Observable<any> {
+		let url = `${this.baseUrl}/observacion-pedido`;
+		return this.http.post<any>(url, null, { 
+			params: { 
+				idPedido: idPedido, 
+				observacion: observacion 
+			} 
+		});
 	}
 
 	updateEstadoPedidoMasivo(data: any): Observable<any> {

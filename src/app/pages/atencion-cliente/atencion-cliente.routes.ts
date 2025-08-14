@@ -13,6 +13,7 @@ export const atencionClienteRoutes: Routes = [
   { path: 'trazabilidad-pedido/:idPedido', loadComponent: () => import('./trazabilidad-pedido/trazabilidad-pedido.component').then(m => m.TrazabilidadPedidoComponent), canActivate: [AuthGuard], data: { roles: [1, 5] } },
   { path: 'bandeja-personalizacion', loadComponent: () => import('./bandeja-personalizacion/bandeja-personalizacion.component').then(m => m.BandejaPersonalizacionComponent), canActivate: [AuthGuard], data: { roles: [1, 5] } },
   { path: 'pagar-pedido/:idPedido', loadComponent: () => import('./pagar-pedido/pagar-pedido.component').then(m => m.PagarPedidoComponent), canActivate: [AuthGuard], data: { roles: [1, 2, 5] } },
+  { path: 'calculadora-maestra', loadComponent: () => import('./calculadora-maestra/calculadora-maestra.component').then(m => m.CalculadoraMaestraComponent), canActivate: [AuthGuard], data: { roles: [1, 5] } },
   { path: 'calculadora-maestra/:idPedido/:idProducto', loadComponent: () => import('./calculadora-maestra/calculadora-maestra.component').then(m => m.CalculadoraMaestraComponent), canActivate: [AuthGuard], data: { roles: [1, 5] } },
   { path: 'mantenimiento-clientes', loadComponent: () => import('./mantenimiento-clientes/mantenimiento-clientes.component').then(m => m.MantenimientoClientesComponent), canActivate: [AuthGuard], data: { roles: [1, 5] } },
   { path: 'visualizador-pagos', loadComponent: () => import('./visualizador-pagos/visualizador-pagos.component').then(m => m.VisualizadorPagosComponent), canActivate: [AuthGuard], data: { roles: [1, 5] } },
