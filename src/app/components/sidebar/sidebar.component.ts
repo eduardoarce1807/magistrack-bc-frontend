@@ -132,16 +132,6 @@ export class SidebarComponent {
 					icon: 'pi pi-box',
 					items: [
 						{
-							key: '2_0',
-							label: 'Registro de Producto',
-							command: () => this.irA('pages/gestion-producto/registro-producto')
-						},
-						{
-							key: '2_1',
-							label: 'Mantenimiento de Producto',
-							command: () => this.irA('pages/gestion-producto/mantenimiento-producto')
-						},
-						{
 							key: '2_2',
 							label: 'Registro de Cupón',
 							command: () => this.irA('pages/gestion-producto/registro-cupon')
@@ -212,16 +202,20 @@ export class SidebarComponent {
 					label: 'Investigación y Desarrollo',
 					icon: 'pi pi-share-alt',
 					items: [
-						{
-							key: '6_0',
-							label: 'Registro de Producto',
-							command: () => this.irA('pages/gestion-producto/registro-producto')
-						},
-						{
-							key: '6_1',
-							label: 'Mantenimiento de Producto',
-							command: () => this.irA('pages/gestion-producto/mantenimiento-producto')
-						},
+						...(user.rol.idRol === 1
+							? [
+								{
+									key: '6_0',
+									label: 'Registro de Producto',
+									command: () => this.irA('pages/gestion-producto/registro-producto')
+								},
+								{
+									key: '6_1',
+									label: 'Mantenimiento de Producto',
+									command: () => this.irA('pages/gestion-producto/mantenimiento-producto')
+								}
+							]
+							: []),
 						{
 							key: '6_2',
 							label: 'Mantenimiento Proveedor',
