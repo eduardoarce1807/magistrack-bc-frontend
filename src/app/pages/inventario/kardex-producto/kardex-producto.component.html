@@ -16,22 +16,36 @@
 		[filterDelay]="0"
 		styleClass="p-datatable-gridlines p-datatable-striped p-datatable-sm"
 		[tableStyle]="{'min-width': '40rem'}"
-		[globalFilterFields]="['id_materia_prima', 'id_kardex','fecha']"
+		[globalFilterFields]="['id_materia_prima', 'id_kardex','fecha','ficha_tecnica','lote','fecha_vencimiento','movimiento','id_tipomovimiento']"
 	>
 		<ng-template pTemplate="caption">
-			<div class="flex justify-between items-center">
-				<h4 class="text-success fw-bold flex items-center"><img src="assets/img/crema.gif" width="50">Kardex por Inventario {{id_materia_prima}}</h4>
-				<div>
-					<p-iconField iconPosition="left">
-						<p-inputIcon>
-							<i class="pi pi-search"></i>
-						</p-inputIcon>
-						<input pInputText  #input (input)="dt.filterGlobal(input.value, 'contains')" placeholder="Keyword" />
-						<!--					<input pInputText type="text" [(ngModel)]="searchValue" (input)="dt.filterGlobal($event.target.value, 'contains')" placeholder="Keyboard Search" />-->
-					</p-iconField>
-					<p-button [outlined]="true" icon="pi pi-filter-slash" label="Clear" (click)="clear(dt)" />
-
+			<div class="row">
+				<div class="col-md-4 col-sm-6">
+					<h4 class="text-success fw-bold flex items-center"><img src="assets/img/crema.gif" width="50">Kardex por Almacén {{id_materia_prima}}</h4>
 				</div>
+				<div class="col-md-4 col-sm-6">
+					<p-dropdown
+						[options]="tipoPresentacion"
+						[(ngModel)]="cambio_pres"
+						optionLabel="presentacion"
+						optionValue="id_presentacion"
+						placeholder="Seleccionar Presentación"
+						(ngModelChange)="cambiopresentacion()"
+					>
+					</p-dropdown>
+				</div>
+				<div class="col-md-4 col-sm-6">
+					<div>
+						<p-iconField iconPosition="left">
+							<p-inputIcon>
+								<i class="pi pi-search"></i>
+							</p-inputIcon>
+							<input pInputText  #input (input)="dt.filterGlobal(input.value, 'contains')" placeholder="Keyword" />
+							<!--					<input pInputText type="text" [(ngModel)]="searchValue" (input)="dt.filterGlobal($event.target.value, 'contains')" placeholder="Keyboard Search" />-->
+						</p-iconField>
+						<p-button [outlined]="true" icon="pi pi-filter-slash" label="Clear" (click)="clear(dt)" />
+
+					</div></div>
 			</div>
 		</ng-template>
 		<ng-template pTemplate="header">
@@ -119,6 +133,51 @@
 <!--						Acciones-->
 <!--					</div>-->
 <!--				</th>-->
+				@if(cambio_pres==2){
+
+				<th pSortableColumn="ficha_tecnica" style="min-width: 80px">
+					<div class="flex justify-content-between align-items-center">
+						Ficha Técnica
+						<p-sortIcon field="ficha_tecnica" />
+						<p-columnFilter type="text" field="ficha_tecnica" display="menu" class="ml-auto" />
+					</div>
+				</th>
+				<th pSortableColumn="fecha_vencimiento" style="min-width: 120px">
+					<div class="flex justify-content-between align-items-center">
+						Fecha Vencimiento
+						<p-sortIcon field="fecha_vencimiento" />
+						<p-columnFilter type="text" field="fecha_vencimiento" display="menu" class="ml-auto" />
+					</div>
+				</th>
+				<th pSortableColumn="lote" style="min-width: 80px">
+					<div class="flex justify-content-between align-items-center">
+						Lote
+						<p-sortIcon field="lote" />
+						<p-columnFilter type="text" field="lote" display="menu" class="ml-auto" />
+					</div>
+				</th>
+				<th pSortableColumn="pureza" style="min-width: 80px">
+					<div class="flex justify-content-between align-items-center">
+						Pureza
+						<p-sortIcon field="pureza" />
+						<p-columnFilter type="numeric" field="pureza" display="menu" class="ml-auto" />
+					</div>
+				</th>
+				<th pSortableColumn="peso_bruto" style="min-width: 80px">
+					<div class="flex justify-content-between align-items-center">
+						Peso Bruto
+						<p-sortIcon field="peso_bruto" />
+						<p-columnFilter type="numeric" field="peso_bruto" display="menu" class="ml-auto" />
+					</div>
+				</th>
+				<th pSortableColumn="peso_neto" style="min-width: 80px">
+					<div class="flex justify-content-between align-items-center">
+						Peso Neto
+						<p-sortIcon field="peso_neto" />
+						<p-columnFilter type="numeric" field="peso_neto" display="menu" class="ml-auto" />
+					</div>
+				</th>
+				}
 			</tr>
 		</ng-template>
 		<ng-template pTemplate="body" let-customer>
@@ -188,6 +247,27 @@
 <!--							  tooltipPosition="left"-->
 <!--							  icon="pi pi-ellipsis-v"/>-->
 <!--				</td>-->
+				@if(cambio_pres==2){
+					<td>
+						{{ customer.ficha_tecnica }}
+					</td>
+					<td>
+						{{ customer.fecha_vencimiento | date : "dd-MM-YYYY"}}
+					</td>
+					<td>
+						{{ customer.lote }}
+					</td>
+					<td>
+						{{ customer.pureza }}
+					</td>
+					<td>
+						{{ customer.peso_bruto | currency:' ':'symbol':'1.2-2':'en-US'}}
+					</td>
+					<td>
+						{{ customer.peso_neto | currency:' ':'symbol':'1.2-2':'en-US'}}
+					</td>
+
+				}
 			</tr>
 		</ng-template>
 		<ng-template pTemplate="emptymessage">

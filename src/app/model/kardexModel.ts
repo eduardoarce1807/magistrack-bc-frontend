@@ -10,6 +10,12 @@ export class kardexModel {
 	archivobase64:    string='';
 	path_kardex:      string='';
 	extensiondoc:     string='';
+	ficha_tecnica:     string='';
+	fecha_vencimiento: any='';
+	pureza:            number=0;
+	lote:              string='';
+	peso_bruto:        number=0;
+	peso_neto:         number=0;
 }
 export class TipomovimientoModel {
 	id_tipomovimiento: string='';

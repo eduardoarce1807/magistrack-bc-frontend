@@ -26,6 +26,8 @@ import {FileUploadModule} from "primeng/fileupload";
 import {BadgeModule} from "primeng/badge";
 import {materiasprimasModel} from "../../../model/materiasprimasModel";
 import {MateriaPrimaService} from "../../../services/materia-prima.service";
+import {MateriaprimaModel} from "../../../model/inventarioModel";
+import {MateriaprimaService} from "../../../services/inventario/materiaprima.service";
 
 @Component({
   selector: 'app-asignar-proveedor',
@@ -44,7 +46,7 @@ import {MateriaPrimaService} from "../../../services/materia-prima.service";
 })
 export class AsignarProveedorComponent {
 	page = 1;
-	listaMateriaPrima:materiasprimasModel[]=[]
+	listaMateriaPrima: MateriaprimaModel[] = [];
 	selectedCustomers: materiasprimasModel[]=[]
 	pageSize = 4;
 	collectionSize = 0;
@@ -63,7 +65,7 @@ export class AsignarProveedorComponent {
 	files:File[] = [];
 	op:number=1
 	constructor(private config: PrimeNGConfig,private messageService: MessageService,
-				private proveedorService:ProveedorService,private materiaprimaService:MateriaPrimaService,) {
+				private proveedorService:ProveedorService,private materiaprimaService:MateriaprimaService,) {
 		this.loading=false
 		this.items = [
 			{
@@ -135,16 +137,17 @@ export class AsignarProveedorComponent {
 	}
 	cargarmateriaprima(){
 		this.spinner=true
-		this.materiaprimaService.getMateriasPrimas().subscribe({
+		this.materiaprimaService.getMateriaprima().subscribe({
 			next:(data)=>{
-				this.listaMateriaPrima=data
+				this.listaMateriaPrima=data.data
 				this.spinner=false
 			},error:(err)=>{
-				this.spinner=false
 				this.messageService.add({ severity: 'danger', summary: 'Error', detail: 'Ocurrió un problema al lista las materias Primas' });
+				this.spinner=false
 			}
 		})
 	}
+
 	refreshRequerimientos() {
 		this.listaRequerimientospaginado = this.listaRequerimientos
 			.map((req, i) => ({id: i + 1, ...req}))
@@ -265,4 +268,18 @@ export class AsignarProveedorComponent {
 			}
 		})
 	}
+	calculatemateriasTotal(id_fabricante: number) {
+		let total = 0;
+
+		if (this.listaMateriaPrima) {
+			for (let materia of this.listaMateriaPrima) {
+				if (materia.id_fabricante === id_fabricante) {
+					total++;
+				}
+			}
+		}
+
+		return total;
+	}
+
 }

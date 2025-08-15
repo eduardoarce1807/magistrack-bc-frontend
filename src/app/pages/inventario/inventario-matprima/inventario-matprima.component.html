@@ -20,7 +20,8 @@
 	>
 		<ng-template pTemplate="caption">
 			<div class="flex justify-between items-center">
-				<h4 class="text-danger fw-bold flex items-center"><img src="assets/img/crema.gif" width="50">Inventario de Materias Primas</h4>
+				<h4 class="text-danger fw-bold flex items-center"><img src="assets/img/crema.gif" width="50">Control de Materias Primas
+					</h4>
 				<div>
 					<p-iconField iconPosition="left">
 						<p-inputIcon>
@@ -31,7 +32,14 @@
 					</p-iconField>
 					<p-button [outlined]="true" icon="pi pi-filter-slash" label="Clear" (click)="clear(dt)" />
 					<p-button  icon="pi pi-plus" label="Nueva Materia Prima" class="mx-1" severity="success" (click)="nuevamateriaprima()" />
-
+					<p-button
+						label="Filtro"
+						icon="pi pi-file-excel"
+						tooltipPosition="left"
+						pTooltip="Imprimir Lista"
+						severity="success"
+						(click)="download()"
+					></p-button>
 				</div>
 			</div>
 		</ng-template>
@@ -182,7 +190,7 @@
 		</ng-template>
 		<div class="row">
 			<div class="col-md-6 d-flex flex-column">
-				<label class="text-info-emphasis fw-bold">ID Materia Prima</label>
+				<label class="p-text-secondary fw-bold">ID Materia Prima</label>
 				<input
 					class="w-full"
 					type="number"
@@ -190,14 +198,14 @@
 					readonly
 					[(ngModel)]="fila_select.id_materia_prima" />
 
-				<label class="text-info-emphasis fw-bold">Nombre</label>
+				<label class="p-text-secondary fw-bold">Nombre</label>
 				<input
 					class="w-full"
 					type="text"
 					pInputText
 					[(ngModel)]="fila_select.nombre" />
 
-				<label class="text-info-emphasis fw-bold">Costo Unitario S/</label>
+				<label class="p-text-secondary fw-bold">Costo Unitario S/</label>
 				<p-inputNumber
 					[(ngModel)]="fila_select.costo_gramo"
 					inputId="minmaxfraction"
@@ -205,14 +213,14 @@
 					[minFractionDigits]="4"
 					[maxFractionDigits]="5" />
 
-				<label class="text-info-emphasis fw-bold">Umbral mínimo</label>
+				<label class="p-text-secondary fw-bold">Umbral mínimo</label>
 				<p-inputNumber
 					inputId="integeronly"
 					[(ngModel)]="fila_select.umbral_min" />
 			</div>
 			<div class="col-md-6 d-flex flex-column">
 
-				<label class="text-info-emphasis fw-bold">Unidad Med</label>
+				<label class="p-text-secondary fw-bold">Unidad Med</label>
 				<p-dropdown
 					[options]="listaUnidades"
 					[(ngModel)]="fila_select.id_unimed"
@@ -228,19 +236,26 @@
 					</ng-template>
 				</p-dropdown>
 
-				<label class="text-info-emphasis fw-bold">Cantidad Inicial</label>
+				<label class="p-text-secondary fw-bold">Cantidad Inicial</label>
 				<p-inputNumber
 					inputId="integeronly"
 					[(ngModel)]="fila_select.stock_materia" />
-				<label class="text-info-emphasis fw-bold">Cantidad Referencial</label>
+				<label class="p-text-secondary fw-bold">Cantidad Referencial</label>
 				<p-inputNumber
 					inputId="integeronly"
 					[(ngModel)]="fila_select.stock_referencia" />
+				<label class="p-text-secondary fw-bold">Fabricante</label>
+				<p-dropdown
+					[options]="listaFabricante"
+					[(ngModel)]="fila_select.id_fabricante"
+					optionLabel="fabricante"
+					optionValue="id_fabricante"
+					placeholder="Seleccionar Fabricante" />
 			</div>
 		</div>
 		<div class="row">
 			<div class="col-md-12 d-flex flex-column">
-				<label class="text-info-emphasis fw-bold">Observaciones</label>
+				<label class="p-text-secondary fw-bold">Observaciones</label>
 				<textarea
 					rows="5"
 					cols="30"
@@ -271,7 +286,7 @@
 		</ng-template>
 		<div class="row">
 			<div class="col-md-12 d-flex flex-column">
-				<label class="text-info-emphasis fw-bold">Materia Prima</label>
+				<label class="p-text-secondary fw-bold">Materia Prima</label>
 				<div class="row">
 					<div class="col-md-3">
 						<input
@@ -293,21 +308,77 @@
 
 				<div class="row">
 					<div class="col-md-6 d-flex flex-column">
-						<label class="text-info-emphasis fw-bold">Stock Actual</label>
+						<label class="p-text-secondary fw-bold">Stock Actual</label>
 						<p-inputNumber
 							inputId="integeronly"
 							readonly
 							[(ngModel)]="fila_select.stock_materia" /></div>
 					<div class="col-md-6 d-flex flex-column">
-						<label class="text-info-emphasis fw-bold">Cantidad a dar de baja</label>
+						<label class="p-text-secondary fw-bold">Cantidad a dar de baja</label>
 						<p-inputNumber
 							inputId="integeronly"
 							[(ngModel)]="subirBaja.cant_salida"
 							[max]="fila_select.stock_materia"
 							[min]="1"/></div>
 				</div>
-
-				<label class="text-info-emphasis fw-bold">Motivo para dar de Baja</label>
+				<div class="row">
+					<div class="col-md-6 d-flex flex-column">
+						<label class="p-text-secondary fw-bold">Ficha Técnica</label>
+						<input
+							class="w-full"
+							type="text"
+							pInputText
+							[(ngModel)]="subirBaja.ficha_tecnica" />
+					</div>
+					<div class="col-md-6 d-flex flex-column">
+						<label class="p-text-secondary fw-bold">Lote</label>
+						<input
+							class="w-full"
+							type="text"
+							pInputText
+							[(ngModel)]="subirBaja.lote" />
+					</div>
+				</div>
+				<div class="row">
+					<div class="col-md-6 d-flex flex-column">
+						<label class="p-text-secondary fw-bold">Peso Bruto</label>
+						<p-inputNumber
+							inputId="minmaxfraction"
+							[(ngModel)]="subirBaja.peso_bruto"
+							mode="decimal"
+							[minFractionDigits]="2"
+							[maxFractionDigits]="5" /></div>
+					<div class="col-md-6 d-flex flex-column">
+						<label class="p-text-secondary fw-bold">Peso Neto</label>
+						<p-inputNumber
+							inputId="minmaxfraction"
+							[(ngModel)]="subirBaja.peso_neto"
+							mode="decimal"
+							[minFractionDigits]="2"
+							[maxFractionDigits]="5"/></div>
+				</div>
+				<div class="row">
+					<div class="col-md-6 d-flex flex-column">
+						<label class="p-text-secondary fw-bold">Pureza</label>
+						<p-inputNumber
+							inputId="integeronly"
+							[(ngModel)]="subirBaja.pureza"
+						suffix="%"/></div>
+					<div class="col-md-6 d-flex flex-column">
+						<label class="p-text-secondary fw-bold">Fecha Vencimiento</label>
+						<p-calendar [(ngModel)]="fechavencimiento"
+									dateFormat="dd-mm-yy"
+									appendTo="body"
+									[iconDisplay]="'input'"
+									[showIcon]="true" inputId="icondisplay"
+									pStyleClass="fs-11 example-full-width"
+									[style]="{ width: '100%' }"
+									[showTime]="true"
+									[hourFormat]="'24'"
+									[inputStyle]="{ width: '100%' }"/>
+					</div>
+				</div>
+				<label class="p-text-secondary fw-bold">Motivo para dar de Baja</label>
 				<textarea
 					rows="3"
 					cols="30"
@@ -317,40 +388,40 @@
 
 				<div class="row">
 					<div class="col-md-4 col-sm-12 d-flex flex-column">
-						<label class="text-info-emphasis fw-bold mt-2">Tipo Movimiento</label>
-						<p-dropdown
-							[options]="listaTipomovimiento"
-							[(ngModel)]="tipomovimiento"
-							optionLabel="descripcion"
-							optionValue="id_tipomovimiento"
-							[loading]="cargatipomovimiento"
-							appendTo="body"
-							placeholder="Seleccionar Tipo"
-							(ngModelChange)="cambiotipomovimento()">
-							<ng-template pTemplate="selectedItem" let-tipomovimiento>
-								<div>({{ tipomovimiento.id_tipomovimiento }}) - {{ tipomovimiento.descripcion }}</div>
-							</ng-template>
-							<ng-template let-tipomovimiento pTemplate="item">
-								<div>({{ tipomovimiento.id_tipomovimiento }}) - {{ tipomovimiento.descripcion }}</div>
-							</ng-template>
-						</p-dropdown>
+<!--						<label class="p-text-secondary fw-bold mt-2">Tipo Movimiento</label>-->
+<!--						<p-dropdown-->
+<!--							[options]="listaTipomovimiento"-->
+<!--							[(ngModel)]="tipomovimiento"-->
+<!--							optionLabel="descripcion"-->
+<!--							optionValue="id_tipomovimiento"-->
+<!--							[loading]="cargatipomovimiento"-->
+<!--							appendTo="body"-->
+<!--							placeholder="Seleccionar Tipo"-->
+<!--							(ngModelChange)="cambiotipomovimento()">-->
+<!--							<ng-template pTemplate="selectedItem" let-tipomovimiento>-->
+<!--								<div>({{ tipomovimiento.id_tipomovimiento }}) - {{ tipomovimiento.descripcion }}</div>-->
+<!--							</ng-template>-->
+<!--							<ng-template let-tipomovimiento pTemplate="item">-->
+<!--								<div>({{ tipomovimiento.id_tipomovimiento }}) - {{ tipomovimiento.descripcion }}</div>-->
+<!--							</ng-template>-->
+<!--						</p-dropdown>-->
 
-						<label class="text-info-emphasis fw-bold mt-2">Movimiento</label>
-						<p-dropdown
-							[options]="listaMovimiento"
-							[(ngModel)]="subirBaja.id_movimiento"
-							optionLabel="movimiento"
-							optionValue="id_movimiento"
-							[loading]="cargamovimiento"
-							appendTo="body"
-							placeholder="Seleccionar Tipo">
-							<ng-template pTemplate="selectedItem" let-movimiento>
-								<div>({{ movimiento.id_movimiento }}) - {{ movimiento.movimiento }}</div>
-							</ng-template>
-							<ng-template let-movimiento pTemplate="item">
-								<div>({{ movimiento.id_movimiento }}) - {{ movimiento.movimiento }}</div>
-							</ng-template>
-						</p-dropdown>
+<!--						<label class="p-text-secondary fw-bold mt-2">Movimiento</label>-->
+<!--						<p-dropdown-->
+<!--							[options]="listaMovimiento"-->
+<!--							[(ngModel)]="subirBaja.id_movimiento"-->
+<!--							optionLabel="movimiento"-->
+<!--							optionValue="id_movimiento"-->
+<!--							[loading]="cargamovimiento"-->
+<!--							appendTo="body"-->
+<!--							placeholder="Seleccionar Tipo">-->
+<!--							<ng-template pTemplate="selectedItem" let-movimiento>-->
+<!--								<div>({{ movimiento.id_movimiento }}) - {{ movimiento.movimiento }}</div>-->
+<!--							</ng-template>-->
+<!--							<ng-template let-movimiento pTemplate="item">-->
+<!--								<div>({{ movimiento.id_movimiento }}) - {{ movimiento.movimiento }}</div>-->
+<!--							</ng-template>-->
+<!--						</p-dropdown>-->
 
 
 						<label class="mt-2">Adjuntar archivo (PDF,images*)</label>
@@ -419,7 +490,7 @@
 		</ng-template>
 		<div class="row">
 			<div class="col-md-12 d-flex flex-column">
-				<label class="text-info-emphasis fw-bold">Materia Prima</label>
+				<label class="p-text-secondary fw-bold">Materia Prima</label>
 				<div class="row">
 					<div class="col-md-3">
 						<input
@@ -441,20 +512,77 @@
 
 				<div class="row">
 					<div class="col-md-6 d-flex flex-column">
-						<label class="text-info-emphasis fw-bold">Stock Actual</label>
+						<label class="p-text-secondary fw-bold">Stock Actual</label>
 						<p-inputNumber
 							inputId="integeronly"
 							readonly
 							[(ngModel)]="fila_select.stock_materia" /></div>
 					<div class="col-md-6 d-flex flex-column">
-						<label class="text-info-emphasis fw-bold">Cantidad adicional</label>
+						<label class="p-text-secondary fw-bold">Cantidad adicional</label>
 						<p-inputNumber
 							inputId="integeronly"
 							[(ngModel)]="subirBaja.cant_entrada"
 							[min]="1"/></div>
 				</div>
+				<div class="row">
+					<div class="col-md-6 d-flex flex-column">
+						<label class="p-text-secondary fw-bold">Ficha Técnica</label>
+						<input
+							class="w-full"
+							type="text"
+							pInputText
+							[(ngModel)]="subirBaja.ficha_tecnica" />
+					</div>
+					<div class="col-md-6 d-flex flex-column">
+						<label class="p-text-secondary fw-bold">Lote</label>
+						<input
+							class="w-full"
+							type="text"
+							pInputText
+							[(ngModel)]="subirBaja.lote" />
+					</div>
+				</div>
+				<div class="row">
+					<div class="col-md-6 d-flex flex-column">
+						<label class="p-text-secondary fw-bold">Peso Bruto</label>
+						<p-inputNumber
+							inputId="minmaxfraction"
+							[(ngModel)]="subirBaja.peso_bruto"
+							mode="decimal"
+							[minFractionDigits]="2"
+							[maxFractionDigits]="5" /></div>
+					<div class="col-md-6 d-flex flex-column">
+						<label class="p-text-secondary fw-bold">Peso Neto</label>
+						<p-inputNumber
+							inputId="minmaxfraction"
+							[(ngModel)]="subirBaja.peso_neto"
+							mode="decimal"
+							[minFractionDigits]="2"
+							[maxFractionDigits]="5"/></div>
+				</div>
+				<div class="row">
+					<div class="col-md-6 d-flex flex-column">
+						<label class="p-text-secondary fw-bold">Pureza</label>
+						<p-inputNumber
+							inputId="integeronly"
+							[(ngModel)]="subirBaja.pureza"
+							suffix="%"/></div>
+					<div class="col-md-6 d-flex flex-column">
+						<label class="p-text-secondary fw-bold">Fecha Vencimiento</label>
+						<p-calendar [(ngModel)]="fechavencimiento"
+									dateFormat="dd-mm-yy"
+									appendTo="body"
+									[iconDisplay]="'input'"
+									[showIcon]="true" inputId="icondisplay"
+									pStyleClass="fs-11 example-full-width"
+									[style]="{ width: '100%' }"
+									[showTime]="true"
+									[hourFormat]="'24'"
+									[inputStyle]="{ width: '100%' }"/>
+					</div>
+				</div>
 
-				<label class="text-info-emphasis fw-bold">Motivo del ajuste manual</label>
+				<label class="p-text-secondary fw-bold">Motivo del ajuste manual</label>
 				<textarea
 					rows="3"
 					cols="30"
@@ -486,7 +614,7 @@
 		</ng-template>
 		<div class="row">
 			<div class="col-md-12 d-flex flex-column">
-				<label class="text-info-emphasis fw-bold">Materia Prima</label>
+				<label class="p-text-secondary fw-bold">Materia Prima</label>
 				<div class="row">
 					<div class="col-md-3">
 						<input
@@ -508,13 +636,13 @@
 
 				<div class="row">
 					<div class="col-md-6 d-flex flex-column">
-						<label class="text-info-emphasis fw-bold">Stock Actual</label>
+						<label class="p-text-secondary fw-bold">Stock Actual</label>
 						<p-inputNumber
 							inputId="integeronly"
 							readonly
 							[(ngModel)]="fila_select.stock_materia" /></div>
 					<div class="col-md-6 d-flex flex-column">
-						<label class="text-info-emphasis fw-bold">Cantidad a dar de baja</label>
+						<label class="p-text-secondary fw-bold">Cantidad a dar de baja</label>
 						<p-inputNumber
 							inputId="integeronly"
 							[(ngModel)]="subirBaja.cant_salida"
@@ -522,7 +650,7 @@
 							[min]="1"/></div>
 				</div>
 
-				<label class="text-info-emphasis fw-bold">Motivo para dar de Baja</label>
+				<label class="p-text-secondary fw-bold">Motivo para dar de Baja</label>
 				<textarea
 					rows="3"
 					cols="30"

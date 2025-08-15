@@ -3,7 +3,7 @@ import {environment} from "../../../environments/environment";
 import {HttpClient} from "@angular/common/http";
 import {Observable} from "rxjs";
 import {Response_Generico} from "../../model/reponseGeneric";
-import {MateriaprimaModel, UnidadmedModel} from "../../model/inventarioModel";
+import {FabricanteModel, MateriaprimaModel, UnidadmedModel} from "../../model/inventarioModel";
 
 @Injectable({
   providedIn: 'root'
@@ -22,5 +22,8 @@ export class MateriaprimaService {
 	}
 	getUnidadmedida(): Observable<Response_Generico<UnidadmedModel[]>> {
 		return this.http.get<Response_Generico<UnidadmedModel[]>>(`${this.baseUrl}/listado-unidad-medida`);
+	}
+	getFabricanteMateriaprima(): Observable<Response_Generico<FabricanteModel[]>> {
+		return this.http.get<Response_Generico<FabricanteModel[]>>(`${this.baseUrl}/lista-fabricante`);
 	}
 }

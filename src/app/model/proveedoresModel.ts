@@ -32,8 +32,8 @@ export class soloproveedorModel {
 	correo: string|null=null;
 	ruc: string|null=null;
 	direccion: string|null=null;
-	id_banco: number=0
-	id_rubros:number=0
+	id_banco: number=1
+	id_rubros:number=1
 	desbanco: string|null=null;
 	desrubro: string|null=null;
 	cuenta_soles: string|null=null;

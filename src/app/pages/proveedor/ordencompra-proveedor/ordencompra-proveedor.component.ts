@@ -36,6 +36,8 @@ import {TagModule} from "primeng/tag";
 import {DomSanitizer, SafeResourceUrl} from "@angular/platform-browser";
 import {FuncionesService} from "../../../services/funciones.service";
 import {UppercaseDirective} from "../../../directives/uppercase.directive";
+import {RadioButtonModule} from "primeng/radiobutton";
+import {Router, RouterLink} from "@angular/router";
 
 
 @Component({
@@ -59,7 +61,7 @@ import {UppercaseDirective} from "../../../directives/uppercase.directive";
 		FileUploadModule,
 		InputTextareaModule,
 		ProgressBarModule,
-		FormsModule, CommonModule, CalendarModule, InputSwitchModule, TagModule, UppercaseDirective
+		FormsModule, CommonModule, CalendarModule, InputSwitchModule, TagModule, UppercaseDirective, RadioButtonModule, RouterLink
 	],
   templateUrl: './ordencompra-proveedor.component.html',
   styleUrl: './ordencompra-proveedor.component.scss',
@@ -87,6 +89,8 @@ export class OrdencompraProveedorComponent {
 	detalle_select:Detalleorden=new Detalleorden()
 	verobservaciones:boolean=false
 	verfactura:boolean=false
+
+	radio_ordercompra:string="1"
 	observaciones:ObsevacionesReqModel=new ObsevacionesReqModel()
 	files:File[] = [];
 	cargaprov:boolean=false
@@ -98,7 +102,8 @@ export class OrdencompraProveedorComponent {
 	constructor(private config: PrimeNGConfig,private messageService: MessageService,
 				private proveedorService:ProveedorService,
 				private ordenService:OrdencompraService,private  validacionService:ValidacionesService,
-				private sanitizer: DomSanitizer,private funcionesService:FuncionesService,) {
+				private sanitizer: DomSanitizer,private funcionesService:FuncionesService,
+				private router:Router) {
 		this.loading=false
 		this.items = [
 			{
@@ -462,4 +467,13 @@ export class OrdencompraProveedorComponent {
 		}
 	}
 
+	cambio_oc() {
+		if (this.radio_ordercompra == "1") {
+			// this.router.navigate(['../compras/ordencompra']);
+			console.log(this.router)
+		} else if (this.radio_ordercompra == "2") {
+			// this.router.navigate(['../proveedor/ordencompra-proveedor']);
+			console.log(this.router)
+		}
+	}
 }
