@@ -10,7 +10,7 @@ export interface CuponRequest {
   stock: number;
   fechaInicio: string; // formato YYYY-MM-DD
   fechaFin: string;
-  idRoles: number[];
+  idClientes: number[];
   idProductos: string[];
 }
 
@@ -72,5 +72,24 @@ export class CuponService {
 
   validarCupon(codigo: string) {
     return this.http.get(`${this.baseUrl}/validar/${codigo}`);
+  }
+
+  // Nuevos métodos para manejo de clientes
+  asignarCliente(idCupon: number, idCliente: number) {
+    return this.http.post(`${this.baseUrl}/asignar-cliente`, { idCupon, idCliente });
+  }
+
+  removerCliente(idCupon: number, idCliente: number) {
+    return this.http.post(`${this.baseUrl}/remover-cliente`, { idCupon, idCliente });
+  }
+
+  obtenerCuponesDisponiblesPorCliente(idCliente: number) {
+    return this.http.get(`${this.baseUrl}/cliente/${idCliente}/disponibles`);
+  }
+
+  verificarAccesoCupon(codigoCupon: string, idCliente: number) {
+    return this.http.get(`${this.baseUrl}/verificar-acceso`, { 
+      params: { codigoCupon, idCliente: idCliente.toString() } 
+    });
   }
 }
