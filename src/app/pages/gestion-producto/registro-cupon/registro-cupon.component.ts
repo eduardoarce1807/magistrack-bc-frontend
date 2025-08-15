@@ -82,10 +82,12 @@ export class RegistroCuponComponent implements OnInit {
               stock: cupon.stock,
               fechaInicio: cupon.fechaInicio,
               fechaFin: cupon.fechaFin,
-              idClientes: cupon.clientes.map((cliente: any) => cliente.idCliente),
-              idProductos: cupon.productos.map((producto: any) => producto.idProducto)
+              idClientes: cupon.clientes ? cupon.clientes.map((cliente: any) => cliente.idCliente) : [],
+              idProductos: cupon.productos ? cupon.productos.map((producto: any) => producto.idProducto) : []
             };
 
+            // Preseleccionar clientes y productos después de cargar el cupón
+            this.preseleccionarClientesYProductos();
           },
           (error) => {
             console.error('Error al obtener cupón', error);
@@ -135,6 +137,24 @@ export class RegistroCuponComponent implements OnInit {
     console.log(item);
   }
 
+  preseleccionarClientesYProductos(): void {
+    // Preseleccionar clientes si ya están cargados
+    if (this.clientes.length > 0 && this.cupon.idClientes.length > 0) {
+      this.clientesSeleccionados = this.clientes.filter(cliente => 
+        this.cupon.idClientes.includes(cliente.idCliente)
+      );
+      console.log('Clientes preseleccionados:', this.clientesSeleccionados);
+    }
+
+    // Preseleccionar productos si ya están cargados
+    if (this.productos.length > 0 && this.cupon.idProductos.length > 0) {
+      this.productosSeleccionados = this.productos.filter(producto => 
+        this.cupon.idProductos.includes(producto.idProducto)
+      );
+      console.log('Productos preseleccionados:', this.productosSeleccionados);
+    }
+  }
+
   listarClientes(): void {
     this.clienteService.getClientes().subscribe(
       (clientes) => {
@@ -145,11 +165,9 @@ export class RegistroCuponComponent implements OnInit {
         }));
         console.log('Clientes mapeados:', this.clientes); // Debug
         
-        // Si estamos editando, filtrar los clientes seleccionados después de cargar la lista
+        // Si estamos editando, preseleccionar clientes después de cargar la lista
         if (this.isEditing && this.cupon.idClientes.length > 0) {
-          this.clientesSeleccionados = this.clientes.filter(cliente => 
-            this.cupon.idClientes.includes(cliente.idCliente)
-          );
+          this.preseleccionarClientesYProductos();
         }
       },
       (error) => console.error('Error al cargar clientes', error)
@@ -164,11 +182,9 @@ export class RegistroCuponComponent implements OnInit {
           nombre: producto.productoMaestro.nombre + ' - ' + producto.presentacion + ' ' + producto.tipoPresentacion.descripcion
         }));
 
-        // Si estamos editando, filtrar los productos seleccionados después de cargar la lista
+        // Si estamos editando, preseleccionar productos después de cargar la lista
         if (this.isEditing && this.cupon.idProductos.length > 0) {
-          this.productosSeleccionados = this.productos.filter(producto => 
-            this.cupon.idProductos.includes(producto.idProducto)
-          );
+          this.preseleccionarClientesYProductos();
         }
       },
       (error) => console.error('Error al cargar productos', error)
