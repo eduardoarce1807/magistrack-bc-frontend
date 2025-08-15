@@ -24,13 +24,21 @@
 					<td>{{item.codigo}}</td>
 					<td>{{item.descripcion}}</td>
 					<td>
-                        @for (rol of item.roles; track $index) {
-                            - {{rol.nombre}}<br>
+                        @if (item.clientes && item.clientes.length > 0) {
+                            @for (cliente of item.clientes; track $index) {
+                                - {{cliente.nombre}}<br>
+                            }
+                        } @else {
+                            <span class="text-muted">Todos los clientes</span>
                         }
                     </td>
 					<td>
-                        @for (producto of item.productos; track $index) {
-                            - {{producto.nombre}}<br>
+                        @if (item.productos && item.productos.length > 0) {
+                            @for (producto of item.productos; track $index) {
+                                - {{producto.nombre}}<br>
+                            }
+                        } @else {
+                            <span class="text-muted">Todos los productos</span>
                         }
                     </td>
                     <td>{{item.descuento}}%</td>

@@ -696,14 +696,33 @@ export class RegistroPedidoComponent implements OnInit, OnDestroy {
                     return;
                   }
 
-                  if (response.roles.some((rol: any) => rol.idRol === this.pedido.cliente.rol.idRol)) {
-                    //ROL VÁLIDO
-                    const productosCupon = response.productos.map((p: any) => p.idProducto);
-                    const existeProducto = this.productosPedido.some((prod: any) =>
-                      productosCupon.includes(prod.idProducto)
-                    );
+                  // Verificar si el cupón es aplicable a cualquier cliente o a clientes específicos
+                  const esParaTodosLosClientes = !response.clientes || response.clientes.length === 0;
+                  let clienteValido = false;
 
-                    if (existeProducto) {
+                  if (esParaTodosLosClientes) {
+                    clienteValido = true; // Cupón válido para todos los clientes
+                  } else {
+                    // Verificar si el cliente actual está en la lista de clientes del cupón
+                    clienteValido = response.clientes.some((cliente: any) => cliente.idCliente === this.pedido.cliente.idCliente);
+                  }
+
+                  if (clienteValido) {
+                    // CLIENTE VÁLIDO - Verificar productos
+                    const esParaTodosLosProductos = !response.productos || response.productos.length === 0;
+                    let productoValido = false;
+
+                    if (esParaTodosLosProductos) {
+                      productoValido = true; // Cupón válido para todos los productos
+                    } else {
+                      // Verificar si algún producto del pedido está en la lista de productos del cupón
+                      const productosCupon = response.productos.map((p: any) => p.idProducto);
+                      productoValido = this.productosPedido.some((prod: any) =>
+                        productosCupon.includes(prod.idProducto)
+                      );
+                    }
+
+                    if (productoValido) {
                       this.errorCupon = false;
                       this.textoErrorCupon = '';
                       this.cuponValidado = true;
@@ -748,7 +767,7 @@ export class RegistroPedidoComponent implements OnInit, OnDestroy {
 
                   }else{
                     this.errorCupon = true;
-                    this.textoErrorCupon = 'El cupón no es válido para el rol del usuario.';
+                    this.textoErrorCupon = 'El cupón no es válido para este cliente.';
                   }
 
                 // Swal.fire({

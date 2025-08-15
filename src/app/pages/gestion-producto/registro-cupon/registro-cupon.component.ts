@@ -1,12 +1,8 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import Swal from 'sweetalert2';
-import { MateriaPrimaService } from '../../../services/materia-prima.service';
 import { ProductoService } from '../../../services/producto.service';
-import { TipoPresentacionService } from '../../../services/tipo-presentacion.service';
-import { Producto, Procedimiento } from '../registro-producto/registro-producto.component';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { RolService } from '../../../services/rol.service';
 import { NgMultiSelectDropDownModule } from 'ng-multiselect-dropdown';
 import { ClienteService } from '../../../services/cliente.service';
 import { CuponService } from '../../../services/cupon.service';
@@ -21,7 +17,7 @@ interface CuponRequest {
   stock: number;
   fechaInicio: string; // formato YYYY-MM-DD
   fechaFin: string;
-  idRoles: number[];
+  idClientes: number[];
   idProductos: string[];
 }
 
@@ -34,12 +30,12 @@ interface CuponRequest {
 })
 export class RegistroCuponComponent implements OnInit {
 
-  ddsRoles = {};
+  ddsClientes = {};
   ddsProductos = {};
-  roles: any[] = [];
+  clientes: any[] = [];
   productos: any[] = [];
 
-  rolesSeleccionados: any[] = [];
+  clientesSeleccionados: any[] = [];
   productosSeleccionados: any[] = [];
 
   cupon: CuponRequest = {
@@ -50,13 +46,13 @@ export class RegistroCuponComponent implements OnInit {
     stock: 0,
     fechaInicio: new Date().toISOString().split('T')[0], // Formato YYYY-MM-DD
     fechaFin: new Date().toISOString().split('T')[0], // Formato YYYY-MM-DD
-    idRoles: [],
+    idClientes: [],
     idProductos: []
   }
 
   constructor(
     private productoService: ProductoService,
-    private rolService: RolService,
+    private clienteService: ClienteService,
     private cuponService: CuponService,
     private route: ActivatedRoute,
     public router: Router,
@@ -68,7 +64,7 @@ export class RegistroCuponComponent implements OnInit {
   private routeSubscription: Subscription | null = null;
 
   ngOnInit(): void {
-    this.listarRoles();
+    this.listarClientes();
     this.listarProductos();
 
     this.routeSubscription = this.route.paramMap.subscribe(params => {
@@ -86,15 +82,9 @@ export class RegistroCuponComponent implements OnInit {
               stock: cupon.stock,
               fechaInicio: cupon.fechaInicio,
               fechaFin: cupon.fechaFin,
-              idRoles: cupon.roles.map((rol: any) => rol.idRol),
+              idClientes: cupon.clientes.map((cliente: any) => cliente.idCliente),
               idProductos: cupon.productos.map((producto: any) => producto.idProducto)
             };
-
-            if( this.isEditing) {
-              this.rolesSeleccionados = this.roles.filter(rol => 
-                this.cupon.idRoles.includes(rol.idRol)
-              );
-            }
 
           },
           (error) => {
@@ -109,10 +99,10 @@ export class RegistroCuponComponent implements OnInit {
       }
     });
 
-    this.ddsRoles = {
+    this.ddsClientes = {
       singleSelection: false,
-      idField: 'idRol',
-      textField: 'nombre',
+      idField: 'idCliente',
+      textField: 'nombreCompleto',
       selectAllText: 'Seleccionar Todo',
       unSelectAllText: 'Deseleccionar Todo',
       itemsShowLimit: 3,
@@ -145,12 +135,24 @@ export class RegistroCuponComponent implements OnInit {
     console.log(item);
   }
 
-  listarRoles(): void {
-    this.rolService.getRoles().subscribe(
-      (roles) => {
-        this.roles = roles;
+  listarClientes(): void {
+    this.clienteService.getClientes().subscribe(
+      (clientes) => {
+        console.log('Clientes originales:', clientes); // Debug
+        this.clientes = clientes.map(cliente => ({
+          ...cliente,
+          nombreCompleto: (cliente.nombres || '') + ' ' + (cliente.apellidos || '')
+        }));
+        console.log('Clientes mapeados:', this.clientes); // Debug
+        
+        // Si estamos editando, filtrar los clientes seleccionados después de cargar la lista
+        if (this.isEditing && this.cupon.idClientes.length > 0) {
+          this.clientesSeleccionados = this.clientes.filter(cliente => 
+            this.cupon.idClientes.includes(cliente.idCliente)
+          );
+        }
       },
-      (error) => console.error('Error al cargar roles', error)
+      (error) => console.error('Error al cargar clientes', error)
     );
   }
 
@@ -162,8 +164,8 @@ export class RegistroCuponComponent implements OnInit {
           nombre: producto.productoMaestro.nombre + ' - ' + producto.presentacion + ' ' + producto.tipoPresentacion.descripcion
         }));
 
-        if( this.isEditing) {
-          // Si estamos editando, filtrar los productos seleccionados
+        // Si estamos editando, filtrar los productos seleccionados después de cargar la lista
+        if (this.isEditing && this.cupon.idProductos.length > 0) {
           this.productosSeleccionados = this.productos.filter(producto => 
             this.cupon.idProductos.includes(producto.idProducto)
           );
@@ -175,12 +177,12 @@ export class RegistroCuponComponent implements OnInit {
 
   registrarCupon(): void {
 
-    this.cupon.idRoles = this.rolesSeleccionados.map(rol => rol.idRol);
+    this.cupon.idClientes = this.clientesSeleccionados.map(cliente => cliente.idCliente);
     this.cupon.idProductos = this.productosSeleccionados.map(producto => producto.idProducto);
 
-    //Si la lista de roles seleccionados es igual a la lista completa de roles, se vacía
-    if(this.cupon.idRoles.length === this.roles.length) {
-      this.cupon.idRoles = [];
+    //Si la lista de clientes seleccionados es igual a la lista completa de clientes, se vacía
+    if(this.cupon.idClientes.length === this.clientes.length) {
+      this.cupon.idClientes = [];
     }
 
     //Si la lista de productos seleccionados es igual a la lista completa de productos, se vacía
@@ -209,12 +211,12 @@ export class RegistroCuponComponent implements OnInit {
   }
 
   actualizarCupon(): void {
-    this.cupon.idRoles = this.rolesSeleccionados.map(rol => rol.idRol);
+    this.cupon.idClientes = this.clientesSeleccionados.map(cliente => cliente.idCliente);
     this.cupon.idProductos = this.productosSeleccionados.map(producto => producto.idProducto);
 
-    //Si la lista de roles seleccionados es igual a la lista completa de roles, se vacía
-    if(this.cupon.idRoles.length === this.roles.length) {
-      this.cupon.idRoles = [];
+    //Si la lista de clientes seleccionados es igual a la lista completa de clientes, se vacía
+    if(this.cupon.idClientes.length === this.clientes.length) {
+      this.cupon.idClientes = [];
     }
 
     //Si la lista de productos seleccionados es igual a la lista completa de productos, se vacía
@@ -255,11 +257,11 @@ export class RegistroCuponComponent implements OnInit {
       montoMinimo: 0.0,
       fechaInicio: new Date().toISOString().split('T')[0],
       fechaFin: new Date().toISOString().split('T')[0],
-      idRoles: [],
+      idClientes: [],
       idProductos: [],
       stock: 0
     };
-    this.rolesSeleccionados = [];
+    this.clientesSeleccionados = [];
     this.productosSeleccionados = [];
   }
 
