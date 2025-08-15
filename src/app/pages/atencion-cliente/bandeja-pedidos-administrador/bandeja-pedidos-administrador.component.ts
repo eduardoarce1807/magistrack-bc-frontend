@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, TemplateRef, ViewChild, inject } from '@angular/core';
 import { PedidoService } from '../../../services/pedido.service';
 import { Router } from '@angular/router';
 import Swal from 'sweetalert2';
@@ -11,15 +11,20 @@ import {
 import { PedidoAuditoriaService } from '../../../services/pedido-auditoria.service';
 import { DataService } from '../../../services/data.service';
 import { ProductoService } from '../../../services/producto.service';
+import { ToastService } from '../../../services/toast.service';
+import { ToastsContainer } from '../../../shared/components/toasts-container/toasts-container.component';
 
 @Component({
 	selector: 'app-bandeja-pedidos-administrador',
 	standalone: true,
-	imports: [FormsModule, NgbTypeaheadModule, NgbPaginationModule, CommonModule],
+	imports: [FormsModule, NgbTypeaheadModule, NgbPaginationModule, CommonModule, ToastsContainer],
 	templateUrl: './bandeja-pedidos-administrador.component.html',
 	styleUrl: './bandeja-pedidos-administrador.component.scss',
 })
 export class BandejaPedidosAdministradorComponent implements OnInit {
+	@ViewChild('successTpl', { static: false }) successTpl!: TemplateRef<any>;
+	toastService = inject(ToastService);
+	
 	pedidos: any[] = [];
 	pedidosTable: any[] = [];
 	page = 1;
@@ -60,16 +65,26 @@ export class BandejaPedidosAdministradorComponent implements OnInit {
 			);
 	}
 
+	showSuccess(template: TemplateRef<any>) {
+		this.toastService.show({
+			template,
+			classname: 'bg-success text-light',
+			delay: 3000,
+		});
+	}
+
 	editarFechaEstimadaEntrega(pedido: any, $event: any): void {
 		//const nuevaFecha = prompt('Ingrese la nueva fecha estimada de entrega (YYYY-MM-DD):', pedido.fechaEstimadaEntrega);
 		if ($event) {
-			pedido.fechaEstimadaEntrega = $event.target.value;
-			this.pedidoService.updatePedido(pedido).subscribe(
+			const nuevaFecha = $event.target.value;
+			this.pedidoService.updateFechaEstimadaEntrega(pedido.idPedido, nuevaFecha).subscribe(
 				() => {
 					console.log('Fecha actualizada');
+					pedido.fechaEstimadaEntrega = nuevaFecha;
+					this.showSuccess(this.successTpl);
 					this.cargarPedidos();
 				},
-				(error) => console.error('Error al actualizar fecha', error)
+				(error: any) => console.error('Error al actualizar fecha', error)
 			);
 		}
 	}

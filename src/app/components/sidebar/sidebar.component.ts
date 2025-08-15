@@ -65,6 +65,11 @@ export class SidebarComponent {
 					key: '0_6',
 					label: 'Reporte de Ventas',
 					command: () => this.irA('pages/atencion-cliente/reporte-ventas')
+				},
+				{
+					key: '0_7',
+					label: 'Calculadora Maestra',
+					command: () => this.irA('pages/atencion-cliente/calculadora-maestra')
 				}
 			] : [])
 		];

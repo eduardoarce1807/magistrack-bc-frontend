@@ -45,10 +45,10 @@ export class BandejaDespachoComponent implements OnInit {
 	private modalService = inject(NgbModal);
 
 	idPedidoNota: string | null = null;
-	idProductoNota: string | null = null;
 	observacionNota: string = '';
 
 	tipoEnvio = 0;
+	loadingPDF: { [key: string]: boolean } = {};
 
 	constructor(
 		private pedidoService: PedidoService,
@@ -85,9 +85,8 @@ export class BandejaDespachoComponent implements OnInit {
 
 	openModalNota(item: any, content: TemplateRef<any>) {
 		this.modalService.open(content, { size: 'lg' });
-		this.observacionNota = item.observacion;
+		this.observacionNota = item.observaciones || '';
 		this.idPedidoNota = item.idPedido;
-		this.idProductoNota = item.idProducto;
 	}
 
 	openModalXL(content: TemplateRef<any>) {
@@ -119,6 +118,36 @@ export class BandejaDespachoComponent implements OnInit {
 	openModalComprobante(content: TemplateRef<any>, item: any) {
 		this.pedidoService.getPedidoById(item.idPedido).subscribe((pedido) => {
 			console.log('Pedido obtenido:', pedido);
+			
+			// Validar si el pedido tiene documento registrado
+			if (!pedido.documento) {
+				Swal.fire({
+					icon: 'warning',
+					title: '¡Atención!',
+					text: 'El pedido seleccionado no tiene un tipo de comprobante registrado.',
+					showConfirmButton: true,
+				});
+				return;
+			}
+			
+			// Validar si el comprobante ya fue generado
+			if (pedido.documento.urlPdf && pedido.documento.urlPdf !== null) {
+				Swal.fire({
+					icon: 'info',
+					title: 'Comprobante ya generado',
+					text: 'El comprobante para este pedido ya fue generado.',
+					showCancelButton: true,
+					confirmButtonText: 'Descargar PDF',
+					cancelButtonText: 'Cerrar',
+				}).then((result) => {
+					if (result.isConfirmed) {
+						// Abrir el PDF en una nueva ventana para descarga
+						window.open(pedido.documento.urlPdf, '_blank');
+					}
+				});
+				return;
+			}
+			
 			this.documentoSeleccionado.idPedido = pedido.idPedido;
 			this.documentoSeleccionado.nombreCliente = pedido.documento.tipoComprobante == "03" ? pedido.documento.nombreCliente : null;
 			this.documentoSeleccionado.razonSocial = pedido.documento.tipoComprobante == "01" ? pedido.documento.razonSocialCliente : null;
@@ -141,11 +170,7 @@ export class BandejaDespachoComponent implements OnInit {
 
 	saveObservacion(): void {
 		this.pedidoService
-			.saveObservacionPedido({
-				idPedido: this.idPedidoNota,
-				idProducto: this.idProductoNota,
-				observacion: this.observacionNota,
-			})
+			.updateObservacionPedido(this.idPedidoNota!, this.observacionNota)
 			.subscribe(
 				(response) => {
 					Swal.fire({
@@ -158,7 +183,6 @@ export class BandejaDespachoComponent implements OnInit {
 					this.modalService.dismissAll();
 					this.observacionNota = '';
 					this.idPedidoNota = null;
-					this.idProductoNota = null;
 				},
 				(error) => {
 					console.error('Error al guardar la observación', error);
@@ -389,12 +413,16 @@ export class BandejaDespachoComponent implements OnInit {
 							text: data.resultado || 'Comprobante generado correctamente.',
 							showConfirmButton: true,
 							showCancelButton: true,
+							showDenyButton: true,
 							confirmButtonText: 'Enviar por WhatsApp',
+							denyButtonText: 'Descargar',
 							cancelButtonText: 'Cerrar',
 						}).then((result) => {
 							if (result.isConfirmed) {
 								let urlWpp = `https://wa.me/51${this.documentoSeleccionado.celular}?text=Hola, aquí está tu ${this.documentoSeleccionado.tipoComprobante === '01' ? 'Factura' : 'Boleta'}:%0A${data.value}%0ABELLACURET`;
 								window.open(urlWpp, '_blank');
+							} else if (result.isDenied) {
+								window.open(data.value, '_blank');
 							}
 						});
 					}else{
@@ -429,12 +457,16 @@ export class BandejaDespachoComponent implements OnInit {
 							text: data.resultado || 'Comprobante generado correctamente.',
 							showConfirmButton: true,
 							showCancelButton: true,
+							showDenyButton: true,
 							confirmButtonText: 'Enviar por WhatsApp',
+							denyButtonText: 'Descargar PDF',
 							cancelButtonText: 'Cerrar',
 						}).then((result) => {
 							if (result.isConfirmed) {
 								let urlWpp = `https://wa.me/51${this.documentoSeleccionado.celular}?text=Hola, aquí está tu ${this.documentoSeleccionado.tipoComprobante === '01' ? 'Factura' : 'Boleta'}:%0A${data.value}%0ABELLACURET`;
 								window.open(urlWpp, '_blank');
+							} else if (result.isDenied) {
+								window.open(data.value, '_blank');
 							}
 						});
 					}else{
@@ -458,5 +490,200 @@ export class BandejaDespachoComponent implements OnInit {
 				},
 			});
 		}
+	}
+
+	imprimirHojaPedido(idPedido: string): void {
+		// Activar estado de carga
+		this.loadingPDF[idPedido] = true;
+		
+		// Obtener datos del pedido y productos en paralelo
+		Promise.all([
+			this.pedidoService.getPedidoById(idPedido).toPromise(),
+			this.pedidoService.getProductosByPedidoId(idPedido).toPromise()
+		]).then(([pedido, productos]) => {
+			console.log('Datos del pedido:', pedido);
+			console.log('Productos del pedido:', productos);
+			
+			// Verificar que los datos existan
+			if (!pedido || !productos) {
+				throw new Error('No se pudieron obtener los datos completos del pedido');
+			}
+			
+			// Generar el HTML del PDF
+			const htmlContent = this.generarHTMLHojaPedido(pedido, productos);
+			
+			// Crear una ventana para imprimir
+			const printWindow = window.open('', '_blank', 'width=800,height=600');
+			if (printWindow) {
+				printWindow.document.write(htmlContent);
+				printWindow.document.close();
+				printWindow.focus();
+				setTimeout(() => {
+					printWindow.print();
+					printWindow.close();
+					// Desactivar estado de carga después de que se abre la ventana de impresión
+					this.loadingPDF[idPedido] = false;
+				}, 500);
+			} else {
+				// Si no se pudo abrir la ventana, desactivar estado de carga
+				this.loadingPDF[idPedido] = false;
+			}
+		}).catch((error) => {
+			console.error('Error al obtener datos del pedido:', error);
+			// Desactivar estado de carga en caso de error
+			this.loadingPDF[idPedido] = false;
+			Swal.fire({
+				icon: 'error',
+				title: 'Error',
+				text: 'No se pudieron obtener los datos del pedido para generar la hoja.',
+				showConfirmButton: true,
+			});
+		});
+	}
+
+	onlyNumbers(event: Event): void {
+		const input = event.target as HTMLInputElement;
+		input.value = input.value.replace(/[^0-9]/g, '');
+		this.documentoSeleccionado.celular = input.value;
+	}
+
+	private generarHTMLHojaPedido(pedido: any, productos: any[]): string {
+		const fechaPedido = new Date(pedido.fechaPedido).toLocaleDateString('es-PE');
+		
+		let productosHTML = '';
+		productos.forEach(producto => {
+			const precioTotal = producto.precio * producto.cantidad;
+			productosHTML += `
+				<tr>
+					<td style="padding: 8px; border: 1px solid #ddd;">${producto.nombre} x ${producto.cantidad}</td>
+					<td style="padding: 8px; border: 1px solid #ddd;">${producto.presentacion} ${producto.tipoPresentacion}</td>
+					<td style="padding: 8px; border: 1px solid #ddd; text-align: right;">S/ ${precioTotal.toFixed(2)}</td>
+				</tr>
+			`;
+		});
+
+		return `
+			<html>
+				<head>
+					<title>Hoja de Pedido - ${pedido.idPedido}</title>
+					<style>
+						body { 
+							font-family: Arial, sans-serif; 
+							margin: 20px; 
+							font-size: 12px;
+						}
+						.header {
+							text-align: center;
+							margin-bottom: 20px;
+							border-bottom: 2px solid #333;
+							padding-bottom: 10px;
+						}
+						.section {
+							margin-bottom: 15px;
+						}
+						.section-title {
+							font-weight: bold;
+							margin-bottom: 5px;
+							color: #333;
+						}
+						table {
+							width: 100%;
+							border-collapse: collapse;
+							margin-top: 10px;
+						}
+						th {
+							background-color: #f5f5f5;
+							padding: 8px;
+							border: 1px solid #ddd;
+							font-weight: bold;
+						}
+						td {
+							padding: 8px;
+							border: 1px solid #ddd;
+						}
+						.total {
+							font-weight: bold;
+							font-size: 14px;
+							text-align: right;
+							margin-top: 10px;
+						}
+						@media print {
+							body { margin: 0; }
+						}
+					</style>
+				</head>
+				<body>
+					<div class="header">
+						<h1>HOJA DE PEDIDO</h1>
+						<h2>${pedido.idPedido}</h2>
+					</div>
+
+					<div class="section">
+						<div class="section-title">Cliente:</div>
+						${pedido.cliente?.nombres || ''} ${pedido.cliente?.apellidos || ''}
+					</div>
+
+					<div class="section">
+						<div class="section-title">DNI:</div>
+						${pedido.cliente?.numeroDocumento || 'No especificado'}
+					</div>
+
+					<div class="section">
+						<div class="section-title">Correo:</div>
+						${pedido.cliente?.correo || 'No especificado'}
+					</div>
+
+					<div class="section">
+						<div class="section-title">Número de pedido:</div>
+						${pedido.idPedido}
+					</div>
+
+					<div class="section">
+						<div class="section-title">Fecha:</div>
+						${fechaPedido}
+					</div>
+
+					<div class="section">
+						<div class="section-title">Total:</div>
+						S/ ${pedido.montoTotal.toFixed(2)}
+					</div>
+
+					<div class="section">
+						<div class="section-title">Método de pago:</div>
+						${pedido.tipoPago?.descripcion || 'No especificado'}
+					</div>
+
+					<div class="section">
+						<div class="section-title">Método de entrega:</div>
+						${pedido.metodoEntrega?.descripcion || 'No especificado'}
+					</div>
+
+					<div class="section">
+						<div class="section-title">Dirección:</div>
+						${pedido.direccion?.direccion || 'No especificada'} - ${pedido.direccion?.distrito?.nombre || ''} - ${pedido.direccion?.provincia?.nombre || ''} - ${pedido.direccion?.departamento?.nombre || ''}
+					</div>
+
+					<div class="section">
+						<div class="section-title">DETALLES DEL PEDIDO</div>
+						<table>
+							<thead>
+								<tr>
+									<th>Producto</th>
+									<th>Presentación</th>
+									<th>Precio</th>
+								</tr>
+							</thead>
+							<tbody>
+								${productosHTML}
+							</tbody>
+						</table>
+					</div>
+
+					<div class="total">
+						TOTAL: S/ ${pedido.montoTotal.toFixed(2)}
+					</div>
+				</body>
+			</html>
+		`;
 	}
 }

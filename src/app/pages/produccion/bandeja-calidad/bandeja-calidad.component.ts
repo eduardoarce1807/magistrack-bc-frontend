@@ -189,32 +189,20 @@ export class BandejaCalidadComponent implements OnInit {
 
 	isLoading: boolean = false;
 	private updateTimeout: any;
-	changePhCalidad(pedidoProducto: any, event: Event) {
+	changeCalidadFields(pedidoProducto: any, event: Event, fieldName: string) {
 		this.isLoading = true;
 
 		clearTimeout(this.updateTimeout);
-		const phCalidad = (event.target as HTMLInputElement).value;
+		const inputValue = (event.target as HTMLInputElement).value;
 
-		// Validar que sea un número positivo con hasta 2 decimales
-		const phRegex = /^(?:\d+|\d*\.\d{1,2})$/;
-		if (phCalidad && phRegex.test(phCalidad) && parseFloat(phCalidad) > 0) {
-			pedidoProducto.phCalidad = parseFloat(phCalidad);
-		} else {
-			Swal.fire({
-				icon: 'error',
-				title: 'Oops!',
-				text: 'El pH de calidad debe ser un número positivo con hasta 2 decimales.',
-				showConfirmButton: true,
-			});
-			this.isLoading = false;
-			return;
-		}
-
-		// Establece un nuevo temporizador para 1 segundo
-		this.updateTimeout = setTimeout(() => {
-			const phValue = parseFloat(phCalidad);
-			if (!isNaN(phValue) && phValue > 0 && phRegex.test(phCalidad)) {
-				pedidoProducto.phCalidad = phValue;
+		// Validaciones específicas por campo
+		if (fieldName === 'phCalidadPromedio') {
+			// Validar que sea un número positivo con hasta 2 decimales
+			const phRegex = /^(?:\d+|\d*\.\d{1,2})$/;
+			if (inputValue && phRegex.test(inputValue) && parseFloat(inputValue) > 0) {
+				pedidoProducto.phCalidadPromedio = parseFloat(inputValue);
+			} else if (inputValue === '') {
+				pedidoProducto.phCalidadPromedio = null;
 			} else {
 				Swal.fire({
 					icon: 'error',
@@ -225,12 +213,22 @@ export class BandejaCalidadComponent implements OnInit {
 				this.isLoading = false;
 				return;
 			}
+		} else if (fieldName === 'carOrganolepticasCalidad' || fieldName === 'viscosidadCalidad') {
+			// Para campos de texto, simplemente asignar el valor o null si está vacío
+			pedidoProducto[fieldName] = inputValue.trim() === '' ? null : inputValue.trim();
+		}
+
+		// Establece un nuevo temporizador para 1 segundo
+		this.updateTimeout = setTimeout(() => {
 			let productoRequest: any = {
 				idProductoMaestro: pedidoProducto.idProductoMaestro,
 				idEstadoProducto: pedidoProducto.idEstadoProducto,
-				phCalidad: phValue,
+				phCalidad: pedidoProducto.phCalidadPromedio,
+				carOrganolepticasCalidad: pedidoProducto.carOrganolepticasCalidad,
+				viscosidadCalidad: pedidoProducto.viscosidadCalidad,
 				observacion: ""
 			};
+
 			this.productoService
 				.updatePedidoProductoMaestro(productoRequest)
 				.subscribe(
@@ -243,13 +241,13 @@ export class BandejaCalidadComponent implements OnInit {
 					},
 					(error) => {
 						console.error(
-							'Error al agregar producto al pedido',
+							'Error al actualizar campos de calidad',
 							error
 						);
 						Swal.fire({
 							icon: 'error',
 							title: 'Oops!',
-							text: 'No se pudo agregar el producto al pedido, inténtelo de nuevo.',
+							text: 'No se pudieron actualizar los campos de calidad, inténtelo de nuevo.',
 							showConfirmButton: true,
 						});
 						this.isLoading = false;
@@ -684,6 +682,7 @@ export class BandejaCalidadComponent implements OnInit {
               }).then(() => {
                 this.actualizarListaProductos();
                 this.lstProductosSeleccionados = [];
+                this.idBulkBusqueda = ''; // Limpiar el input de búsqueda
               });
             },
             (bulkError) => {
@@ -744,6 +743,7 @@ export class BandejaCalidadComponent implements OnInit {
               }).then(() => {
                 this.actualizarListaProductos();
                 this.lstProductosSeleccionados = [];
+                this.idBulkBusqueda = ''; // Limpiar el input de búsqueda
               });
             },
             (bulkError) => {

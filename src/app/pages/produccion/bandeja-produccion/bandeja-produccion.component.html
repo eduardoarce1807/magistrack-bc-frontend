@@ -88,12 +88,12 @@
 						>
 							<i class="bi bi-send"></i>
 						</button>
-						<button
+						<!-- <button
 							class="btn btn-secondary"
 							(click)="openModalNota(item, nota)"
 						>
 							<i class="bi bi-stickies"></i>
-						</button>
+						</button> -->
 					</td>
 				</tr>
 				}
@@ -165,11 +165,7 @@
 
 			<!-- Sección de Cálculo de Ingredientes -->
 			<div class="mb-4">
-				@if (productoMaestroCalculo) {
-					<h5 class="text-primary">Ingredientes para presentación de {{productoMaestroCalculo.presentacionTotal}} {{productoMaestroCalculo.tipoPresentacion}}</h5>
-				}@else{
-					<h5 class="text-primary">Ingredientes</h5>
-				}
+				<h5 class="text-primary">Ingredientes</h5>
 				
 				<table class="table table-bordered">
 					<thead class="table-light">

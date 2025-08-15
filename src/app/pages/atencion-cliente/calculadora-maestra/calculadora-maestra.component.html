@@ -2,7 +2,7 @@
 	<div class="card shadow-lg p-4 rounded-4 mb-4">
 		<h2 class="mb-4 text-center">Calculadora Maestra</h2>
 
-        <div class="d-flex justify-content-start mb-3">
+        <div class="d-flex justify-content-start mb-3" *ngIf="!isStandaloneMode">
 			<div class="text-start">
 				<p class="mb-0"><span class="fw-bold">Pedido:</span> {{idPedido}}</p>
 				<p class="mb-0"><span class="fw-bold">Producto:</span> {{idProducto}}</p>
@@ -22,12 +22,8 @@
                 </select>
             </div>
             <div class="col-md-2">
-                <label for="porcentaje" class="form-label">Porcentaje</label>
-                <!-- <input disabled type="number" name="porcentaje" [(ngModel)]="base.porcentaje" class="form-control" id="porcentaje" placeholder="Ingrese porcentaje" max="1" step="0.01" required> -->
-                <div class="input-group mb-3">
-                    <input disabled type="number" name="porcentaje" [value]="base.porcentaje * 100" (input)="onBasePorcentajeChange($event)" class="form-control" id="porcentaje" placeholder="Ingrese porcentaje" max="1" step="0.01" required>
-                    <span class="input-group-text">%</span>
-                </div>
+                <label for="porcentaje" class="form-label">Grado de dificultad</label>
+                <input disabled type="number" name="porcentaje" [value]="base.porcentaje" (input)="onBasePorcentajeChange($event)" class="form-control" id="porcentaje" placeholder="Ingrese grado de dificultad" step="0.01" required>
             </div>
 
             <div class="col-md-2">
@@ -170,7 +166,7 @@
                 <input type="number" name="precioVentaFinalRedondeado" [(ngModel)]="precioVentaFinalRedondeado" class="form-control" id="precioVentaFinalRedondeado" placeholder="Ingrese precioVentaFinalRedondeado" required>
             </div>
             </div>
-            <div class="text-end">
+            <div class="text-end" *ngIf="!isStandaloneMode">
                 <button class="btn btn-danger" (click)="router.navigate(['/pages/atencion-cliente/bandeja-personalizacion'])">Cancelar</button>
                 <button class="btn btn-primary ms-2" (click)="savePrecioPersonalizado();">Guardar</button>
             </div>
