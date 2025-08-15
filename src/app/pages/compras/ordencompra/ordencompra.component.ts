@@ -41,6 +41,7 @@ import {ConformidadService} from "../../../services/compras/conformidad.service"
 import {UppercaseDirective} from "../../../directives/uppercase.directive";
 import {RadioButtonModule} from "primeng/radiobutton";
 import {Router, RouterLink} from "@angular/router";
+import {DataService} from "../../../services/data.service";
 
 @Component({
   selector: 'app-ordencompra',
@@ -104,12 +105,15 @@ export class OrdencompraComponent {
 	totalSizePercent : number = 0;
 	subirFactura:FacturaOrden=new FacturaOrden()
 	valorswitch:number=0
+	user:any
+	fechavencimiento:any=new Date()
 	constructor(private config: PrimeNGConfig,private messageService: MessageService,
 				private requerimietoService:RequerimientosService, private proveedorService:ProveedorService,
 				private ordenService:OrdencompraService,private  validacionService:ValidacionesService,
 				private tipoPagoService: TipoPagoService,private sanitizer: DomSanitizer,private conformidadService:ConformidadService,
-				private router:Router) {
+				private router:Router,public dataService: DataService) {
 		this.loading=false
+		this.user = this.dataService.getLoggedUser();
 		this.items = [
 			{
 				label: 'Ver Detalles',

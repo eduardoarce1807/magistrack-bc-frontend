@@ -18,7 +18,13 @@ export class ordencompraModel {
 	obsconformidad:   string='';
 	parametro_conf1:	number=0;
 	parametro_conf2:	number=0;
-	parametro_conf3:	number=0
+	parametro_conf3:	number=0;
+	ficha_tecnica:     string='';
+	fecha_vencimiento: any='';
+	pureza:            number=0;
+	lote:              string='';
+	peso_bruto:        number=0;
+	peso_neto:         number=0;
 	detalleorden:     Detalleorden[]=[];
 }
 
