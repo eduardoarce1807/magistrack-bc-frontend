@@ -6,6 +6,13 @@ export class proveedorModel {
 	correo: string|null=null;
 	ruc: string|null=null;
 	direccion: string|null=null;
+	id_banco: number=0
+	id_rubros:number=0
+	desbanco: string|null=null;
+	desrubro: string|null=null;
+	cuenta_soles: string|null=null;
+	cuenta_dolares: string|null=null;
+	cci: string|null=null;
 	detalle:ListaMateriaModel[]=[]
 }
 
@@ -25,6 +32,13 @@ export class soloproveedorModel {
 	correo: string|null=null;
 	ruc: string|null=null;
 	direccion: string|null=null;
+	id_banco: number=1
+	id_rubros:number=1
+	desbanco: string|null=null;
+	desrubro: string|null=null;
+	cuenta_soles: string|null=null;
+	cuenta_dolares: string|null=null;
+	cci: string|null=null;
 }
 
 export class materiaxproveedorModel {
@@ -33,4 +47,8 @@ export class materiaxproveedorModel {
 	precio_prov:number=0;
 	estado:string|null=null;
 
+}
+export class rubrosproveedorModel {
+	id_rubros:number=0
+	rubro: string|null=null;
 }

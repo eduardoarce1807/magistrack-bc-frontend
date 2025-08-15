@@ -5,7 +5,12 @@ import {Observable} from "rxjs";
 import {Response_Generico} from "../../model/reponseGeneric";
 import {Response_Generico_Read} from "../../model/responseGenericRead";
 import {RequeremientossaveModel, respuestaGuardaModel} from "../../model/requerimientosModel";
-import {materiaxproveedorModel, proveedorModel, soloproveedorModel} from "../../model/proveedoresModel";
+import {
+	materiaxproveedorModel,
+	proveedorModel,
+	rubrosproveedorModel,
+	soloproveedorModel
+} from "../../model/proveedoresModel";
 import {ValidacionOrden} from "../../model/ordencompraModel";
 
 @Injectable({
@@ -31,6 +36,9 @@ export class ProveedorService {
 	}
 	registrarmateriaProveedor(idproveedor:String,proveedor:materiaxproveedorModel[]): Observable<Response_Generico<any>> {
 		return this.http.post<Response_Generico<any>>(`${this.baseUrl}/registrar-materia-prima/proveedor/${idproveedor}`, proveedor);
+	}
+	getrubrosxProveedor(): Observable<Response_Generico<rubrosproveedorModel[]>> {
+		return this.http.get<Response_Generico<rubrosproveedorModel[]>>(`${this.baseUrl}/lista-rubros`);
 	}
 
 }

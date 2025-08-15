@@ -49,6 +49,7 @@
 					</th>
 				</tr>
 			</ng-template>
+
 			<ng-template pTemplate="body" let-customer>
 				<tr class="p-selectable-row" [pSelectableRow]="customer" (click)="onRowSelectProv($event,customer)">
 					<td>
@@ -86,7 +87,7 @@
 			#dt
 			[value]="listaMateriaPrima"
 			[(selection)]="selectedCustomers"
-			dataKey="idMateriaPrima"
+			dataKey="id_materia_prima"
 			selectionMode="multiple"
 			[scrollable]="true"
 			scrollHeight="400px"
@@ -95,7 +96,9 @@
 			[filterDelay]="0"
 			styleClass="p-datatable-gridlines p-datatable-striped p-datatable-sm mt-1"
 			[tableStyle]="{'min-width': '30rem'}"
-			[globalFilterFields]="['idMateriaPrima', 'nombre','costoGramo']"
+			[globalFilterFields]="['id_materia_prima', 'nombre','costo_gramo']"
+			rowGroupMode="subheader"
+			groupRowsBy="id_fabricante"
 		>
 			<ng-template pTemplate="caption">
 				<div class="flex justify-between items-center">
@@ -129,13 +132,31 @@
 							<p-columnFilter type="text" field="nombre" display="menu" class="ml-auto" />
 						</div>
 					</th>
-					<th pSortableColumn="costoGramo" style="min-width: 50px">
+					<th pSortableColumn="costo_gramo" style="min-width: 50px">
 						<div class="flex justify-content-between align-items-center">
 							S/. gramo
-							<p-sortIcon field="costoGramo" />
-							<p-columnFilter type="number" field="costoGramo" display="menu" class="ml-auto" />
+							<p-sortIcon field="costo_gramo" />
+							<p-columnFilter type="number" field="costo_gramo" display="menu" class="ml-auto" />
 						</div>
 					</th>
+				</tr>
+			</ng-template>
+			<ng-template pTemplate="groupheader" let-customer>
+				<tr pRowGroupHeader>
+					<td colspan="3">
+						<div class="d-flex  align-items-center">
+							<img src="assets/img/ingenieria.png" width="40">
+							<span class="font-bold ml-2 text-danger">{{customer.fabricante}}</span>
+							<span class="mx-2">Total : {{calculatemateriasTotal(customer.id_fabricante)}}</span>
+						</div>
+					</td>
+				</tr>
+			</ng-template>
+			<ng-template pTemplate="groupfooter" let-customer>
+				<tr>
+					<td colspan="3" class="text-right font-bold pr-6">
+						Total Materias Primas: {{calculatemateriasTotal(customer.id_fabricante)}}
+					</td>
 				</tr>
 			</ng-template>
 			<ng-template pTemplate="body" let-customer>
@@ -144,14 +165,14 @@
 						<p-tableCheckbox [value]="customer" />
 					</td>
 					<td>
-						{{ customer.idMateriaPrima }}
+						{{ customer.id_materia_prima }}
 					</td>
 					<td>
 						<!--					<img src="https://primefaces.org/cdn/primeng/images/demo/flag/flag_placeholder.png" [class]="'flag flag-' + customer.country.code" style="width: 20px" />-->
 						<span class="ml-1 vertical-align-middle">{{ customer.nombre }}</span>
 					</td>
 					<td>
-						{{ customer.costoGramo | currency:' ':'symbol':'1.2-2':'en-US' }}
+						{{ customer.costo_gramo | currency:' ':'symbol':'1.2-2':'en-US' }}
 					</td>
 				</tr>
 			</ng-template>

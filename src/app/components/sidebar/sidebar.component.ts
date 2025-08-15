@@ -182,40 +182,17 @@ export class SidebarComponent {
 							key: '3_3',
 							label: 'Ordenes de Compras',
 							command: () => this.irA('pages/compras/ordencompra')
-						}
-					]
-				},
-				{
-					key: '4',
-					label: 'Proveedor',
-					icon: 'pi pi-building',
-					items: [
-						{
-							key: '4_0',
-							label: 'Mantenimiento Proveedor',
-							command: () => this.irA('pages/proveedor/mantenimiento-proveedor')
 						},
-						{
-							key: '4_1',
-							label: 'Asignar Materia Prima x Proveedor',
-							command: () => this.irA('pages/proveedor/asignar-proveedor')
-						},
-
 						// {
-						// 	key: '4_2',
-						// 	label: 'Cotizaciones Proveedor',
-						// 	command: () => this.irA('pages/proveedor/cotizacion-proveedor')
-						// },
-						{
-							key: '4_3',
-							label: 'Orden Compra Proveedor',
-							command: () => this.irA('pages/proveedor/ordencompra-proveedor')
-						}
+						// 	key: '4_3',
+						// 	label: 'Orden Compra Proveedor',
+						// 	command: () => this.irA('pages/proveedor/ordencompra-proveedor')
+						// }
 					]
 				},
 				{
 					key: '5',
-					label: 'Inventario',
+					label: 'Almacén',
 					icon: 'pi pi-folder-open',
 					items: [
 						{
@@ -228,6 +205,33 @@ export class SidebarComponent {
 							label: 'kardex x Mat.Prima',
 							command: () => this.irA('pages/inventario/kardex-producto/0')
 						}
+					]
+				},
+				{
+					key: '6',
+					label: 'Investigación y Desarrollo',
+					icon: 'pi pi-share-alt',
+					items: [
+						{
+							key: '6_0',
+							label: 'Registro de Producto',
+							command: () => this.irA('pages/gestion-producto/registro-producto')
+						},
+						{
+							key: '6_1',
+							label: 'Mantenimiento de Producto',
+							command: () => this.irA('pages/gestion-producto/mantenimiento-producto')
+						},
+						{
+							key: '6_2',
+							label: 'Mantenimiento Proveedor',
+							command: () => this.irA('pages/proveedor/mantenimiento-proveedor')
+						},
+						{
+							key: '6_3',
+							label: 'Asignar Materia Prima x Proveedor',
+							command: () => this.irA('pages/proveedor/asignar-proveedor')
+						},
 					]
 				}
 			] : [])

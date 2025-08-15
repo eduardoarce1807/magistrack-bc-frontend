@@ -16,27 +16,29 @@ import {TooltipModule} from "primeng/tooltip";
 import {CommonModule, DatePipe} from "@angular/common";
 import {SliderModule} from "primeng/slider";
 import {FormsModule} from "@angular/forms";
+import {DropdownModule} from "primeng/dropdown";
 
 @Component({
   selector: 'app-kardex-producto',
   standalone: true,
-	imports: [
-		BadgeModule,
-		Button,
-		CargaComponent,
-		IconFieldModule,
-		InputIconModule,
-		InputTextModule,
-		PrimeTemplate,
-		TableModule,
-		TagModule,
-		ToastModule,
-		TooltipModule,
-		DatePipe,
-		SliderModule,
-		CommonModule,
-		FormsModule
-	],
+    imports: [
+        BadgeModule,
+        Button,
+        CargaComponent,
+        IconFieldModule,
+        InputIconModule,
+        InputTextModule,
+        PrimeTemplate,
+        TableModule,
+        TagModule,
+        ToastModule,
+        TooltipModule,
+        DatePipe,
+        SliderModule,
+        CommonModule,
+        FormsModule,
+        DropdownModule
+    ],
   templateUrl: './kardex-producto.component.html',
   styleUrl: './kardex-producto.component.scss',
 	providers: [MessageService],
@@ -50,6 +52,14 @@ export class KardexProductoComponent {
 	activityValuesSalida: number[] = [0, 9999];
 	activityValuesActual: number[] = [0, 9999];
 	listaKardex:kardexModel[]=[]
+	tipoPresentacion:any=[{
+		id_presentacion:1,
+		presentacion:'Resumen'
+	},{
+		id_presentacion:2,
+		presentacion:'Detallado'
+	}]
+	cambio_pres:number=1
 	spinner:boolean=false
 	constructor(private kardexService:KardexService,
 				private route: ActivatedRoute) {
@@ -80,4 +90,7 @@ export class KardexProductoComponent {
 		}
 	}
 
+	cambiopresentacion(){
+
+	}
 }

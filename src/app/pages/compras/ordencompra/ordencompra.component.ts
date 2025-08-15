@@ -39,6 +39,8 @@ import {TipoPagoService} from "../../../services/tipo-pago.service";
 import {DomSanitizer, SafeResourceUrl} from "@angular/platform-browser";
 import {ConformidadService} from "../../../services/compras/conformidad.service";
 import {UppercaseDirective} from "../../../directives/uppercase.directive";
+import {RadioButtonModule} from "primeng/radiobutton";
+import {Router, RouterLink} from "@angular/router";
 
 @Component({
   selector: 'app-ordencompra',
@@ -61,7 +63,7 @@ import {UppercaseDirective} from "../../../directives/uppercase.directive";
 		FileUploadModule,
 		InputTextareaModule,
 		ProgressBarModule,
-		FormsModule, CommonModule, CalendarModule, InputSwitchModule, TagModule, PanelModule, UppercaseDirective
+		FormsModule, CommonModule, CalendarModule, InputSwitchModule, TagModule, PanelModule, UppercaseDirective, RadioButtonModule, RouterLink
 	],
   templateUrl: './ordencompra.component.html',
   styleUrl: './ordencompra.component.scss',
@@ -96,6 +98,7 @@ export class OrdencompraComponent {
 	checked_parametro1:boolean=false
 	checked_parametro2:boolean=false
 	checked_parametro3:boolean=false
+	radio_ordercompra:string="2"
 	listadovalidacion:ValidacionOrden[]=[]
 	lstTiposPago:any[]=[]
 	totalSizePercent : number = 0;
@@ -104,7 +107,8 @@ export class OrdencompraComponent {
 	constructor(private config: PrimeNGConfig,private messageService: MessageService,
 				private requerimietoService:RequerimientosService, private proveedorService:ProveedorService,
 				private ordenService:OrdencompraService,private  validacionService:ValidacionesService,
-				private tipoPagoService: TipoPagoService,private sanitizer: DomSanitizer,private conformidadService:ConformidadService) {
+				private tipoPagoService: TipoPagoService,private sanitizer: DomSanitizer,private conformidadService:ConformidadService,
+				private router:Router) {
 		this.loading=false
 		this.items = [
 			{
@@ -461,5 +465,12 @@ export class OrdencompraComponent {
 		this.checked_parametro3=this.fila_select.parametro_conf3 == 3
 		this.fila_select.imppagado=this.fila_select.imptotalfact
 		this.cambiocantidad()
+	}
+	cambio_oc() {
+		if (this.radio_ordercompra == "1") {
+			// this.router.navigate(['../compras/ordencompra']);
+		} else if (this.radio_ordercompra == "2") {
+			// this.router.navigate(['../proveedor/ordencompra-proveedor']);
+		}
 	}
 }

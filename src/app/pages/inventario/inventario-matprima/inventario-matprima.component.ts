@@ -1,5 +1,5 @@
 import {Component, ViewEncapsulation} from '@angular/core';
-import {Button} from "primeng/button";
+import {Button, ButtonModule} from "primeng/button";
 import {CargaComponent} from "../../../components/carga/carga.component";
 import {DialogModule} from "primeng/dialog";
 import {IconFieldModule} from "primeng/iconfield";
@@ -12,13 +12,13 @@ import {ToastModule} from "primeng/toast";
 import {iterequerimientoModel, ObsevacionesReqModel, RequeremientossaveModel} from "../../../model/requerimientosModel";
 import {proveedorModel, soloproveedorModel} from "../../../model/proveedoresModel";
 import {MateriaprimaService} from "../../../services/inventario/materiaprima.service";
-import {MateriaprimaModel, UnidadmedModel} from "../../../model/inventarioModel";
+import {FabricanteModel, MateriaprimaModel, UnidadmedModel} from "../../../model/inventarioModel";
 import {MenuModule} from "primeng/menu";
 import {InputTextareaModule} from "primeng/inputtextarea";
 import {TagModule} from "primeng/tag";
 import {BadgeModule} from "primeng/badge";
 import {FileUploadEvent, FileUploadModule} from "primeng/fileupload";
-import {CurrencyPipe, NgIf} from "@angular/common";
+import {CurrencyPipe, DatePipe, NgIf} from "@angular/common";
 import {MostrarPdfComponent} from "../../../components/mostrar-pdf/mostrar-pdf.component";
 import {kardexModel, MovimientoModel, TipomovimientoModel} from "../../../model/kardexModel";
 import {KardexService} from "../../../services/inventario/kardex.service";
@@ -31,6 +31,9 @@ import {emailordenModel} from "../../../model/enviarEmailModel";
 import {EmailService} from "../../../services/email.service";
 import {paramaeModel} from "../../../model/paramaeModel";
 import {ParamaeService} from "../../../services/paramae.service";
+import {CalendarModule} from "primeng/calendar";
+import {FuncionesService} from "../../../services/funciones.service";
+import {ExcelService} from "../../../services/excel.service";
 
 @Component({
   selector: 'app-inventario-matprima',
@@ -54,11 +57,13 @@ import {ParamaeService} from "../../../services/paramae.service";
 		NgIf,
 		MostrarPdfComponent,
 		CurrencyPipe,
-		PanelModule
+		PanelModule,
+		CalendarModule,
+		ButtonModule
 	],
   templateUrl: './inventario-matprima.component.html',
   styleUrl: './inventario-matprima.component.scss',
-	providers: [MessageService],
+	providers: [MessageService,DatePipe,FuncionesService,ExcelService],
 	encapsulation: ViewEncapsulation.None,
 })
 export class InventarioMatprimaComponent {
@@ -77,6 +82,7 @@ export class InventarioMatprimaComponent {
 	verordencompra:boolean=false
 	visiblecorreo:boolean=false
 	fila_select:MateriaprimaModel = new MateriaprimaModel()
+	listaFabricante:FabricanteModel[]=[]
 	verobservaciones:boolean=false
 	verdardebaja:boolean=false
 	veradicionar:boolean=false
@@ -84,7 +90,7 @@ export class InventarioMatprimaComponent {
 	verrequerimiento:boolean=false
 	check_imagen:number=1
 	observaciones:ObsevacionesReqModel=new ObsevacionesReqModel()
-
+	filteredData:MateriaprimaModel[]=[]
 	ordencompra:string=''
 	listaMateriaPrimaSelected:iterequerimientoModel[]=[]
 	files:File[] = [];
@@ -104,10 +110,13 @@ export class InventarioMatprimaComponent {
 	cargaprov:boolean=false
 	enviaremail: emailordenModel = new emailordenModel()
 	valorparamae:paramaeModel=new paramaeModel()
+	fechavencimiento:any=new Date()
 	constructor(private config: PrimeNGConfig,private messageService: MessageService,
 				private materiaService: MateriaprimaService,private kardexService:KardexService,
 				private route:Router,private requerimietoService:RequerimientosService,private proveedorService:ProveedorService,
-				private emailService:EmailService,public router: Router,private paramaeService:ParamaeService
+				private emailService:EmailService,public router: Router,private paramaeService:ParamaeService,
+				private funcionesService:FuncionesService,
+				private excelService: ExcelService,
 				) {
 		this.loading=false
 
@@ -192,6 +201,7 @@ export class InventarioMatprimaComponent {
 		this.cargarunidades()
 		this.cargartipomovimiento()
 		this.cargarstockmin()
+		this.cargarfabricante()
 	}
 	cargarunidades(){
 		this.cargamaterias=true
@@ -222,6 +232,7 @@ export class InventarioMatprimaComponent {
 		this.materiaService.getMateriaprima().subscribe({
 			next:(data)=>{
 				this.listaMaterias=data.data
+				this.filteredData=data.data
 				this.spinner=false
 			},error:(err)=>{
 				this.spinner=false
@@ -405,6 +416,7 @@ export class InventarioMatprimaComponent {
 		this.spinner=true
 		this.verdardebaja?this.check_imagen=1:this.check_imagen=0
 		this.subirBaja.id_movimiento=this.veradicionar?2:this.verreducir?3:1
+		this.subirBaja.fecha_vencimiento=this.funcionesService.convetir_de_date_a_string_fecha(this.fechavencimiento)
 		this.verdardebaja=false
 		this.veradicionar=false
 		this.verreducir=false
@@ -557,4 +569,108 @@ export class InventarioMatprimaComponent {
 	cargarfila(customer: MateriaprimaModel) {
 		this.fila_select = { ...customer };
 	}
+	cargarfabricante(){
+		this.materiaService.getFabricanteMateriaprima().subscribe({
+			next:(data)=>{
+				this.listaFabricante=data.data
+				this.loading=false
+			},error:(err)=>{
+				this.loading=false
+			}
+		})
+	}
+
+	download() {
+		let cabecera: any[] = [];
+		let campos: any[] = [];
+		let ancho: any[] = [];
+		let subcabecera: any[] = [];
+		let sumarcampos: any[] = [];
+
+		// Define headers
+		cabecera = [
+			"ID Materia Prima",
+			"Nombre",
+			"Costo por gramo",
+			"Stock actual",
+			"Stock referencia",
+			"Umbral mínimo",
+			"Abreviado",
+			"Observaciones",
+			"ID Unidad de Medida",
+			"Estado",
+			"ID Requerimiento Stock",
+			"Estado Requerimiento"
+		];
+
+		// Define fields (deben coincidir con los nombres del JSON)
+		campos = [
+			"id_materia_prima",
+			"nombre",
+			"costo_gramo",
+			"stock_materia",
+			"stock_referencia",
+			"umbral_min",
+			"abreviado",
+			"observaciones",
+			"id_unimed",
+			"estado",
+			"id_requerimiento_stock",
+			"estadorequerimiento"
+		];
+
+		// Column widths
+		ancho = [
+			20, // id_materia_prima
+			40, // nombre
+			20, // costo_gramo
+			20, // stock_materia
+			25, // stock_referencia
+			20, // umbral_min
+			20, // abreviado
+			50, // observaciones
+			20, // id_unimed
+			20, // estado
+			30, // id_requerimiento_stock
+			30  // estadorequerimiento
+		];
+
+		// Campos que se deben sumar (1 si es numérico acumulable)
+		sumarcampos = [
+			0, // id_materia_prima
+			0, // nombre
+			1, // costo_gramo
+			1, // stock_materia
+			1, // stock_referencia
+			1, // umbral_min
+			0, // abreviado
+			0, // observaciones
+			0, // id_unimed
+			0, // estado
+			0, // id_requerimiento_stock
+			0  // estadorequerimiento
+		];
+
+		// Subcabecera con datos adicionales
+		subcabecera = [
+			"# Items: " + (this.filteredData?.length || 0)
+		];
+
+		// Agregar columna inicial vacía
+		cabecera.unshift("");
+		campos.unshift("");
+
+		// Llamar a servicio Excel
+		this.excelService.downloadExcel(
+			this.filteredData, // viene del API
+			cabecera,
+			campos,
+			"Listado Materias Primas",
+			ancho,
+			subcabecera,
+			"materias_primas",
+			sumarcampos
+		);
+	}
+
 }
