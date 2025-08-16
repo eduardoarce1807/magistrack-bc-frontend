@@ -3,7 +3,7 @@ import {BadgeModule} from "primeng/badge";
 import {Button} from "primeng/button";
 import {CalendarModule} from "primeng/calendar";
 import {CargaComponent} from "../../../components/carga/carga.component";
-import {CommonModule, CurrencyPipe, NgForOf, NgIf} from "@angular/common";
+import {CommonModule, CurrencyPipe, DatePipe, NgForOf, NgIf} from "@angular/common";
 import {DialogModule} from "primeng/dialog";
 import {DropdownModule} from "primeng/dropdown";
 import {FileUploadEvent, FileUploadModule} from "primeng/fileupload";
@@ -42,6 +42,7 @@ import {UppercaseDirective} from "../../../directives/uppercase.directive";
 import {RadioButtonModule} from "primeng/radiobutton";
 import {Router, RouterLink} from "@angular/router";
 import {DataService} from "../../../services/data.service";
+import {FuncionesService} from "../../../services/funciones.service";
 
 @Component({
   selector: 'app-ordencompra',
@@ -68,7 +69,7 @@ import {DataService} from "../../../services/data.service";
 	],
   templateUrl: './ordencompra.component.html',
   styleUrl: './ordencompra.component.scss',
-	providers: [MessageService],
+	providers: [MessageService,DatePipe,FuncionesService ],
 	encapsulation: ViewEncapsulation.None,
 })
 export class OrdencompraComponent {
@@ -111,7 +112,7 @@ export class OrdencompraComponent {
 				private requerimietoService:RequerimientosService, private proveedorService:ProveedorService,
 				private ordenService:OrdencompraService,private  validacionService:ValidacionesService,
 				private tipoPagoService: TipoPagoService,private sanitizer: DomSanitizer,private conformidadService:ConformidadService,
-				private router:Router,public dataService: DataService) {
+				private router:Router,public dataService: DataService, private  funcionService:FuncionesService) {
 		this.loading=false
 		this.user = this.dataService.getLoggedUser();
 		this.items = [
@@ -316,10 +317,17 @@ export class OrdencompraComponent {
 			registro.observaciones=e.observaciones
 			registro.ph=e.ph
 			registro.item=e.item
+			registro.ficha_tecnica=e.ficha_tecnica
+			registro.fecha_vencimiento=this.funcionService.convetir_de_date_a_string_fecha(e.fecha_vencimiento)
+			registro.lote=e.lote
+			registro.peso_bruto=e.peso_bruto
+			registro.peso_neto=e.peso_neto
+			registro.pureza=e.pureza
 			this.listadovalidacion.push(registro)
 		})
 		this.spinner=true
 		this.vervalidacion=false
+		console.log(this.listadovalidacion,'RREALOG ENVIO')
 		this.validacionService.registrarvalidaciomProveedor(this.listadovalidacion).subscribe({
 			next:(data)=>{
 				this.cambioproveedor()
@@ -477,4 +485,5 @@ export class OrdencompraComponent {
 			// this.router.navigate(['../proveedor/ordencompra-proveedor']);
 		}
 	}
+
 }

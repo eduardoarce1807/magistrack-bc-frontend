@@ -23,7 +23,7 @@
 				<div class="col-md-4 col-sm-6">
 					<h4 class="text-success fw-bold flex items-center"><img src="assets/img/crema.gif" width="50">Kardex por Almacén {{id_materia_prima}}</h4>
 				</div>
-				<div class="col-md-4 col-sm-6">
+				<div class="col-md-4 col-sm-6 d-flex justify-content-around">
 					<p-dropdown
 						[options]="tipoPresentacion"
 						[(ngModel)]="cambio_pres"
@@ -33,6 +33,15 @@
 						(ngModelChange)="cambiopresentacion()"
 					>
 					</p-dropdown>
+
+					<p-button
+						label="Filtro"
+						icon="pi pi-file-excel"
+						tooltipPosition="left"
+						pTooltip="Imprimir Lista"
+						severity="success"
+						(click)="download()"
+					></p-button>
 				</div>
 				<div class="col-md-4 col-sm-6">
 					<div>

@@ -613,7 +613,7 @@
 							[(ngModel)]="product.ficha_tecnica" />
 					</td>
 					<td>
-						<p-calendar [(ngModel)]="fechavencimiento"
+						<p-calendar [(ngModel)]="product.fecha_vencimiento"
 									dateFormat="dd-mm-yy"
 									appendTo="body"
 									[iconDisplay]="'input'"
@@ -648,7 +648,7 @@
 					<td>
 						<p-inputNumber
 							inputId="minmaxfraction"
-							[(ngModel)]="product.peso_bruto"
+							[(ngModel)]="product.peso_neto"
 							mode="decimal"
 							[minFractionDigits]="2"
 							[maxFractionDigits]="5" />
