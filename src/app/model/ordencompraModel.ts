@@ -51,6 +51,12 @@ export class Detalleorden {
 	respuestaprov:	  string=''
 	path_respuesta:   string=''
 	fechaobservaciones:string=''
+	ficha_tecnica:     string='';
+	fecha_vencimiento: any='';
+	pureza:            number=0;
+	lote:              string='';
+	peso_bruto:        number=0;
+	peso_neto:         number=0;
 }
 export class ValidacionOrden {
 	cumple: number=0;
@@ -58,6 +64,12 @@ export class ValidacionOrden {
 	ph:number|null=null
 	observaciones:string|null=null
 	item:number=0
+	ficha_tecnica:     string='';
+	fecha_vencimiento: any='';
+	pureza:            number=0;
+	lote:              string='';
+	peso_bruto:        number=0;
+	peso_neto:         number=0;
 }
 export class FacturaOrden {
 	nrofactura:string|null=null
