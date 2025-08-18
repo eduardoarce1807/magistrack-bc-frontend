@@ -563,8 +563,10 @@ export class BandejaCalidadComponent implements OnInit {
 								text: 'Productos retornados a producción correctamente.',
 								showConfirmButton: true,
 							}).then(() => {
-								this.getProductosAll();
-								this.lstProductosSeleccionados = [];
+								this.idBulkBusqueda = ''; // Limpiar el input de búsqueda
+								this.lstProductosSeleccionados = []; // Limpiar selecciones
+								this.productosTable = []; // Limpiar tabla
+								this.refreshProductos(); // Actualizar vista
 							});
 						},
 						(error) => {
@@ -626,8 +628,10 @@ export class BandejaCalidadComponent implements OnInit {
 								text: 'Productos enviados a envasado correctamente.',
 								showConfirmButton: true,
 							}).then(() => {
-								this.getProductosAll();
-								this.lstProductosSeleccionados = [];
+								this.idBulkBusqueda = ''; // Limpiar el input de búsqueda
+								this.lstProductosSeleccionados = []; // Limpiar selecciones
+								this.productosTable = []; // Limpiar tabla
+								this.refreshProductos(); // Actualizar vista
 							});
 						},
 						(error) => {
@@ -680,9 +684,10 @@ export class BandejaCalidadComponent implements OnInit {
                 text: 'Producto regresado a producción correctamente.',
                 showConfirmButton: true,
               }).then(() => {
-                this.actualizarListaProductos();
-                this.lstProductosSeleccionados = [];
                 this.idBulkBusqueda = ''; // Limpiar el input de búsqueda
+                this.lstProductosSeleccionados = []; // Limpiar selecciones
+                this.productosTable = []; // Limpiar tabla
+                this.refreshProductos(); // Actualizar vista
               });
             },
             (bulkError) => {
@@ -741,9 +746,10 @@ export class BandejaCalidadComponent implements OnInit {
                 text: 'Producto enviado a envasado correctamente.',
                 showConfirmButton: true,
               }).then(() => {
-                this.actualizarListaProductos();
-                this.lstProductosSeleccionados = [];
-                this.idBulkBusqueda = ''; // Limpiar el input de búsqueda
+				this.idBulkBusqueda = ''; // Limpiar el input de búsqueda
+                this.lstProductosSeleccionados = []; // Limpiar selecciones
+                this.productosTable = []; // Limpiar tabla
+                this.refreshProductos(); // Actualizar vista
               });
             },
             (bulkError) => {

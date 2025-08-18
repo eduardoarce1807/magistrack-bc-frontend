@@ -162,27 +162,48 @@
 					</td>
 					<td>
 						<div *ngIf="!isEditing(item)" class="d-flex gap-2">
-							<button class="btn btn-primary btn-sm" (click)="editarItem(item)">
+							<button 
+								class="btn btn-primary btn-sm" 
+								(click)="editarItem(item)"
+								ngbTooltip="Editar precio del producto"
+								placement="top"
+							>
 								<i class="bi bi-pencil-square"></i>
 							</button>
 							<button 
 								*ngIf="item.estado" 
 								class="btn btn-danger btn-sm" 
-								(click)="cambiarEstadoProducto(item)">
+								(click)="cambiarEstadoProducto(item)"
+								ngbTooltip="Desactivar producto del catálogo"
+								placement="top"
+							>
 								<i class="bi bi-dash-circle"></i>
 							</button>
 							<button 
 								*ngIf="!item.estado" 
 								class="btn btn-success btn-sm" 
-								(click)="cambiarEstadoProducto(item)">
+								(click)="cambiarEstadoProducto(item)"
+								ngbTooltip="Activar producto en el catálogo"
+								placement="top"
+							>
 								<i class="bi bi-check-circle"></i>
 							</button>
 						</div>
 						<div *ngIf="isEditing(item)" class="d-flex gap-2">
-							<button class="btn btn-success btn-sm" (click)="guardarEdicion(item)">
+							<button 
+								class="btn btn-success btn-sm" 
+								(click)="guardarEdicion(item)"
+								ngbTooltip="Guardar cambios del precio"
+								placement="top"
+							>
 								<i class="bi bi-floppy"></i>
 							</button>
-							<button class="btn btn-secondary btn-sm" (click)="cancelarEdicion(item)">
+							<button 
+								class="btn btn-secondary btn-sm" 
+								(click)="cancelarEdicion(item)"
+								ngbTooltip="Cancelar edición"
+								placement="top"
+							>
 								<i class="bi bi-x-lg"></i>
 							</button>
 						</div>
@@ -195,7 +216,14 @@
 			<div class="w-100 text-center" *ngIf="catalogos.length === 0">
 				<span class="me-3">No existe un catálogo para el tipo de cliente seleccionado.</span>
 				<br>
-				<button class="btn btn-success mt-2" (click)="crearCatalogo()">Crear catálogo</button>
+				<button 
+					class="btn btn-success mt-2" 
+					(click)="crearCatalogo()"
+					ngbTooltip="Crear nuevo catálogo de precios"
+					placement="top"
+				>
+					Crear catálogo
+				</button>
 			</div>
 		</div>
 

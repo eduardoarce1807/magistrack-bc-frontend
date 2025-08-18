@@ -1,7 +1,13 @@
 <div class="container-fluid mt-5" style="padding: 0px 60px">
 	<div class="card shadow-lg p-4 rounded-4">
 
-		<button style="position: absolute;" class="btn btn-link text-decoration-none p-0" (click)="router.navigate(['/pages/atencion-cliente/bandeja-pedidos-administrador'])">
+		<button 
+			style="position: absolute;" 
+			class="btn btn-link text-decoration-none p-0" 
+			(click)="router.navigate(['/pages/atencion-cliente/bandeja-pedidos-administrador'])"
+			ngbTooltip="Ir a bandeja de pedidos"
+			placement="top"
+		>
 			<i class="bi bi-arrow-left"></i> Bandeja Pedidos
 		</button>
 
@@ -63,13 +69,16 @@
 							[disabled]="item.idEstadoProducto == 3"
 							class="btn btn-primary me-2"
 							(click)="recibirProducto(item)"
+							ngbTooltip="Recibir producto en producción"
+							placement="top"
 						>
 							<i class="bi bi-download"></i>
 						</button>
 						<button
 							class="btn btn-dark me-2"
 							(click)="getInformacionCompleta(item)"
-							title="Ver información completa del producto"
+							ngbTooltip="Ver información completa del producto"
+							placement="top"
 						>
 							<i class="bi bi-journal-text"></i>
 						</button>
@@ -77,7 +86,8 @@
 							*ngIf="item.idEstadoProducto == 3"
 							class="btn btn-warning me-2"
 							(click)="openModalCodigoBarraIndividual(item)"
-							title="Imprimir código de barras"
+							ngbTooltip="Imprimir código de barras del producto"
+							placement="top"
 						>
 							<i class="bi bi-upc-scan"></i>
 						</button>
@@ -85,15 +95,11 @@
 							[disabled]="item.idEstadoProducto == 2"
 							class="btn btn-info me-2"
 							(click)="enviarCalidad(item)"
+							ngbTooltip="Enviar producto a calidad"
+							placement="top"
 						>
 							<i class="bi bi-send"></i>
 						</button>
-						<!-- <button
-							class="btn btn-secondary"
-							(click)="openModalNota(item, nota)"
-						>
-							<i class="bi bi-stickies"></i>
-						</button> -->
 					</td>
 				</tr>
 				}

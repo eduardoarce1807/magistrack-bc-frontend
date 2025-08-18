@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { NgbTypeaheadModule, NgbPaginationModule } from '@ng-bootstrap/ng-bootstrap';
+import { NgbTypeaheadModule, NgbPaginationModule, NgbTooltipModule } from '@ng-bootstrap/ng-bootstrap';
 import { ClienteService } from '../../../services/cliente.service';
 import { PedidoService } from '../../../services/pedido.service';
 import { Router } from '@angular/router';
@@ -15,7 +15,7 @@ import { CommonModule } from '@angular/common';
 @Component({
   selector: 'app-mantenimiento-clientes',
   standalone: true,
-  imports: [CommonModule, FormsModule, NgbTypeaheadModule, NgbPaginationModule, TableModule, ButtonModule, IconFieldModule, InputIconModule, InputTextModule],
+  imports: [CommonModule, FormsModule, NgbTypeaheadModule, NgbPaginationModule, NgbTooltipModule, TableModule, ButtonModule, IconFieldModule, InputIconModule, InputTextModule],
   templateUrl: './mantenimiento-clientes.component.html',
   styleUrl: './mantenimiento-clientes.component.scss'
 })

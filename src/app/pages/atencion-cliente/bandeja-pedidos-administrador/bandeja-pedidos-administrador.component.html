@@ -51,16 +51,38 @@
 					</td>
 					<td>{{item.pagoPedido ? item.pagoPedido.tipoPago.descripcion : '-'}}</td>
 					<td>
-						<button class="btn btn-primary me-2" (click)="router.navigate(['/pages/atencion-cliente/registro-pedido', item.idPedido])">
+						<button 
+							class="btn btn-primary me-2" 
+							(click)="router.navigate(['/pages/atencion-cliente/registro-pedido', item.idPedido])"
+							ngbTooltip="Editar pedido"
+							placement="top"
+						>
 							<i class="bi bi-arrow-return-left"></i>
 						</button>
-						<button class="btn btn-dark me-2" (click)="enviarProduccionSingle(item)" [disabled]="item.estadoPedido.idEstadoPedido != 2">
+						<button 
+							class="btn btn-dark me-2" 
+							(click)="enviarProduccionSingle(item)" 
+							[disabled]="item.estadoPedido.idEstadoPedido != 2"
+							ngbTooltip="Enviar pedido a producción"
+							placement="top"
+						>
 							<i class="bi bi-send"></i>
 						</button>
-						<button class="btn btn-info me-2" (click)="router.navigate(['/pages/atencion-cliente/trazabilidad-pedido', item.idPedido])">
+						<button 
+							class="btn btn-info me-2" 
+							(click)="router.navigate(['/pages/atencion-cliente/trazabilidad-pedido', item.idPedido])"
+							ngbTooltip="Ver trazabilidad del pedido"
+							placement="top"
+						>
 							<i class="bi bi-clock-history"></i>
 						</button>
-						<button [disabled]="item.estadoPedido.idEstadoPedido >= 2" class="btn btn-danger" (click)="borrarPedido(item.idPedido)">
+						<button 
+							[disabled]="item.estadoPedido.idEstadoPedido >= 2" 
+							class="btn btn-danger" 
+							(click)="borrarPedido(item.idPedido)"
+							ngbTooltip="Eliminar pedido"
+							placement="top"
+						>
 							<i class="bi bi-trash3-fill"></i>
 						</button>
 					</td>
