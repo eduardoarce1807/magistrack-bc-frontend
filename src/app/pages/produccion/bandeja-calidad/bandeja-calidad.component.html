@@ -138,29 +138,42 @@
 						/>
 					</td>
 					<td>
-						<button class="btn btn-info me-2" [disabled]="
+						<button 
+							class="btn btn-info me-2" 
+							[disabled]="
 								item.phCalidadPromedio === null ||
 								item.phCalidadPromedio === '' ||
 								item.phCalidadPromedio < item.phDefinidoMin ||
 								item.phCalidadPromedio > item.phDefinidoMax
 							"
-							(click)="enviarEnvasado(item)">
+							(click)="enviarEnvasado(item)"
+							ngbTooltip="Enviar producto a envasado"
+							placement="top"
+						>
 							<i class="bi bi-send"></i>
 						</button>
-						<button class="btn btn-dark me-2" (click)="getInformacionCompleta(item)" title="Ver información completa del producto">
+						<button 
+							class="btn btn-dark me-2" 
+							(click)="getInformacionCompleta(item)" 
+							ngbTooltip="Ver información completa del producto"
+							placement="top"
+						>
 							<i class="bi bi-journal-text"></i>
 						</button>
-						<button class="btn btn-danger me-2" (click)="regresarAProduccion(item)" [disabled]="
+						<button 
+							class="btn btn-danger me-2" 
+							(click)="regresarAProduccion(item)" 
+							[disabled]="
 								!(item.phCalidadPromedio === null ||
 								item.phCalidadPromedio === '' ||
 								item.phCalidadPromedio < item.phDefinidoMin ||
 								item.phCalidadPromedio > item.phDefinidoMax)
-							">
+							"
+							ngbTooltip="Regresar producto a producción"
+							placement="top"
+						>
 							<i class="bi bi-backspace"></i>
 						</button>
-                        <!-- <button class="btn btn-secondary" (click)="openModalNota(item, nota)">
-                            <i class="bi bi-stickies"></i>
-                        </button> -->
 					</td>
 				</tr>
 				}
@@ -350,7 +363,15 @@
 		</form>
 	</div>
 	<div class="modal-footer">
-		<button type="button" class="btn btn-outline-dark" (click)="saveObservacion();">Guardar</button>
+		<button 
+			type="button" 
+			class="btn btn-outline-dark" 
+			(click)="saveObservacion();"
+			ngbTooltip="Guardar observación del producto"
+			placement="top"
+		>
+			Guardar
+		</button>
 	</div>
 </ng-template>
 

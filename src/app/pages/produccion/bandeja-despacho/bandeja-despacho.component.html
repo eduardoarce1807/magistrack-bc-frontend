@@ -57,6 +57,8 @@
 						<button
 							class="btn btn-primary me-2"
 							(click)="router.navigate(['/pages/produccion/registro-despacho', item.idPedido])"
+							ngbTooltip="Registrar despacho"
+							placement="top"
 						>
 							<i class="bi bi-journal-plus"></i>
 						</button>
@@ -64,6 +66,8 @@
 							class="btn btn-warning me-2"
 							(click)="imprimirHojaPedido(item.idPedido)"
 							[disabled]="loadingPDF[item.idPedido]"
+							ngbTooltip="Imprimir hoja de pedido (PDF)"
+							placement="top"
 						>
 							<i class="bi bi-file-earmark-pdf"></i>
 							@if (loadingPDF[item.idPedido]) {
@@ -74,12 +78,16 @@
 							class="btn btn-info me-2"
 							(click)="confirmarEntrega(item)"
 							[disabled]="item.estadoPedido.idEstadoPedido == 10 || item.estadoPedido.idEstadoPedido == 8"
+							ngbTooltip="Confirmar entrega del pedido"
+							placement="top"
 						>
 							<i class="bi bi-bag-check"></i>
 						</button>
 						<button
 							class="btn btn-dark me-2"
 							(click)="openModalDatosCliente(datosCliente, item)"
+							ngbTooltip="Ver datos del cliente"
+							placement="top"
 						>
 							<i class="bi bi-person-lines-fill"></i>
 						</button>
@@ -87,12 +95,16 @@
 							[disabled]="item.estadoPedido.idEstadoPedido != 9"
 							class="btn btn-success me-2"
 							(click)="openModalComprobante(datosComprobante, item)"
+							ngbTooltip="Generar comprobante de pago"
+							placement="top"
 						>
 							<i class="bi bi-file-earmark-check"></i>
 						</button>
 						<button
 							class="btn btn-secondary"
 							(click)="openModalNota(item, nota)"
+							ngbTooltip="Agregar observaciones"
+							placement="top"
 						>
 							<i class="bi bi-stickies"></i>
 						</button>
@@ -145,6 +157,8 @@
                         <button
                             class="btn btn-dark me-2"
                             (click)="entregaMasivo()"
+                            ngbTooltip="Confirmar entrega masiva de pedidos seleccionados"
+                            placement="top"
                         >
                             <i class="bi bi-send"></i>
                         </button>

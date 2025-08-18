@@ -1,12 +1,24 @@
 <div class="container-fluid mt-5" style="padding: 0px 60px">
 	<div class="card shadow-lg p-4 rounded-4">
-		<button style="position: absolute;" class="btn btn-link text-decoration-none p-0" (click)="router.navigate(['/pages/produccion/bandeja-calidad'])">
+		<button 
+			style="position: absolute;" 
+			class="btn btn-link text-decoration-none p-0" 
+			(click)="router.navigate(['/pages/produccion/bandeja-calidad'])"
+			ngbTooltip="Ir a bandeja de calidad"
+			placement="top"
+		>
 			<i class="bi bi-arrow-left"></i> Bandeja Calidad
 		</button>
 
 		<h2 class="mb-4 text-center">Bandeja de Envasado</h2>
 
-		<button style="position: absolute; right: 30px;" class="btn btn-link text-decoration-none p-0" (click)="router.navigate(['/pages/produccion/bandeja-etiquetado'])">
+		<button 
+			style="position: absolute; right: 30px;" 
+			class="btn btn-link text-decoration-none p-0" 
+			(click)="router.navigate(['/pages/produccion/bandeja-etiquetado'])"
+			ngbTooltip="Ir a bandeja de etiquetado"
+			placement="top"
+		>
 			Bandeja Etiquetado <i class="bi bi-arrow-right"></i>
 		</button>
 
@@ -29,6 +41,8 @@
 					class="btn btn-primary"
 					(click)="buscarPorIdBulk()"
 					[disabled]="isSearching || !idBulkBusqueda.trim()"
+					ngbTooltip="Buscar productos por ID Bulk"
+					placement="top"
 				>
 					<span *ngIf="isSearching" class="spinner-border spinner-border-sm me-2" role="status"></span>
 					<i class="bi bi-search me-1"></i>
@@ -102,18 +116,16 @@
 						<button
 							class="btn btn-info me-2"
 							(click)="enviarEtiquetado(item)"
+							ngbTooltip="Enviar producto a etiquetado"
+							placement="top"
 						>
 							<i class="bi bi-send"></i>
 						</button>
-						<!-- <button
-							class="btn btn-dark me-2"
-							(click)="getHojaProduccion(item.idProducto)"
-						>
-							<i class="bi bi-journal-text"></i>
-						</button> -->
 						<button
 							class="btn btn-secondary"
 							(click)="openModalNota(item, nota)"
+							ngbTooltip="Agregar observaciones al producto"
+							placement="top"
 						>
 							<i class="bi bi-stickies"></i>
 						</button>
@@ -166,12 +178,21 @@
                         <button
                             class="btn btn-dark me-2"
                             (click)="enviarMasivo()"
+                            ngbTooltip="Enviar productos seleccionados a etiquetado"
+                            placement="top"
                         >
                             <i class="bi bi-send"></i>
                         </button>
                     </div>
                     <div class="col-2 ms-auto d-flex justify-content-end">
-                        <button class="btn btn-dark" (click)="openModalCodigoBarras(codigosBarra)"><i class="bi bi-printer-fill"></i> Imprimir códigos barra</button>
+                        <button 
+                            class="btn btn-dark" 
+                            (click)="openModalCodigoBarras(codigosBarra)"
+                            ngbTooltip="Imprimir códigos de barras de productos seleccionados"
+                            placement="top"
+                        >
+                            <i class="bi bi-printer-fill"></i> Imprimir códigos barra
+                        </button>
                     </div>
                 </div>
 			</div>
@@ -311,7 +332,14 @@
             </div>
         </div>
         <div class="d-flex justify-content-center mt-3">
-            <button class="btn btn-primary" (click)="imprimirCodigosBarra('barcodeDiv')"><i class="bi bi-printer-fill"></i> Imprimir</button>
+            <button 
+                class="btn btn-primary" 
+                (click)="imprimirCodigosBarra('barcodeDiv')"
+                ngbTooltip="Imprimir códigos de barras generados"
+                placement="top"
+            >
+                <i class="bi bi-printer-fill"></i> Imprimir
+            </button>
         </div>
 	</div>
 </ng-template>
@@ -347,6 +375,8 @@
 			type="button"
 			class="btn btn-outline-dark"
 			(click)="saveObservacion()"
+			ngbTooltip="Guardar observación del producto"
+			placement="top"
 		>
 			Guardar
 		</button>
@@ -381,10 +411,54 @@
 			</div>
 		</div>
 		<div class="d-flex justify-content-center mt-4">
-			<button class="btn btn-primary" (click)="imprimirCodigoBarraIndividual()">
+			<button 
+                class="btn btn-primary" 
+                (click)="imprimirCodigoBarraIndividual()"
+                ngbTooltip="Imprimir código de barras del producto"
+                placement="top"
+            >
 				<i class="bi bi-printer-fill"></i> Imprimir Código de Barras
 			</button>
 		</div>
 		}
+	</div>
+</ng-template>
+
+<ng-template #codigoBarrasMasivo let-modal>
+	<div class="modal-header">
+		<h4 class="modal-title" id="modal-basic-title">Códigos de Barras - Productos Enviados a Etiquetado</h4>
+		<button
+			type="button"
+			class="btn-close"
+			aria-label="Close"
+			(click)="modal.dismiss('Cross click')"
+		></button>
+	</div>
+	<div class="modal-body">
+		<div class="text-center mb-3">
+			<h5>Productos Enviados a Etiquetado ({{ lstProductosSeleccionados.length }})</h5>
+		</div>
+        <div id="barcodesMasivoDiv">
+            <div style="width: 100%; display: flex; flex-wrap: wrap; justify-content: center;">
+                @for (item of lstProductosSeleccionados; track $index) {
+                <div style="border: 1px dashed #ccc; padding: 4px; margin: 2px;">
+                    <svg
+                        [id]="'barcode-' + $index"
+                        class="barcode"
+                    ></svg>
+                </div>
+                }
+            </div>
+        </div>
+        <div class="d-flex justify-content-center mt-3">
+            <button 
+                class="btn btn-primary" 
+                (click)="imprimirCodigosBarra('barcodesMasivoDiv')"
+                ngbTooltip="Imprimir códigos de barras de productos enviados"
+                placement="top"
+            >
+                <i class="bi bi-printer-fill"></i> Imprimir Códigos de Barras
+            </button>
+        </div>
 	</div>
 </ng-template>

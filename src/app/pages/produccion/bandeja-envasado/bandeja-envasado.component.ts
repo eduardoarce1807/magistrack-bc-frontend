@@ -16,6 +16,7 @@ import { Router } from '@angular/router';
       FormsModule,
       NgbTypeaheadModule,
       NgbPaginationModule,
+      NgbTooltipModule,
       CommonModule
     ],
   templateUrl: './bandeja-envasado.component.html',
@@ -481,8 +482,26 @@ export class BandejaEnvasadoComponent implements OnInit {
                 text: 'Productos enviados a etiquetado correctamente.',
                 showConfirmButton: true,
               }).then(() => {
-                this.actualizarListaProductos();
-                this.lstProductosSeleccionados = [];
+                // No actualizar lista aquí, solo mostrar modal de códigos de barras
+                // La limpieza se hará cuando se cierre el modal de códigos de barras
+                
+                // Mostrar modal de códigos de barras para productos masivos
+                if (this.lstProductosSeleccionados.length > 0 && this.codigoBarrasMasivo) {
+                  const modalRef = this.modalService.open(this.codigoBarrasMasivo, { size: 'xl' });
+                  
+                  // Cuando se cierre el modal, limpiar todo
+                  modalRef.result.then(() => {
+                    // Modal cerrado con botón de cerrar o acción
+                    this.limpiarBusqueda();
+                  }).catch(() => {
+                    // Modal cerrado con ESC o click fuera
+                    this.limpiarBusqueda();
+                  });
+                  
+                  setTimeout(() => {
+                    this.initBarcodes();
+                  }, 0);
+                }
               });
             },
             (error) => {
@@ -503,6 +522,7 @@ export class BandejaEnvasadoComponent implements OnInit {
   }
 
   @ViewChild('codigoBarrasIndividual', { static: true }) codigoBarrasIndividual: TemplateRef<any> | null = null;
+  @ViewChild('codigoBarrasMasivo', { static: true }) codigoBarrasMasivo: TemplateRef<any> | null = null;
 
   enviarEtiquetado(item: any) {
 
