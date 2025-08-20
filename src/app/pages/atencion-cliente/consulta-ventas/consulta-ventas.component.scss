@@ -1,0 +1,57 @@
+.card {
+  border: none;
+  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
+.card-header {
+  background-color: #f8f9fa;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.badge {
+  font-size: 0.75rem;
+}
+
+:host ::ng-deep {
+  .p-calendar {
+    width: 100%;
+  }
+  
+  .p-calendar input {
+    width: 100%;
+  }
+  
+  .p-multiselect {
+    width: 100%;
+    min-height: 38px;
+  }
+  
+  .p-multiselect-label {
+    padding: 0.375rem 0.75rem;
+  }
+  
+  .p-datatable {
+    .p-datatable-thead > tr > th {
+      background-color: #f8f9fa;
+      color: #495057;
+      border-color: #dee2e6;
+      font-weight: 600;
+    }
+    
+    .p-datatable-tbody > tr:nth-child(odd) {
+      background-color: #f8f9fa;
+    }
+    
+    .p-datatable-tbody > tr:hover {
+      background-color: #e9ecef;
+    }
+  }
+  
+  .p-button {
+    border-radius: 0.375rem;
+  }
+  
+  .p-inputtext {
+    border-radius: 0.375rem;
+  }
+}

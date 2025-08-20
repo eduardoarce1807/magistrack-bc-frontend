@@ -1,0 +1,325 @@
+<div class="container-fluid mt-5" style="padding: 0px 60px;">
+	<div class="card shadow-lg p-4 rounded-4">
+		<h2 class="mb-4 text-center">Consulta de Ventas</h2>
+
+		<!-- Filtros -->
+		<div class="card mb-4">
+			<div class="card-header">
+				<h5 class="mb-0">
+					<i class="bi bi-funnel me-2"></i>Filtros de Búsqueda
+				</h5>
+			</div>
+			<div class="card-body">
+				<div class="row g-3">
+					<!-- Fechas -->
+					<div class="col-md-3">
+						<label for="fechaInicio" class="form-label">Fecha Inicio</label>
+						<p-calendar 
+							[(ngModel)]="fechaInicio" 
+							dateFormat="dd/mm/yy"
+							[showIcon]="true"
+							inputId="fechaInicio"
+							styleClass="w-100"
+							placeholder="Seleccionar fecha">
+						</p-calendar>
+					</div>
+					<div class="col-md-3">
+						<label for="fechaFin" class="form-label">Fecha Fin</label>
+						<p-calendar 
+							[(ngModel)]="fechaFin" 
+							dateFormat="dd/mm/yy"
+							[showIcon]="true"
+							inputId="fechaFin"
+							styleClass="w-100"
+							placeholder="Seleccionar fecha">
+						</p-calendar>
+					</div>
+
+					<!-- Tipo de Pago -->
+					<div class="col-md-3">
+						<label for="tipoPago" class="form-label">Tipo de Pago</label>
+						<p-multiSelect 
+							[(ngModel)]="tiposPagoSeleccionados"
+							[options]="tiposPago"
+							optionLabel="descripcion"
+							placeholder="Seleccionar tipos de pago"
+							styleClass="w-100"
+							[filter]="true"
+							filterPlaceHolder="Buscar...">
+						</p-multiSelect>
+					</div>
+
+					<!-- Canal de Venta -->
+					<div class="col-md-3">
+						<label for="canalVenta" class="form-label">Canal de Venta</label>
+						<p-multiSelect 
+							[(ngModel)]="canalesVentaSeleccionados"
+							[options]="canalesVenta"
+							optionLabel="descripcion"
+							placeholder="Seleccionar canales"
+							styleClass="w-100"
+							[filter]="true"
+							filterPlaceHolder="Buscar...">
+						</p-multiSelect>
+					</div>
+
+					<!-- Productos -->
+					<div class="col-md-4">
+						<label for="productos" class="form-label">Productos</label>
+						<p-multiSelect 
+							[(ngModel)]="productosSeleccionados"
+							[options]="productos"
+							optionLabel="displayText"
+							placeholder="Seleccionar productos"
+							styleClass="w-100"
+							[filter]="true"
+							filterPlaceHolder="Buscar productos...">
+							<ng-template let-producto pTemplate="item">
+								<div>
+									<span class="fw-bold">{{producto.idProducto}}</span> - 
+									{{producto.productoMaestro.nombre.length > 35 
+										? producto.productoMaestro.nombre.substring(0, 35) + '...'
+										: producto.productoMaestro.nombre}} - {{producto.presentacion}} {{producto.tipoPresentacion.descripcion}}
+								</div>
+							</ng-template>
+						</p-multiSelect>
+					</div>
+
+					<!-- Clientes -->
+					<div class="col-md-4">
+						<label for="clientes" class="form-label">Clientes</label>
+						<p-multiSelect 
+							[(ngModel)]="clientesSeleccionados"
+							[options]="clientes"
+							optionLabel="nombres"
+							placeholder="Seleccionar clientes"
+							styleClass="w-100"
+							[filter]="true"
+							filterPlaceHolder="Buscar clientes...">
+							<ng-template let-cliente pTemplate="item">
+								<div>
+									{{cliente.nombres}} {{cliente.apellidos}}
+									<small class="text-muted d-block">{{cliente.numeroDocumento}}</small>
+								</div>
+							</ng-template>
+						</p-multiSelect>
+					</div>
+
+					<!-- Roles -->
+					<div class="col-md-4">
+						<label for="roles" class="form-label">Tipo de Cliente</label>
+						<p-multiSelect 
+							[(ngModel)]="rolesSeleccionados"
+							[options]="roles"
+							optionLabel="nombre"
+							placeholder="Seleccionar tipos de cliente"
+							styleClass="w-100"
+							[filter]="true"
+							filterPlaceHolder="Buscar...">
+						</p-multiSelect>
+					</div>
+				</div>
+
+				<!-- Botones -->
+				<div class="row mt-4">
+					<div class="col-12">
+						<div class="d-flex gap-2 justify-content-center">
+							<button 
+								type="button" 
+								class="btn btn-primary"
+								(click)="buscarVentas()"
+								[disabled]="loading">
+								<span *ngIf="loading" class="spinner-border spinner-border-sm me-2"></span>
+								<i class="bi bi-search me-2"></i>
+								{{loading ? 'Buscando...' : 'Buscar'}}
+							</button>
+							<button 
+								type="button" 
+								class="btn btn-success"
+								(click)="exportarExcel()"
+								[disabled]="exportDisabled">
+								<i class="bi bi-file-earmark-excel me-2"></i>
+								Exportar a Excel
+							</button>
+							<button 
+								type="button" 
+								class="btn btn-secondary"
+								(click)="limpiarFiltros()">
+								<i class="bi bi-arrow-clockwise me-2"></i>
+								Limpiar Filtros
+							</button>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<!-- Tabla de Resultados -->
+		<div class="card" *ngIf="ventas.length > 0 || loading">
+			<div class="card-header">
+				<h5 class="mb-0">
+					<i class="bi bi-table me-2"></i>Resultados de Búsqueda
+					<span class="badge bg-primary ms-2" *ngIf="ventas.length > 0">{{ventas.length}} registros</span>
+				</h5>
+			</div>
+			<div class="card-body">
+				<p-table
+					#dt1
+					[value]="ventas"
+					[paginator]="true"
+					[rows]="pageSize"
+					[totalRecords]="ventas.length"
+					[responsiveLayout]="'scroll'"
+					[showCurrentPageReport]="true"
+					currentPageReportTemplate="{first} a {last} de {totalRecords} registros"
+					[filterDelay]="0"
+					styleClass="p-datatable-gridlines p-datatable-striped p-datatable-sm"
+					[tableStyle]="{'min-width': '80rem'}"
+					[rowsPerPageOptions]="[10, 25, 50, 100]"
+					[loading]="loading"
+					[globalFilterFields]="['idPedido', 'cliente', 'nombreProducto', 'canal', 'metodoPago']">
+
+					<ng-template pTemplate="caption">
+						<div class="flex justify-between items-center">
+							<div class="text-end">
+								<p-iconField iconPosition="left">
+									<p-inputIcon>
+										<i class="pi pi-search"></i>
+									</p-inputIcon>
+									<input 
+										pInputText 
+										#searchInput
+										(input)="dt1.filterGlobal(searchInput.value, 'contains')" 
+										placeholder="Buscar en resultados..." />
+								</p-iconField>
+								<p-button 
+									[outlined]="true" 
+									icon="pi pi-filter-slash" 
+									label="Limpiar" 
+									(click)="dt1.clear(); searchInput.value = ''" />
+							</div>
+						</div>
+					</ng-template>
+
+					<ng-template pTemplate="header">
+						<tr>
+							<th pSortableColumn="fecha" style="width: 100px">
+								<div class="flex justify-content-between align-items-center">
+									Fecha
+									<p-sortIcon field="fecha" />
+								</div>
+							</th>
+							<th pSortableColumn="idPedido">
+								<div class="flex justify-content-between align-items-center">
+									N° Pedido
+									<p-sortIcon field="idPedido" />
+								</div>
+							</th>
+							<th pSortableColumn="cliente">
+								<div class="flex justify-content-between align-items-center">
+									Cliente
+									<p-sortIcon field="cliente" />
+								</div>
+							</th>
+							<th pSortableColumn="nombreProducto">
+								<div class="flex justify-content-between align-items-center">
+									Producto
+									<p-sortIcon field="nombreProducto" />
+								</div>
+							</th>
+							<th pSortableColumn="presentacion">
+								<div class="flex justify-content-between align-items-center">
+									Presentación
+									<p-sortIcon field="presentacion" />
+								</div>
+							</th>
+							<th pSortableColumn="cantidad">
+								<div class="flex justify-content-between align-items-center">
+									Cantidad
+									<p-sortIcon field="cantidad" />
+								</div>
+							</th>
+							<th pSortableColumn="precio">
+								<div class="flex justify-content-between align-items-center">
+									Precio Unit. (S/)
+									<p-sortIcon field="precio" />
+								</div>
+							</th>
+							<th pSortableColumn="subtotal">
+								<div class="flex justify-content-between align-items-center">
+									Subtotal (S/)
+									<p-sortIcon field="subtotal" />
+								</div>
+							</th>
+							<th pSortableColumn="totalPedido">
+								<div class="flex justify-content-between align-items-center">
+									Total Pedido (S/)
+									<p-sortIcon field="totalPedido" />
+								</div>
+							</th>
+							<th pSortableColumn="metodoPago">
+								<div class="flex justify-content-between align-items-center">
+									Método Pago
+									<p-sortIcon field="metodoPago" />
+								</div>
+							</th>
+							<th pSortableColumn="canal">
+								<div class="flex justify-content-between align-items-center">
+									Canal
+									<p-sortIcon field="canal" />
+								</div>
+							</th>
+							<th pSortableColumn="rol">
+								<div class="flex justify-content-between align-items-center">
+									Tipo Cliente
+									<p-sortIcon field="rol" />
+								</div>
+							</th>
+						</tr>
+					</ng-template>
+
+					<ng-template pTemplate="body" let-venta>
+						<tr>
+							<td>{{venta.fecha | date:'dd/MM/yyyy'}}</td>
+							<td>{{venta.idPedido}}</td>
+							<td>{{venta.cliente}}</td>
+							<td>
+								<div>
+									<span class="fw-bold">{{venta.idProducto}}</span>
+									<div>{{venta.nombreProducto}}</div>
+								</div>
+							</td>
+							<td>{{venta.presentacion}}</td>
+							<td class="text-center">{{venta.cantidad}}</td>
+							<td class="text-end">S/ {{venta.precio.toFixed(2)}}</td>
+							<td class="text-end">S/ {{venta.subtotal.toFixed(2)}}</td>
+							<td class="text-end fw-bold">S/ {{venta.totalPedido.toFixed(2)}}</td>
+							<td>{{venta.metodoPago}}</td>
+							<td>{{venta.canal}}</td>
+							<td>{{venta.rol}}</td>
+						</tr>
+					</ng-template>
+
+					<ng-template pTemplate="emptymessage">
+						<tr>
+							<td colspan="12" class="text-center py-4">
+								<div class="text-muted">
+									<i class="bi bi-search fs-1"></i>
+									<p class="mt-2">No se encontraron resultados con los filtros aplicados.</p>
+									<p class="small">Intente ajustar los criterios de búsqueda.</p>
+								</div>
+							</td>
+						</tr>
+					</ng-template>
+				</p-table>
+			</div>
+		</div>
+
+		<!-- Mensaje inicial -->
+		<div class="text-center py-5" *ngIf="ventas.length === 0 && !loading">
+			<i class="bi bi-bar-chart-line display-1 text-muted"></i>
+			<h4 class="mt-3 text-muted">Consulta de Ventas</h4>
+			<p class="text-muted">Seleccione los filtros deseados y haga clic en "Buscar" para ver los resultados.</p>
+		</div>
+	</div>
+</div>
