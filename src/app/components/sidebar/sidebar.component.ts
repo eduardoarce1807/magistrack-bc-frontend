@@ -137,16 +137,6 @@ export class SidebarComponent {
 					icon: 'pi pi-box',
 					items: [
 						{
-							key: '2_0',
-							label: 'Registro de Producto',
-							command: () => this.irA('pages/gestion-producto/registro-producto')
-						},
-						{
-							key: '2_1',
-							label: 'Mantenimiento de Producto',
-							command: () => this.irA('pages/gestion-producto/mantenimiento-producto')
-						},
-						{
 							key: '2_2',
 							label: 'Registro de Cupón',
 							command: () => this.irA('pages/gestion-producto/registro-cupon')
@@ -178,28 +168,69 @@ export class SidebarComponent {
 							label: 'Requerimiento manual',
 							command: () => this.irA('pages/compras/requerimiento-manual')
 						},
+						// {
+						// 	key: '3_2',
+						// 	label: 'Seleccionar Proveedor x Cotización',
+						// 	command: () => this.irA('pages/compras/seleccionar-proveedor')
+						// },
 						{
-							key: '3_2',
-							label: 'Seleccionar Proveedor',
-							command: () => this.irA('pages/compras/seleccionar-proveedor')
+							key: '3_3',
+							label: 'Ordenes de Compras',
+							command: () => this.irA('pages/compras/ordencompra')
+						},
+						// {
+						// 	key: '4_3',
+						// 	label: 'Orden Compra Proveedor',
+						// 	command: () => this.irA('pages/proveedor/ordencompra-proveedor')
+						// }
+					]
+				},
+				{
+					key: '5',
+					label: 'Almacén',
+					icon: 'pi pi-folder-open',
+					items: [
+						{
+							key: '5_0',
+							label: 'Control Materia Prima',
+							command: () => this.irA('pages/inventario/inventario-matprima')
+						},
+						{
+							key: '5_1',
+							label: 'kardex x Mat.Prima',
+							command: () => this.irA('pages/inventario/kardex-producto/0')
 						}
 					]
 				},
 				{
-					key: '4',
-					label: 'Proveedor',
-					icon: 'pi pi-building',
+					key: '6',
+					label: 'Investigación y Desarrollo',
+					icon: 'pi pi-share-alt',
 					items: [
+						...(user.rol.idRol === 1
+							? [
+								{
+									key: '6_0',
+									label: 'Registro de Producto',
+									command: () => this.irA('pages/gestion-producto/registro-producto')
+								},
+								{
+									key: '6_1',
+									label: 'Mantenimiento de Producto',
+									command: () => this.irA('pages/gestion-producto/mantenimiento-producto')
+								}
+							]
+							: []),
 						{
-							key: '4_0',
+							key: '6_2',
 							label: 'Mantenimiento Proveedor',
 							command: () => this.irA('pages/proveedor/mantenimiento-proveedor')
 						},
 						{
-							key: '4_1',
-							label: 'Asignar Proveedor',
+							key: '6_3',
+							label: 'Asignar Materia Prima x Proveedor',
 							command: () => this.irA('pages/proveedor/asignar-proveedor')
-						}
+						},
 					]
 				}
 			] : [])

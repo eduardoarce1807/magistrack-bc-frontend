@@ -1,43 +1,6 @@
-<!--<i class="pi pi-check"></i>-->
-<!--<table class="table table-striped">-->
-<!--	<thead>-->
-<!--	<tr>-->
-<!--		<th scope="col">Código</th>-->
-<!--		<th scope="col">Fecha</th>-->
-<!--		<th scope="col">Origen</th>-->
-<!--		<th scope="col">Estado</th>-->
-<!--		<th scope="col">Total Estimado</th>-->
-<!--		<th scope="col">Acciones</th>-->
-<!--	</tr>-->
-<!--	</thead>-->
-<!--	<tbody>-->
-<!--		@for (req of listaRequerimientospaginado; track req.codigo) {-->
-<!--			<tr>-->
-<!--				<td>{{ req.codigo }}</td>-->
-<!--				<td>{{ req.fecha | date : 'dd-mm-yyyy' }}</td>-->
-<!--				<td>{{ req.origen }}</td>-->
-<!--				<td>{{ req.estado }}</td>-->
-<!--				<td>{{ req.totalestimado | currency:' ':'symbol':'1.2-2':'en-US'}}</td>-->
-<!--			</tr>-->
-<!--		}-->
-<!--	</tbody>-->
-<!--</table>-->
-
-<!--<div class="d-flex justify-content-between p-2">-->
-<!--	<ngb-pagination-->
-<!--		[collectionSize]="collectionSize"-->
-<!--		[(page)]="page"-->
-<!--		[pageSize]="pageSize"-->
-<!--		(pageChange)="refreshRequerimientos()"-->
-<!--	>-->
-<!--	</ngb-pagination>-->
-
-<!--	<select class="form-select" style="width: auto" [(ngModel)]="pageSize" (ngModelChange)="refreshRequerimientos()">-->
-<!--		<option [ngValue]="2">2 items per page</option>-->
-<!--		<option [ngValue]="4">4 items per page</option>-->
-<!--		<option [ngValue]="6">6 items per page</option>-->
-<!--	</select>-->
-<!--</div>-->
+@if (spinner){
+	<app-carga></app-carga>
+}
 
 <p-toast></p-toast>
 <div class="p-5">
@@ -74,20 +37,17 @@
 			</div>
 			<div class="row">
 				<div class="col-md-6 g-2">
-					<p-button [outlined]="true" icon="pi pi-file-plus" label="Historial Req." class="mx-1" severity="success"  />
-					<p-button  icon="pi pi-angle-double-up" label="Indicadores" severity="info"  class="mx-1"/>
-					<p-button [outlined]="true" icon="pi pi-print" label="Reportes" severity="info"  class="mx-1"/>
+<!--					<p-button [outlined]="true" icon="pi pi-file-plus" label="Historial Req." class="mx-1" severity="success"  />-->
+<!--					<p-button  icon="pi pi-angle-double-up" label="Indicadores" severity="info"  class="mx-1"/>-->
+					<p-button [outlined]="true" icon="pi pi-print" label="Resumen Requerimientos" severity="info"  class="mx-1" (click)="imprimir_requerimientos()"/>
 				</div>
 				<div class="col-md-6 text-end g-2">
-					<p-button  icon="pi pi-plus" label="Nuevo Requerimiento" class="mx-1" severity="success"  />
+					<p-button  icon="pi pi-plus" label="Nuevo Requerimiento" class="mx-1" severity="success" (click)="irARequerimientoManual()" />
 				</div>
 			</div>
 		</ng-template>
 		<ng-template pTemplate="header">
 			<tr>
-				<th style="width: 4rem">
-					<p-tableHeaderCheckbox />
-				</th>
 				<th pSortableColumn="id_requerimiento" style="min-width: 30px">
 					<div class="flex justify-content-between align-items-center">
 						Id
@@ -95,7 +55,7 @@
 						<p-columnFilter type="text" field="id_requerimiento" display="menu" class="ml-auto" />
 					</div>
 				</th>
-				<th pSortableColumn="areasolicitante" style="min-width: 14rem">
+				<th pSortableColumn="areasolicitante" style="min-width: 80px">
 					<div class="flex justify-content-between align-items-center">
 						Origen
 						<p-sortIcon field="areasolicitante" />
@@ -132,11 +92,18 @@
 						</p-columnFilter>
 					</div>
 				</th>
-				<th pSortableColumn="totalestimado" style="min-width: 10rem">
+				<th pSortableColumn="totalestimado" style="min-width: 50px">
 					<div class="flex justify-content-between align-items-center">
 						Total
 						<p-sortIcon field="totalestimado" />
 						<p-columnFilter type="totalestimado" field="totalestimado" display="menu" class="ml-auto" />
+					</div>
+				</th>
+				<th pSortableColumn="desrpoveedor" style="min-width: 80px">
+					<div class="flex justify-content-between align-items-center">
+						Ganador
+						<p-sortIcon field="desrpoveedor" />
+						<p-columnFilter type="text" field="desrpoveedor" display="menu" class="ml-auto" />
 					</div>
 				</th>
 				<th style="min-width: 10rem">
@@ -148,9 +115,6 @@
 		</ng-template>
 		<ng-template pTemplate="body" let-customer>
 			<tr class="p-selectable-row">
-				<td>
-					<p-tableCheckbox [value]="customer" />
-				</td>
 				<td>
 					<span class="p-column-title">Name</span>
 					{{ customer.id_requerimiento }}
@@ -164,15 +128,26 @@
 					{{ customer.fecha | date : 'dd/MM/yyyy' }}
 				</td>
 				<td>
-					<p-tag severity="warning" [value]="customer.estadorequerimiento" [rounded]="true" />
+					<p-tag [severity]="getSeverity(customer.estadorequerimiento)" [value]="customer.estadorequerimiento" [rounded]="true" />
 				</td>
 				<td class="text-end">
 					<span class="p-column-title">Total</span>
-					{{ customer.imptotal | currency:' ':'symbol':'1.2-2':'en-US'}}
+					S/ {{ customer.imptotal | currency:' ':'symbol':'1.2-2':'en-US'}}
+				</td>
+				<td class="d-flex flex-column align-items-center">
+					<div>
+						@if (customer.desproveedor){
+							<i class="pi pi-trophy" style="color: #bb9c0f;font-size: 1.2rem"></i>
+						}
+						<span class="text-warning fw-bold">{{ customer.desproveedor }}</span>
+					</div>
+					<div>
+						{{ customer.fechaganador | date : 'dd/MM/yyyy' }}
+					</div>
 				</td>
 				<td style="text-align: center">
 <!--					<p-button severity="secondary" icon="pi pi-cog"/>-->
-				 	<p-splitButton label="Información"  [model]="items" raised severity="info" appendTo="body" (click)="calcularSuma(customer)"/>
+				 	<p-splitButton label="Seguimiento" (click)="calcularSuma(customer);" [model]="items" raised severity="info" appendTo="body" />
 				</td>
 			</tr>
 		</ng-template>
@@ -205,7 +180,7 @@
 			<p>{{fila_select.fecha | date:'dd-MM-yyyy'}}</p>
 			<p>{{fila_select.areasolicitante}}</p>
 			<p>{{fila_select.estadorequerimiento}}</p>
-			<p>{{fila_select.imptotal | currency:' ':'symbol':'1.2-2':'en-US'}}</p>
+			<p>S/ {{fila_select.imptotal | currency:' ':'symbol':'1.2-2':'en-US'}}</p>
 		</div>
 	</div>
 	<p-table [value]="fila_select.iterequerimiento"
@@ -243,6 +218,122 @@
 	</p-table>
 </p-dialog>
 }
+@if (vercotizacion){
+	<p-dialog
+		[modal]="true"
+		[(visible)]="vercotizacion"
+		[style]="{ width: '75rem' }"
+		[breakpoints]="{ '1199px': '75vw', '575px': '90vw' }"
+		[maximizable]="true">
+		<ng-template pTemplate="header">
+
+			<img src="assets/img/lista-de-compras.gif" width="50"><h5 class="text-bg-success p-2 rounded-3"> Cotizar Requerimiento - {{fila_select.id_requerimiento}}</h5>
+		</ng-template>
+		<div class="row">
+			<div class="col-md-6">
+				<label class="mx-3 my-1" >Proveedor:</label>
+				<p-dropdown
+					[options]="listaProveedores"
+					[(ngModel)]="selectedprov"
+					optionLabel="descripcion"
+					optionValue="idproveedor"
+					[loading]="cargaprov"
+					placeholder="Seleccionar Proveedor" />
+			</div>
+			<div class="col-md-6">
+
+				<label class="fw-bold">Fecha Emisión:</label>
+				<p>{{fila_select.fecha}}</p>
+				<label class="fw-bold">Glosa:</label>
+				<p>{{fila_select.glosa}}</p>
+
+			</div>
+		</div>
+		<p-table [value]="fila_select.iterequerimiento"
+				 [tableStyle]="{'min-width': '30rem'}"
+				 styleClass="p-datatable-gridlines p-datatable-striped p-datatable-sm"
+				 sortMode="multiple">
+			<ng-template pTemplate="header">
+				<tr>
+					<th pSortableColumn="itemitereq" style="width:10%" >
+						<div class="d-flex justify-content-center">
+							ID<p-sortIcon field="itemitereq" />
+						</div>
+					</th>
+					<th pSortableColumn="desmateriaprima" style="width:30%">
+						<div class="d-flex justify-content-center">
+						Materia Prima <p-sortIcon field="desmateriaprima" />
+						</div>
+					</th>
+					<th pSortableColumn="cantidad_requerida" style="width:10%">
+						<div class="d-flex justify-content-center">
+						Cantidad <p-sortIcon field="cantidad_requerida" />
+						</div>
+					</th>
+					<th pSortableColumn="costo_gramo" style="width:15%">
+						<div class="d-flex justify-content-center">
+						ImpUnit.(S/) <p-sortIcon field="costo_gramo" />
+						</div>
+					</th>
+					<th pSortableColumn="cantidad_requerida" style="width:20%">
+						<div class="d-flex justify-content-center">
+						Días Entrega <p-sortIcon field="cantidad_requerida" />
+						</div>
+					</th>
+					<th pSortableColumn="impsubtotal" style="width:15%">
+						<div class="d-flex justify-content-center">
+						Subtotal <p-sortIcon field="impsubtotal" />
+						</div>
+					</th>
+					<th pSortableColumn="condicion_adicional" style="width:15%">
+						<div class="d-flex justify-content-center">
+						Adicionar <p-sortIcon field="condicion_adicional" />
+						</div>
+					</th>
+				</tr>
+			</ng-template>
+			<ng-template pTemplate="body" let-product>
+				<tr>
+					<td>{{product.itemitereq}}</td>
+					<td>{{ product.desmateriaprima }}</td>
+					<td>{{ product.cantidad_requerida }}
+					</td>
+					<td>
+						<p-inputNumber
+							[(ngModel)]="product.costo_gramo"
+							mode="currency"
+							inputId="currency-peru"
+							currency="PEN"
+							locale="es-PE" (ngModelChange)="cambiocosto(product)" />
+					</td>
+					<td>
+						<p-inputNumber
+							inputId="integeronly"
+							[(ngModel)]="product.diasentrega" />
+
+					</td>
+					<td class="text-end">S/ {{ product.impsubtotal | currency:' ':'symbol':'1.2-2':'en-US'}}</td>
+					<td><input
+						pInputText
+						type="text"
+						[(ngModel)]="product.condicion_adicional" /></td>
+				</tr>
+			</ng-template>
+			<ng-template pTemplate="footer">
+				<tr>
+					<td colspan="5" class="text-end">Precio Total:</td>
+					<td class="fw-bold text-end">S/ {{sumacoti | currency:' ':'symbol':'1.2-2':'en-US'}}</td>
+				</tr>
+			</ng-template>
+		</p-table>
+		<ng-template pTemplate="footer">
+			<div class="text-end mt-2">
+				<p-button  icon="pi pi-trash" [outlined]="true" label="Cancelar" (click)="vercotizacion=false" class="mx-1" severity="secondary"  />
+				<p-button  icon="pi pi-save" label="Generar Cotización" class="mx-1" severity="success" (click)="guardarcotizacion()" [disabled]="fila_select.idproveedor" />
+			</div>
+		</ng-template>
+	</p-dialog>
+}
 @if (verordencompra){
 	<p-dialog
 		[modal]="true"
@@ -257,16 +348,16 @@
 		<div class="row my-2">
 			<div class="col-md-6">
 				<div class="d-flex flex-column">
-					<label for="username">Fecha de Entrega estimada</label>
-					<p-calendar [(ngModel)]="fechaentrega" dateFormat="dd-mm-yy" appendTo="body" [iconDisplay]="'input'" [showIcon]="true" inputId="icondisplay" />
-<!--					<small id="fecha-help">Enter your username to reset your password.</small>-->
+					<label >Condiciones de Pago</label>
+					<input pInputText aria-describedby="username-help" [(ngModel)]="condicionpago" />
+<!--					<small id="username-help">Enter your username to reset your password.</small>-->
 				</div>
 			</div>
 			<div class="col-md-6">
 				<div class="d-flex flex-column">
-					<label for="username">Condiciones de Pago</label>
-					<input pInputText id="username" aria-describedby="username-help" [(ngModel)]="condicionpago" />
-<!--					<small id="username-help">Enter your username to reset your password.</small>-->
+					<label >Fecha de Entrega estimada</label>
+					<p-calendar [(ngModel)]="fechaentrega" dateFormat="dd-mm-yy" appendTo="body" [iconDisplay]="'input'" [showIcon]="true" inputId="icondisplay" />
+					<!--					<small id="fecha-help">Enter your username to reset your password.</small>-->
 				</div>
 			</div>
 		</div>
@@ -303,7 +394,7 @@
 		</p-table>
 		<div class="text-end mt-2">
 			<p-button  icon="pi pi-trash" [outlined]="true" label="Cancelar" class="mx-1" severity="secondary"  />
-			<p-button  icon="pi pi-save" label="Generar Orden" class="mx-1" severity="success"  />
+			<p-button  icon="pi pi-save" label="Generar Orden" class="mx-1" severity="success" [disabled]="fila_select.estadorequerimiento!='COTIZADO'" />
 		</div>
 	</p-dialog>
 }
@@ -320,8 +411,8 @@
 			<h5 class="text-bg-light p-2 rounded-3 fw-bold"> Observaciones del Requerimiento - {{fila_select.id_requerimiento}}</h5>
 		</ng-template>
 		<div class="d-flex flex-column my-2">
-			<label for="item">Producto o Ìtem observado</label>
-			<input pInputText id="item" aria-describedby="username-help" [(ngModel)]="observaciones.item" />
+			<label>Producto o Ìtem observado</label>
+			<input pInputText aria-describedby="username-help" [(ngModel)]="observaciones.item" />
 			<label>Descripción de la observación</label>
 
 			<textarea
@@ -388,7 +479,8 @@
 			<div class="text-end mt-2">
 				<p-button  icon="pi pi-trash" [outlined]="true" label="Cancelar" class="mx-1" severity="secondary"  />
 				<p-button  icon="pi pi-save" label="Enviar Respuesta" class="mx-1" severity="success"  />
-			</div></ng-template>
+			</div>
+		</ng-template>
 	</p-dialog>
 }
 

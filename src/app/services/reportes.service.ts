@@ -1,0 +1,22 @@
+import { Injectable } from '@angular/core';
+import {environment} from "../../environments/environment";
+import {HttpClient} from "@angular/common/http";
+
+@Injectable({
+  providedIn: 'root'
+})
+export class ReportesService {
+
+	private baseUrl = `${environment.apiUrl}/requerimientos`;
+
+	constructor(private http: HttpClient) {}
+
+	imprimirRequerimientos() {
+		const url = `${this.baseUrl}/imprimir-listado-requerimientos`;
+		return this.http.get(url, { responseType: "blob" });
+	}
+	imprimirseguimientoRequerimientos( id_requerimiento:string) {
+		const url = `${this.baseUrl}/imprimir-requerimiento/${id_requerimiento}`;
+		return this.http.get(url, { responseType: "blob" });
+	}
+}

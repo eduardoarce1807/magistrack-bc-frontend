@@ -1,10 +1,26 @@
+@if (spinner){
+	<app-carga></app-carga>
 
-
+}
 <p-toast></p-toast>
-<div class="row">
-	<div class="col-md-6 col-sm-12 col-sm-12">
+<div class="row w-full">
+	<div class="col-md-5 col-sm-12 col-sm-12">
 		<div class="d-flex flex-column p-2">
-			<h4 class="text-danger fw-bold flex items-center"><img src="assets/img/entrega.gif" width="50"> Requerimiento Manual</h4>
+			<div class="d-flex align-items-center">
+				<h4 class="text-danger fw-bold flex items-center">
+					<img src="assets/img/entrega.gif" width="50">
+					Requerimiento Manual</h4>
+
+				<label class="mx-3"> <p-checkbox
+					[(ngModel)]="checkautomatico"
+					(ngModelChange)="cambiocheck()"
+					[binary]="true"
+					readonly
+					inputId="binary" /> Cotización Automatizada</label>
+
+
+
+			</div>
 
 
 			<div class="row">
@@ -16,10 +32,11 @@
 						rows="5"
 						cols="30"
 						pInputTextarea
+
 						placeholder="Ej:Solicitud urgente de insumos en producción"
 						[autoResize]="true"
 						[(ngModel)]="requerimientosave.glosa">
-			</textarea>
+					</textarea>
 				</div>
 				<div class="col-md-5 col-sm-12 d-flex flex-column mt-1" >
 
@@ -28,7 +45,8 @@
 					<input
 						class="w-full"
 						type="text"
-						pInputTextarea
+						pInputText
+
 						[(ngModel)]="requerimientosave.responsable" />
 
 					<label class="mt-1">Área Solicitante</label>
@@ -36,103 +54,221 @@
 					<input
 						class="w-full"
 						type="text"
-						pInputTextarea
+						pInputText
+
 						[(ngModel)]="requerimientosave.areasolicitante" />
 				</div>
 			</div>
 
-			<p-table
-				#dt
-				[value]="listaMateriaPrima"
-				selectionMode="single"
-				[(selection)]="selectedCustomers"
-				dataKey="idMateriaPrima"
-				[rowHover]="true"
-				[rows]="5"
-				[showCurrentPageReport]="true"
-				[rowsPerPageOptions]="[5, 25, 50]"
-				[loading]="loading"
-				[paginator]="true"
-				currentPageReportTemplate="{first} hasta {last} de {totalRecords} registros"
-				[filterDelay]="0"
-				styleClass="p-datatable-gridlines p-datatable-striped p-datatable-sm mt-1"
-				[tableStyle]="{'min-width': '30rem'}"
-				[globalFilterFields]="['idMateriaPrima', 'nombre','costoGramo']"
-			>
-				<ng-template pTemplate="caption">
-					<div class="flex justify-between items-center">
-
-						<div class="text-end">
-							<p-iconField iconPosition="left">
-								<p-inputIcon>
-									<i class="pi pi-search"></i>
-								</p-inputIcon>
-								<input pInputText #input (input)="dt.filterGlobal(input.value, 'contains')" placeholder="Materia Prima" />
-								<!--					<input pInputText type="text" [(ngModel)]="searchValue" (input)="dt.filterGlobal($event.target.value, 'contains')" placeholder="Keyboard Search" />-->
-							</p-iconField>
-							<p-button [outlined]="true" icon="pi pi-filter-slash" label="Clear" (click)="clear(dt)" />
-						</div>
+			@if (checkautomatico){
+				<h4 class="text-danger fw-bold d-flex align-items-center my-1">
+					<img src="assets/img/crema-organica.gif" width="50">
+					PROVEEDOR:
+					<div *ngIf="checkautomatico" class="mx-1">
+						<p-dropdown
+							[options]="listaProveedores"
+							[(ngModel)]="selectedprov"
+							optionLabel="descripcion"
+							[checkmark]="true"
+							[showClear]="true"
+							[loading]="cargaprov"
+							(ngModelChange)="cambioproveedor()"
+							placeholder="Seleccionar Proveedor" >
+							<ng-template pTemplate="selectedItem">
+								<div class="flex align-items-center gap-2" *ngIf="selectedprov">
+									<i class="pi pi-share-alt" style="color: var(--primary-color)"></i>
+									<div class="fw-bold p-1 text-bg-warning">{{ selectedprov.idproveedor }} - {{ selectedprov.descripcion }}</div>
+								</div>
+							</ng-template>
+							<ng-template let-country pTemplate="item">
+								<div class="flex align-items-center gap-2">
+									<i class="pi pi-share-alt" style="color: var(--primary-color)"></i>
+									<div class="fw-bold text-bg-warning border-2 ">{{ country.idproveedor }} - {{ country.descripcion }}</div>
+								</div>
+							</ng-template>
+						</p-dropdown>
 					</div>
+				</h4>
+				<p-table
+					#dt
+					[value]="listaMateriaPrimaxProveedor"
+					selectionMode="single"
+					[(selection)]="selectedCustomersProv"
+					dataKey="id_materia_prima"
+					[rowHover]="true"
+					[rows]="5"
+					[showCurrentPageReport]="true"
+					[rowsPerPageOptions]="[5, 25, 50]"
+					[loading]="loading"
+					[paginator]="true"
+					currentPageReportTemplate="{first} hasta {last} de {totalRecords} registros"
+					[filterDelay]="0"
+					styleClass="p-datatable-gridlines p-datatable-striped p-datatable-sm mt-1"
+					[tableStyle]="{'min-width': '30rem'}"
+					[globalFilterFields]="['id_materia_prima', 'nombre','costo_gramo','stock_materia']"
+				>
+					<ng-template pTemplate="caption">
+						<div class="flex justify-between items-center">
 
-				</ng-template>
-				<ng-template pTemplate="header">
-					<tr>
-						<th pSortableColumn="idMateriaPrima" style="width: 20px">
-							<div class="flex justify-content-between align-items-center">
-								Id
-								<p-sortIcon field="idMateriaPrima" />
-								<p-columnFilter type="number" field="idMateriaPrima" display="menu" class="ml-auto" />
+							<div class="text-end">
+								<p-iconField iconPosition="left">
+									<p-inputIcon>
+										<i class="pi pi-search"></i>
+									</p-inputIcon>
+									<input pInputText  #input (input)="dt.filterGlobal(input.value, 'contains')" placeholder="Materia Prima" />
+									<!--					<input pInputText type="text" [(ngModel)]="searchValue" (input)="dt.filterGlobal($event.target.value, 'contains')" placeholder="Keyboard Search" />-->
+								</p-iconField>
+								<p-button [outlined]="true" icon="pi pi-filter-slash" label="Clear" (click)="clear(dt)" />
 							</div>
-						</th>
-						<th pSortableColumn="nombre" style="min-width: 220px">
-							<div class="flex justify-content-between align-items-center">
-								Nombre
-								<p-sortIcon field="nombre" />
-								<p-columnFilter type="text" field="nombre" display="menu" class="ml-auto" />
+						</div>
+
+					</ng-template>
+					<ng-template pTemplate="header">
+						<tr>
+							<th pSortableColumn="nombre" style="min-width: 200px">
+								<div class="flex justify-content-between align-items-center">
+									Nombre
+									<p-sortIcon field="nombre" />
+									<p-columnFilter type="text" field="nombre" display="menu" class="ml-auto" />
+								</div>
+							</th>
+							<th pSortableColumn="costo_gramo" style="min-width: 50px">
+								<div class="flex justify-content-between align-items-center">
+									S/. gramo
+									<p-sortIcon field="costo_gramo" />
+								</div>
+							</th>
+							<th pSortableColumn="stock_materia" style="min-width: 50px">
+								<div class="flex justify-content-between align-items-center">
+									Stock
+									<p-sortIcon field="stock_materia" />
+								</div>
+							</th>
+							<th  style="min-width: 50px">
+								Enviar
+							</th>
+						</tr>
+					</ng-template>
+					<ng-template pTemplate="body" let-customer>
+						<tr class="p-selectable-row"  [pSelectableRow]="customer" (click)="onRowSelectProveedor($event)">
+							<td>
+								<!--					<img src="https://primefaces.org/cdn/primeng/images/demo/flag/flag_placeholder.png" [class]="'flag flag-' + customer.country.code" style="width: 20px" />-->
+								<span class="ml-1 vertical-align-middle">{{ customer.nombre }}</span>
+							</td>
+							<td>
+								{{ customer.costo_gramo | currency:' ':'symbol':'1.2-2':'en-US' }}
+							</td>
+							<td>
+								{{ customer.stock_materia }}
+							</td>
+							<td>
+								<i class="pi pi-send" style="color: var(--primary-color)"
+								   pTooltip="cargar requerimiento"
+								   tooltipPosition="right"
+								></i>
+							</td>
+						</tr>
+					</ng-template>
+					<ng-template pTemplate="emptymessage">
+						<tr>
+							<td colspan="3">No se encontraron Materias Primas por PROVEEDOR</td>
+						</tr>
+					</ng-template>
+				</p-table>
+			} @else {
+				<p-table
+					#dt
+					[value]="listaMateriaPrima"
+					selectionMode="single"
+					[(selection)]="selectedCustomers"
+					dataKey="idMateriaPrima"
+					[rowHover]="true"
+					[rows]="5"
+					[showCurrentPageReport]="true"
+					[rowsPerPageOptions]="[5, 25, 50]"
+					[loading]="loading"
+					[paginator]="true"
+					currentPageReportTemplate="{first} hasta {last} de {totalRecords} registros"
+					[filterDelay]="0"
+					styleClass="p-datatable-gridlines p-datatable-striped p-datatable-sm mt-1"
+					[tableStyle]="{'min-width': '30rem'}"
+					[globalFilterFields]="['idMateriaPrima', 'nombre','costoGramo']"
+				>
+					<ng-template pTemplate="caption">
+						<div class="flex justify-between items-center">
+
+							<div class="text-end">
+								<p-iconField iconPosition="left">
+									<p-inputIcon>
+										<i class="pi pi-search"></i>
+									</p-inputIcon>
+									<input pInputText  #input (input)="dt.filterGlobal(input.value, 'contains')" placeholder="Materia Prima" />
+									<!--					<input pInputText type="text" [(ngModel)]="searchValue" (input)="dt.filterGlobal($event.target.value, 'contains')" placeholder="Keyboard Search" />-->
+								</p-iconField>
+								<p-button [outlined]="true" icon="pi pi-filter-slash" label="Clear" (click)="clear(dt)" />
 							</div>
-						</th>
-						<th pSortableColumn="costoGramo" style="min-width: 50px">
-							<div class="flex justify-content-between align-items-center">
-								Costo
-								<p-sortIcon field="costoGramo" />
-								<p-columnFilter type="number" field="costoGramo" display="menu" class="ml-auto" />
-							</div>
-						</th>
-						<th  style="min-width: 50px">
-							Enviar
-						</th>
-					</tr>
-				</ng-template>
-				<ng-template pTemplate="body" let-customer>
-					<tr class="p-selectable-row"  [pSelectableRow]="customer" (click)="onRowSelect($event)">
-						<td>
-							{{ customer.idMateriaPrima }}
-						</td>
-						<td>
-							<!--					<img src="https://primefaces.org/cdn/primeng/images/demo/flag/flag_placeholder.png" [class]="'flag flag-' + customer.country.code" style="width: 20px" />-->
-							<span class="ml-1 vertical-align-middle">{{ customer.nombre }}</span>
-						</td>
-						<td>
-							{{ customer.costoGramo | currency:' ':'symbol':'1.2-2':'en-US' }}
-						</td>
-						<td>
-							<i class="pi pi-send" style="color: var(--primary-color)"
-							   pTooltip="cargar requerimiento"
-							   tooltipPosition="right"
-							></i>
-						</td>
-					</tr>
-				</ng-template>
-				<ng-template pTemplate="emptymessage">
-					<tr>
-						<td colspan="3">No se encontraron Materias Primas.</td>
-					</tr>
-				</ng-template>
-			</p-table>
+						</div>
+
+					</ng-template>
+					<ng-template pTemplate="header">
+						<tr>
+							<th  style="width: 20px">
+								<div class="flex justify-content-between align-items-center">
+									Id
+
+								</div>
+							</th>
+							<th pSortableColumn="nombre" style="min-width: 220px">
+								<div class="flex justify-content-between align-items-center">
+									Nombre
+									<p-sortIcon field="nombre" />
+									<p-columnFilter type="text" field="nombre" display="menu" class="ml-auto" />
+								</div>
+							</th>
+							<th pSortableColumn="costoGramo" style="min-width: 50px">
+								<div class="flex justify-content-between align-items-center">
+									S/. gramo
+									<p-sortIcon field="costoGramo" />
+									<p-columnFilter type="number" field="costoGramo" display="menu" class="ml-auto" />
+								</div>
+							</th>
+							<th  style="min-width: 50px">
+								Enviar
+							</th>
+						</tr>
+					</ng-template>
+					<ng-template pTemplate="body" let-customer>
+						<tr class="p-selectable-row"  [pSelectableRow]="customer" (click)="onRowSelect($event)">
+							<td>
+								{{ customer.idMateriaPrima }}
+							</td>
+							<td>
+								<!--					<img src="https://primefaces.org/cdn/primeng/images/demo/flag/flag_placeholder.png" [class]="'flag flag-' + customer.country.code" style="width: 20px" />-->
+								<span class="ml-1 vertical-align-middle">{{ customer.nombre }}</span>
+							</td>
+							<td>
+								{{ customer.costoGramo | currency:' ':'symbol':'1.2-2':'en-US' }}
+							</td>
+							<td>
+								<i class="pi pi-send" style="color: var(--primary-color)"
+								   pTooltip="cargar requerimiento"
+								   tooltipPosition="right"
+								></i>
+							</td>
+						</tr>
+					</ng-template>
+					<ng-template pTemplate="emptymessage">
+						<tr>
+							<td colspan="3">No se encontraron Materias Primas.</td>
+						</tr>
+					</ng-template>
+				</p-table>
+			}
 
 		</div>
 	</div>
-	<div class="col-md-6 col-sm-12 d-flex justify-content-center align-items-center">
+	<div class="col-md-7 col-sm-12 d-flex  flex-column">
+
 		<div class="w-full p-1">
 			<p-panel [toggleable]="true">
 				<ng-template pTemplate="header">
@@ -149,11 +285,11 @@
 				<ng-template pTemplate="footer">
 					<div class="flex flex-wrap align-items-center justify-content-between gap-3">
 						<div class="flex align-items-center gap-2">
-							<p-button icon="pi pi-user" rounded="true" text="true" />
-							<p-button icon="pi pi-bookmark" severity="secondary" rounded="true" text="true" />
+<!--							<p-button icon="pi pi-user" rounded="true" text="true" />-->
+<!--							<p-button icon="pi pi-bookmark" severity="secondary" rounded="true" text="true" />-->
 						</div>
 						<span class="p-text-secondary">
-                <p-button [outlined]="true" icon="pi pi-save" severity="success" label="Registrar Requerimiento" (click)="guardarRequermiento()" />
+                <p-button  icon="pi pi-save" severity="success" label="Registrar Requerimiento" (click)="guardarRequermiento()" />
             </span>
 					</div>
 				</ng-template>
@@ -181,67 +317,86 @@
 					[filterDelay]="0"
 					styleClass="p-datatable-gridlines p-datatable-striped p-datatable-sm mt-1"
 					[tableStyle]="{'min-width': '30rem'}"
-					[globalFilterFields]="['idMateriaPrima', 'nombre','costoGramo']"
 					[scrollable]="true"
-					scrollHeight="300px"
+					scrollHeight="350px"
 				>
-					<ng-template pTemplate="caption">
-						<div class="flex justify-between items-center">
-
-							<div class="text-end">
-								<p-iconField iconPosition="left">
-									<p-inputIcon>
-										<i class="pi pi-search"></i>
-									</p-inputIcon>
-									<input pInputText #input (input)="dt.filterGlobal(input.value, 'contains')" placeholder="Materia Prima" />
-									<!--					<input pInputText type="text" [(ngModel)]="searchValue" (input)="dt.filterGlobal($event.target.value, 'contains')" placeholder="Keyboard Search" />-->
-								</p-iconField>
-								<p-button [outlined]="true" icon="pi pi-filter-slash" label="Clear" (click)="clear(dt)" />
-							</div>
-						</div>
-
-					</ng-template>
 					<ng-template pTemplate="header">
 						<tr>
-							<th pSortableColumn="id_materia_prima" style="width: 20px">
+							<th style="width: 20px">
 								<div class="flex justify-content-between align-items-center">
-									Id
-									<p-sortIcon field="id_materia_prima" />
-									<p-columnFilter type="number" field="id_materia_prima" display="menu" class="ml-auto" />
+									#
 								</div>
 							</th>
-							<th pSortableColumn="desmateriaprima" style="min-width: 220px">
+							<th pSortableColumn="desmateriaprima" style="width: 200px !important;">
 								<div class="flex justify-content-between align-items-center">
 									Materia
 									<p-sortIcon field="desmateriaprima" />
 									<p-columnFilter type="text" field="desmateriaprima" display="menu" class="ml-auto" />
 								</div>
 							</th>
-							<th pSortableColumn="costo_gramo" style="min-width: 50px">
+							<th pSortableColumn="costo_gramo" style="width: 180px">
 								<div class="flex justify-content-between align-items-center">
-									Costo
+									S/. gramo
 									<p-sortIcon field="costo_gramo" />
 									<p-columnFilter type="number" field="costo_gramo" display="menu" class="ml-auto" />
 								</div>
 							</th>
+							@if (selectedprov && selectedprov.idproveedor){
+								<th pSortableColumn="diasentrega" style="width: 200px" >
+									<div class="flex justify-content-between align-items-center">
+										Días Ent.
+										<p-sortIcon field="diasentrega" />
+										<p-columnFilter type="number" field="diasentrega" display="menu" class="ml-auto" />
+									</div>
+								</th>
+
+							}
 							<th  style="min-width: 50px">
 								Eliminar
 							</th>
 						</tr>
 
 					</ng-template>
-					<ng-template pTemplate="body" let-customer>
+					<ng-template pTemplate="body" let-customer let-rowIndex="rowIndex">
 						<tr class="p-selectable-row"  >
 							<td>
-								{{ customer.id_materia_prima }}
+								{{ rowIndex+1 }}
 							</td>
 							<td>
 								<!--					<img src="https://primefaces.org/cdn/primeng/images/demo/flag/flag_placeholder.png" [class]="'flag flag-' + customer.country.code" style="width: 20px" />-->
 								<span class="ml-1 vertical-align-middle text-danger fw-bold">{{ customer.desmateriaprima }}</span>
+
+								<p-inputNumber
+									[(ngModel)]="customer.cantidad_requerida"
+									inputId="minmaxfraction"
+									mode="decimal"
+									class="w-full text-end"
+									suffix="(g)"
+									[minFractionDigits]="0"
+									[maxFractionDigits]="5"
+									(ngModelChange)="cambiocantidad(customer)"/>
 							</td>
-							<td class="text-danger fw-bold">
-								{{ customer.costo_gramo | currency:' ':'symbol':'1.2-2':'en-US' }}
+							<td class="d-flex flex-column text-end">
+								<p-inputNumber
+									[(ngModel)]="customer.costo_gramo"
+									inputId="minmaxfraction"
+									mode="decimal"
+									class="w-full text-end"
+									prefix="(S/) "
+									[minFractionDigits]="4"
+									[maxFractionDigits]="5"
+									(ngModelChange)="cambiocantidad(customer)"/>
+<!--								<span class="text-danger fw-bold">{{ customer.costo_gramo | currency:' ':'symbol':'1.2-2':'en-US' }}</span>-->
+								Subtotal: S/ {{customer.impsubtotal | currency:' ':'symbol':'1.2-2':'en-US'}}
 							</td>
+							@if (selectedprov && selectedprov.idproveedor){
+							<td>
+								<p-inputNumber
+									[(ngModel)]="customer.diasentrega"
+									inputId="integeronly"
+								/>
+							</td>
+							}
 							<td>
 								<i class="pi pi-trash" style="color: red"
 								   pTooltip="Eliminar Registro"
@@ -249,23 +404,6 @@
 								   (click)="eliminarRegistro(customer)"
 								></i>
 							</td>
-						</tr>
-						<tr>
-							<td colspan="2">
-								Cant:
-								<p-inputNumber
-								[(ngModel)]="customer.cantidad_requerida"
-								inputId="minmaxfraction"
-								mode="decimal"
-								class="w-full"
-								[minFractionDigits]="2"
-								[maxFractionDigits]="5"
-								(ngModelChange)="cambiocantidad(customer)"/>
-							</td>
-							<td colspan="2">
-								Subtotal: S/ {{customer.impsubtotal | currency:' ':'symbol':'1.2-2':'en-US'}}
-							</td>
-
 						</tr>
 					</ng-template>
 					<ng-template pTemplate="emptymessage">
@@ -278,6 +416,36 @@
 		</div>
 	</div>
 </div>
+@if (visiblecorreo){
+
+	<p-dialog header="Información de Correo" [modal]="true" [(visible)]="visiblecorreo" [style]="{ width: '25rem' }">
+		<div class="d-flex align-items-center flex-column mt-1">
+			<label class="font-semibold w-6rem">Para:</label>
+			<input pInputText id="para" class="w-full" autocomplete="off" [(ngModel)]="enviaremail.para"/>
+		</div>
+		<div class="d-flex align-items-center flex-column mt-1">
+			<label class="font-semibold w-6rem">Asunto</label>
+			<input pInputText  id="asunto" class="w-full" autocomplete="off" [(ngModel)]="enviaremail.asunto"/>
+		</div>
+		<div class="d-flex align-items-center flex-column mt-1">
+			<label class="font-semibold w-6rem">Mensaje</label>
+			<textarea
+				class="w-full"
+				rows="5"
+				cols="30"
+				pInputTextarea
+
+				placeholder="Ej:Solicitud urgente de insumos en producción"
+				[autoResize]="true"
+				[(ngModel)]="enviaremail.mensaje">
+					</textarea>
+		</div>
+		<div class="d-flex justify-content-end gap-2 mt-2">
+			<p-button label="Cancel" [outlined]="true" severity="secondary" (onClick)="visiblecorreo = false;this.router.navigate(['/pages/compras/bandeja-requerimientos']);" />
+			<p-button label="Enviar" icon="pi pi-send" (onClick)="confirmarcorreo()" />
+		</div>
+	</p-dialog>
+}
 
 <!--@if (verdetalle){-->
 <!--	<p-dialog-->
