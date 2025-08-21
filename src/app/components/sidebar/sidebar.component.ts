@@ -165,12 +165,12 @@ export class SidebarComponent {
 					items: [
 						{
 							key: '3_0',
-							label: 'Bandeja de Requerimientos',
+							label: 'Historial de Requerimientos',
 							command: () => this.irA('pages/compras/bandeja-requerimientos')
 						},
 						{
 							key: '3_1',
-							label: 'Requerimiento manual',
+							label: 'Solicitud de Requerimiento',
 							command: () => this.irA('pages/compras/requerimiento-manual')
 						},
 						// {
@@ -197,7 +197,7 @@ export class SidebarComponent {
 					items: [
 						{
 							key: '5_0',
-							label: 'Control Materia Prima',
+							label: 'Listado de Materia Prima',
 							command: () => this.irA('pages/inventario/inventario-matprima')
 						},
 						{
