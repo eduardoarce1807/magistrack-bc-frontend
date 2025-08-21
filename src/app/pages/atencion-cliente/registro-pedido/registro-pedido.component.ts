@@ -520,11 +520,11 @@ export class RegistroPedidoComponent implements OnInit, OnDestroy {
       this.modalService.open(content, {backdrop: 'static', keyboard: false, size: 'xl'});
     },
     (error) => {
-      console.error('Error al registrar cliente', error);
+      console.error('Error al obtener productos', error);
       Swal.fire({
         icon: 'error',
         title: 'Oops!',
-        text: 'No se pudo registrar el cliente, inténtelo de nuevo.',
+        text: 'No se pudo obtener la lista de productos, inténtelo de nuevo.',
         showConfirmButton: true
       });
     });
@@ -608,11 +608,11 @@ export class RegistroPedidoComponent implements OnInit, OnDestroy {
           this.productosBusqueda = data;
         },
         (error) => {
-          console.error('Error al registrar cliente', error);
+          console.error('Error al buscar productos', error);
           Swal.fire({
             icon: 'error',
             title: 'Oops!',
-            text: 'No se pudo registrar el cliente, inténtelo de nuevo.',
+            text: 'No se pudo buscar los productos, inténtelo de nuevo.',
             showConfirmButton: true
           });
         });
@@ -629,11 +629,11 @@ export class RegistroPedidoComponent implements OnInit, OnDestroy {
         this.searchFocused = true;
       },
       (error) => {
-        console.error('Error al registrar cliente', error);
+        console.error('Error al buscar productos', error);
         Swal.fire({
           icon: 'error',
           title: 'Oops!',
-          text: 'No se pudo registrar el cliente, inténtelo de nuevo.',
+          text: 'No se pudo buscar los productos, inténtelo de nuevo.',
           showConfirmButton: true
         });
       });

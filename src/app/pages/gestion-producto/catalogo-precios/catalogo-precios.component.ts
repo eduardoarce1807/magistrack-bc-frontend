@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { NgbTypeaheadModule, NgbPaginationModule } from '@ng-bootstrap/ng-bootstrap';
+import { NgbTypeaheadModule, NgbPaginationModule, NgbTooltipModule } from '@ng-bootstrap/ng-bootstrap';
 import Swal from 'sweetalert2';
 import { ClienteService } from '../../../services/cliente.service';
 import { CuponService } from '../../../services/cupon.service';
@@ -26,7 +26,7 @@ interface PageEvent {
 @Component({
   selector: 'app-catalogo-precios',
   standalone: true,
-  imports: [FormsModule, NgbTypeaheadModule, NgbPaginationModule, CommonModule, TableModule, ButtonModule, IconFieldModule, InputIconModule, InputTextModule],
+  imports: [FormsModule, NgbTypeaheadModule, NgbPaginationModule, NgbTooltipModule, CommonModule, TableModule, ButtonModule, IconFieldModule, InputIconModule, InputTextModule],
   templateUrl: './catalogo-precios.component.html',
   styleUrl: './catalogo-precios.component.scss'
 })

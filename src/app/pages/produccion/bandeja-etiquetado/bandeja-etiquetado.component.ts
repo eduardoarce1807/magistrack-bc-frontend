@@ -1,5 +1,5 @@
 import { Component, inject, OnInit, TemplateRef, ViewChild } from '@angular/core';
-import { NgbModal, NgbPaginationModule, NgbTypeaheadModule } from '@ng-bootstrap/ng-bootstrap';
+import { NgbModal, NgbPaginationModule, NgbTypeaheadModule, NgbTooltipModule } from '@ng-bootstrap/ng-bootstrap';
 import JsBarcode from 'jsbarcode';
 import Swal from 'sweetalert2';
 import { DataService } from '../../../services/data.service';
@@ -16,6 +16,7 @@ import { Router } from '@angular/router';
         FormsModule,
         NgbTypeaheadModule,
         NgbPaginationModule,
+        NgbTooltipModule,
         CommonModule
       ],
   templateUrl: './bandeja-etiquetado.component.html',

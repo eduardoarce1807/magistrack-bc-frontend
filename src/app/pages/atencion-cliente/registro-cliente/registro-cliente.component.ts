@@ -4,6 +4,7 @@ import { CommonModule } from '@angular/common';
 import { ClienteService } from '../../../services/cliente.service';
 import { TipoDocumentoService } from '../../../services/tipo-documento.service';
 import { MedioContactoService } from '../../../services/medio-contacto.service';
+import { RolService } from '../../../services/rol.service';
 import Swal from 'sweetalert2';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subscription } from 'rxjs';
@@ -20,8 +21,11 @@ export class RegistroClienteComponent implements OnInit {
   clienteForm: FormGroup;
   tiposDocumento: any[] = [];
   mediosContacto: any[] = [];
+  roles: any[] = [];
   isCodigoReferidoValid: boolean | undefined = undefined;
   isEditing: boolean = false;
+  passwordTouched: boolean = false;
+  isSubmitting: boolean = false;
 
   private routeSubscription: Subscription | null = null;
   showPassword: any;
@@ -33,6 +37,7 @@ export class RegistroClienteComponent implements OnInit {
     private clienteService: ClienteService,
     private tipoDocumentoService: TipoDocumentoService,
     private medioContactoService: MedioContactoService,
+    private rolService: RolService,
     private route: ActivatedRoute,
     public router: Router,
     private emailService: EmailService
@@ -45,6 +50,7 @@ export class RegistroClienteComponent implements OnInit {
       Validators.required,
       Validators.pattern(passwordPattern)
       ]],
+      rol: ['', Validators.required],
       nombres: ['', Validators.required],
       apellidos: ['', Validators.required],
       tipoDocumento: ['', Validators.required],
@@ -63,15 +69,26 @@ export class RegistroClienteComponent implements OnInit {
       numeroColegiatura: [null],
       documentoAdicional: [null],
       referidoPor: ['']
-    }, { validators: this.correosIgualesValidator });
+    }, { validators: (form: FormGroup) => this.correosIgualesValidator(form) });
 
     
   }
 
   correosIgualesValidator(form: FormGroup) {
+    // Skip validation during editing mode
+    if (this.isEditing === true) {
+      return null;
+    }
+    
     const correo = form.get('correo')?.value;
     const confirmCorreo = form.get('confirmCorreo')?.value;
-    return correo && confirmCorreo && correo !== confirmCorreo ? { correosNoCoinciden: true } : null;
+    
+    // Only validate if both fields have values
+    if (!correo || !confirmCorreo) {
+      return null;
+    }
+    
+    return correo !== confirmCorreo ? { correosNoCoinciden: true } : null;
   }
 
   onTelefonoInput(event: Event): void {
@@ -117,10 +134,33 @@ export class RegistroClienteComponent implements OnInit {
         this.titleText = 'Actualizar Cliente';
         this.clienteService.getClienteCompleto(idCliente).subscribe(
           (cliente) => {
+            // Map idRol to rol field for form compatibility
+            if (cliente.idRol) {
+              cliente.rol = cliente.idRol;
+            }
+            
             this.clienteForm.patchValue(cliente);
             this.clienteForm.get('usuario')?.disable();
             this.clienteForm.get('referidoPor')?.disable();
             this.clienteForm.get('confirmCorreo')?.disable();
+            this.clienteForm.get('correo')?.disable();
+            
+            // Remove confirmCorreo validation requirement when editing
+            this.clienteForm.get('confirmCorreo')?.clearValidators();
+            this.clienteForm.get('confirmCorreo')?.updateValueAndValidity();
+            
+            // Check if password meets current requirements and show warning if not
+            const passwordControl = this.clienteForm.get('password');
+            if (passwordControl?.invalid) {
+              // Mark as touched to show validation message immediately
+              passwordControl.markAsTouched();
+              this.passwordTouched = true;
+            }
+            
+            // Track when password field is touched during editing
+            this.clienteForm.get('password')?.valueChanges.subscribe(() => {
+              this.passwordTouched = true;
+            });
           }
         );
       }
@@ -128,6 +168,7 @@ export class RegistroClienteComponent implements OnInit {
 
     this.cargarTiposDocumento();
     this.cargarMediosContacto();
+    this.cargarRoles();
   }
 
   onNombreInput(event: Event): void {
@@ -166,6 +207,13 @@ export class RegistroClienteComponent implements OnInit {
     );
   }
 
+  cargarRoles(): void {
+    this.rolService.getRoles().subscribe(
+      (roles: any[]) => (this.roles = roles),
+      (error: any) => console.error('Error al cargar roles', error)
+    );
+  }
+
   validarCodigoReferido(): void {
     const codigoReferido = this.clienteForm.get('referidoPor')?.value;
     if (codigoReferido) {
@@ -192,17 +240,20 @@ export class RegistroClienteComponent implements OnInit {
       return;
     }
 
+    this.isSubmitting = true;
+
     const formValues = this.clienteForm.value;
     const clienteData = {
       usuario: this.clienteForm.get('usuario')?.value,
       password: formValues.password,
+      idRol: +formValues.rol,
       nombres: formValues.nombres,
       apellidos: formValues.apellidos,
       tipoDocumento: +formValues.tipoDocumento,
       numeroDocumento: formValues.numeroDocumento,
       telefono: formValues.telefono,
       telefono2: formValues.telefono2,
-      correo: formValues.correo,
+      correo: this.clienteForm.get('correo')?.value, // Get value directly from control, even if disabled
       empresaAsociada: formValues.empresaAsociada,
       direccion: formValues.direccion,
       fechaNacimiento: formValues.fechaNacimiento,
@@ -222,6 +273,7 @@ export class RegistroClienteComponent implements OnInit {
     if(!this.isEditing) {
       this.clienteService.createClienteUsuario(clienteData).subscribe(
         (data) => {
+          this.isSubmitting = false;
           if(data && data.idResultado == 1){
             let emailRequest = {
               para: this.clienteForm.get('correo')?.value,
@@ -259,6 +311,7 @@ export class RegistroClienteComponent implements OnInit {
           }
         },
         (error) => {
+          this.isSubmitting = false;
           console.error('Error al registrar cliente', error);
           Swal.fire({
             icon: 'error',
@@ -271,6 +324,7 @@ export class RegistroClienteComponent implements OnInit {
     }else{
       this.clienteService.updateClienteUsuario(clienteData).subscribe(
         (data) => {
+          this.isSubmitting = false;
           if(data && data.idResultado == 1){
             Swal.fire({
               icon: 'success',
@@ -293,6 +347,7 @@ export class RegistroClienteComponent implements OnInit {
           }
         },
         (error) => {
+          this.isSubmitting = false;
           console.error('Error al registrar cliente', error);
           Swal.fire({
             icon: 'error',

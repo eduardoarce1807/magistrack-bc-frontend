@@ -10,6 +10,7 @@ import {
 	NgbTypeaheadModule,
 	NgbPaginationModule,
 	NgbModal,
+	NgbTooltipModule,
 } from '@ng-bootstrap/ng-bootstrap';
 import JsBarcode from 'jsbarcode';
 import Swal from 'sweetalert2';
@@ -31,7 +32,7 @@ interface ClienteSeleccionado {
 @Component({
 	selector: 'app-bandeja-despacho',
 	standalone: true,
-	imports: [FormsModule, NgbTypeaheadModule, NgbPaginationModule],
+	imports: [FormsModule, NgbTypeaheadModule, NgbPaginationModule, NgbTooltipModule],
 	templateUrl: './bandeja-despacho.component.html',
 	styleUrl: './bandeja-despacho.component.scss',
 })

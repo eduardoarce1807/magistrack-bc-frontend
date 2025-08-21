@@ -1,0 +1,211 @@
+<div class="container mt-5">
+  <div class="card shadow-lg p-4 rounded-4 mb-4">
+    <h2 class="mb-4 text-center">Calculadora de Productos</h2>
+
+    <!-- Nombre del Producto -->
+    <div class="row mb-3">
+      <div class="col-md-6">
+        <label for="nombreProducto" class="form-label">Nombre del Producto</label>
+        <input 
+          type="text" 
+          name="nombreProducto" 
+          [(ngModel)]="nombreProducto" 
+          class="form-control" 
+          id="nombreProducto" 
+          placeholder="Ingrese el nombre del producto">
+      </div>
+    </div>
+
+    <!-- Factor Input -->
+    <div class="row mb-3">
+      <div class="col-md-3">
+        <label for="factor" class="form-label">Factor</label>
+        <input 
+          type="number" 
+          name="factor" 
+          [(ngModel)]="factor" 
+          (ngModelChange)="onFactorChange()" 
+          class="form-control" 
+          id="factor" 
+          placeholder="Ingrese factor" 
+          step="0.001" 
+          required>
+      </div>
+    </div>
+
+    <!-- Costo por K Display -->
+    <div class="row mb-4">
+      <div class="col-md-3">
+        <label class="form-label">Costo por K</label>
+        <div class="input-group">
+          <input 
+            type="number" 
+            [value]="costoPorK" 
+            disabled 
+            class="form-control" 
+            placeholder="Costo por K">
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabla de Cálculos -->
+    <div class="table-responsive">
+      <table class="table table-bordered table-hover">
+        <thead class="table-dark">
+          <tr>
+            <th>Presentación</th>
+            <th>MP's</th>
+            <th>Envase</th>
+            <th>Maquila</th>
+            <th>Total Neto</th>
+            <th style="width: 120px;">Ganancia (%)</th>
+            <th>Valor Bruto</th>
+            <th>IGV (%)</th>
+            <th>Costo Final</th>
+            <th>Precio Final</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (fila of filas; track $index) {
+            <tr>
+              <!-- Presentación -->
+              <td>
+                <input 
+                  type="number" 
+                  [(ngModel)]="fila.presentacion" 
+                  (ngModelChange)="onPresentacionChange($index)" 
+                  class="form-control form-control-sm" 
+                  min="0" 
+                  step="1">
+              </td>
+              
+              <!-- MP's -->
+              <td>
+                <input 
+                  type="number" 
+                  [(ngModel)]="fila.mps" 
+                  (ngModelChange)="onMpsChange($index)" 
+                  class="form-control form-control-sm" 
+                  min="0" 
+                  step="0.001">
+              </td>
+              
+              <!-- Envase -->
+              <td>
+                <input 
+                  type="number" 
+                  [(ngModel)]="fila.envase" 
+                  (ngModelChange)="onEnvaseChange($index)" 
+                  class="form-control form-control-sm" 
+                  min="0" 
+                  step="0.01">
+              </td>
+              
+              <!-- Maquila -->
+              <td>
+                <input 
+                  type="number" 
+                  [(ngModel)]="fila.maquila" 
+                  (ngModelChange)="onMaquilaChange($index)" 
+                  class="form-control form-control-sm" 
+                  min="0" 
+                  step="0.01">
+              </td>
+              
+              <!-- Total Neto (Calculado) -->
+              <td>
+                <input 
+                  type="number" 
+                  [value]="fila.totalNeto | number:'1.3-3'" 
+                  disabled 
+                  class="form-control form-control-sm">
+              </td>
+              
+              <!-- Ganancia (%) -->
+              <td>
+                <div class="input-group input-group-sm">
+                  <input 
+                    type="number" 
+                    [(ngModel)]="fila.ganancia" 
+                    (ngModelChange)="onGananciaChange($index)" 
+                    class="form-control" 
+                    placeholder="Ganancia"
+                    min="1"
+                    max="500"
+                    step="1">
+                  <span class="input-group-text">%</span>
+                </div>
+              </td>
+              
+              <!-- Valor Bruto (Calculado) -->
+              <td>
+                <input 
+                  type="number" 
+                  [value]="fila.valorBruto | number:'1.3-3'" 
+                  disabled 
+                  class="form-control form-control-sm">
+              </td>
+              
+              <!-- IGV (%) (Fijo) -->
+              <td>
+                <div class="input-group input-group-sm">
+                  <input 
+                    type="number" 
+                    [value]="fila.igv" 
+                    disabled 
+                    class="form-control">
+                  <span class="input-group-text">%</span>
+                </div>
+              </td>
+              
+              <!-- Costo Final (Calculado) -->
+              <td>
+                <div class="input-group input-group-sm">
+                  <span class="input-group-text">S/</span>
+                  <input 
+                    type="number" 
+                    [value]="fila.costoFinal | number:'1.3-3'" 
+                    disabled 
+                    class="form-control">
+                </div>
+              </td>
+              
+              <!-- Precio Final (Calculado) -->
+              <td>
+                <div class="input-group input-group-sm">
+                  <span class="input-group-text">S/</span>
+                  <input 
+                    type="number" 
+                    [value]="fila.precioFinal" 
+                    disabled 
+                    class="form-control">
+                </div>
+              </td>
+              
+              <!-- Acciones -->
+              <td>
+                <button 
+                  class="btn btn-danger btn-sm" 
+                  (click)="eliminarFila($index)"
+                  [disabled]="filas.length <= 1">
+                  <i class="bi bi-trash3-fill"></i>
+                </button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Botón para agregar fila -->
+    <div class="row mt-3">
+      <div class="col-md-12">
+        <button type="button" class="btn btn-primary" (click)="agregarFila()">
+          <i class="bi bi-plus-circle"></i> Agregar Presentación
+        </button>
+      </div>
+    </div>
+
+  </div>
+</div>

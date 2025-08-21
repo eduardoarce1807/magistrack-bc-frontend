@@ -102,18 +102,16 @@
 						<button
 							class="btn btn-info me-2"
 							(click)="enviarDespachoDirecto(item)"
+							ngbTooltip="Enviar producto directamente a despacho"
+							placement="top"
 						>
 							<i class="bi bi-send"></i>
 						</button>
-						<!-- <button
-							class="btn btn-dark me-2"
-							(click)="getHojaProduccion(item.idProducto)"
-						>
-							<i class="bi bi-journal-text"></i>
-						</button> -->
 						<button
 							class="btn btn-secondary"
 							(click)="openModalNota(item, nota)"
+							ngbTooltip="Agregar observaciones al producto"
+							placement="top"
 						>
 							<i class="bi bi-stickies"></i>
 						</button>
@@ -309,6 +307,8 @@
             type="button"
             class="btn btn-dark"
             (click)="validarProducto()"
+            ngbTooltip="Validar el código de producto ingresado"
+            placement="top"
         >
             Validar
         </button>
@@ -383,6 +383,8 @@
             type="button"
             class="btn btn-danger"
             (click)="openModal(validarProductoModal)"
+            ngbTooltip="Regresar a la validación de código"
+            placement="top"
         >
             Regresar
         </button>
@@ -390,6 +392,8 @@
             type="button"
             class="btn btn-success"
             (click)="enviarDespacho({ idProducto: idProductoValidar, idPedido: idPedidoValidar })"
+            ngbTooltip="Confirmar validación y enviar a despacho"
+            placement="top"
         >
             Validar y Enviar
         </button>
@@ -427,6 +431,8 @@
 			type="button"
 			class="btn btn-outline-dark"
 			(click)="saveObservacion()"
+			ngbTooltip="Guardar observación del producto"
+			placement="top"
 		>
 			Guardar
 		</button>

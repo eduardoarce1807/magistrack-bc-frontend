@@ -7,6 +7,7 @@ import { FormsModule } from '@angular/forms';
 import {
 	NgbTypeaheadModule,
 	NgbPaginationModule,
+	NgbTooltipModule,
 } from '@ng-bootstrap/ng-bootstrap';
 import { PedidoAuditoriaService } from '../../../services/pedido-auditoria.service';
 import { DataService } from '../../../services/data.service';
@@ -17,7 +18,7 @@ import { ToastsContainer } from '../../../shared/components/toasts-container/toa
 @Component({
 	selector: 'app-bandeja-pedidos-administrador',
 	standalone: true,
-	imports: [FormsModule, NgbTypeaheadModule, NgbPaginationModule, CommonModule, ToastsContainer],
+	imports: [FormsModule, NgbTypeaheadModule, NgbPaginationModule, NgbTooltipModule, CommonModule, ToastsContainer],
 	templateUrl: './bandeja-pedidos-administrador.component.html',
 	styleUrl: './bandeja-pedidos-administrador.component.scss',
 })

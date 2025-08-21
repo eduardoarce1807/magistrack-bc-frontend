@@ -1,0 +1,53 @@
+.table {
+  font-size: 0.9rem;
+}
+
+.form-control-sm {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.875rem;
+}
+
+.table th {
+  background-color: #343a40;
+  color: white;
+  text-align: center;
+  vertical-align: middle;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.table td {
+  text-align: center;
+  vertical-align: middle;
+  padding: 0.5rem;
+}
+
+.table input {
+  text-align: center;
+  border: 1px solid #ced4da;
+}
+
+.table input:disabled {
+  background-color: #e9ecef;
+  opacity: 1;
+}
+
+.btn-sm {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.875rem;
+}
+
+.card {
+  border: none;
+  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
+.input-group-sm > .form-control {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.875rem;
+}
+
+.input-group-sm > .input-group-text {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.875rem;
+}

@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import {
 	NgbTypeaheadModule,
 	NgbPaginationModule,
+	NgbTooltipModule,
 } from '@ng-bootstrap/ng-bootstrap';
 import {
 	ModalDismissReasons,
@@ -39,7 +40,7 @@ type ProcedimientoProducto = {
 @Component({
 	selector: 'app-bandeja-produccion',
 	standalone: true,
-	imports: [CommonModule, FormsModule, NgbTypeaheadModule, NgbPaginationModule],
+	imports: [CommonModule, FormsModule, NgbTypeaheadModule, NgbPaginationModule, NgbTooltipModule],
 	templateUrl: './bandeja-produccion.component.html',
 	styleUrl: './bandeja-produccion.component.scss',
 })

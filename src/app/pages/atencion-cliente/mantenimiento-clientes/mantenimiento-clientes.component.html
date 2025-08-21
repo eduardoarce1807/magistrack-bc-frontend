@@ -103,15 +103,30 @@
 						}
 					</td>
 					<td>
-						<button class="btn btn-primary btn-sm me-2" (click)="router.navigate(['/pages/atencion-cliente/registro-cliente', item.idCliente])">
+						<button 
+							class="btn btn-primary btn-sm me-2" 
+							(click)="router.navigate(['/pages/atencion-cliente/registro-cliente', item.idCliente])"
+							ngbTooltip="Editar cliente"
+							placement="top"
+						>
 							<i class="bi bi-pencil-square"></i>
 						</button>
 						@if(item.estado) {
-							<button class="btn btn-danger btn-sm me-2" (click)="desactivarCliente(item)">
+							<button 
+								class="btn btn-danger btn-sm me-2" 
+								(click)="desactivarCliente(item)"
+								ngbTooltip="Desactivar cliente"
+								placement="top"
+							>
 								<i class="bi bi-trash"></i>
 							</button>
 						} @else {
-							<button class="btn btn-success btn-sm me-2" (click)="activarCliente(item)">
+							<button 
+								class="btn btn-success btn-sm me-2" 
+								(click)="activarCliente(item)"
+								ngbTooltip="Activar cliente"
+								placement="top"
+							>
 								<i class="bi bi-person-check-fill"></i>
 							</button>
 						}
