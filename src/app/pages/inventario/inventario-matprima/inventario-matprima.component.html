@@ -20,7 +20,7 @@
 	>
 		<ng-template pTemplate="caption">
 			<div class="flex justify-between items-center">
-				<h4 class="text-danger fw-bold flex items-center"><img src="assets/img/crema.gif" width="50">Control de Materias Primas
+				<h4 class="text-danger fw-bold flex items-center"><img src="assets/img/crema.gif" width="50">Listado de Materias Primas
 					</h4>
 				<div>
 					<p-iconField iconPosition="left">
@@ -217,6 +217,13 @@
 				<p-inputNumber
 					inputId="integeronly"
 					[(ngModel)]="fila_select.umbral_min" />
+				<label class="p-text-secondary fw-bold">Tipo Materia</label>
+				<p-dropdown
+					[options]="listaTipomateria"
+					[(ngModel)]="fila_select.id_tipomateria"
+					optionLabel="tipomateria"
+					optionValue="id_tipomatera"
+					placeholder="Seleccionar Tipo" />
 			</div>
 			<div class="col-md-6 d-flex flex-column">
 

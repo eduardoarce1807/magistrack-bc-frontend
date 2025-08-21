@@ -18,6 +18,7 @@ export class MateriaprimaModel {
 	lote:              string='';
 	peso_bruto:        number=0;
 	peso_neto:         number=0;
+	id_tipomateria:	number=0;
 
 }
 export class UnidadmedModel {
@@ -30,3 +31,7 @@ export class FabricanteModel {
 	fabricante:	  string=''
 }
 
+export class TipomateriaModel {
+	id_tipomateria:		  number=1;
+	tipomateria:	  string=''
+}

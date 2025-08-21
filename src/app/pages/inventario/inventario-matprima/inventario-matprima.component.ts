@@ -12,7 +12,7 @@ import {ToastModule} from "primeng/toast";
 import {iterequerimientoModel, ObsevacionesReqModel, RequeremientossaveModel} from "../../../model/requerimientosModel";
 import {proveedorModel, soloproveedorModel} from "../../../model/proveedoresModel";
 import {MateriaprimaService} from "../../../services/inventario/materiaprima.service";
-import {FabricanteModel, MateriaprimaModel, UnidadmedModel} from "../../../model/inventarioModel";
+import {FabricanteModel, MateriaprimaModel, TipomateriaModel, UnidadmedModel} from "../../../model/inventarioModel";
 import {MenuModule} from "primeng/menu";
 import {InputTextareaModule} from "primeng/inputtextarea";
 import {TagModule} from "primeng/tag";
@@ -83,6 +83,7 @@ export class InventarioMatprimaComponent {
 	visiblecorreo:boolean=false
 	fila_select:MateriaprimaModel = new MateriaprimaModel()
 	listaFabricante:FabricanteModel[]=[]
+	listaTipomateria:TipomateriaModel[]=[]
 	verobservaciones:boolean=false
 	verdardebaja:boolean=false
 	veradicionar:boolean=false
@@ -202,6 +203,7 @@ export class InventarioMatprimaComponent {
 		this.cargartipomovimiento()
 		this.cargarstockmin()
 		this.cargarfabricante()
+		this.cargartipomateria()
 	}
 	cargarunidades(){
 		this.cargamaterias=true
@@ -573,6 +575,16 @@ export class InventarioMatprimaComponent {
 		this.materiaService.getFabricanteMateriaprima().subscribe({
 			next:(data)=>{
 				this.listaFabricante=data.data
+				this.loading=false
+			},error:(err)=>{
+				this.loading=false
+			}
+		})
+	}
+	cargartipomateria(){
+		this.materiaService.getTipoMateriaprima().subscribe({
+			next:(data)=>{
+				this.listaTipomateria=data.data
 				this.loading=false
 			},error:(err)=>{
 				this.loading=false
