@@ -68,16 +68,11 @@ export class SidebarComponent {
 				},
 				{
 					key: '0_7',
-					label: 'Consulta de Ventas',
-					command: () => this.irA('pages/atencion-cliente/consulta-ventas')
-				},
-				{
-					key: '0_8',
 					label: 'Calculadora Maestra',
 					command: () => this.irA('pages/atencion-cliente/calculadora-maestra')
 				},
 				{
-					key: '0_9',
+					key: '0_8',
 					label: 'Calculadora de Productos',
 					command: () => this.irA('pages/atencion-cliente/calculadora-productos')
 				}
@@ -90,6 +85,33 @@ export class SidebarComponent {
 				label: 'Atención al Cliente',
 				icon: 'pi pi-users',
 				items: atencionClienteItems
+			}] : []),
+			...(atencionClienteAccessRoles.includes(user.rol.idRol) ? [{
+				key: '7',
+				label: 'Reportes',
+				icon: 'pi pi-chart-line',
+				items: [
+					{
+						key: '7_0',
+						label: 'Consulta de Ventas',
+						command: () => this.irA('pages/reportes/consulta-ventas')
+					},
+					// {
+					// 	key: '7_1',
+					// 	label: 'Reportes Gráficos',
+					// 	command: () => this.irA('pages/reportes/reportes-graficos')
+					// },
+					{
+						key: '7_2',
+						label: 'Ventas por Producto',
+						command: () => this.irA('pages/reportes/ventas-productos')
+					},
+					{
+						key: '7_3',
+						label: 'Ventas por Cliente',
+						command: () => this.irA('pages/reportes/ventas-clientes')
+					}
+				]
 			}] : []),
 			...(user.rol.idRol === 1 || user.rol.idRol === 5 || user.rol.idRol === 6 || user.rol.idRol === 7 || user.rol.idRol === 8 || user.rol.idRol === 9 ? [
 				{
