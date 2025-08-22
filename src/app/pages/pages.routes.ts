@@ -10,6 +10,11 @@ export const pagesRoutes: Routes = [
 		canActivate: [AuthGuard]
 	},
 	{
+		path: 'reportes',
+		loadChildren: () => import('./reportes/reportes.routes').then(m => m.reportesRoutes),
+		canActivate: [AuthGuard]
+	},
+	{
 		path: 'produccion',
 		loadChildren: () => import('./produccion/produccion.routes').then(m => m.produccionRoutes),
 		canActivate: [AuthGuard]

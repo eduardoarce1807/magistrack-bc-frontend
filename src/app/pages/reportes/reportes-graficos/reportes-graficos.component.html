@@ -1,0 +1,741 @@
+<div class="container-fluid p-4">
+  <div class="row">
+    <div class="col-12">
+      <h2 class="mb-4">
+        <i class="pi pi-chart-bar me-2"></i>
+        Reportes Gráficos
+      </h2>
+    </div>
+  </div>
+
+  <p-tabView>
+    <!-- TAB 1: Ventas por Producto -->
+    <p-tabPanel header="Ventas por Producto" leftIcon="pi pi-shopping-bag">
+      <div id="ventas-producto-section">
+        <!-- Filtros -->
+        <p-card header="Filtros" class="mb-4">
+          <!-- Debug Info (temporal) -->
+          <!-- <div class="alert alert-info mb-3" style="font-size: 12px;">
+            <strong>Debug Info:</strong><br>
+            Canales: {{ canalesVenta.length || 0 }} | 
+            Roles: {{ roles.length || 0 }} | 
+            Tipos Pago: {{ tiposPago.length || 0 }} | 
+            Productos: {{ productos.length || 0 }}
+            <button type="button" class="btn btn-sm btn-secondary ms-2" (click)="recargarDatosDebug()">
+              Recargar
+            </button>
+          </div> -->
+          
+          <div class="row g-3">
+            <div class="col-md-3">
+              <label class="form-label">Rango de Fecha</label>
+              <p-dropdown
+                [options]="rangosFecha"
+                [(ngModel)]="filtrosVentasProducto.rangoFechas"
+                optionLabel="label"
+                optionValue="value"
+                placeholder="Seleccionar rango"
+                (onChange)="onRangoFechaChange(filtrosVentasProducto)"
+                class="w-100"
+                pTooltip="Seleccione un rango de fechas predefinido">
+              </p-dropdown>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">Fecha Inicio</label>
+              <p-calendar
+                [(ngModel)]="filtrosVentasProducto.fechaInicio"
+                dateFormat="dd/mm/yy"
+                [showIcon]="true"
+                class="w-100"
+                pTooltip="Seleccione la fecha de inicio del reporte">
+              </p-calendar>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">Fecha Fin</label>
+              <p-calendar
+                [(ngModel)]="filtrosVentasProducto.fechaFin"
+                dateFormat="dd/mm/yy"
+                [showIcon]="true"
+                class="w-100"
+                pTooltip="Seleccione la fecha de fin del reporte">
+              </p-calendar>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">Canal de Venta</label>
+              <p-multiSelect
+                [options]="canalesVenta"
+                [(ngModel)]="filtrosVentasProducto.canalesSeleccionados"
+                optionLabel="nombre"
+                optionValue="idCanalVenta"
+                placeholder="Todos los canales"
+                class="w-100"
+                pTooltip="Filtre por canales de venta específicos">
+              </p-multiSelect>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">Rol</label>
+              <p-multiSelect
+                [options]="roles"
+                [(ngModel)]="filtrosVentasProducto.rolesSeleccionados"
+                optionLabel="nombre"
+                optionValue="idRol"
+                placeholder="Todos los roles"
+                class="w-100"
+                pTooltip="Filtre por roles específicos">
+              </p-multiSelect>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">Método de Pago</label>
+              <p-multiSelect
+                [options]="tiposPago"
+                [(ngModel)]="filtrosVentasProducto.tiposPagoSeleccionados"
+                optionLabel="nombre"
+                optionValue="idTipoPago"
+                placeholder="Todos los métodos"
+                class="w-100"
+                pTooltip="Filtre por métodos de pago">
+              </p-multiSelect>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">Producto</label>
+              <p-multiSelect
+                [options]="productos"
+                [(ngModel)]="filtrosVentasProducto.productosSeleccionados"
+                optionLabel="displayText"
+                optionValue="idProducto"
+                placeholder="Todos los productos"
+                class="w-100"
+                pTooltip="Filtre por productos específicos">
+              </p-multiSelect>
+            </div>
+            <div class="col-md-3 d-flex align-items-end">
+              <p-button
+                label="Aplicar Filtros"
+                icon="pi pi-filter"
+                class="w-100"
+                (onClick)="aplicarFiltrosVentasProducto()"
+                pTooltip="Generar reporte con los filtros seleccionados">
+              </p-button>
+            </div>
+          </div>
+        </p-card>
+
+        <!-- KPIs -->
+        <div class="row mb-4">
+          <div class="col-md-3">
+            <p-card class="text-center kpi-card">
+              <div class="kpi-value">S/ {{ kpisVentasProducto.totalVendido | number:'1.2-2' }}</div>
+              <div class="kpi-label">Total Vendido</div>
+            </p-card>
+          </div>
+          <div class="col-md-3">
+            <p-card class="text-center kpi-card">
+              <div class="kpi-value">{{ kpisVentasProducto.unidades | number }}</div>
+              <div class="kpi-label">Unidades</div>
+            </p-card>
+          </div>
+          <div class="col-md-3">
+            <p-card class="text-center kpi-card">
+              <div class="kpi-value">S/ {{ kpisVentasProducto.ticketPromedio | number:'1.2-2' }}</div>
+              <div class="kpi-label">Ticket Promedio</div>
+            </p-card>
+          </div>
+          <div class="col-md-3">
+            <p-card class="text-center kpi-card">
+              <div class="kpi-value">{{ kpisVentasProducto.participacionTop5 | number:'1.1-1' }}%</div>
+              <div class="kpi-label">% Participación TOP 5</div>
+            </p-card>
+          </div>
+        </div>
+
+        <!-- Gráficos -->
+        <div class="row mb-4">
+          <div class="col-md-6">
+            <p-card header="Top 10 Productos por Ingresos">
+              <div *ngIf="datosVentasProducto.length === 0" class="text-center p-4">
+                <i class="pi pi-chart-bar" style="font-size: 3rem; color: #ccc;"></i>
+                <p class="text-muted mt-2">No hay datos disponibles</p>
+                <small class="text-muted">Aplique filtros para generar el reporte</small>
+              </div>
+              <canvas *ngIf="datosVentasProducto.length > 0" #ventasProductoBarChart height="300"></canvas>
+            </p-card>
+          </div>
+          <div class="col-md-6">
+            <p-card header="Participación por Producto">
+              <div *ngIf="datosVentasProducto.length === 0" class="text-center p-4">
+                <i class="pi pi-chart-pie" style="font-size: 3rem; color: #ccc;"></i>
+                <p class="text-muted mt-2">No hay datos disponibles</p>
+                <small class="text-muted">Aplique filtros para generar el reporte</small>
+              </div>
+              <canvas *ngIf="datosVentasProducto.length > 0" #ventasProductoPieChart height="300"></canvas>
+            </p-card>
+          </div>
+        </div>
+
+        <!-- Tabla de datos -->
+        <p-card header="Detalle por Producto">
+          <div class="mb-3">
+            <p-button
+              label="Exportar Excel"
+              icon="pi pi-file-excel"
+              class="p-button-success me-2"
+              [disabled]="datosVentasProducto.length === 0"
+              (onClick)="exportarExcelVentasProducto()"
+              pTooltip="Exportar datos a Excel">
+            </p-button>
+            <p-button
+              label="Exportar PDF"
+              icon="pi pi-file-pdf"
+              class="p-button-danger"
+              [disabled]="datosVentasProducto.length === 0"
+              (onClick)="exportarPDFVentasProducto()"
+              pTooltip="Exportar reporte completo a PDF">
+            </p-button>
+          </div>
+          <p-table [value]="datosVentasProducto" [paginator]="true" [rows]="10" [responsive]="true">
+            <ng-template pTemplate="header">
+              <tr>
+                <th>Producto</th>
+                <th>Presentación</th>
+                <th>Unidades</th>
+                <th>Ingresos (S/)</th>
+                <th>% Participación</th>
+              </tr>
+            </ng-template>
+            <ng-template pTemplate="body" let-item>
+              <tr>
+                <td>{{ item.producto }}</td>
+                <td>{{ item.presentacion }}</td>
+                <td>{{ item.unidades | number }}</td>
+                <td>{{ item.ingresos | currency:'PEN':'symbol':'1.2-2' }}</td>
+                <td>{{ item.participacion | number:'1.1-1' }}%</td>
+              </tr>
+            </ng-template>
+            <ng-template pTemplate="emptymessage">
+              <tr>
+                <td colspan="5" class="text-center p-4">
+                  <i class="pi pi-info-circle" style="font-size: 2rem; color: #6c757d;"></i>
+                  <p class="text-muted mt-2 mb-1">No hay datos disponibles</p>
+                  <small class="text-muted">Aplique filtros para generar el reporte</small>
+                </td>
+              </tr>
+            </ng-template>
+          </p-table>
+        </p-card>
+      </div>
+    </p-tabPanel>
+
+    <!-- TAB 2: Ventas por Cliente -->
+    <p-tabPanel header="Ventas por Cliente" leftIcon="pi pi-users">
+      <div id="ventas-cliente-section">
+        <!-- Filtros -->
+        <p-card header="Filtros" class="mb-4">
+          <div class="row g-3">
+            <div class="col-md-3">
+              <label class="form-label">Rango de Fecha</label>
+              <p-dropdown
+                [options]="rangosFecha"
+                [(ngModel)]="filtrosVentasCliente.rangoFechas"
+                optionLabel="label"
+                optionValue="value"
+                placeholder="Seleccionar rango"
+                (onChange)="onRangoFechaChange(filtrosVentasCliente)"
+                class="w-100"
+                pTooltip="Seleccione un rango de fechas predefinido">
+              </p-dropdown>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">Fecha Inicio</label>
+              <p-calendar
+                [(ngModel)]="filtrosVentasCliente.fechaInicio"
+                dateFormat="dd/mm/yy"
+                [showIcon]="true"
+                class="w-100"
+                pTooltip="Seleccione la fecha de inicio del reporte">
+              </p-calendar>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">Fecha Fin</label>
+              <p-calendar
+                [(ngModel)]="filtrosVentasCliente.fechaFin"
+                dateFormat="dd/mm/yy"
+                [showIcon]="true"
+                class="w-100"
+                pTooltip="Seleccione la fecha de fin del reporte">
+              </p-calendar>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">Canal de Venta</label>
+              <p-multiSelect
+                [options]="canalesVenta"
+                [(ngModel)]="filtrosVentasCliente.canalesSeleccionados"
+                optionLabel="nombre"
+                optionValue="idCanalVenta"
+                placeholder="Todos los canales"
+                class="w-100"
+                pTooltip="Filtre por canales de venta específicos">
+              </p-multiSelect>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">Método de Pago</label>
+              <p-multiSelect
+                [options]="tiposPago"
+                [(ngModel)]="filtrosVentasCliente.tiposPagoSeleccionados"
+                optionLabel="nombre"
+                optionValue="idTipoPago"
+                placeholder="Todos los métodos"
+                class="w-100"
+                pTooltip="Filtre por métodos de pago">
+              </p-multiSelect>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">Rol</label>
+              <p-multiSelect
+                [options]="roles"
+                [(ngModel)]="filtrosVentasCliente.rolesSeleccionados"
+                optionLabel="nombre"
+                optionValue="idRol"
+                placeholder="Todos los roles"
+                class="w-100"
+                pTooltip="Filtre por roles específicos">
+              </p-multiSelect>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">Cliente</label>
+              <p-multiSelect
+                [options]="clientes"
+                [(ngModel)]="filtrosVentasCliente.clientesSeleccionados"
+                optionLabel="nombre"
+                optionValue="idCliente"
+                placeholder="Todos los clientes"
+                class="w-100"
+                pTooltip="Filtre por clientes específicos">
+              </p-multiSelect>
+            </div>
+            <div class="col-md-3 d-flex align-items-end">
+              <p-button
+                label="Aplicar Filtros"
+                icon="pi pi-filter"
+                class="w-100"
+                (onClick)="aplicarFiltrosVentasCliente()"
+                pTooltip="Generar reporte con los filtros seleccionados">
+              </p-button>
+            </div>
+          </div>
+        </p-card>
+
+        <!-- KPIs -->
+        <div class="row mb-4">
+          <div class="col-md-3">
+            <p-card class="text-center kpi-card">
+              <div class="kpi-value">S/ {{ kpisVentasCliente.total | number:'1.2-2' }}</div>
+              <div class="kpi-label">Total</div>
+            </p-card>
+          </div>
+          <div class="col-md-3">
+            <p-card class="text-center kpi-card">
+              <div class="kpi-value">{{ kpisVentasCliente.pedidos | number }}</div>
+              <div class="kpi-label"># Pedidos</div>
+            </p-card>
+          </div>
+          <div class="col-md-3">
+            <p-card class="text-center kpi-card">
+              <div class="kpi-value">S/ {{ kpisVentasCliente.ticketPromedio | number:'1.2-2' }}</div>
+              <div class="kpi-label">Ticket Promedio</div>
+            </p-card>
+          </div>
+          <div class="col-md-3">
+            <p-card class="text-center kpi-card">
+              <div class="kpi-value">{{ kpisVentasCliente.recompra | number:'1.1-1' }}%</div>
+              <div class="kpi-label">Recompra</div>
+            </p-card>
+          </div>
+        </div>
+
+        <!-- Gráficos -->
+        <div class="row mb-4">
+          <div class="col-md-6">
+            <p-card header="Top 10 Clientes por Ingresos">
+              <div *ngIf="datosVentasCliente.length === 0" class="text-center p-4">
+                <i class="pi pi-chart-bar" style="font-size: 3rem; color: #ccc;"></i>
+                <p class="text-muted mt-2">No hay datos disponibles</p>
+                <small class="text-muted">Aplique filtros para generar el reporte</small>
+              </div>
+              <canvas #ventasClienteBarChart height="300" [style.display]="datosVentasCliente.length > 0 ? 'block' : 'none'"></canvas>
+            </p-card>
+          </div>
+          <div class="col-md-6">
+            <p-card header="Ingresos por Día - Cliente Seleccionado">
+              <div *ngIf="datosVentasCliente.length === 0" class="text-center p-4">
+                <i class="pi pi-chart-line" style="font-size: 3rem; color: #ccc;"></i>
+                <p class="text-muted mt-2">No hay datos disponibles</p>
+                <small class="text-muted">Aplique filtros para generar el reporte</small>
+              </div>
+              <canvas #ventasClienteLineChart height="300" [style.display]="datosVentasCliente.length > 0 ? 'block' : 'none'"></canvas>
+            </p-card>
+          </div>
+        </div>
+
+        <!-- Tabla de datos -->
+        <p-card header="Detalle por Cliente">
+          <div class="mb-3">
+            <p-button
+              label="Exportar Excel"
+              icon="pi pi-file-excel"
+              class="p-button-success me-2"
+              [disabled]="datosVentasCliente.length === 0"
+              (onClick)="exportarExcelVentasCliente()"
+              pTooltip="Exportar datos a Excel">
+            </p-button>
+            <p-button
+              label="Exportar PDF"
+              icon="pi pi-file-pdf"
+              class="p-button-danger"
+              [disabled]="datosVentasCliente.length === 0"
+              (onClick)="exportarPDFVentasCliente()"
+              pTooltip="Exportar reporte completo a PDF">
+            </p-button>
+          </div>
+          <p-table [value]="datosVentasCliente" [paginator]="true" [rows]="10" [responsive]="true">
+            <ng-template pTemplate="header">
+              <tr>
+                <th>Cliente</th>
+                <th>Documento</th>
+                <th>Tipo</th>
+                <th># Pedidos</th>
+                <th>Unidades</th>
+                <th>Ingresos (S/)</th>
+                <th>Última Compra</th>
+              </tr>
+            </ng-template>
+            <ng-template pTemplate="body" let-item>
+              <tr>
+                <td>{{ item.cliente }}</td>
+                <td>{{ item.documento }}</td>
+                <td>{{ item.tipo }}</td>
+                <td>{{ item.pedidos | number }}</td>
+                <td>{{ item.unidades | number }}</td>
+                <td>{{ item.ingresos | currency:'PEN':'symbol':'1.2-2' }}</td>
+                <td>{{ item.ultimaCompra | date:'dd/MM/yyyy' }}</td>
+              </tr>
+            </ng-template>
+            <ng-template pTemplate="emptymessage">
+              <tr>
+                <td colspan="7" class="text-center p-4">
+                  <i class="pi pi-info-circle" style="font-size: 2rem; color: #ccc;"></i>
+                  <p class="text-muted mt-2 mb-1">No hay datos disponibles</p>
+                  <small class="text-muted">Aplique filtros para generar el reporte</small>
+                </td>
+              </tr>
+            </ng-template>
+          </p-table>
+        </p-card>
+      </div>
+    </p-tabPanel>
+
+    <!-- TAB 3: Ventas por Canal -->
+    <p-tabPanel header="Ventas por Canal" leftIcon="pi pi-share-alt">
+      <div id="ventas-canal-section">
+        <!-- Filtros -->
+        <p-card header="Filtros" class="mb-4">
+          <div class="row g-3">
+            <div class="col-md-3">
+              <label class="form-label">Rango de Fecha</label>
+              <p-dropdown
+                [options]="rangosFecha"
+                [(ngModel)]="filtrosVentasCanal.rangoFechas"
+                optionLabel="label"
+                optionValue="value"
+                placeholder="Seleccionar rango"
+                (onChange)="onRangoFechaChange(filtrosVentasCanal)"
+                class="w-100"
+                pTooltip="Seleccione un rango de fechas predefinido">
+              </p-dropdown>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">Fecha Inicio</label>
+              <p-calendar
+                [(ngModel)]="filtrosVentasCanal.fechaInicio"
+                dateFormat="dd/mm/yy"
+                [showIcon]="true"
+                class="w-100"
+                pTooltip="Seleccione la fecha de inicio del reporte">
+              </p-calendar>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">Fecha Fin</label>
+              <p-calendar
+                [(ngModel)]="filtrosVentasCanal.fechaFin"
+                dateFormat="dd/mm/yy"
+                [showIcon]="true"
+                class="w-100"
+                pTooltip="Seleccione la fecha de fin del reporte">
+              </p-calendar>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">Método de Pago</label>
+              <p-multiSelect
+                [options]="tiposPago"
+                [(ngModel)]="filtrosVentasCanal.tiposPagoSeleccionados"
+                optionLabel="nombre"
+                optionValue="idTipoPago"
+                placeholder="Todos los métodos"
+                class="w-100"
+                pTooltip="Filtre por métodos de pago">
+              </p-multiSelect>
+            </div>
+            <div class="col-md-3 d-flex align-items-end">
+              <p-button
+                label="Aplicar Filtros"
+                icon="pi pi-filter"
+                class="w-100"
+                (onClick)="aplicarFiltrosVentasCanal()"
+                pTooltip="Generar reporte con los filtros seleccionados">
+              </p-button>
+            </div>
+          </div>
+        </p-card>
+
+        <!-- KPIs -->
+        <div class="row mb-4">
+          <div class="col-md-3">
+            <p-card class="text-center kpi-card">
+              <div class="kpi-value">S/ {{ kpisVentasCanal.total | number:'1.2-2' }}</div>
+              <div class="kpi-label">Total</div>
+            </p-card>
+          </div>
+          <div class="col-md-3">
+            <p-card class="text-center kpi-card">
+              <div class="kpi-value">{{ kpisVentasCanal.pedidos | number }}</div>
+              <div class="kpi-label"># Pedidos</div>
+            </p-card>
+          </div>
+          <div class="col-md-6">
+            <p-card class="text-center kpi-card">
+              <div class="kpi-label">% por Canal</div>
+              <div class="d-flex justify-content-around">
+                <div *ngFor="let canal of datosVentasCanal" class="text-center">
+                  <div class="kpi-value-small">{{ canal.participacion | number:'1.1-1' }}%</div>
+                  <div class="kpi-label-small">{{ canal.canal }}</div>
+                </div>
+              </div>
+            </p-card>
+          </div>
+        </div>
+
+        <!-- Gráficos -->
+        <div class="row mb-4">
+          <div class="col-md-6">
+            <p-card header="Ingresos por Canal">
+              <canvas #ventasCanalStackedChart height="300"></canvas>
+            </p-card>
+          </div>
+          <div class="col-md-6">
+            <p-card header="Participación por Canal">
+              <canvas #ventasCanalPieChart height="300"></canvas>
+            </p-card>
+          </div>
+        </div>
+
+        <!-- Tabla de datos -->
+        <p-card header="Detalle por Canal">
+          <div class="mb-3">
+            <p-button
+              label="Exportar Excel"
+              icon="pi pi-file-excel"
+              class="p-button-success me-2"
+              [disabled]="datosVentasCanal.length === 0"
+              (onClick)="exportarExcelVentasCanal()"
+              pTooltip="Exportar datos a Excel">
+            </p-button>
+            <p-button
+              label="Exportar PDF"
+              icon="pi pi-file-pdf"
+              class="p-button-danger"
+              [disabled]="datosVentasCanal.length === 0"
+              (onClick)="exportarPDFVentasCanal()"
+              pTooltip="Exportar reporte completo a PDF">
+            </p-button>
+          </div>
+          <p-table [value]="datosVentasCanal" [paginator]="true" [rows]="10" [responsive]="true">
+            <ng-template pTemplate="header">
+              <tr>
+                <th>Canal</th>
+                <th># Pedidos</th>
+                <th>Ingresos (S/)</th>
+                <th>% Participación</th>
+                <th>Ticket Promedio</th>
+              </tr>
+            </ng-template>
+            <ng-template pTemplate="body" let-item>
+              <tr>
+                <td>{{ item.canal }}</td>
+                <td>{{ item.pedidos | number }}</td>
+                <td>{{ item.ingresos | currency:'PEN':'symbol':'1.2-2' }}</td>
+                <td>{{ item.participacion | number:'1.1-1' }}%</td>
+                <td>{{ item.ticketPromedio | currency:'PEN':'symbol':'1.2-2' }}</td>
+              </tr>
+            </ng-template>
+          </p-table>
+        </p-card>
+      </div>
+    </p-tabPanel>
+
+    <!-- TAB 4: Top N -->
+    <p-tabPanel header="Top N Productos/Clientes" leftIcon="pi pi-star">
+      <div id="top-n-section">
+        <!-- Filtros -->
+        <p-card header="Filtros" class="mb-4">
+          <div class="row g-3">
+            <div class="col-md-2">
+              <label class="form-label">Rango de Fecha</label>
+              <p-dropdown
+                [options]="rangosFecha"
+                [(ngModel)]="filtrosTopN.rangoFechas"
+                optionLabel="label"
+                optionValue="value"
+                placeholder="Seleccionar rango"
+                (onChange)="onRangoFechaChange(filtrosTopN)"
+                class="w-100"
+                pTooltip="Seleccione un rango de fechas predefinido">
+              </p-dropdown>
+            </div>
+            <div class="col-md-2">
+              <label class="form-label">Fecha Inicio</label>
+              <p-calendar
+                [(ngModel)]="filtrosTopN.fechaInicio"
+                dateFormat="dd/mm/yy"
+                [showIcon]="true"
+                class="w-100"
+                pTooltip="Seleccione la fecha de inicio del reporte">
+              </p-calendar>
+            </div>
+            <div class="col-md-2">
+              <label class="form-label">Fecha Fin</label>
+              <p-calendar
+                [(ngModel)]="filtrosTopN.fechaFin"
+                dateFormat="dd/mm/yy"
+                [showIcon]="true"
+                class="w-100"
+                pTooltip="Seleccione la fecha de fin del reporte">
+              </p-calendar>
+            </div>
+            <div class="col-md-2">
+              <label class="form-label">Canal de Venta</label>
+              <p-multiSelect
+                [options]="canalesVenta"
+                [(ngModel)]="filtrosTopN.canalesSeleccionados"
+                optionLabel="nombre"
+                optionValue="idCanalVenta"
+                placeholder="Todos los canales"
+                class="w-100"
+                pTooltip="Filtre por canales de venta específicos">
+              </p-multiSelect>
+            </div>
+            <div class="col-md-2">
+              <label class="form-label">Método de Pago</label>
+              <p-multiSelect
+                [options]="tiposPago"
+                [(ngModel)]="filtrosTopN.tiposPagoSeleccionados"
+                optionLabel="nombre"
+                optionValue="idTipoPago"
+                placeholder="Todos los métodos"
+                class="w-100"
+                pTooltip="Filtre por métodos de pago">
+              </p-multiSelect>
+            </div>
+            <div class="col-md-2">
+              <label class="form-label">Top N</label>
+              <p-dropdown
+                [options]="opcionesTopN"
+                [(ngModel)]="filtrosTopN.topN"
+                optionLabel="label"
+                optionValue="value"
+                class="w-100"
+                pTooltip="Seleccione la cantidad de registros del top">
+              </p-dropdown>
+            </div>
+            <div class="col-md-2">
+              <label class="form-label">Dimensión</label>
+              <p-dropdown
+                [options]="dimensionesTopN"
+                [(ngModel)]="filtrosTopN.dimension"
+                optionLabel="label"
+                optionValue="value"
+                class="w-100"
+                pTooltip="Seleccione si desea ver productos o clientes">
+              </p-dropdown>
+            </div>
+            <div class="col-md-12 d-flex justify-content-center">
+              <p-button
+                label="Aplicar Filtros"
+                icon="pi pi-filter"
+                (onClick)="aplicarFiltrosTopN()"
+                pTooltip="Generar reporte con los filtros seleccionados">
+              </p-button>
+            </div>
+          </div>
+        </p-card>
+
+        <!-- KPIs -->
+        <div class="row mb-4">
+          <div class="col-md-12">
+            <p-card class="text-center kpi-card">
+              <div class="kpi-value">{{ kpisTopN.porcentajeAcumulado | number:'1.1-1' }}%</div>
+              <div class="kpi-label">% del Total Acumulado por el Top {{ filtrosTopN.topN }}</div>
+            </p-card>
+          </div>
+        </div>
+
+        <!-- Gráfico -->
+        <div class="row mb-4">
+          <div class="col-md-12">
+            <p-card [header]="'Top ' + filtrosTopN.topN + ' ' + filtrosTopN.dimension">
+              <canvas #topNChart height="300"></canvas>
+            </p-card>
+          </div>
+        </div>
+
+        <!-- Tabla de datos -->
+        <p-card [header]="'Top ' + filtrosTopN.topN + ' ' + filtrosTopN.dimension">
+          <div class="mb-3">
+            <p-button
+              label="Exportar Excel"
+              icon="pi pi-file-excel"
+              class="p-button-success me-2"
+              [disabled]="datosTopN.length === 0"
+              (onClick)="exportarExcelTopN()"
+              pTooltip="Exportar datos a Excel">
+            </p-button>
+            <p-button
+              label="Exportar PDF"
+              icon="pi pi-file-pdf"
+              class="p-button-danger"
+              [disabled]="datosTopN.length === 0"
+              (onClick)="exportarPDFTopN()"
+              pTooltip="Exportar reporte completo a PDF">
+            </p-button>
+          </div>
+          <p-table [value]="datosTopN.slice(0, filtrosTopN.topN)" [responsive]="true">
+            <ng-template pTemplate="header">
+              <tr>
+                <th>#</th>
+                <th>Nombre</th>
+                <th>Ingresos (S/)</th>
+                <th>% Participación</th>
+              </tr>
+            </ng-template>
+            <ng-template pTemplate="body" let-item let-i="index">
+              <tr>
+                <td>{{ i + 1 }}</td>
+                <td>{{ item.nombre }}</td>
+                <td>{{ item.ingresos | currency:'PEN':'symbol':'1.2-2' }}</td>
+                <td>{{ item.participacion | number:'1.1-1' }}%</td>
+              </tr>
+            </ng-template>
+          </p-table>
+        </p-card>
+      </div>
+    </p-tabPanel>
+  </p-tabView>
+</div>

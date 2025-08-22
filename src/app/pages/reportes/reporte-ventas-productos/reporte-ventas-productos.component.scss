@@ -1,0 +1,273 @@
+/* Estilos para Reporte de Ventas por Producto */
+.container-fluid {
+  background-color: #f8f9fa;
+  min-height: 100vh;
+}
+
+h2 {
+  color: #2c3e50;
+  font-weight: 600;
+  
+  .pi {
+    color: #667eea;
+  }
+}
+
+/* Cards */
+::ng-deep .p-card {
+  border: none;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+  border-radius: 10px;
+  margin-bottom: 1.5rem;
+  
+  .p-card-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    font-weight: 600;
+    border-radius: 10px 10px 0 0;
+    padding: 1rem 1.5rem;
+  }
+  
+  .p-card-body {
+    padding: 1.5rem;
+  }
+}
+
+/* KPI Cards */
+.kpi-card {
+  background: white !important;
+  color: #2c3e50 !important;
+  border: none !important;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1) !important;
+  transition: transform 0.3s ease;
+
+  &:hover {
+    transform: translateY(-5px);
+  }
+
+  ::ng-deep .p-card-body {
+    padding: 1.5rem;
+    background: white !important;
+  }
+}
+
+.kpi-value {
+  font-size: 2rem !important;
+  font-weight: 700 !important;
+  margin-bottom: 0.5rem !important;
+  color: #2c3e50 !important;
+}
+
+.kpi-label {
+  font-size: 0.9rem !important;
+  opacity: 0.8 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+  color: #6c757d !important;
+}
+
+/* Ensure KPI styling overrides any global styles */
+.row .col-md-3 .kpi-card {
+  ::ng-deep .p-card {
+    background: white !important;
+    
+    .p-card-body {
+      background: white !important;
+      
+      .kpi-value {
+        color: #2c3e50 !important;
+      }
+      
+      .kpi-label {
+        color: #6c757d !important;
+      }
+    }
+  }
+}
+
+/* Form Controls */
+.form-label {
+  font-weight: 500;
+  color: #495057;
+  margin-bottom: 0.5rem;
+}
+
+::ng-deep .p-dropdown,
+::ng-deep .p-multiselect,
+::ng-deep .p-calendar {
+  .p-component {
+    border-radius: 6px;
+    border: 2px solid #e9ecef;
+    transition: all 0.3s ease;
+    
+    &:hover {
+      border-color: #667eea;
+    }
+    
+    &:focus,
+    &.p-focus {
+      border-color: #667eea;
+      box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+    }
+  }
+}
+
+/* Buttons */
+::ng-deep .p-button {
+  border-radius: 6px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  
+  &:hover {
+    transform: translateY(-2px);
+  }
+  
+  &.p-button-success {
+    background: linear-gradient(135deg, #56ab2f 0%, #a8e6cf 100%);
+    border: none;
+  }
+  
+  &.p-button-danger {
+    background: linear-gradient(135deg, #ff416c 0%, #ff4b2b 100%);
+    border: none;
+  }
+}
+
+/* Table */
+::ng-deep .p-table {
+  .p-datatable-thead > tr > th {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    padding: 0.75rem;
+  }
+  
+  .p-datatable-tbody > tr {
+    transition: all 0.3s ease;
+    
+    &:hover {
+      background-color: #f8f9fa;
+    }
+    
+    > td {
+      border: 1px solid #e9ecef;
+      padding: 0.75rem;
+    }
+  }
+}
+
+/* Chart containers */
+.chart-container {
+  position: relative;
+  height: 150px;
+  width: 100%;
+  
+  canvas {
+    max-height: 150px !important;
+    max-width: 100%;
+    border-radius: 8px;
+  }
+}
+
+/* Specific styling for pie chart - optimal size */
+#ventasProductoPieChart,
+canvas[ng-reflect-name="ventasProductoPieChart"] {
+  max-height: 280px !important;
+  max-width: 100% !important;
+  margin: 0 auto;
+  display: block;
+}
+
+/* Container for pie chart card */
+.col-md-6:nth-child(2) .chart-container {
+  height: 300px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Empty state styling */
+.text-center.p-4 {
+  padding: 2rem !important;
+  
+  .pi {
+    color: #ccc;
+    margin-bottom: 1rem;
+  }
+  
+  .text-muted {
+    color: #6c757d !important;
+    
+    &.mt-2 {
+      margin-top: 0.5rem !important;
+    }
+  }
+  
+  small.text-muted {
+    font-size: 0.875rem;
+    color: #6c757d !important;
+  }
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .chart-container {
+    height: 120px;
+  }
+  
+  /* Pie chart medium size on mobile */
+  .col-md-6:nth-child(2) .chart-container {
+    height: 200px;
+  }
+  
+  #ventasProductoPieChart,
+  canvas[ng-reflect-name="ventasProductoPieChart"] {
+    max-height: 180px !important;
+    max-width: 95% !important;
+  }
+  
+  .kpi-value {
+    font-size: 1.5rem !important;
+  }
+  
+  .kpi-label {
+    font-size: 0.8rem !important;
+  }
+  
+  .col-md-3 {
+    margin-bottom: 1rem;
+  }
+  
+  .mb-3 .p-button {
+    margin-bottom: 0.5rem;
+    width: 100%;
+  }
+}
+
+/* Utility classes for spacing */
+.mb-4 {
+  margin-bottom: 1.5rem !important;
+}
+
+.me-2 {
+  margin-right: 0.5rem !important;
+}
+
+.w-100 {
+  width: 100% !important;
+}
+
+.text-center {
+  text-align: center !important;
+}
+
+.d-flex {
+  display: flex !important;
+}
+
+.align-items-end {
+  align-items: flex-end !important;
+}
