@@ -110,6 +110,11 @@ export class SidebarComponent {
 						key: '7_3',
 						label: 'Ventas por Cliente',
 						command: () => this.irA('pages/reportes/ventas-clientes')
+					},
+					{
+						key: '7_4',
+						label: 'Ventas por Tipo Cliente',
+						command: () => this.irA('pages/reportes/ventas-roles')
 					}
 				]
 			}] : []),

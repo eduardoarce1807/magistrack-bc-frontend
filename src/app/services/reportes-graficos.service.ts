@@ -31,6 +31,11 @@ export class ReportesGraficosService {
   getTopN(filtros: FiltrosTopN): Observable<any> {
     return this.http.post(`${this.baseUrl}/top-n`, filtros);
   }
+
+  // Método para obtener datos de ventas por rol
+  getVentasPorRol(filtros: FiltrosVentasRol): Observable<any> {
+    return this.http.post(`${this.baseUrl}/ventas-rol`, filtros);
+  }
 }
 
 // Interfaces actualizadas para tipado de datos
@@ -65,4 +70,13 @@ export interface FiltrosTopN {
   tiposPagoSeleccionados: number[];
   topN: number;
   dimension: string;
+}
+
+export interface FiltrosVentasRol {
+  fechaInicio: string;
+  fechaFin: string;
+  canalesSeleccionados: number[];
+  tiposPagoSeleccionados: number[];
+  rolesSeleccionados: number[];
+  clientesSeleccionados: number[];
 }
