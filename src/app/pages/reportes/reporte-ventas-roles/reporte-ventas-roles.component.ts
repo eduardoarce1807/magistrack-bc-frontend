@@ -563,7 +563,7 @@ export class ReporteVentasRolesComponent implements OnInit, AfterViewInit, OnDes
 
     // Usando el método disponible del ExcelService
     const cabecera = ['Tipo Cliente', '# Pedidos', 'Unidades', 'Ingresos (S/)', '% Participación', 'Clientes Únicos'];
-    const campos = ['Rol', '# Pedidos', 'Unidades', 'Ingresos (S/)', '% Participación', 'Clientes Únicos'];
+    const campos = ['Tipo Cliente', '# Pedidos', 'Unidades', 'Ingresos (S/)', '% Participación', 'Clientes Únicos'];
     const ancho = [25, 15, 15, 20, 20, 20];
 
     // Subcabecera con información de filtros
