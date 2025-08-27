@@ -1,0 +1,168 @@
+<div class="container-fluid p-4">
+  <div class="row">
+    <div class="col-12">
+      <h2 class="mb-4">
+        <i class="pi pi-cog me-2"></i>
+        Pedidos en Producción por Etapa
+      </h2>
+    </div>
+  </div>
+
+  <!-- Filtros -->
+  <p-card header="Filtros" class="mb-4">
+    <div class="row g-3">
+      <div class="col-md-3">
+        <label class="form-label">Rango de Fecha</label>
+        <p-dropdown
+          [options]="rangosFecha"
+          [(ngModel)]="rangoFechas"
+          optionLabel="label"
+          optionValue="value"
+          placeholder="Seleccionar rango"
+          (onChange)="onRangoFechaChange()"
+          class="w-100"
+          pTooltip="Seleccione un rango de fechas predefinido">
+        </p-dropdown>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">Fecha Inicio</label>
+        <p-calendar
+          [(ngModel)]="fechaInicio"
+          dateFormat="dd/mm/yy"
+          [showIcon]="true"
+          class="w-100"
+          pTooltip="Seleccione la fecha de inicio del reporte">
+        </p-calendar>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">Fecha Fin</label>
+        <p-calendar
+          [(ngModel)]="fechaFin"
+          dateFormat="dd/mm/yy"
+          [showIcon]="true"
+          class="w-100"
+          pTooltip="Seleccione la fecha de fin del reporte">
+        </p-calendar>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">Estados de Pedido</label>
+        <p-multiSelect
+          [options]="estadosProduccion"
+          [(ngModel)]="filtrosPedidosProduccion.idEstadoPedido"
+          optionLabel="descripcion"
+          optionValue="idEstadoPedido"
+          placeholder="Todos los estados"
+          class="w-100"
+          pTooltip="Filtre por estados específicos">
+        </p-multiSelect>
+      </div>
+      <div class="col-md-3 d-flex align-items-end">
+        <p-button
+          label="Aplicar Filtros"
+          icon="pi pi-filter"
+          class="w-100"
+          (onClick)="aplicarFiltros()"
+          pTooltip="Generar reporte con los filtros seleccionados">
+        </p-button>
+      </div>
+    </div>
+  </p-card>
+
+  <!-- KPIs -->
+  <div class="row mb-4">
+    <div class="col-md-3">
+      <p-card class="text-center kpi-card">
+        <div class="kpi-value">{{ kpisPedidosProduccion.enCola }}</div>
+        <div class="kpi-label">En Cola</div>
+      </p-card>
+    </div>
+    <div class="col-md-3">
+      <p-card class="text-center kpi-card">
+        <div class="kpi-value">{{ kpisPedidosProduccion.enProceso }}</div>
+        <div class="kpi-label">En Proceso</div>
+      </p-card>
+    </div>
+    <div class="col-md-3">
+      <p-card class="text-center kpi-card">
+        <div class="kpi-value">{{ formatearTiempoMedio(kpisPedidosProduccion.tiempoMedioEtapa) }} h</div>
+        <div class="kpi-label">Tiempo Medio en Etapa</div>
+      </p-card>
+    </div>
+    <div class="col-md-3">
+      <p-card class="text-center kpi-card">
+        <div class="kpi-value">{{ datosPedidosProduccion.length }}</div>
+        <div class="kpi-label">Total Pedidos</div>
+      </p-card>
+    </div>
+  </div>
+
+  <!-- Tabla de datos -->
+  <p-card header="Detalle de Pedidos en Producción">
+    <div class="mb-3">
+      <p-button
+        label="Exportar Excel"
+        icon="pi pi-file-excel"
+        class="p-button-success me-2"
+        [disabled]="datosPedidosProduccion.length === 0"
+        (onClick)="exportarExcel()"
+        pTooltip="Exportar datos a Excel">
+      </p-button>
+      <p-button
+        label="Exportar PDF"
+        icon="pi pi-file-pdf"
+        class="p-button-danger"
+        [disabled]="datosPedidosProduccion.length === 0"
+        (onClick)="exportarPDF()"
+        pTooltip="Exportar reporte completo a PDF">
+      </p-button>
+    </div>
+    <p-table 
+      #dt
+      [value]="datosPedidosProduccion" 
+      [paginator]="true" 
+      [rows]="10"
+      [responsive]="true"
+      [scrollable]="true"
+      scrollHeight="400px">
+      <ng-template pTemplate="header">
+        <tr>
+          <th style="width: 120px">Bulk</th>
+          <th style="width: 120px">Pedido</th>
+          <th style="width: 120px">Etapa Actual</th>
+          <th style="width: 150px">Inicio Etapa</th>
+          <th style="width: 120px">Tiempo Transcurrido (h)</th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-item>
+        <tr>
+          <td>
+            <strong>{{ item.bulk }}</strong>
+          </td>
+          <td>
+            <strong>{{ item.numeroPedido }}</strong>
+          </td>
+          <td>
+            <span [class]="getEstadoEtapa(item.etapaActual)">
+              {{ item.etapaActual }}
+            </span>
+          </td>
+          <td>{{ item.inicioEtapa | date:'dd/MM/yyyy HH:mm' }}</td>
+          <td class="text-center">
+            <span class="fw-bold">
+              {{ formatearTiempoTranscurrido(item.tiempoTranscurrido) }}
+            </span>
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="5" class="text-center p-4">
+            <i class="pi pi-info-circle" style="font-size: 2rem; color: #ccc;"></i>
+            <p class="text-muted mt-2 mb-1">No hay datos disponibles</p>
+            <small class="text-muted">Aplique filtros para generar el reporte</small>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </p-card>
+</div>

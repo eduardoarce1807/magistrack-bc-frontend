@@ -110,7 +110,7 @@
     <div class="col-md-3">
       <p-card class="text-center kpi-card">
         <div class="kpi-value">{{ kpisTopN.porcentajeAcumulado | number:'1.1-1' }}%</div>
-        <div class="kpi-label">Participación Acumulada</div>
+        <div class="kpi-label">{{ filtrosTopN.dimension === 'clientes' ? 'Participación Acumulada' : 'Rotación Acumulada' }}</div>
       </p-card>
     </div>
     <div class="col-md-3">

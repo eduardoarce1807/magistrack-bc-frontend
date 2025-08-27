@@ -125,7 +125,17 @@ export class SidebarComponent {
 						key: '7_6',
 						label: 'Top N',
 						command: () => this.irA('pages/reportes/top-n')
-					}
+					},
+					{
+						key: '7_7',
+						label: 'Pedidos en Producción',
+						command: () => this.irA('pages/reportes/pedidos-produccion')
+					},
+					// {
+					// 	key: '7_8',
+					// 	label: 'Cumplimiento FEE',
+					// 	command: () => this.irA('pages/reportes/cumplimiento-fee')
+					// }
 				]
 			}] : []),
 			...(user.rol.idRol === 1 || user.rol.idRol === 5 || user.rol.idRol === 6 || user.rol.idRol === 7 || user.rol.idRol === 8 || user.rol.idRol === 9 ? [
