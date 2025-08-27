@@ -449,4 +449,84 @@ export class ExcelService {
 			xhr.send();
 		});
 	}
+
+	/**
+	 * Método simplificado para exportar datos a Excel
+	 * @param data Array de objetos con los datos a exportar
+	 * @param filename Nombre del archivo (sin extensión)
+	 */
+	exportAsExcelFile(data: any[], filename: string): void {
+		if (!data || data.length === 0) {
+			console.warn('No hay datos para exportar');
+			return;
+		}
+
+		// Crear workbook y worksheet
+		const workbook = new Workbook();
+		const worksheet = workbook.addWorksheet('Datos');
+
+		// Obtener las claves del primer objeto como headers
+		const headers = Object.keys(data[0]);
+		
+		// Añadir headers
+		worksheet.addRow(headers);
+
+		// Aplicar estilo a los headers
+		const headerRow = worksheet.getRow(1);
+		headerRow.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+		headerRow.fill = {
+			type: 'pattern',
+			pattern: 'solid',
+			fgColor: { argb: '366092' }
+		};
+
+		// Añadir datos
+		data.forEach(item => {
+			const row = headers.map(header => item[header]);
+			worksheet.addRow(row);
+		});
+
+		// Ajustar ancho de columnas automáticamente
+		headers.forEach((header, index) => {
+			const column = worksheet.getColumn(index + 1);
+			let maxLength = header.length;
+			
+			data.forEach(row => {
+				const cellValue = row[header];
+				if (cellValue && cellValue.toString().length > maxLength) {
+					maxLength = cellValue.toString().length;
+				}
+			});
+			
+			column.width = Math.min(50, Math.max(12, maxLength + 2));
+		});
+
+		// Aplicar bordes a todas las celdas con datos
+		const totalRows = data.length + 1; // +1 para incluir headers
+		for (let row = 1; row <= totalRows; row++) {
+			for (let col = 1; col <= headers.length; col++) {
+				const cell = worksheet.getCell(row, col);
+				cell.border = {
+					top: { style: 'thin' },
+					left: { style: 'thin' },
+					bottom: { style: 'thin' },
+					right: { style: 'thin' }
+				};
+			}
+		}
+
+		// Generar y descargar el archivo
+		workbook.xlsx.writeBuffer().then((buffer) => {
+			const blob = new Blob([buffer], { 
+				type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
+			});
+			
+			const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
+			const finalFilename = `${filename}_${timestamp}.xlsx`;
+			
+			fs.saveAs(blob, finalFilename);
+		}).catch(error => {
+			console.error('Error al generar el archivo Excel:', error);
+		});
+	}
 }
