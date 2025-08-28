@@ -541,47 +541,63 @@ export class BandejaCalidadComponent implements OnInit {
 			cancelButtonText: 'Cancelar',
 		}).then((result) => {
 			if (result.isConfirmed) {
-				this.productoService
-					.updateEstadoProductoPedidoMasivoMaestro({
-						idProductoMaestroList: this.lstProductosSeleccionados.map(
-							(item) => item.idProductoMaestro
-						),
-						idEstadoProductoActual: 4, // En calidad
-						idEstadoProductoNuevo: 3, // En producción
-						idEstadoPedidoNuevo: 4, // En producción
-						idEstadoPedidoClienteNuevo: 3, // En producción
-						idCliente:
-							this.dataService.getLoggedUser().cliente.idCliente,
-						accionRealizada: 'Productos regresados a producción',
-						observacion: '',
-					})
-					.subscribe(
-						(response) => {
-							Swal.fire({
-								icon: 'success',
-								title: '¡Listo!',
-								text: 'Productos retornados a producción correctamente.',
-								showConfirmButton: true,
-							}).then(() => {
-								this.idBulkBusqueda = ''; // Limpiar el input de búsqueda
-								this.lstProductosSeleccionados = []; // Limpiar selecciones
-								this.productosTable = []; // Limpiar tabla
-								this.refreshProductos(); // Actualizar vista
-							});
-						},
-						(error) => {
-							console.error(
-								'Error al retornar productos a producción',
-								error
-							);
-							Swal.fire({
-								icon: 'error',
-								title: 'Oops!',
-								text: 'No se pudo retornar los productos a producción, inténtelo de nuevo.',
-								showConfirmButton: true,
-							});
+				this.procesarProductosIndividualesRegresarProduccion();
+			}
+		});
+	}
+
+	procesarProductosIndividualesRegresarProduccion() {
+		const productosSeleccionados = this.lstProductosSeleccionados.map(item => {
+			return this.productosTable.find(p => p.idProductoMaestro === item.idProductoMaestro);
+		}).filter(producto => producto !== undefined);
+
+		let procesadosExitosos = 0;
+		let errores = 0;
+		const totalProductos = productosSeleccionados.length;
+
+		// Procesar cada producto individualmente
+		productosSeleccionados.forEach((item, index) => {
+			if (item.idBulk) {
+				const bulkData = {
+					idBulk: item.idBulk,
+					idProductoMaestro: item.idProductoMaestro,
+					idEstadoProductoActual: 4, // En calidad
+					idEstadoProductoNuevo: 3, // En producción
+					idEstadoPedido: 4, // En producción
+					idEstadoPedidoCliente: 3, // En producción
+					idCliente: this.dataService.getLoggedUser().cliente.idCliente,
+					accionRealizada: 'Producto regresado a producción',
+					observacion: ''
+				};
+
+				this.productoService.updateEstadoProductoBulk(bulkData).subscribe(
+					(bulkResponse) => {
+						console.log(`Estado bulk actualizado correctamente para ${item.nombreProducto}:`, bulkResponse);
+						procesadosExitosos++;
+						
+						// Verificar si todos los productos han sido procesados
+						if (procesadosExitosos + errores === totalProductos) {
+							this.mostrarResultadoMasivo(procesadosExitosos, errores, totalProductos, 'regresados a producción');
 						}
-					);
+					},
+					(bulkError) => {
+						console.error(`Error al regresar producto ${item.nombreProducto} a producción:`, bulkError);
+						errores++;
+						
+						// Verificar si todos los productos han sido procesados
+						if (procesadosExitosos + errores === totalProductos) {
+							this.mostrarResultadoMasivo(procesadosExitosos, errores, totalProductos, 'regresados a producción');
+						}
+					}
+				);
+			} else {
+				console.error(`Producto ${item.nombreProducto} no tiene código bulk`);
+				errores++;
+				
+				// Verificar si todos los productos han sido procesados
+				if (procesadosExitosos + errores === totalProductos) {
+					this.mostrarResultadoMasivo(procesadosExitosos, errores, totalProductos, 'regresados a producción');
+				}
 			}
 		});
 	}
@@ -606,49 +622,104 @@ export class BandejaCalidadComponent implements OnInit {
 			cancelButtonText: 'Cancelar',
 		}).then((result) => {
 			if (result.isConfirmed) {
-				this.productoService
-					.updateEstadoProductoPedidoMasivoMaestro({
-						idProductoMaestroList: this.lstProductosSeleccionados.map(
-							(item) => item.idProductoMaestro
-						),
-						idEstadoProductoActual: 4, // En calidad
-						idEstadoProductoNuevo: 5, // En envasado
-						idEstadoPedidoNuevo: 6, // En envasado
-						idEstadoPedidoClienteNuevo: 3, // En producción
-						idCliente:
-							this.dataService.getLoggedUser().cliente.idCliente,
-						accionRealizada: 'Productos enviados a envasado',
-						observacion: '',
-					})
-					.subscribe(
-						(response) => {
-							Swal.fire({
-								icon: 'success',
-								title: '¡Listo!',
-								text: 'Productos enviados a envasado correctamente.',
-								showConfirmButton: true,
-							}).then(() => {
-								this.idBulkBusqueda = ''; // Limpiar el input de búsqueda
-								this.lstProductosSeleccionados = []; // Limpiar selecciones
-								this.productosTable = []; // Limpiar tabla
-								this.refreshProductos(); // Actualizar vista
-							});
-						},
-						(error) => {
-							console.error(
-								'Error al enviar productos a envasado',
-								error
-							);
-							Swal.fire({
-								icon: 'error',
-								title: 'Oops!',
-								text: 'No se pudo enviar los productos a envasado, inténtelo de nuevo.',
-								showConfirmButton: true,
-							});
-						}
-					);
+				this.procesarProductosIndividualesEnviarEnvasado();
 			}
 		});
+	}
+
+	procesarProductosIndividualesEnviarEnvasado() {
+		const productosSeleccionados = this.lstProductosSeleccionados.map(item => {
+			return this.productosTable.find(p => p.idProductoMaestro === item.idProductoMaestro);
+		}).filter(producto => producto !== undefined);
+
+		let procesadosExitosos = 0;
+		let errores = 0;
+		const totalProductos = productosSeleccionados.length;
+
+		// Procesar cada producto individualmente
+		productosSeleccionados.forEach((item, index) => {
+			if (item.idBulk) {
+				const bulkData = {
+					idBulk: item.idBulk,
+					idProductoMaestro: item.idProductoMaestro,
+					idEstadoProductoActual: 4, // En calidad
+					idEstadoProductoNuevo: 5, // En envasado
+					idEstadoPedido: 6, // En envasado
+					idEstadoPedidoCliente: 3, // En producción
+					idCliente: this.dataService.getLoggedUser().cliente.idCliente,
+					accionRealizada: 'Producto enviado a envasado',
+					observacion: ''
+				};
+
+				this.productoService.updateEstadoProductoBulk(bulkData).subscribe(
+					(bulkResponse) => {
+						console.log(`Estado bulk actualizado correctamente para ${item.nombreProducto}:`, bulkResponse);
+						procesadosExitosos++;
+						
+						// Verificar si todos los productos han sido procesados
+						if (procesadosExitosos + errores === totalProductos) {
+							this.mostrarResultadoMasivo(procesadosExitosos, errores, totalProductos, 'enviados a envasado');
+						}
+					},
+					(bulkError) => {
+						console.error(`Error al enviar producto ${item.nombreProducto} a envasado:`, bulkError);
+						errores++;
+						
+						// Verificar si todos los productos han sido procesados
+						if (procesadosExitosos + errores === totalProductos) {
+							this.mostrarResultadoMasivo(procesadosExitosos, errores, totalProductos, 'enviados a envasado');
+						}
+					}
+				);
+			} else {
+				console.error(`Producto ${item.nombreProducto} no tiene código bulk`);
+				errores++;
+				
+				// Verificar si todos los productos han sido procesados
+				if (procesadosExitosos + errores === totalProductos) {
+					this.mostrarResultadoMasivo(procesadosExitosos, errores, totalProductos, 'enviados a envasado');
+				}
+			}
+		});
+	}
+
+	mostrarResultadoMasivo(exitosos: number, errores: number, total: number, accion: string) {
+		if (errores === 0) {
+			// Todos exitosos
+			Swal.fire({
+				icon: 'success',
+				title: '¡Listo!',
+				text: `Todos los productos (${exitosos}/${total}) fueron ${accion} correctamente.`,
+				showConfirmButton: true,
+			}).then(() => {
+				this.idBulkBusqueda = ''; // Limpiar el input de búsqueda
+				this.lstProductosSeleccionados = []; // Limpiar selecciones
+				this.productosTable = []; // Limpiar tabla
+				this.refreshProductos(); // Actualizar vista
+			});
+		} else if (exitosos === 0) {
+			// Todos fallaron
+			Swal.fire({
+				icon: 'error',
+				title: 'Error',
+				text: `No se pudo procesar ninguno de los productos seleccionados. Por favor, inténtelo de nuevo.`,
+				showConfirmButton: true,
+			});
+		} else {
+			// Algunos exitosos, algunos fallaron
+			Swal.fire({
+				icon: 'warning',
+				title: 'Procesamiento parcial',
+				text: `Se procesaron ${exitosos} de ${total} productos. ${errores} producto(s) tuvieron errores.`,
+				showConfirmButton: true,
+			}).then(() => {
+				// Actualizar la lista para reflejar los cambios
+				this.idBulkBusqueda = ''; // Limpiar el input de búsqueda
+				this.lstProductosSeleccionados = []; // Limpiar selecciones
+				this.productosTable = []; // Limpiar tabla
+				this.refreshProductos(); // Actualizar vista
+			});
+		}
 	}
 
 	regresarAProduccion(item: any) {

@@ -56,15 +56,41 @@
         </p-dropdown>
       </div>
       <div class="col-md-2">
-        <label class="form-label">Estados</label>
+        <label class="form-label">Canal</label>
         <p-multiSelect
-          [options]="estadosEntrega"
-          [(ngModel)]="filtrosCumplimientoFEE.estadosEntrega"
-          optionLabel="label"
-          optionValue="value"
+          [options]="canalesDisponibles"
+          [(ngModel)]="filtrosCumplimientoFEE.canalesSeleccionados"
+          optionLabel="nombre"
+          optionValue="idCanal"
+          placeholder="Todos los canales"
+          class="w-100"
+          pTooltip="Filtre por canales específicos">
+        </p-multiSelect>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label">Estados del Pedido</label>
+        <p-multiSelect
+          [options]="estadosPedido"
+          [(ngModel)]="filtrosCumplimientoFEE.estadosPedido"
+          optionLabel="descripcion"
+          optionValue="idEstadoPedido"
           placeholder="Todos los estados"
           class="w-100"
-          pTooltip="Filtre por estados específicos">
+          pTooltip="Filtre por estados específicos del pedido">
+        </p-multiSelect>
+      </div>
+    </div>
+    <div class="row g-3 mt-2">
+      <div class="col-md-4">
+        <label class="form-label">Clientes</label>
+        <p-multiSelect
+          [options]="clientesDisponibles"
+          [(ngModel)]="filtrosCumplimientoFEE.clientesSeleccionados"
+          optionLabel="nombre"
+          optionValue="idCliente"
+          placeholder="Todos los clientes"
+          class="w-100"
+          pTooltip="Filtre por clientes específicos">
         </p-multiSelect>
       </div>
       <div class="col-md-2 d-flex align-items-end">
@@ -80,47 +106,35 @@
   </p-card>
 
   <!-- KPIs Principales -->
-  <div class="row mb-4">
-    <div class="col-md-2">
-      <p-card class="text-center kpi-card">
-        <div class="kpi-value">{{ kpisCumplimientoFEE.totalPedidos }}</div>
-        <div class="kpi-label">Total Pedidos</div>
-      </p-card>
-    </div>
-    <div class="col-md-2">
+  <div class="row mb-4" *ngIf="datosCumplimientoFEE.length > 0">
+    <div class="col-md-3">
       <p-card class="text-center kpi-card otif-score">
-        <div class="kpi-value">{{ kpisCumplimientoFEE.otifScore | number:'1.1-1' }}%</div>
-        <div class="kpi-label">OTIF Score</div>
+        <div class="kpi-value">{{ kpisCumplimientoFEE.otifPorcentaje | number:'1.1-1' }}%</div>
+        <div class="kpi-label">OTIF %</div>
       </p-card>
     </div>
-    <div class="col-md-2">
+    <div class="col-md-3">
       <p-card class="text-center kpi-card">
-        <div class="kpi-value text-success">{{ kpisCumplimientoFEE.pedidosEntregadosATiempo }}</div>
-        <div class="kpi-label">A Tiempo</div>
+        <div class="kpi-value text-success">{{ kpisCumplimientoFEE.entregasATiempo }}</div>
+        <div class="kpi-label">Entregas a Tiempo (N)</div>
       </p-card>
     </div>
-    <div class="col-md-2">
+    <div class="col-md-3">
       <p-card class="text-center kpi-card">
-        <div class="kpi-value text-danger">{{ kpisCumplimientoFEE.pedidosRetrasados }}</div>
-        <div class="kpi-label">Retrasados</div>
+        <div class="kpi-value text-danger">{{ kpisCumplimientoFEE.entregasAtrasadas }}</div>
+        <div class="kpi-label">Atrasadas (N)</div>
       </p-card>
     </div>
-    <div class="col-md-2">
+    <div class="col-md-3">
       <p-card class="text-center kpi-card">
-        <div class="kpi-value">{{ kpisCumplimientoFEE.promedioDelayDias | number:'1.1-1' }}</div>
-        <div class="kpi-label">Promedio Delay (días)</div>
-      </p-card>
-    </div>
-    <div class="col-md-2">
-      <p-card class="text-center kpi-card">
-        <div class="kpi-value text-warning">S/ {{ kpisCumplimientoFEE.impactoEconomicoRetrasos | number:'1.0-0' }}</div>
-        <div class="kpi-label">Impacto Económico</div>
+        <div class="kpi-value">{{ kpisCumplimientoFEE.atrasoMedioDias | number:'1.1-1' }}</div>
+        <div class="kpi-label">Atraso Medio (días)</div>
       </p-card>
     </div>
   </div>
 
   <!-- OTIF por Cliente -->
-  <p-card header="OTIF por Cliente" class="mb-4">
+  <p-card header="OTIF por Cliente" class="mb-4" *ngIf="datosClientesOTIF.length > 0">
     <p-table 
       [value]="datosClientesOTIF" 
       [scrollable]="true"
@@ -193,15 +207,10 @@
         <tr>
           <th style="width: 120px">Pedido</th>
           <th style="width: 200px">Cliente</th>
-          <th style="width: 120px">Fecha Pedido</th>
           <th style="width: 130px">FEE</th>
-          <th style="width: 130px">Fecha Real</th>
-          <th style="width: 120px">Estado</th>
-          <th style="width: 80px">Delay</th>
-          <th style="width: 120px">Valor Pedido</th>
-          <th style="width: 150px">Responsable</th>
-          <th style="width: 200px">Motivo Retraso</th>
-          <th style="width: 80px">Cumple FEE</th>
+          <th style="width: 130px">Fecha Real Entrega</th>
+          <th style="width: 100px">Atraso (días)</th>
+          <th style="width: 150px">Cliente Responsable</th>
         </tr>
       </ng-template>
       <ng-template pTemplate="body" let-item>
@@ -214,42 +223,24 @@
               {{ item.cliente.length > 25 ? item.cliente.substring(0, 25) + '...' : item.cliente }}
             </span>
           </td>
-          <td>{{ item.fechaPedido | date:'dd/MM/yyyy' }}</td>
           <td>{{ item.fechaEstimadaEntrega | date:'dd/MM/yyyy' }}</td>
           <td>
             {{ item.fechaRealEntrega ? (item.fechaRealEntrega | date:'dd/MM/yyyy') : 'Pendiente' }}
           </td>
-          <td>
-            <span [class]="getEstadoEntrega(item.estadoEntrega)">
-              {{ item.estadoEntrega }}
-            </span>
-          </td>
           <td class="text-center">
-            <span [class]="getEstadoDelay(item.diasDelay)">
-              {{ item.diasDelay > 0 ? '+' : '' }}{{ item.diasDelay }}
+            <span [class]="getEstadoAtraso(item.diasAtraso)">
+              {{ item.diasAtraso }}
             </span>
           </td>
-          <td class="text-end">S/ {{ item.valorPedido | number:'1.0-0' }}</td>
-          <td>{{ item.responsableEntrega }}</td>
-          <td>
-            <span [pTooltip]="item.motivoRetraso" tooltipPosition="top">
-              {{ item.motivoRetraso ? (item.motivoRetraso.length > 25 ? item.motivoRetraso.substring(0, 25) + '...' : item.motivoRetraso) : 'N/A' }}
-            </span>
-          </td>
-          <td class="text-center">
-            <p-tag 
-              [value]="item.cumpleFEE ? 'Sí' : 'No'"
-              [severity]="item.cumpleFEE ? 'success' : 'danger'">
-            </p-tag>
-          </td>
+          <td>{{ item.clienteResponsable }}</td>
         </tr>
       </ng-template>
       <ng-template pTemplate="emptymessage">
         <tr>
-          <td colspan="11" class="text-center p-4">
+          <td colspan="6" class="text-center p-4">
             <i class="pi pi-info-circle" style="font-size: 2rem; color: #ccc;"></i>
             <p class="text-muted mt-2 mb-1">No hay datos disponibles</p>
-            <small class="text-muted">Aplique filtros para generar el reporte</small>
+            <small class="text-muted">Seleccione los filtros y haga clic en "Aplicar Filtros" para generar el reporte</small>
           </td>
         </tr>
       </ng-template>

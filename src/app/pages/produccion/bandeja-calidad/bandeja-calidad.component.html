@@ -38,147 +38,149 @@
 		</div>
 
 		<!-- Tabla de Pedidos -->
-		<table class="table table-bordered align-middle mt-0">
-			<thead class="table-primary">
-				<tr>
-					<th>
-						<input
-							class="form-check-input"
-							type="checkbox"
-							[checked]="isTodosSeleccionadosPagina()"
-							(change)="toggleSeleccionTodosPagina($event)"
-							
-						/>
-					</th>
-					<th scope="col">Nombre producto</th>
-                    <th scope="col">Presentación Total</th>
-					<th scope="col">Estado</th>
-					<th scope="col">Personalizado</th>
-					<th scope="col">pH Definido</th>
-                    <th scope="col">pH Calidad</th>
-					<th scope="col">Car. Organolépticas</th>
-					<th scope="col">Viscosidad</th>
-					<th scope="col" style="min-width: 180px;">Acciones</th>
-				</tr>
-			</thead>
-			<tbody>
-				@if (productos.length === 0 && !isSearching) {
+		<div class="table-responsive">
+			<table class="table table-bordered align-middle mt-0">
+				<thead class="table-primary">
 					<tr>
-						<td colspan="10" class="text-center py-4">
-							<div class="text-muted">
-								<i class="bi bi-search fs-1"></i>
-								<p class="mt-2">{{ idBulkBusqueda.trim() ? 'No se encontraron productos para este ID Bulk.' : 'Ingrese un ID Bulk para buscar productos en calidad.' }}</p>
-							</div>
+						<th>
+							<input
+								class="form-check-input"
+								type="checkbox"
+								[checked]="isTodosSeleccionadosPagina()"
+								(change)="toggleSeleccionTodosPagina($event)"
+								
+							/>
+						</th>
+						<th scope="col">Nombre producto</th>
+	                    <th scope="col">Presentación Total</th>
+						<th scope="col">Estado</th>
+						<th scope="col">Personalizado</th>
+						<th scope="col">pH Definido</th>
+	                    <th scope="col">pH Calidad</th>
+						<th scope="col">Car. Organolépticas</th>
+						<th scope="col">Viscosidad</th>
+						<th scope="col" style="min-width: 180px;">Acciones</th>
+					</tr>
+				</thead>
+				<tbody>
+					@if (productos.length === 0 && !isSearching) {
+						<tr>
+							<td colspan="10" class="text-center py-4">
+								<div class="text-muted">
+									<i class="bi bi-search fs-1"></i>
+									<p class="mt-2">{{ idBulkBusqueda.trim() ? 'No se encontraron productos para este ID Bulk.' : 'Ingrese un ID Bulk para buscar productos en calidad.' }}</p>
+								</div>
+							</td>
+						</tr>
+					}
+					@for (item of productos; track $index) {
+					<tr>
+						<td>
+							<input
+								class="form-check-input"
+								type="checkbox"
+								[checked]="isSeleccionado(item.idProductoMaestro, item.phCalidadPromedio, item.phDefinidoMin, item.phDefinidoMax)"
+								(change)="
+									toggleSeleccionIndividual(
+										item.idProductoMaestro,
+										$event
+									)
+								"
+								[disabled]="
+									(tipoEnvio === 1 && (
+										item.phCalidadPromedio === null ||
+										item.phCalidadPromedio === '' ||
+										item.phCalidadPromedio < item.phDefinidoMin ||
+										item.phCalidadPromedio > item.phDefinidoMax
+									)) ||
+									(tipoEnvio === 0 && !(
+										item.phCalidadPromedio === null ||
+										item.phCalidadPromedio === '' ||
+										item.phCalidadPromedio < item.phDefinidoMin ||
+										item.phCalidadPromedio > item.phDefinidoMax
+									))
+								"
+							/>
+						</td>
+						<td style="min-width: 200px;">{{item.nombreProducto}}</td>
+						<td style="min-width: 120px;">{{item.presentacionTotal}} {{item.tipoPresentacion}}</td>
+						<td style="min-width: 100px;">{{item.estadoProducto}}</td>
+						<td style="min-width: 100px;">
+	                        <span>{{item.personalizado ? 'Sí' : 'No'}}</span>
+	                    </td>
+	                    <td style="min-width: 120px;">{{item.phDefinidoMin}} - {{item.phDefinidoMax}}</td>
+	                    <td style="min-width: 120px;">
+							<input
+								type="number"
+								class="form-control form-control-sm"
+								min="1"
+								[value]="item.phCalidadPromedio" 
+	              				(input)="changeCalidadFields(item, $event, 'phCalidadPromedio')" 
+							/>
+						</td>
+						<td style="min-width: 180px;">
+							<input
+								type="text"
+								class="form-control form-control-sm"
+								maxlength="25"
+								[value]="item.carOrganolepticasCalidad || ''" 
+	              				(input)="changeCalidadFields(item, $event, 'carOrganolepticasCalidad')" 
+								placeholder="Características organolépticas"
+							/>
+						</td>
+						<td style="min-width: 120px;">
+							<input
+								type="text"
+								class="form-control form-control-sm"
+								maxlength="25"
+								[value]="item.viscosidadCalidad || ''" 
+	              				(input)="changeCalidadFields(item, $event, 'viscosidadCalidad')" 
+								placeholder="Viscosidad"
+							/>
+						</td>
+						<td style="min-width: 180px;">
+							<button 
+								class="btn btn-info me-2" 
+								[disabled]="
+									item.phCalidadPromedio === null ||
+									item.phCalidadPromedio === '' ||
+									item.phCalidadPromedio < item.phDefinidoMin ||
+									item.phCalidadPromedio > item.phDefinidoMax
+								"
+								(click)="enviarEnvasado(item)"
+								ngbTooltip="Enviar producto a envasado"
+								placement="top"
+							>
+								<i class="bi bi-send"></i>
+							</button>
+							<button 
+								class="btn btn-dark me-2" 
+								(click)="getInformacionCompleta(item)" 
+								ngbTooltip="Ver información completa del producto"
+								placement="top"
+							>
+								<i class="bi bi-journal-text"></i>
+							</button>
+							<button 
+								class="btn btn-danger me-2" 
+								(click)="regresarAProduccion(item)" 
+								[disabled]="
+									!(item.phCalidadPromedio === null ||
+									item.phCalidadPromedio === '' ||
+									item.phCalidadPromedio < item.phDefinidoMin ||
+									item.phCalidadPromedio > item.phDefinidoMax)
+								"
+								ngbTooltip="Regresar producto a producción"
+								placement="top"
+							>
+								<i class="bi bi-backspace"></i>
+							</button>
 						</td>
 					</tr>
-				}
-				@for (item of productos; track $index) {
-				<tr>
-					<td>
-						<input
-							class="form-check-input"
-							type="checkbox"
-							[checked]="isSeleccionado(item.idProductoMaestro, item.phCalidadPromedio, item.phDefinidoMin, item.phDefinidoMax)"
-							(change)="
-								toggleSeleccionIndividual(
-									item.idProductoMaestro,
-									$event
-								)
-							"
-							[disabled]="
-								(tipoEnvio === 1 && (
-									item.phCalidadPromedio === null ||
-									item.phCalidadPromedio === '' ||
-									item.phCalidadPromedio < item.phDefinidoMin ||
-									item.phCalidadPromedio > item.phDefinidoMax
-								)) ||
-								(tipoEnvio === 0 && !(
-									item.phCalidadPromedio === null ||
-									item.phCalidadPromedio === '' ||
-									item.phCalidadPromedio < item.phDefinidoMin ||
-									item.phCalidadPromedio > item.phDefinidoMax
-								))
-							"
-						/>
-					</td>
-					<td>{{item.nombreProducto}}</td>
-					<td>{{item.presentacionTotal}} {{item.tipoPresentacion}}</td>
-					<td>{{item.estadoProducto}}</td>
-					<td>
-                        <span>{{item.personalizado ? 'Sí' : 'No'}}</span>
-                    </td>
-                    <td>{{item.phDefinidoMin}} - {{item.phDefinidoMax}}</td>
-                    <td>
-						<input
-							type="number"
-							class="form-control form-control-sm"
-							min="1"
-							[value]="item.phCalidadPromedio" 
-              				(input)="changeCalidadFields(item, $event, 'phCalidadPromedio')" 
-						/>
-					</td>
-					<td>
-						<input
-							type="text"
-							class="form-control form-control-sm"
-							maxlength="25"
-							[value]="item.carOrganolepticasCalidad || ''" 
-              				(input)="changeCalidadFields(item, $event, 'carOrganolepticasCalidad')" 
-							placeholder="Características organolépticas"
-						/>
-					</td>
-					<td>
-						<input
-							type="text"
-							class="form-control form-control-sm"
-							maxlength="25"
-							[value]="item.viscosidadCalidad || ''" 
-              				(input)="changeCalidadFields(item, $event, 'viscosidadCalidad')" 
-							placeholder="Viscosidad"
-						/>
-					</td>
-					<td>
-						<button 
-							class="btn btn-info me-2" 
-							[disabled]="
-								item.phCalidadPromedio === null ||
-								item.phCalidadPromedio === '' ||
-								item.phCalidadPromedio < item.phDefinidoMin ||
-								item.phCalidadPromedio > item.phDefinidoMax
-							"
-							(click)="enviarEnvasado(item)"
-							ngbTooltip="Enviar producto a envasado"
-							placement="top"
-						>
-							<i class="bi bi-send"></i>
-						</button>
-						<button 
-							class="btn btn-dark me-2" 
-							(click)="getInformacionCompleta(item)" 
-							ngbTooltip="Ver información completa del producto"
-							placement="top"
-						>
-							<i class="bi bi-journal-text"></i>
-						</button>
-						<button 
-							class="btn btn-danger me-2" 
-							(click)="regresarAProduccion(item)" 
-							[disabled]="
-								!(item.phCalidadPromedio === null ||
-								item.phCalidadPromedio === '' ||
-								item.phCalidadPromedio < item.phDefinidoMin ||
-								item.phCalidadPromedio > item.phDefinidoMax)
-							"
-							ngbTooltip="Regresar producto a producción"
-							placement="top"
-						>
-							<i class="bi bi-backspace"></i>
-						</button>
-					</td>
-				</tr>
-				}
-			</tbody>
-		</table>
+					}
+				</tbody>
+			</table>
+		</div>
 
 		@if (productos.length > 0) {
 		<div class="d-flex justify-content-between p-2">

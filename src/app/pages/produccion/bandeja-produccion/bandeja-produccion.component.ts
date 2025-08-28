@@ -15,6 +15,8 @@ import { PedidoAuditoriaService } from '../../../services/pedido-auditoria.servi
 import Swal from 'sweetalert2';
 import { DataService } from '../../../services/data.service';
 import { ProductoService } from '../../../services/producto.service';
+import { KardexService } from '../../../services/inventario/kardex.service';
+import { kardexModel } from '../../../model/kardexModel';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import JsBarcode from 'jsbarcode';
@@ -96,6 +98,7 @@ export class BandejaProduccionComponent implements OnInit {
 		private pedidoAuditoriaService: PedidoAuditoriaService,
 		private dataService: DataService,
 		private productoService: ProductoService,
+		private kardexService: KardexService,
 		public router: Router
 	) {}
 
@@ -339,7 +342,7 @@ export class BandejaProduccionComponent implements OnInit {
 
 
 	recibirProducto(item: any) {
-
+		console.log(item);
 		Swal.fire({
 			icon: 'question',
 			title: '¿Estás seguro?',
@@ -363,6 +366,9 @@ export class BandejaProduccionComponent implements OnInit {
 					})
 					.subscribe(
 						(response) => {
+							// After the product state is updated successfully, get production sheet and update kardex
+							this.procesarHojaProduccionYKardex(item);
+							
 							Swal.fire({
 								icon: 'success',
 								title: '¡Listo!',
@@ -379,13 +385,13 @@ export class BandejaProduccionComponent implements OnInit {
 										p.idEstadoProducto === 3 && 
 										p.fechaCreacionBulk
 									);
-									
+										
 									if (productosConBulk.length > 0) {
 										// Ordenar por fechaCreacionBulk descendente y tomar el más reciente
 										const productoMasReciente = productosConBulk.sort((a, b) => 
 											new Date(b.fechaCreacionBulk).getTime() - new Date(a.fechaCreacionBulk).getTime()
 										)[0];
-										
+											
 										this.openModalCodigoBarraIndividual(productoMasReciente);
 									} else {
 										// Si no se encuentra producto con fechaCreacionBulk, buscar por idProductoMaestro como fallback
@@ -411,6 +417,69 @@ export class BandejaProduccionComponent implements OnInit {
 					);
 			}
 		});
+	}
+
+	procesarHojaProduccionYKardex(item: any) {
+		// Get production sheet for the product
+		this.productoService.getHojaProduccion(item.idProductoMaestro).subscribe(
+			(hojaProduccionResponse) => {
+				console.log('Hoja de producción obtenida:', hojaProduccionResponse);
+				
+				if (hojaProduccionResponse && hojaProduccionResponse.idResultado === 1 && hojaProduccionResponse.value) {
+					const hojaProduccion = hojaProduccionResponse.value;
+					
+					// Process each ingredient and create kardex entries
+					if (hojaProduccion.ingredientes && hojaProduccion.ingredientes.length > 0) {
+						hojaProduccion.ingredientes.forEach((ingrediente: any) => {
+							this.crearEntradaKardex(item, ingrediente);
+						});
+					}
+				} else {
+					console.error('Error: No se pudo obtener la hoja de producción', hojaProduccionResponse);
+				}
+			},
+			(error) => {
+				console.error('Error al obtener la hoja de producción:', error);
+			}
+		);
+	}
+
+	crearEntradaKardex(item: any, ingrediente: any) {
+		// Calculate the quantity based on the formula: item.presentacionTotal * (ingrediente.cantidad / 100)
+		const cantidadSalida = item.presentacionTotal * (ingrediente.cantidad / 100);
+		
+		// Get current date in YYYY-MM-DD format
+		const fechaActual = new Date().toISOString().split('T')[0];
+		
+		// Create kardex model object
+		const kardexData = new kardexModel();
+		kardexData.fecha = fechaActual;
+		kardexData.documento = `MP${ingrediente.materiaPrima.idMateriaPrima}`;
+		kardexData.cant_entrada = 0;
+		kardexData.cant_salida = cantidadSalida;
+		kardexData.impunit = ingrediente.materiaPrima.costoGramo;
+		kardexData.id_materia_prima = ingrediente.materiaPrima.idMateriaPrima;
+		kardexData.observaciones = '';
+		kardexData.id_movimiento = 1;
+		kardexData.archivobase64 = '';
+		kardexData.path_kardex = '';
+		kardexData.extensiondoc = '';
+		kardexData.ficha_tecnica = '';
+		kardexData.fecha_vencimiento = fechaActual;
+		kardexData.pureza = 0;
+		kardexData.lote = '';
+		kardexData.peso_bruto = 0;
+		kardexData.peso_neto = 0;
+
+		// Make the API call to register the kardex entry
+		this.kardexService.registrarKardex(kardexData, 1, 1).subscribe(
+			(kardexResponse) => {
+				console.log(`Kardex registrado para materia prima ${ingrediente.materiaPrima.nombre}:`, kardexResponse);
+			},
+			(kardexError) => {
+				console.error(`Error al registrar kardex para materia prima ${ingrediente.materiaPrima.nombre}:`, kardexError);
+			}
+		);
 	}
 
 	observacion = '';
@@ -649,52 +718,54 @@ export class BandejaProduccionComponent implements OnInit {
 			cancelButtonText: 'Cancelar',
 		}).then((result) => {
 			if (result.isConfirmed) {
-				this.productoService
-					.updateEstadoProductoPedidoMasivoMaestro({
-						idProductoMaestroList: this.lstProductosSeleccionados.map(
-							(item) => item.idProductoMaestro
-						),
-						idEstadoProductoActual: 2, // En cola
-						idEstadoProductoNuevo: 3, // En producción
-						idEstadoPedidoNuevo: 4, // En producción
-						idEstadoPedidoClienteNuevo: 3, // En producción
-						idCliente:
-							this.dataService.getLoggedUser().cliente.idCliente,
-						accionRealizada: 'Productos recibidos en producción',
-						observacion: '',
-					})
-					.subscribe(
-						(response) => {
-							Swal.fire({
-								icon: 'success',
-								title: '¡Listo!',
-								text: 'Productos recibidos en producción correctamente.',
-								showConfirmButton: true,
-							}).then(() => {
-								// Guardar los IDs de los productos procesados antes de limpiar la selección
-								const productosRecibidos = this.lstProductosSeleccionados.map(item => item.idProductoMaestro);
-								this.getProductosAll();
-								this.lstProductosSeleccionados = [];
-								// Después de actualizar la lista, mostrar opciones para imprimir códigos de barras
-								setTimeout(() => {
-									this.mostrarOpcionesCodigoBarrasMasivo(productosRecibidos);
-								}, 500);
-							});
-						},
-						(error) => {
-							console.error(
-								'Error al enviar productos a producción',
-								error
-							);
-							Swal.fire({
-								icon: 'error',
-								title: 'Oops!',
-								text: 'No se pudo enviar los productos a producción, inténtelo de nuevo.',
-								showConfirmButton: true,
-							});
-						}
-					);
+				this.procesarProductosIndividualesRecibir();
 			}
+		});
+	}
+
+	procesarProductosIndividualesRecibir() {
+		const productosSeleccionados = this.lstProductosSeleccionados.map(item => {
+			return this.productosTable.find(p => p.idProductoMaestro === item.idProductoMaestro);
+		}).filter(producto => producto !== undefined);
+
+		let procesadosExitosos = 0;
+		let errores = 0;
+		const totalProductos = productosSeleccionados.length;
+
+		// Procesar cada producto individualmente
+		productosSeleccionados.forEach((item, index) => {
+			this.productoService
+				.updateEstadoProductoMaestro({
+					idProductoMaestro: item.idProductoMaestro,
+					idEstadoProductoActual: 2, // En cola
+					idEstadoProductoNuevo: 3, // En producción
+					idEstadoPedidoNuevo: 4, // En producción
+					idEstadoPedidoClienteNuevo: 3, // En producción
+					idCliente: this.dataService.getLoggedUser().cliente.idCliente,
+					accionRealizada: 'Producto recibido en producción',
+					observacion: ''
+				})
+				.subscribe(
+					(response) => {
+						// Procesar hoja de producción y kardex para cada producto
+						this.procesarHojaProduccionYKardex(item);
+						procesadosExitosos++;
+						
+						// Verificar si todos los productos han sido procesados
+						if (procesadosExitosos + errores === totalProductos) {
+							this.mostrarResultadoMasivo(procesadosExitosos, errores, totalProductos, 'recibidos');
+						}
+					},
+					(error) => {
+						console.error(`Error al recibir producto ${item.nombreProducto}:`, error);
+						errores++;
+						
+						// Verificar si todos los productos han sido procesados
+						if (procesadosExitosos + errores === totalProductos) {
+							this.mostrarResultadoMasivo(procesadosExitosos, errores, totalProductos, 'recibidos');
+						}
+					}
+				);
 		});
 	}
 
@@ -718,46 +789,121 @@ export class BandejaProduccionComponent implements OnInit {
 			cancelButtonText: 'Cancelar',
 		}).then((result) => {
 			if (result.isConfirmed) {
-				this.productoService
-					.updateEstadoProductoPedidoMasivoMaestro({
-						idProductoMaestroList: this.lstProductosSeleccionados.map(
-							(item) => item.idProductoMaestro
-						),
-						idEstadoProductoActual: 3, // En producción
-						idEstadoProductoNuevo: 4, // En calidad
-						idEstadoPedidoNuevo: 5, // En calidad
-						idEstadoPedidoClienteNuevo: 3, // En producción
-						idCliente:
-							this.dataService.getLoggedUser().cliente.idCliente,
-						accionRealizada: 'Productos enviados a calidad',
-						observacion: '',
-					})
-					.subscribe(
-						(response) => {
-							Swal.fire({
-								icon: 'success',
-								title: '¡Listo!',
-								text: 'Productos enviados a calidad correctamente.',
-								showConfirmButton: true,
-							}).then(() => {
-								this.getProductosAll();
-								this.lstProductosSeleccionados = [];
-							});
-						},
-						(error) => {
-							console.error(
-								'Error al enviar productos a calidad',
-								error
-							);
-							Swal.fire({
-								icon: 'error',
-								title: 'Oops!',
-								text: 'No se pudo enviar los productos a calidad, inténtelo de nuevo.',
-								showConfirmButton: true,
-							});
-						}
-					);
+				this.procesarProductosIndividualesEnviarCalidad();
 			}
 		});
+	}
+
+	procesarProductosIndividualesEnviarCalidad() {
+		const productosSeleccionados = this.lstProductosSeleccionados.map(item => {
+			return this.productosTable.find(p => p.idProductoMaestro === item.idProductoMaestro);
+		}).filter(producto => producto !== undefined);
+
+		let procesadosExitosos = 0;
+		let errores = 0;
+		const totalProductos = productosSeleccionados.length;
+
+		// Procesar cada producto individualmente
+		productosSeleccionados.forEach((item, index) => {
+			this.productoService
+				.updateEstadoProductoMaestro({
+					idProductoMaestro: item.idProductoMaestro,
+					idEstadoProductoActual: 3, // En producción
+					idEstadoProductoNuevo: 4, // En calidad
+					idEstadoPedidoNuevo: 5, // En calidad
+					idEstadoPedidoClienteNuevo: 3, // En producción
+					idCliente: this.dataService.getLoggedUser().cliente.idCliente,
+					accionRealizada: 'Producto enviado a calidad',
+					observacion: ''
+				})
+				.subscribe(
+					(response) => {
+						// Llamada adicional al endpoint de estado-producto-bulk si tiene idBulk
+						if (item.idBulk) {
+							const bulkData = {
+								idBulk: item.idBulk,
+								idProductoMaestro: item.idProductoMaestro,
+								idEstadoProductoActual: 3, // En producción
+								idEstadoProductoNuevo: 4, // En calidad
+								idEstadoPedido: 5, // En calidad
+								idEstadoPedidoCliente: 3, // En producción
+								idCliente: this.dataService.getLoggedUser().cliente.idCliente,
+								accionRealizada: 'Producto enviado a calidad',
+								observacion: ''
+							};
+
+							this.productoService.updateEstadoProductoBulk(bulkData).subscribe(
+								(bulkResponse) => {
+									console.log(`Estado bulk actualizado correctamente para ${item.nombreProducto}:`, bulkResponse);
+								},
+								(bulkError) => {
+									console.error(`Error al actualizar estado bulk para ${item.nombreProducto}:`, bulkError);
+									// No afecta el contador de errores ya que la operación principal fue exitosa
+								}
+							);
+						}
+
+						procesadosExitosos++;
+						
+						// Verificar si todos los productos han sido procesados
+						if (procesadosExitosos + errores === totalProductos) {
+							this.mostrarResultadoMasivo(procesadosExitosos, errores, totalProductos, 'enviados a calidad');
+						}
+					},
+					(error) => {
+						console.error(`Error al enviar producto ${item.nombreProducto} a calidad:`, error);
+						errores++;
+						
+						// Verificar si todos los productos han sido procesados
+						if (procesadosExitosos + errores === totalProductos) {
+							this.mostrarResultadoMasivo(procesadosExitosos, errores, totalProductos, 'enviados a calidad');
+						}
+					}
+				);
+		});
+	}
+
+	mostrarResultadoMasivo(exitosos: number, errores: number, total: number, accion: string) {
+		if (errores === 0) {
+			// Todos exitosos
+			Swal.fire({
+				icon: 'success',
+				title: '¡Listo!',
+				text: `Todos los productos (${exitosos}/${total}) fueron ${accion} correctamente.`,
+				showConfirmButton: true,
+			}).then(() => {
+				// Guardar los IDs de los productos procesados antes de limpiar la selección
+				const productosRecibidos = this.lstProductosSeleccionados.map(item => item.idProductoMaestro);
+				this.getProductosAll();
+				this.lstProductosSeleccionados = [];
+				
+				// Si la acción fue recibir productos, mostrar opciones para imprimir códigos de barras
+				if (accion === 'recibidos') {
+					setTimeout(() => {
+						this.mostrarOpcionesCodigoBarrasMasivo(productosRecibidos);
+					}, 500);
+				}
+			});
+		} else if (exitosos === 0) {
+			// Todos fallaron
+			Swal.fire({
+				icon: 'error',
+				title: 'Error',
+				text: `No se pudo procesar ninguno de los productos seleccionados. Por favor, inténtelo de nuevo.`,
+				showConfirmButton: true,
+			});
+		} else {
+			// Algunos exitosos, algunos fallaron
+			Swal.fire({
+				icon: 'warning',
+				title: 'Procesamiento parcial',
+				text: `Se procesaron ${exitosos} de ${total} productos. ${errores} producto(s) tuvieron errores.`,
+				showConfirmButton: true,
+			}).then(() => {
+				// Actualizar la lista para reflejar los cambios
+				this.getProductosAll();
+				this.lstProductosSeleccionados = [];
+			});
+		}
 	}
 }
