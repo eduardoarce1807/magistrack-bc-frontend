@@ -24,3 +24,45 @@ $bootstrap-icons-font-dir: "bootstrap-icons/font/fonts";
 	width:100% !important;
 	text-align:end;
 }
+
+/* Estilo para botones principales con color #D4858C */
+.btn-primary {
+  background-color: #D4858C !important;
+  border-color: #D4858C !important;
+}
+
+.btn-primary:hover {
+  background-color: #C07178 !important;
+  border-color: #C07178 !important;
+}
+
+/* Botones de PrimeNG principales, pero excluir botones de texto */
+.p-button:not(.p-button-text) {
+  background-color: #D4858C !important;
+  border-color: #D4858C !important;
+}
+
+.p-button:not(.p-button-text):hover {
+  background-color: #C07178 !important;
+  border-color: #C07178 !important;
+}
+
+/* Personalizar cabeceras de tablas Bootstrap */
+.table-primary {
+  background-color: #D4858C !important;
+  color: white !important;
+}
+
+.table-primary th {
+  background-color: #D4858C !important;
+  border-color: #C07178 !important;
+  color: white !important;
+}
+
+/* Para otros componentes que puedan usar table-primary */
+.table thead th.table-primary,
+.table tbody td.table-primary {
+  background-color: #D4858C !important;
+  color: white !important;
+  border-color: #C07178 !important;
+}

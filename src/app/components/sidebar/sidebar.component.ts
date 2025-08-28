@@ -70,11 +70,6 @@ export class SidebarComponent {
 					key: '0_7',
 					label: 'Calculadora Maestra',
 					command: () => this.irA('pages/atencion-cliente/calculadora-maestra')
-				},
-				{
-					key: '0_8',
-					label: 'Calculadora de Productos',
-					command: () => this.irA('pages/atencion-cliente/calculadora-productos')
 				}
 			] : [])
 		];
@@ -131,11 +126,11 @@ export class SidebarComponent {
 						label: 'Pedidos en Producción',
 						command: () => this.irA('pages/reportes/pedidos-produccion')
 					},
-					// {
-					// 	key: '7_8',
-					// 	label: 'Cumplimiento FEE',
-					// 	command: () => this.irA('pages/reportes/cumplimiento-fee')
-					// }
+					{
+						key: '7_8',
+						label: 'Cumplimiento FEE',
+						command: () => this.irA('pages/reportes/cumplimiento-fee')
+					}
 				]
 			}] : []),
 			...(user.rol.idRol === 1 || user.rol.idRol === 5 || user.rol.idRol === 6 || user.rol.idRol === 7 || user.rol.idRol === 8 || user.rol.idRol === 9 ? [
@@ -282,6 +277,11 @@ export class SidebarComponent {
 							key: '6_3',
 							label: 'Asignar Materia Prima x Proveedor',
 							command: () => this.irA('pages/proveedor/asignar-proveedor')
+						},
+						{
+							key: '6_4',
+							label: 'Calculadora de Productos',
+							command: () => this.irA('pages/atencion-cliente/calculadora-productos')
 						},
 					]
 				}

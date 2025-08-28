@@ -18,34 +18,35 @@
 		</button>
 
 		<!-- Tabla de Pedidos -->
-		<table class="table table-bordered align-middle mt-0">
-			<thead class="table-primary">
-				<tr>
-					<th>
-						<input
-							class="form-check-input"
-							type="checkbox"
-							[checked]="isTodosSeleccionadosPagina()"
-							(change)="toggleSeleccionTodosPagina($event)"
-							
-						/>
-					</th>
-					<th scope="col">Nombre producto</th>
-					<th scope="col">Presentación Total</th>
-					<th scope="col">Estado</th>
-					<th scope="col">Personalizado</th>
-					<th scope="col">Acciones</th>
-				</tr>
-			</thead>
-			<tbody>
-				@for (item of productos; track $index) {
-				<tr [ngClass]="{
-						'table-warning': item.idEstadoProducto == 2,
-						'table-success': item.idEstadoProducto == 3
-					}">
-					<td>
-						<input
-							class="form-check-input"
+		<div class="table-responsive">
+			<table class="table table-bordered align-middle mt-0">
+				<thead class="table-primary">
+					<tr>
+						<th>
+							<input
+								class="form-check-input"
+								type="checkbox"
+								[checked]="isTodosSeleccionadosPagina()"
+								(change)="toggleSeleccionTodosPagina($event)"
+								
+							/>
+						</th>
+						<th scope="col" style="min-width: 200px;">Nombre producto</th>
+						<th scope="col" style="min-width: 150px;">Presentación Total</th>
+						<th scope="col" style="min-width: 100px;">Estado</th>
+						<th scope="col" style="min-width: 120px;">Personalizado</th>
+						<th scope="col" style="min-width: 200px;">Acciones</th>
+					</tr>
+				</thead>
+				<tbody>
+					@for (item of productos; track $index) {
+					<tr [ngClass]="{
+							'table-warning': item.idEstadoProducto == 2,
+							'table-success': item.idEstadoProducto == 3
+						}">
+						<td>
+							<input
+								class="form-check-input"
 							type="checkbox"
 							[checked]="isSeleccionado(item.idProductoMaestro)"
 							(change)="
@@ -105,6 +106,7 @@
 				}
 			</tbody>
 		</table>
+		</div>
 
 		<div class="d-flex justify-content-between p-2">
 			<ngb-pagination

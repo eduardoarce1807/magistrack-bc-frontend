@@ -17,6 +17,7 @@ import Swal from 'sweetalert2';
 
 import { ExcelService } from '../../../services/excel.service';
 import { DataService } from '../../../services/data.service';
+import { EstadoPedidoService, EstadoPedido as EstadoPedidoFromService } from '../../../services/estado-pedido.service';
 import { environment } from '../../../../environments/environment';
 
 // Interfaces para tipado
@@ -41,10 +42,7 @@ export interface KpisPedidosProduccion {
   tiempoMedioEtapa: number | string; // en horas, puede venir como string desde API
 }
 
-export interface EstadoPedido {
-  idEstadoPedido: number;
-  descripcion: string;
-}
+export interface EstadoPedido extends EstadoPedidoFromService {}
 
 @Component({
   selector: 'app-reporte-pedidos-produccion',
@@ -83,18 +81,7 @@ export class ReportePedidosProduccionComponent implements OnInit, OnDestroy {
   };
 
   // Opciones para dropdowns
-  estadosProduccion: EstadoPedido[] = [
-    { idEstadoPedido: 1, descripcion: 'Borrador' },
-    { idEstadoPedido: 2, descripcion: 'Pagado' },
-    { idEstadoPedido: 3, descripcion: 'En cola' },
-    { idEstadoPedido: 4, descripcion: 'En producción' },
-    { idEstadoPedido: 5, descripcion: 'En calidad' },
-    { idEstadoPedido: 6, descripcion: 'En envasado' },
-    { idEstadoPedido: 7, descripcion: 'En etiquetado' },
-    { idEstadoPedido: 8, descripcion: 'En despacho' },
-    { idEstadoPedido: 9, descripcion: 'Validado' },
-    { idEstadoPedido: 10, descripcion: 'Entregado' }
-  ];
+  estadosProduccion: EstadoPedido[] = [];
 
   rangosFecha = [
     { label: 'Últimos 7 días', value: 7 },
@@ -111,17 +98,32 @@ export class ReportePedidosProduccionComponent implements OnInit, OnDestroy {
   constructor(
     private excelService: ExcelService,
     private dataService: DataService,
+    private estadoPedidoService: EstadoPedidoService,
     private http: HttpClient,
     private datePipe: DatePipe
   ) {}
 
   ngOnInit(): void {
+    // Cargar estados de pedido desde el servicio
+    this.cargarEstadosPedido();
     // Solo inicializar, no cargar datos automáticamente
     // Los datos se cargarán cuando el usuario aplique filtros
   }
 
   ngOnDestroy(): void {
     // Limpieza de recursos si es necesario
+  }
+
+  cargarEstadosPedido(): void {
+    this.estadoPedidoService.getEstadosPedido().subscribe({
+      next: (estados) => {
+        this.estadosProduccion = estados;
+      },
+      error: (error) => {
+        console.error('Error al cargar estados de pedido:', error);
+        Swal.fire('Error', 'No se pudieron cargar los estados de pedido', 'error');
+      }
+    });
   }
 
   onRangoFechaChange(): void {

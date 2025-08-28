@@ -10,45 +10,41 @@ import { MultiSelectModule } from 'primeng/multiselect';
 import { TooltipModule } from 'primeng/tooltip';
 import { ProgressBarModule } from 'primeng/progressbar';
 import { TagModule } from 'primeng/tag';
+import jsPDF from 'jspdf';
+import Swal from 'sweetalert2';
 import { DataService } from '../../../services/data.service';
 import { ExcelService } from '../../../services/excel.service';
+import { ReporteService } from '../../../services/reporte.service';
+import { ClienteService } from '../../../services/cliente.service';
+import { CanalVentaService } from '../../../services/canal-venta.service';
+import { EstadoPedidoService, EstadoPedido } from '../../../services/estado-pedido.service';
 
 // Interfaces
 interface FiltrosCumplimientoFEE {
   fechaInicio: Date;
   fechaFin: Date;
   tipoFechaAnalisis: 'pedido' | 'entrega';
-  estadosEntrega: string[];
+  estadosPedido: number[];
   clientesSeleccionados: number[];
-  rangoDelayDias: {
-    min: number;
-    max: number;
-  };
+  canalesSeleccionados: number[];
 }
 
 interface PedidoCumplimientoFEE {
   numeroPedido: string;
   cliente: string;
-  fechaPedido: Date;
   fechaEstimadaEntrega: Date;
   fechaRealEntrega: Date | null;
-  estadoEntrega: 'Entregado' | 'En Proceso' | 'Retrasado' | 'Cancelado';
-  diasDelay: number; // Positivo = retraso, Negativo = anticipado, 0 = a tiempo
-  valorPedido: number;
-  responsableEntrega: string;
-  motivoRetraso?: string;
-  observaciones?: string;
-  cumpleFEE: boolean;
+  diasAtraso: number; // Solo positivos (días de atraso)
+  clienteResponsable: string; // Cliente que cambió el estado a entregado
+  estadoPedido: number;
+  estadoPedidoNombre: string;
 }
 
 interface KpisCumplimientoFEE {
-  totalPedidos: number;
-  pedidosEntregadosATiempo: number;
-  pedidosRetrasados: number;
-  porcentajeCumplimiento: number;
-  promedioDelayDias: number;
-  impactoEconomicoRetrasos: number;
-  otifScore: number; // On Time In Full
+  otifPorcentaje: number; // OTIF %
+  entregasATiempo: number; // Entregas a tiempo (N)
+  entregasAtrasadas: number; // Atrasadas (N)
+  atrasoMedioDias: number; // Atraso medio (días)
 }
 
 interface ClienteOTIF {
@@ -83,28 +79,22 @@ interface ClienteOTIF {
 export class ReporteCumplimientoFeeComponent implements OnInit {
   // Propiedades de filtros
   filtrosCumplimientoFEE: FiltrosCumplimientoFEE = {
-    fechaInicio: new Date(new Date().setDate(new Date().getDate() - 30)),
-    fechaFin: new Date(),
+    fechaInicio: new Date('2025-04-01'),
+    fechaFin: new Date('2025-08-28'),
     tipoFechaAnalisis: 'entrega',
-    estadosEntrega: [],
+    estadosPedido: [],
     clientesSeleccionados: [],
-    rangoDelayDias: {
-      min: -10,
-      max: 30
-    }
+    canalesSeleccionados: []
   };
 
   // Datos
   datosCumplimientoFEE: PedidoCumplimientoFEE[] = [];
   datosClientesOTIF: ClienteOTIF[] = [];
   kpisCumplimientoFEE: KpisCumplimientoFEE = {
-    totalPedidos: 0,
-    pedidosEntregadosATiempo: 0,
-    pedidosRetrasados: 0,
-    porcentajeCumplimiento: 0,
-    promedioDelayDias: 0,
-    impactoEconomicoRetrasos: 0,
-    otifScore: 0
+    otifPorcentaje: 0,
+    entregasATiempo: 0,
+    entregasAtrasadas: 0,
+    atrasoMedioDias: 0
   };
 
   // Opciones para dropdowns
@@ -113,20 +103,9 @@ export class ReporteCumplimientoFeeComponent implements OnInit {
     { label: 'Por Fecha de Entrega', value: 'entrega' }
   ];
 
-  estadosEntrega = [
-    { label: 'Entregado', value: 'Entregado' },
-    { label: 'En Proceso', value: 'En Proceso' },
-    { label: 'Retrasado', value: 'Retrasado' },
-    { label: 'Cancelado', value: 'Cancelado' }
-  ];
-
-  clientesDisponibles = [
-    { idCliente: 1, nombre: 'Distribuidora Central S.A.' },
-    { idCliente: 2, nombre: 'Supermercados Unidos Ltda.' },
-    { idCliente: 3, nombre: 'Comercial del Norte S.A.S.' },
-    { idCliente: 4, nombre: 'Grupo Retail Premium' },
-    { idCliente: 5, nombre: 'Mayorista Integral S.A.' }
-  ];
+  estadosPedido: EstadoPedido[] = [];
+  clientesDisponibles: any[] = [];
+  canalesDisponibles: any[] = [];
 
   rangosFecha = [
     { label: 'Últimos 7 días', value: 7 },
@@ -137,18 +116,62 @@ export class ReporteCumplimientoFeeComponent implements OnInit {
   ];
 
   rangoFechas: number = 30;
-  fechaInicio: Date = new Date(new Date().setDate(new Date().getDate() - 30));
-  fechaFin: Date = new Date();
+  fechaInicio: Date = new Date('2025-04-01');
+  fechaFin: Date = new Date('2025-08-28');
 
   constructor(
     private dataService: DataService,
-    private excelService: ExcelService
+    private excelService: ExcelService,
+    private reporteService: ReporteService,
+    private clienteService: ClienteService,
+    private canalVentaService: CanalVentaService,
+    private estadoPedidoService: EstadoPedidoService
   ) {}
 
   ngOnInit(): void {
-    this.generarDatosFicticios();
-    this.calcularKPIs();
-    this.calcularOTIFPorCliente();
+    // Cargar datos para los filtros
+    this.cargarEstadosPedido();
+    this.cargarClientes();
+    this.cargarCanales();
+  }
+
+  cargarEstadosPedido(): void {
+    this.estadoPedidoService.getEstadosPedido().subscribe({
+      next: (estados) => {
+        this.estadosPedido = estados;
+      },
+      error: (error) => {
+        console.error('Error al cargar estados de pedido:', error);
+      }
+    });
+  }
+
+  cargarClientes(): void {
+    this.clienteService.getClientes().subscribe({
+      next: (clientes) => {
+        this.clientesDisponibles = clientes.map(cliente => ({
+          idCliente: cliente.idCliente,
+          nombre: `${cliente.nombres} ${cliente.apellidos}`
+        }));
+      },
+      error: (error) => {
+        console.error('Error al cargar clientes:', error);
+      }
+    });
+  }
+
+  cargarCanales(): void {
+    this.canalVentaService.getCanalesVenta().subscribe({
+      next: (canales) => {
+        this.canalesDisponibles = canales.map(canal => ({
+          idCanal: canal.idCanalVenta,
+          nombre: canal.descripcion
+        }));
+      },
+      error: (error) => {
+        console.error('Error al cargar canales:', error);
+      }
+    });
   }
 
   onRangoFechaChange(): void {
@@ -163,205 +186,295 @@ export class ReporteCumplimientoFeeComponent implements OnInit {
   }
 
   aplicarFiltros(): void {
+    // Formatear fechas como strings YYYY-MM-DD
+    const fechaInicio = this.fechaInicio.toISOString().split('T')[0];
+    const fechaFin = this.fechaFin.toISOString().split('T')[0];
+    
     this.filtrosCumplimientoFEE.fechaInicio = this.fechaInicio;
     this.filtrosCumplimientoFEE.fechaFin = this.fechaFin;
     
-    // Aquí iría la llamada real al API
-    // this.dataService.post('api/reporte/cumplimiento-fee', this.filtrosCumplimientoFEE)
-    //   .subscribe(response => {
-    //     this.datosCumplimientoFEE = response.data;
-    //     this.calcularKPIs();
-    //     this.calcularOTIFPorCliente();
-    //   });
-    
-    // Por ahora regeneramos datos ficticios
-    this.generarDatosFicticios();
-    this.calcularKPIs();
-    this.calcularOTIFPorCliente();
-  }
-
-  private generarDatosFicticios(): void {
-    const productos = [
-      'Shampoo Anticaspa 500ml',
-      'Acondicionador Hidratante 400ml',
-      'Crema Facial Antiarrugas 50ml',
-      'Loción Corporal Humectante 250ml',
-      'Serum Vitamina C 30ml',
-      'Mascarilla Facial Purificante 100ml',
-      'Jabón Líquido Antibacterial 300ml',
-      'Desodorante Roll-on 75ml',
-      'Gel de Ducha Refrescante 400ml',
-      'Bálsamo Labial SPF 15 4g'
-    ];
-
-    const responsables = [
-      'Carlos Mendoza',
-      'Ana García',
-      'Luis Rodríguez',
-      'María Fernández',
-      'Jorge López'
-    ];
-
-    const motivosRetraso = [
-      'Falta de stock',
-      'Demora en transporte',
-      'Problemas de calidad',
-      'Incidencia logística',
-      'Cambio de dirección cliente',
-      'Feriados/días no laborales',
-      'Condiciones climáticas',
-      'Problema con proveedor'
-    ];
-
-    this.datosCumplimientoFEE = [];
-
-    for (let i = 1; i <= 150; i++) {
-      const fechaPedido = new Date(this.fechaInicio.getTime() + 
-        Math.random() * (this.fechaFin.getTime() - this.fechaInicio.getTime()));
-      
-      const fechaEstimada = new Date(fechaPedido);
-      fechaEstimada.setDate(fechaEstimada.getDate() + Math.floor(Math.random() * 10) + 1);
-      
-      const diasDelay = Math.floor(Math.random() * 21) - 5; // -5 a +15 días
-      const fechaReal = new Date(fechaEstimada);
-      fechaReal.setDate(fechaReal.getDate() + diasDelay);
-      
-      const estados: Array<'Entregado' | 'En Proceso' | 'Retrasado' | 'Cancelado'> = 
-        ['Entregado', 'En Proceso', 'Retrasado', 'Cancelado'];
-      let estadoEntrega: 'Entregado' | 'En Proceso' | 'Retrasado' | 'Cancelado';
-      
-      if (diasDelay > 0 && Math.random() > 0.3) {
-        estadoEntrega = 'Retrasado';
-      } else if (Math.random() > 0.8) {
-        estadoEntrega = 'En Proceso';
-      } else if (Math.random() > 0.95) {
-        estadoEntrega = 'Cancelado';
-      } else {
-        estadoEntrega = 'Entregado';
-      }
-
-      const pedido: PedidoCumplimientoFEE = {
-        numeroPedido: `PED-${String(i).padStart(6, '0')}`,
-        cliente: this.clientesDisponibles[Math.floor(Math.random() * this.clientesDisponibles.length)].nombre,
-        fechaPedido: fechaPedido,
-        fechaEstimadaEntrega: fechaEstimada,
-        fechaRealEntrega: estadoEntrega === 'Entregado' || estadoEntrega === 'Retrasado' ? fechaReal : null,
-        estadoEntrega: estadoEntrega,
-        diasDelay: estadoEntrega === 'Entregado' || estadoEntrega === 'Retrasado' ? diasDelay : 0,
-        valorPedido: Math.floor(Math.random() * 5000) + 100, // Valores en soles peruanos más realistas
-        responsableEntrega: responsables[Math.floor(Math.random() * responsables.length)],
-        motivoRetraso: diasDelay > 0 ? motivosRetraso[Math.floor(Math.random() * motivosRetraso.length)] : undefined,
-        observaciones: Math.random() > 0.7 ? 'Observaciones del pedido...' : undefined,
-        cumpleFEE: diasDelay <= 0
-      };
-
-      this.datosCumplimientoFEE.push(pedido);
-    }
-  }
-
-  private calcularKPIs(): void {
-    const totalPedidos = this.datosCumplimientoFEE.length;
-    const pedidosEntregados = this.datosCumplimientoFEE.filter(p => p.estadoEntrega === 'Entregado');
-    const pedidosATiempo = pedidosEntregados.filter(p => p.cumpleFEE);
-    const pedidosRetrasados = this.datosCumplimientoFEE.filter(p => p.diasDelay > 0);
-    
-    const promedioDelay = pedidosEntregados.length > 0 
-      ? pedidosEntregados.reduce((sum, p) => sum + p.diasDelay, 0) / pedidosEntregados.length 
-      : 0;
-    
-    const impactoEconomico = pedidosRetrasados.reduce((sum, p) => sum + (p.valorPedido * 0.05), 0);
-    
-    const otifScore = totalPedidos > 0 ? (pedidosATiempo.length / totalPedidos) * 100 : 0;
-
-    this.kpisCumplimientoFEE = {
-      totalPedidos: totalPedidos,
-      pedidosEntregadosATiempo: pedidosATiempo.length,
-      pedidosRetrasados: pedidosRetrasados.length,
-      porcentajeCumplimiento: totalPedidos > 0 ? (pedidosATiempo.length / totalPedidos) * 100 : 0,
-      promedioDelayDias: promedioDelay,
-      impactoEconomicoRetrasos: impactoEconomico,
-      otifScore: otifScore
+    const payload = {
+      fechaInicio: fechaInicio,
+      fechaFin: fechaFin,
+      tipoFechaAnalisis: this.filtrosCumplimientoFEE.tipoFechaAnalisis,
+      estadosPedido: this.filtrosCumplimientoFEE.estadosPedido,
+      clientesSeleccionados: this.filtrosCumplimientoFEE.clientesSeleccionados,
+      canalesSeleccionados: this.filtrosCumplimientoFEE.canalesSeleccionados
     };
-  }
-
-  private calcularOTIFPorCliente(): void {
-    const clientesMap = new Map<string, any>();
-
-    this.datosCumplimientoFEE.forEach(pedido => {
-      if (!clientesMap.has(pedido.cliente)) {
-        clientesMap.set(pedido.cliente, {
-          nombreCliente: pedido.cliente,
-          totalPedidos: 0,
-          pedidosATiempo: 0
-        });
-      }
-
-      const cliente = clientesMap.get(pedido.cliente);
-      cliente.totalPedidos++;
-      
-      if (pedido.cumpleFEE && pedido.estadoEntrega === 'Entregado') {
-        cliente.pedidosATiempo++;
-      }
-    });
-
-    this.datosClientesOTIF = Array.from(clientesMap.values()).map((cliente, index) => ({
-      idCliente: index + 1,
-      nombreCliente: cliente.nombreCliente,
-      totalPedidos: cliente.totalPedidos,
-      pedidosATiempo: cliente.pedidosATiempo,
-      porcentajeCumplimiento: cliente.totalPedidos > 0 ? (cliente.pedidosATiempo / cliente.totalPedidos) * 100 : 0,
-      promedioDelayDias: this.calcularPromedioDelayCliente(cliente.nombreCliente)
-    })).sort((a, b) => b.porcentajeCumplimiento - a.porcentajeCumplimiento);
-  }
-
-  private calcularPromedioDelayCliente(nombreCliente: string): number {
-    const pedidosCliente = this.datosCumplimientoFEE.filter(p => 
-      p.cliente === nombreCliente && p.estadoEntrega === 'Entregado'
-    );
     
-    if (pedidosCliente.length === 0) return 0;
-    
-    return pedidosCliente.reduce((sum, p) => sum + p.diasDelay, 0) / pedidosCliente.length;
+    this.reporteService.getReporteCumplimientoFee(payload)
+      .subscribe({
+        next: (response: any) => {
+          if (response.success) {
+            this.datosCumplimientoFEE = response.data.pedidos.map((pedido: any) => ({
+              ...pedido,
+              fechaEstimadaEntrega: new Date(pedido.fechaEstimadaEntrega),
+              fechaRealEntrega: pedido.fechaRealEntrega ? new Date(pedido.fechaRealEntrega) : null
+            }));
+            this.kpisCumplimientoFEE = response.data.kpis;
+            this.datosClientesOTIF = response.data.clientesOTIF;
+          }
+        },
+        error: (error: any) => {
+          console.error('Error al obtener datos del reporte:', error);
+          Swal.fire({
+            title: 'Error',
+            text: 'No se pudieron cargar los datos del reporte',
+            icon: 'error'
+          });
+        }
+      });
   }
 
-  getEstadoEntrega(estado: string): string {
+  getEstadoPedido(estadoPedido: number): string {
     const clases = {
-      'Entregado': 'estado-entregado',
-      'En Proceso': 'estado-proceso',
-      'Retrasado': 'estado-retrasado',
-      'Cancelado': 'estado-cancelado'
+      1: 'estado-borrador',
+      2: 'estado-pagado', 
+      3: 'estado-cola',
+      4: 'estado-produccion',
+      5: 'estado-calidad',
+      6: 'estado-envasado',
+      7: 'estado-etiquetado',
+      8: 'estado-despacho',
+      9: 'estado-validado',
+      10: 'estado-entregado'
     };
-    return clases[estado as keyof typeof clases] || '';
+    return clases[estadoPedido as keyof typeof clases] || '';
   }
 
-  getEstadoDelay(diasDelay: number): string {
-    if (diasDelay < 0) return 'delay-anticipado';
-    if (diasDelay === 0) return 'delay-tiempo';
-    if (diasDelay <= 3) return 'delay-leve';
-    if (diasDelay <= 7) return 'delay-moderado';
-    return 'delay-critico';
+  getEstadoAtraso(diasAtraso: number): string {
+    if (diasAtraso === 0) return 'atraso-tiempo';
+    if (diasAtraso <= 3) return 'atraso-leve';
+    if (diasAtraso <= 7) return 'atraso-moderado';
+    return 'atraso-critico';
   }
 
   exportarExcel(): void {
+    if (this.datosCumplimientoFEE.length === 0) {
+      Swal.fire({
+        title: 'No hay datos',
+        text: 'Debe aplicar filtros y generar el reporte antes de exportar',
+        icon: 'warning'
+      });
+      return;
+    }
+
     const datosExport = this.datosCumplimientoFEE.map(item => ({
       'Número Pedido': item.numeroPedido,
       'Cliente': item.cliente,
-      'Fecha Pedido': item.fechaPedido.toLocaleDateString(),
-      'Fecha Estimada Entrega': item.fechaEstimadaEntrega.toLocaleDateString(),
-      'Fecha Real Entrega': item.fechaRealEntrega?.toLocaleDateString() || 'Pendiente',
-      'Estado Entrega': item.estadoEntrega,
-      'Días Delay': item.diasDelay,
-      'Valor Pedido': item.valorPedido,
-      'Responsable Entrega': item.responsableEntrega,
-      'Motivo Retraso': item.motivoRetraso || 'N/A',
-      'Cumple FEE': item.cumpleFEE ? 'Sí' : 'No'
+      'Fecha Estimada Entrega': item.fechaEstimadaEntrega ? new Date(item.fechaEstimadaEntrega).toLocaleDateString('es-PE') : '',
+      'Fecha Real Entrega': item.fechaRealEntrega ? new Date(item.fechaRealEntrega).toLocaleDateString('es-PE') : 'Pendiente',
+      'Atraso (días)': item.diasAtraso,
+      'Cliente Responsable': item.clienteResponsable
     }));
 
-    this.excelService.exportAsExcelFile(datosExport, 'Reporte_Cumplimiento_FEE');
+    const cabecera = [
+      'Número Pedido',
+      'Cliente', 
+      'Fecha Estimada Entrega',
+      'Fecha Real Entrega',
+      'Atraso (días)',
+      'Cliente Responsable'
+    ];
+
+    const campos = [
+      'Número Pedido',
+      'Cliente',
+      'Fecha Estimada Entrega', 
+      'Fecha Real Entrega',
+      'Atraso (días)',
+      'Cliente Responsable'
+    ];
+
+    const ancho = [20, 30, 25, 25, 15, 25];
+
+    const fechaGeneracion = new Date().toLocaleDateString('es-PE');
+    const tipoAnalisis = this.filtrosCumplimientoFEE.tipoFechaAnalisis === 'pedido' ? 'Por Fecha de Pedido' : 'Por Fecha de Entrega';
+    const rangoFechas = `${this.fechaInicio.toLocaleDateString('es-PE')} - ${this.fechaFin.toLocaleDateString('es-PE')}`;
+    
+    const filtrosTexto = `Período: ${rangoFechas}, Tipo de Análisis: ${tipoAnalisis}`;
+
+    const subcabecera = [
+      `Generado el: ${fechaGeneracion}`,
+      `Filtros aplicados: ${filtrosTexto}`,
+      `Total de pedidos: ${this.datosCumplimientoFEE.length}`,
+      `OTIF: ${this.kpisCumplimientoFEE.otifPorcentaje.toFixed(2)}%`
+    ];
+
+    // Agregar columna inicial vacía para el formato
+    subcabecera.unshift("");
+    cabecera.unshift("");
+    campos.unshift("");
+
+    this.excelService.downloadExcel(
+      datosExport,
+      cabecera,
+      campos,
+      'Reporte de Cumplimiento FEE',
+      ancho,
+      subcabecera,
+      'reporte-cumplimiento-fee',
+      []
+    );
   }
 
-  exportarPDF(): void {
-    // Implementar exportación a PDF
-    console.log('Exportar PDF - Cumplimiento FEE');
+  async exportarPDF(): Promise<void> {
+    if (this.datosCumplimientoFEE.length === 0) {
+      Swal.fire({
+        title: 'No hay datos',
+        text: 'Debe aplicar filtros y generar el reporte antes de exportar',
+        icon: 'warning'
+      });
+      return;
+    }
+
+    try {
+      Swal.fire({
+        title: 'Generando PDF...',
+        text: 'Por favor espere mientras se genera el archivo',
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading();
+        }
+      });
+
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      let currentY = 20;
+      const pageWidth = 190;
+      const margin = 10;
+
+      // Título del reporte
+      pdf.setFontSize(16);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('Reporte de Cumplimiento FEE', pageWidth / 2, currentY, { align: 'center' });
+      currentY += 15;
+
+      // Información de filtros
+      pdf.setFontSize(10);
+      pdf.setFont('helvetica', 'normal');
+      const fechaGeneracion = new Date().toLocaleDateString('es-PE');
+      const tipoAnalisis = this.filtrosCumplimientoFEE.tipoFechaAnalisis === 'pedido' ? 'Por Fecha de Pedido' : 'Por Fecha de Entrega';
+      const rangoFechas = `${this.fechaInicio.toLocaleDateString('es-PE')} - ${this.fechaFin.toLocaleDateString('es-PE')}`;
+      
+      pdf.text(`Generado el: ${fechaGeneracion}`, margin, currentY);
+      currentY += 6;
+      pdf.text(`Período: ${rangoFechas}`, margin, currentY);
+      currentY += 6;
+      pdf.text(`Tipo de Análisis: ${tipoAnalisis}`, margin, currentY);
+      currentY += 15;
+
+      // KPIs
+      pdf.setFontSize(12);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('Indicadores OTIF', margin, currentY);
+      currentY += 10;
+
+      pdf.setFontSize(10);
+      pdf.setFont('helvetica', 'normal');
+      pdf.text(`OTIF: ${this.kpisCumplimientoFEE.otifPorcentaje.toFixed(2)}%`, margin, currentY);
+      pdf.text(`Entregas a Tiempo: ${this.kpisCumplimientoFEE.entregasATiempo}`, margin + 60, currentY);
+      currentY += 6;
+      pdf.text(`Entregas Atrasadas: ${this.kpisCumplimientoFEE.entregasAtrasadas}`, margin, currentY);
+      pdf.text(`Atraso Medio: ${this.kpisCumplimientoFEE.atrasoMedioDias.toFixed(1)} días`, margin + 60, currentY);
+      currentY += 15;
+
+      // Tabla de OTIF por Cliente
+      if (this.datosClientesOTIF.length > 0) {
+        pdf.setFontSize(12);
+        pdf.setFont('helvetica', 'bold');
+        pdf.text('OTIF por Cliente', margin, currentY);
+        currentY += 10;
+
+        const clientesHeaders = ['Cliente', 'Total Pedidos', 'A Tiempo', '% Cumplimiento'];
+        const clientesData = this.datosClientesOTIF.map(cliente => [
+          cliente.nombreCliente,
+          cliente.totalPedidos.toString(),
+          cliente.pedidosATiempo.toString(),
+          `${cliente.porcentajeCumplimiento.toFixed(1)}%`
+        ]);
+
+        this.addTableToPDF(pdf, clientesHeaders, clientesData, currentY, [80, 30, 30, 30]);
+        currentY += (clientesData.length * 8) + 20;
+      }
+
+      // Verificar si necesitamos nueva página
+      if (currentY > 250) {
+        pdf.addPage();
+        currentY = 20;
+      }
+
+      // Tabla principal de pedidos
+      pdf.setFontSize(12);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('Detalle de Pedidos', margin, currentY);
+      currentY += 10;
+
+      const headers = ['Pedido', 'Cliente', 'FEE', 'Entrega Real', 'Atraso', 'Responsable'];
+      const tableData = this.datosCumplimientoFEE.map(item => [
+        item.numeroPedido,
+        item.cliente.length > 25 ? item.cliente.substring(0, 25) + '...' : item.cliente,
+        item.fechaEstimadaEntrega ? new Date(item.fechaEstimadaEntrega).toLocaleDateString('es-PE') : '',
+        item.fechaRealEntrega ? new Date(item.fechaRealEntrega).toLocaleDateString('es-PE') : 'Pendiente',
+        item.diasAtraso.toString(),
+        item.clienteResponsable.length > 20 ? item.clienteResponsable.substring(0, 20) + '...' : item.clienteResponsable
+      ]);
+
+      this.addTableToPDF(pdf, headers, tableData, currentY, [25, 45, 25, 25, 15, 35]);
+
+      Swal.close();
+      pdf.save('reporte-cumplimiento-fee.pdf');
+
+    } catch (error) {
+      Swal.close();
+      console.error('Error al generar PDF:', error);
+      Swal.fire({
+        title: 'Error',
+        text: 'Ocurrió un error al generar el PDF',
+        icon: 'error'
+      });
+    }
+  }
+
+  private addTableToPDF(pdf: jsPDF, headers: string[], data: string[][], startY: number, columnWidths: number[]): void {
+    const margin = 10;
+    let currentY = startY;
+
+    // Headers
+    pdf.setFontSize(8);
+    pdf.setFont('helvetica', 'bold');
+    let currentX = margin;
+    headers.forEach((header, index) => {
+      pdf.text(header, currentX, currentY);
+      currentX += columnWidths[index];
+    });
+    currentY += 8;
+
+    // Data rows
+    pdf.setFont('helvetica', 'normal');
+    data.forEach((row, rowIndex) => {
+      // Verificar si necesitamos nueva página
+      if (currentY > 280) {
+        pdf.addPage();
+        currentY = 20;
+        
+        // Repetir headers en nueva página
+        pdf.setFont('helvetica', 'bold');
+        currentX = margin;
+        headers.forEach((header, index) => {
+          pdf.text(header, currentX, currentY);
+          currentX += columnWidths[index];
+        });
+        currentY += 8;
+        pdf.setFont('helvetica', 'normal');
+      }
+
+      currentX = margin;
+      row.forEach((cell, cellIndex) => {
+        const text = cell || '';
+        pdf.text(text, currentX, currentY);
+        currentX += columnWidths[cellIndex];
+      });
+      currentY += 6;
+    });
   }
 }

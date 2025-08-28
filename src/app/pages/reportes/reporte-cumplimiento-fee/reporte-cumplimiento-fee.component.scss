@@ -104,7 +104,88 @@ h2 {
   }
 }
 
-/* Estados de entrega */
+/* Estados del pedido */
+.estado-borrador {
+  background-color: #e2e3e5;
+  color: #383d41;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.estado-pagado {
+  background-color: #d1ecf1;
+  color: #0c5460;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.estado-cola {
+  background-color: #fff3cd;
+  color: #856404;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.estado-produccion {
+  background-color: #ffeaa7;
+  color: #856404;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.estado-calidad {
+  background-color: #cce5ff;
+  color: #004085;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.estado-envasado {
+  background-color: #e7f3ff;
+  color: #003d6b;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.estado-etiquetado {
+  background-color: #f3e5f5;
+  color: #4a148c;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.estado-despacho {
+  background-color: #ffe0b2;
+  color: #bf360c;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.estado-validado {
+  background-color: #c8e6c9;
+  color: #1b5e20;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
 .estado-entregado {
   background-color: #d4edda;
   color: #155724;
@@ -114,35 +195,8 @@ h2 {
   font-weight: 500;
 }
 
-.estado-proceso {
-  background-color: #d1ecf1;
-  color: #0c5460;
-  padding: 4px 8px;
-  border-radius: 6px;
-  font-size: 0.85rem;
-  font-weight: 500;
-}
-
-.estado-retrasado {
-  background-color: #f8d7da;
-  color: #721c24;
-  padding: 4px 8px;
-  border-radius: 6px;
-  font-size: 0.85rem;
-  font-weight: 500;
-}
-
-.estado-cancelado {
-  background-color: #e2e3e5;
-  color: #383d41;
-  padding: 4px 8px;
-  border-radius: 6px;
-  font-size: 0.85rem;
-  font-weight: 500;
-}
-
-/* Estados de delay */
-.delay-anticipado {
+/* Estados de atraso */
+.atraso-tiempo {
   background-color: #d4edda;
   color: #155724;
   padding: 2px 6px;
@@ -151,16 +205,7 @@ h2 {
   font-weight: 600;
 }
 
-.delay-tiempo {
-  background-color: #d1ecf1;
-  color: #0c5460;
-  padding: 2px 6px;
-  border-radius: 6px;
-  font-size: 0.8rem;
-  font-weight: 600;
-}
-
-.delay-leve {
+.atraso-leve {
   background-color: #fff3cd;
   color: #856404;
   padding: 2px 6px;
@@ -169,7 +214,7 @@ h2 {
   font-weight: 600;
 }
 
-.delay-moderado {
+.atraso-moderado {
   background-color: #ffeaa7;
   color: #856404;
   padding: 2px 6px;
@@ -178,7 +223,7 @@ h2 {
   font-weight: 600;
 }
 
-.delay-critico {
+.atraso-critico {
   background-color: #f8d7da;
   color: #721c24;
   padding: 2px 6px;
