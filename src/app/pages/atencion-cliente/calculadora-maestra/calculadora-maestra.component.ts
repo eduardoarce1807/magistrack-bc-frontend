@@ -72,6 +72,11 @@ export class CalculadoraMaestraComponent implements OnInit {
 
   pedidoProducto: any;
 
+  // Getter para calcular la suma total de costoPorPorcentaje
+  get sumaCostoPorPorcentaje(): number {
+    return this.componentes.reduce((acc, item) => acc + (Number(item.costoPorPorcentaje) || 0), 0);
+  }
+
   constructor(private productoService: ProductoService,
     private pedidoService: PedidoService,
     private materiaPrimaService: MateriaPrimaService,

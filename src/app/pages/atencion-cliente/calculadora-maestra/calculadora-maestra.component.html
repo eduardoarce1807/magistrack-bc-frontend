@@ -101,6 +101,21 @@
             </div>
         }
 
+        <!-- Sumatoria de Costo por Porcentaje -->
+        <div class="row mt-3 border-top pt-3" *ngIf="componentes.length > 0">
+            <div class="col-md-9"></div>
+            <div class="col-md-3">
+                <label for="sumaCostoPorPorcentaje" class="form-label fw-bold">Total Costo por Porcentaje</label>
+                <input type="number" 
+                       name="sumaCostoPorPorcentaje" 
+                       [value]="sumaCostoPorPorcentaje | number:'1.2-2'" 
+                       disabled 
+                       class="form-control text-end" 
+                       id="sumaCostoPorPorcentaje"
+                       placeholder="0.00">
+            </div>
+        </div>
+
         <div class="row mt-2">
             <div class="col-md-3">
                 <button type="button" class="btn btn-primary" (click)="agregarComponente()">Agregar Componente</button>
