@@ -66,11 +66,6 @@ export class SidebarComponent {
 					label: 'Reporte de Ventas',
 					command: () => this.irA('pages/atencion-cliente/reporte-ventas')
 				},
-				{
-					key: '0_7',
-					label: 'Calculadora Maestra',
-					command: () => this.irA('pages/atencion-cliente/calculadora-maestra')
-				}
 			] : [])
 		];
 
@@ -280,8 +275,18 @@ export class SidebarComponent {
 						},
 						{
 							key: '6_4',
+							label: 'Calculadora Maestra',
+							command: () => this.irA('pages/atencion-cliente/calculadora-maestra')
+						},
+						{
+							key: '6_5',
 							label: 'Calculadora de Productos',
 							command: () => this.irA('pages/atencion-cliente/calculadora-productos')
+						},
+						{
+							key: '6_6',
+							label: 'Calculadora de Cápsulas/Óvulos',
+							command: () => this.irA('pages/atencion-cliente/calculadora-capsulas')
 						},
 					]
 				}

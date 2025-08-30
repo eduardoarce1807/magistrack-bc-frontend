@@ -19,5 +19,6 @@ export const atencionClienteRoutes: Routes = [
   { path: 'visualizador-pagos', loadComponent: () => import('./visualizador-pagos/visualizador-pagos.component').then(m => m.VisualizadorPagosComponent), canActivate: [AuthGuard], data: { roles: [1, 5] } },
   { path: 'reporte-ventas', loadComponent: () => import('./reporte-ventas/reporte-ventas.component').then(m => m.ReporteVentasComponent), canActivate: [AuthGuard], data: { roles: [1, 5] } },
   { path: 'calculadora-productos', loadComponent: () => import('./calculadora-productos/calculadora-productos.component').then(m => m.CalculadoraProductosComponent), canActivate: [AuthGuard], data: { roles: [1, 5] } },
+  { path: 'calculadora-capsulas', loadComponent: () => import('./calculadora-capsulas/calculadora-capsulas.component').then(m => m.CalculadoraCapsulaComponent), canActivate: [AuthGuard], data: { roles: [1, 5] } },
   //   { path: 'panel-formulador', loadComponent: () => import('./panel-formulador/panel-formulador.component').then(m => m.PanelFormuladorComponent) }
 ];
