@@ -258,7 +258,7 @@ export class SidebarComponent {
 								},
 								{
 									key: '6_1',
-									label: 'Mantenimiento de Producto',
+									label: 'Listado Maestro de Producto',
 									command: () => this.irA('pages/gestion-producto/mantenimiento-producto')
 								}
 							]

@@ -11,7 +11,7 @@
       <div class="row g-3">
         <!-- Nombre -->
         <div class="col-md-6">
-          <label for="nombres" class="form-label">Nombre*</label>
+          <label for="nombres" class="form-label fw-bold">Nombre*</label>
           <input type="text" formControlName="nombres" class="form-control" placeholder="Ingrese el nombre" required (input)="onNombreInput($event)" />
           <div *ngIf="clienteForm.get('nombres')?.invalid && clienteForm.get('nombres')?.touched" class="text-danger small">
             El nombre es obligatorio.
@@ -19,7 +19,7 @@
         </div>
         <!-- Apellido -->
         <div class="col-md-6">
-          <label for="apellidos" class="form-label">Apellido*</label>
+          <label for="apellidos" class="form-label fw-bold">Apellido*</label>
           <input type="text" formControlName="apellidos" class="form-control" placeholder="Ingrese el apellido" required (input)="onApellidoInput($event)" />
           <div *ngIf="clienteForm.get('apellidos')?.invalid && clienteForm.get('apellidos')?.touched" class="text-danger small">
             El apellido es obligatorio.
@@ -27,7 +27,7 @@
         </div>
         <!-- Rol -->
         <div class="col-md-3">
-          <label for="rol" class="form-label">Rol*</label>
+          <label for="rol" class="form-label fw-bold">Rol*</label>
           <select formControlName="rol" class="form-select" required>
             <option value="" disabled selected>Seleccione rol</option>
             <option *ngFor="let rol of roles" [value]="rol.idRol">{{ rol.nombre }}</option>
@@ -38,7 +38,7 @@
         </div>
         <!-- Tipo de Documento -->
         <div class="col-md-3">
-          <label for="tipoDocumento" class="form-label">Tipo de Documento*</label>
+          <label for="tipoDocumento" class="form-label fw-bold">Tipo de Documento*</label>
           <select formControlName="tipoDocumento" class="form-select" required>
             <option value="" disabled selected>Seleccione tipo de documento</option>
             <option *ngFor="let tipo of tiposDocumento" [value]="tipo.idTipoDocumento">{{ tipo.nombre }}</option>
@@ -49,7 +49,7 @@
         </div>
         <!-- Número de Documento -->
         <div class="col-md-6">
-          <label for="numeroDocumento" class="form-label">Número de Documento*</label>
+          <label for="numeroDocumento" class="form-label fw-bold">Número de Documento*</label>
           <input type="text" formControlName="numeroDocumento" class="form-control" placeholder="Ingrese el número de documento" required />
           <div *ngIf="clienteForm.get('numeroDocumento')?.invalid && clienteForm.get('numeroDocumento')?.touched" class="text-danger small">
             El número de documento es obligatorio.
@@ -57,12 +57,12 @@
         </div>
         <!-- Empresa Asociada -->
         <div class="col-md-6">
-          <label for="empresaAsociada" class="form-label">Empresa asociada (Nombre de Spa, consultorio o Centro Estético)</label>
+          <label for="empresaAsociada" class="form-label fw-bold">Empresa asociada (Nombre de Spa, consultorio o Centro Estético)</label>
           <input type="text" formControlName="empresaAsociada" class="form-control" placeholder="Ingrese el nombre de la empresa (opcional)" />
         </div>
         <!-- Correo Electrónico -->
         <div [className]="isEditing ? 'col-md-6' : 'col-md-3'">
-          <label for="correo" class="form-label">Correo Electrónico*</label>
+          <label for="correo" class="form-label fw-bold">Correo Electrónico*</label>
           <input type="email" formControlName="correo" class="form-control" placeholder="Ingrese el correo electrónico" required />
           <div *ngIf="clienteForm.get('correo')?.invalid && clienteForm.get('correo')?.touched" class="text-danger small">
             El correo es obligatorio y debe ser válido.
@@ -71,7 +71,7 @@
         @if (!isEditing) {
           <!-- Confirmación de Correo Electrónico -->
           <div class="col-md-3">
-            <label for="confirmCorreo" class="form-label">Confirmar Correo Electrónico*</label>
+            <label for="confirmCorreo" class="form-label fw-bold">Confirmar Correo Electrónico*</label>
             <input type="email" formControlName="confirmCorreo" class="form-control" placeholder="Confirme el correo electrónico" required />
             <div *ngIf="(clienteForm.get('confirmCorreo')?.touched || clienteForm.get('correo')?.touched) && clienteForm.hasError('correosNoCoinciden')" class="text-danger small">
               Los correos electrónicos no coinciden.
@@ -83,7 +83,7 @@
         }
         <!-- Teléfono -->
         <div class="col-md-3">
-          <label for="telefono" class="form-label">Teléfono*</label>
+          <label for="telefono" class="form-label fw-bold">Teléfono*</label>
           <input
             type="tel"
             formControlName="telefono"
@@ -101,7 +101,7 @@
         </div>
 
         <div class="col-md-3">
-          <label for="telefono2" class="form-label">Teléfono Fijo (opcional)</label>
+          <label for="telefono2" class="form-label fw-bold">Teléfono Fijo (opcional)</label>
           <input
             type="tel"
             formControlName="telefono2"
@@ -118,7 +118,7 @@
         </div>
         <!-- Fecha de Nacimiento -->
         <div class="col-md-6">
-          <label for="fechaNacimiento" class="form-label">Fecha de Nacimiento*</label>
+          <label for="fechaNacimiento" class="form-label fw-bold">Fecha de Nacimiento*</label>
           <input type="date" formControlName="fechaNacimiento" class="form-control" required />
           <div *ngIf="clienteForm.get('fechaNacimiento')?.invalid && clienteForm.get('fechaNacimiento')?.touched" class="text-danger small">
             La fecha de nacimiento es obligatoria.
@@ -126,7 +126,7 @@
         </div>
         <!-- Dirección -->
         <div class="col-md-12">
-          <label for="direccion" class="form-label">Dirección de Domicilio*</label>
+          <label for="direccion" class="form-label fw-bold">Dirección de Domicilio*</label>
           <input type="text" formControlName="direccion" class="form-control" placeholder="Ingrese la dirección" required />
           <div *ngIf="clienteForm.get('direccion')?.invalid && clienteForm.get('direccion')?.touched" class="text-danger small">
             La dirección es obligatoria.
@@ -134,7 +134,7 @@
         </div>
         <!-- Medio de Contacto -->
         <div class="col-md-6">
-          <label for="medioContacto" class="form-label">Medio de Contacto</label>
+          <label for="medioContacto" class="form-label fw-bold">Medio de Contacto</label>
           <select formControlName="medioContacto" class="form-select">
             <option [value]="null" disabled selected>Seleccione medio de contacto</option>
             <option *ngFor="let medio of mediosContacto" [value]="medio.idMedioContacto">{{ medio.nombre }}</option>
@@ -142,23 +142,23 @@
         </div>
 		    <!-- Profesion -->
         <div class="col-md-6">
-          <label for="profesion" class="form-label">Profesión / Oficio</label>
+          <label for="profesion" class="form-label fw-bold">Profesión / Oficio</label>
           <input type="text" formControlName="profesion" class="form-control" placeholder="Ingrese la profesión" />
         </div>
 
         <div class="col-md-6">
-          <label for="colegioProfesional" class="form-label">Colegio profesional (opcional)</label>
+          <label for="colegioProfesional" class="form-label fw-bold">Colegio profesional (opcional)</label>
           <input type="text" formControlName="colegioProfesional" class="form-control" placeholder="Ingrese su colegio profesional" />
         </div>
 
         <div class="col-md-6">
-          <label for="numeroColegiatura" class="form-label">N° Colegiatura</label>
+          <label for="numeroColegiatura" class="form-label fw-bold">N° Colegiatura</label>
           <input type="text" formControlName="numeroColegiatura" class="form-control" placeholder="Ingrese el número de su colegiatura" />
         </div>
 
         <!-- Usuario -->
         <div class="col-md-3">
-          <label for="usuario" class="form-label">Usuario*</label>
+          <label for="usuario" class="form-label fw-bold">Usuario*</label>
           <input type="text" formControlName="usuario" class="form-control" placeholder="Ingrese el usuario" required autocomplete="off" />
           <div *ngIf="clienteForm.get('usuario')?.invalid && clienteForm.get('usuario')?.touched" class="text-danger small">
             El usuario es obligatorio.
@@ -167,7 +167,7 @@
         </div>
         <!-- Password -->
         <div class="col-md-3">
-          <label for="password" class="form-label">Contraseña*</label>
+          <label for="password" class="form-label fw-bold">Contraseña*</label>
           <div class="input-group">
             <input [type]="showPassword ? 'text' : 'password'" formControlName="password" class="form-control" placeholder="Ingrese la contraseña" required autocomplete="new-password" />
             <button type="button" class="btn btn-dark" (click)="showPassword = !showPassword" tabindex="-1">
@@ -180,7 +180,7 @@
         </div>
         <!-- Codigo referido -->
          <div class="col-md-6">
-          <label for="referidoPor" class="form-label">Código de Referido</label>
+          <label for="referidoPor" class="form-label fw-bold">Código de Referido</label>
           <div class="input-group">
             <input type="text" formControlName="referidoPor" class="form-control" placeholder="Ingrese el código de referido" maxlength="6"  (input)="changeCodigoReferido($event)"/>
             <button [disabled]="isEditing" class="btn btn-dark" type="button" (click)="validarCodigoReferido()">Validar código</button>
@@ -195,11 +195,11 @@
 
         <!-- Comentarios -->
         <div class="col-md-6">
-          <label for="observaciones" class="form-label">Comentarios</label>
+          <label for="observaciones" class="form-label fw-bold">Comentarios</label>
           <textarea formControlName="observaciones" class="form-control" rows="3" placeholder="Ingrese comentarios adicionales"></textarea>
         </div>
         <div class="col-md-6">
-          <label for="archivoInput" class="form-label">Selecciona un archivo</label>
+          <label for="archivoInput" class="form-label fw-bold">Selecciona un archivo</label>
     
           <input type="file"
                 id="archivoInput"
