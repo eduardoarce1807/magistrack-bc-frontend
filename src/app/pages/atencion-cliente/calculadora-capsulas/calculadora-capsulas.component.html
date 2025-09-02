@@ -121,16 +121,16 @@
     </div>
 
     <!-- Tabla de Cálculos -->
-    <div class="table-responsive">
-      <table class="table table-bordered table-hover">
+    <div class="table-responsive" style="font-size: 24px;">
+      <table class="table table-bordered table-hover" style="overflow-x: scroll; min-width: 1500px;">
         <thead class="table-dark">
           <tr>
             <th>Presentación</th>
-            <th style="width: 150px;">MP's</th>
+            <th style="min-width: 150px;">MP's</th>
             <th>Envase</th>
             <th>Maquila</th>
             <th>Total Neto</th>
-            <th style="width: 120px;">Ganancia (%)</th>
+            <th style="min-width: 150px;">Ganancia (%)</th>
             <th>Valor Bruto</th>
             <th>IGV (%)</th>
             <th>Costo Final</th>
@@ -194,7 +194,7 @@
               
               <!-- Ganancia (%) -->
               <td>
-                <div class="input-group input-group-sm">
+                <div class="input-group">
                   <input 
                     type="number" 
                     [(ngModel)]="fila.ganancia" 
@@ -243,7 +243,7 @@
               
               <!-- Precio Final (Editable) -->
               <td>
-                <div class="input-group input-group-sm">
+                <div class="input-group">
                   <span class="input-group-text">S/</span>
                   <input 
                     type="number" 

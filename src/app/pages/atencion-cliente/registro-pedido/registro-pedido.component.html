@@ -273,15 +273,17 @@
 			@if(tipoComprobante != 1 && tipoComprobante != 2){
 				<div class="col-7"></div>
 			}
-			<div class="col-2 d-flex justify-content-end">
-				<button (click)="guardarDatosCliente()" class="btn btn-primary col-12" [disabled]="
-					(tipoComprobante == 1 && (!nombreCompletoCliente || !dniCliente || !isValidDni(dniCliente))) ||
-					(tipoComprobante == 2 && (!razonSocialCliente || !rucCliente || !isValidRuc(rucCliente))) ||
-					pedido.estadoPedido.idEstadoPedido > 1
-				">
-					<i class="bi bi-save"></i> Guardar
-				</button>
-			</div>
+			@if(tipoComprobante != 0){
+				<div class="col-2 d-flex justify-content-end">
+					<button (click)="guardarDatosCliente()" class="btn btn-primary col-12" [disabled]="
+						(tipoComprobante == 1 && (!nombreCompletoCliente || !dniCliente || !isValidDni(dniCliente))) ||
+						(tipoComprobante == 2 && (!razonSocialCliente || !rucCliente || !isValidRuc(rucCliente))) ||
+						pedido.estadoPedido.idEstadoPedido > 1
+					">
+						<i class="bi bi-save"></i> Guardar
+					</button>
+				</div>
+			}
 		</div>
 
 		<!-- <div class="d-flex justify-content-end mb-3">

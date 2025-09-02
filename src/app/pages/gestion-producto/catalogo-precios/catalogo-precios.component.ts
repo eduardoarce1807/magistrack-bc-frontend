@@ -43,7 +43,9 @@ export class CatalogoPreciosComponent implements OnInit {
 
   catalogo: any = null;
   nombreCatalogo: string = '';
+  colorEtiqueta: string = '#667eea'; // Color por defecto
   idRol: number = 2;
+  isLoading: boolean = false; // Estado de carga
 
   // Para la edición inline
   editingItemId: number | null = null;
@@ -70,22 +72,29 @@ export class CatalogoPreciosComponent implements OnInit {
   }
 
   cargarCatalogosPrecio(): void {
+    this.isLoading = true; // Iniciar loader
     this.catalogoPrecioService.obtenerCatalogoPorRol(this.idRol).subscribe(
       (catalogo) => {
         if(catalogo) {
           this.catalogo = catalogo;
           this.nombreCatalogo = catalogo.nombre;
+          this.colorEtiqueta = catalogo.colorEtiqueta || '#667eea'; // Color por defecto si no viene
           this.catalogos = catalogo.productos || [];
           this.collectionSize = this.catalogos.length;
         }else{
           this.catalogo = null;
           this.catalogos = [];
+          this.colorEtiqueta = '#667eea'; // Reset al color por defecto
           let rol = this.roles.find(r => r.idRol == this.idRol);
           this.nombreCatalogo = "";
           
         }
+        this.isLoading = false; // Finalizar loader
       },
-      (error) => console.error('Error al cargar catalogos', error)
+      (error) => {
+        console.error('Error al cargar catalogos', error);
+        this.isLoading = false; // Finalizar loader en caso de error
+      }
     );
   }
 
@@ -303,6 +312,45 @@ export class CatalogoPreciosComponent implements OnInit {
         );
       }
     });
+  }
+
+  // Método para obtener el nombre del rol por ID
+  getRolNombre(idRol: number): string {
+    const rol = this.roles.find(r => r.idRol == idRol);
+    return rol ? rol.nombre : 'Tipo de cliente';
+  }
+
+  // Método para obtener el estilo del header con el color dinámico
+  getHeaderStyle(): any {
+    return {
+      'background': this.colorEtiqueta,
+      'color': this.getTextColor(),
+      'border': 'none',
+      'border-radius': '0.5rem',
+      'box-shadow': '0 4px 6px rgba(0, 0, 0, 0.1)'
+    };
+  }
+
+  // Método para determinar si el color de fondo es claro y necesita texto oscuro
+  isColorLight(hexColor: string): boolean {
+    // Remover el # si existe
+    const color = hexColor.replace('#', '');
+    
+    // Convertir a RGB
+    const r = parseInt(color.substr(0, 2), 16);
+    const g = parseInt(color.substr(2, 2), 16);
+    const b = parseInt(color.substr(4, 2), 16);
+    
+    // Calcular luminancia usando la fórmula estándar
+    const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+    
+    // Si la luminancia es mayor a 0.6, es un color claro
+    return luminance > 0.6;
+  }
+
+  // Método para obtener el color del texto según el fondo
+  getTextColor(): string {
+    return this.isColorLight(this.colorEtiqueta) ? '#333333' : '#ffffff';
   }
 
 }
