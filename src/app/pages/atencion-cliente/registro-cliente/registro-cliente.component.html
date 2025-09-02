@@ -9,40 +9,20 @@
     <h2 class="mb-4 text-center">{{titleText}}</h2>
     <form [formGroup]="clienteForm" (ngSubmit)="onSubmit()">
       <div class="row g-3">
-        <!-- Usuario -->
-        <div class="col-md-3">
-          <label for="usuario" class="form-label">Usuario*</label>
-          <input type="text" formControlName="usuario" class="form-control" placeholder="Ingrese el usuario" required autocomplete="off" />
-          <div *ngIf="clienteForm.get('usuario')?.invalid && clienteForm.get('usuario')?.touched" class="text-danger small">
-            El usuario es obligatorio.
-            Mínimo 6 caracteres.
+        <!-- Nombre -->
+        <div class="col-md-6">
+          <label for="nombres" class="form-label">Nombre*</label>
+          <input type="text" formControlName="nombres" class="form-control" placeholder="Ingrese el nombre" required (input)="onNombreInput($event)" />
+          <div *ngIf="clienteForm.get('nombres')?.invalid && clienteForm.get('nombres')?.touched" class="text-danger small">
+            El nombre es obligatorio.
           </div>
         </div>
-        <!-- Password -->
-        <div class="col-md-3">
-          <label for="password" class="form-label">Contraseña*</label>
-          <div class="input-group">
-            <input [type]="showPassword ? 'text' : 'password'" formControlName="password" class="form-control" placeholder="Ingrese la contraseña" required autocomplete="new-password" />
-            <button type="button" class="btn btn-dark" (click)="showPassword = !showPassword" tabindex="-1">
-              <i class="bi" [ngClass]="showPassword ? 'bi-eye-slash' : 'bi-eye'"></i>
-            </button>
-          </div>
-          <div *ngIf="clienteForm.get('password')?.invalid && clienteForm.get('password')?.touched && (!isEditing || passwordTouched)" class="text-danger small">
-            La contraseña debe tener mínimo 6 caracteres, incluir mayúscula, minúscula, número y caracter especial.
-          </div>
-        </div>
-        <!-- Codigo referido -->
-         <div class="col-md-6">
-          <label for="referidoPor" class="form-label">Código de Referido</label>
-          <div class="input-group">
-            <input type="text" formControlName="referidoPor" class="form-control" placeholder="Ingrese el código de referido" maxlength="6"  (input)="changeCodigoReferido($event)"/>
-            <button [disabled]="isEditing" class="btn btn-dark" type="button" (click)="validarCodigoReferido()">Validar código</button>
-          </div>
-          <div *ngIf="isCodigoReferidoValid === true" class="text-success small">
-            Código de referido válido.
-          </div>
-          <div *ngIf="isCodigoReferidoValid === false" class="text-danger small">
-            Código de referido inválido.
+        <!-- Apellido -->
+        <div class="col-md-6">
+          <label for="apellidos" class="form-label">Apellido*</label>
+          <input type="text" formControlName="apellidos" class="form-control" placeholder="Ingrese el apellido" required (input)="onApellidoInput($event)" />
+          <div *ngIf="clienteForm.get('apellidos')?.invalid && clienteForm.get('apellidos')?.touched" class="text-danger small">
+            El apellido es obligatorio.
           </div>
         </div>
         <!-- Rol -->
@@ -73,22 +53,6 @@
           <input type="text" formControlName="numeroDocumento" class="form-control" placeholder="Ingrese el número de documento" required />
           <div *ngIf="clienteForm.get('numeroDocumento')?.invalid && clienteForm.get('numeroDocumento')?.touched" class="text-danger small">
             El número de documento es obligatorio.
-          </div>
-        </div>
-        <!-- Nombre -->
-        <div class="col-md-6">
-          <label for="nombres" class="form-label">Nombre*</label>
-          <input type="text" formControlName="nombres" class="form-control" placeholder="Ingrese el nombre" required (input)="onNombreInput($event)" />
-          <div *ngIf="clienteForm.get('nombres')?.invalid && clienteForm.get('nombres')?.touched" class="text-danger small">
-            El nombre es obligatorio.
-          </div>
-        </div>
-        <!-- Apellido -->
-        <div class="col-md-6">
-          <label for="apellidos" class="form-label">Apellido*</label>
-          <input type="text" formControlName="apellidos" class="form-control" placeholder="Ingrese el apellido" required (input)="onApellidoInput($event)" />
-          <div *ngIf="clienteForm.get('apellidos')?.invalid && clienteForm.get('apellidos')?.touched" class="text-danger small">
-            El apellido es obligatorio.
           </div>
         </div>
         <!-- Empresa Asociada -->
@@ -191,6 +155,44 @@
           <label for="numeroColegiatura" class="form-label">N° Colegiatura</label>
           <input type="text" formControlName="numeroColegiatura" class="form-control" placeholder="Ingrese el número de su colegiatura" />
         </div>
+
+        <!-- Usuario -->
+        <div class="col-md-3">
+          <label for="usuario" class="form-label">Usuario*</label>
+          <input type="text" formControlName="usuario" class="form-control" placeholder="Ingrese el usuario" required autocomplete="off" />
+          <div *ngIf="clienteForm.get('usuario')?.invalid && clienteForm.get('usuario')?.touched" class="text-danger small">
+            El usuario es obligatorio.
+            Mínimo 6 caracteres.
+          </div>
+        </div>
+        <!-- Password -->
+        <div class="col-md-3">
+          <label for="password" class="form-label">Contraseña*</label>
+          <div class="input-group">
+            <input [type]="showPassword ? 'text' : 'password'" formControlName="password" class="form-control" placeholder="Ingrese la contraseña" required autocomplete="new-password" />
+            <button type="button" class="btn btn-dark" (click)="showPassword = !showPassword" tabindex="-1">
+              <i class="bi" [ngClass]="showPassword ? 'bi-eye-slash' : 'bi-eye'"></i>
+            </button>
+          </div>
+          <div *ngIf="clienteForm.get('password')?.invalid && clienteForm.get('password')?.touched && (!isEditing || passwordTouched)" class="text-danger small">
+            La contraseña debe tener mínimo 6 caracteres, incluir mayúscula, minúscula, número y caracter especial.
+          </div>
+        </div>
+        <!-- Codigo referido -->
+         <div class="col-md-6">
+          <label for="referidoPor" class="form-label">Código de Referido</label>
+          <div class="input-group">
+            <input type="text" formControlName="referidoPor" class="form-control" placeholder="Ingrese el código de referido" maxlength="6"  (input)="changeCodigoReferido($event)"/>
+            <button [disabled]="isEditing" class="btn btn-dark" type="button" (click)="validarCodigoReferido()">Validar código</button>
+          </div>
+          <div *ngIf="isCodigoReferidoValid === true" class="text-success small">
+            Código de referido válido.
+          </div>
+          <div *ngIf="isCodigoReferidoValid === false" class="text-danger small">
+            Código de referido inválido.
+          </div>
+        </div>
+
         <!-- Comentarios -->
         <div class="col-md-6">
           <label for="observaciones" class="form-label">Comentarios</label>
