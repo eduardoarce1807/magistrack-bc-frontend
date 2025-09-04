@@ -6,7 +6,7 @@ import {Response_Generico} from "../../model/reponseGeneric";
 import {Response_Generico_Read} from "../../model/responseGenericRead";
 import {
 	FacturaOrden,
-	ordencompraModel,
+	ordencompraModel, ordencompraPeriodo, proveedorReq,
 	respuestaFacturaModel,
 	respuestaObservacionModel,
 	RespuestaOrden
@@ -32,5 +32,11 @@ export class OrdencompraService {
 	}
 	registrarObservacionOrdencompra(id_orden_compra:string,observacion:RespuestaOrden): Observable<Response_Generico<respuestaObservacionModel>> {
 		return this.http.post<Response_Generico<respuestaObservacionModel>>(`${this.baseUrl}/cargar-respuesta/${id_orden_compra}`, observacion);
+	}
+	getOrdenesxProveedorperiodo(orden:ordencompraPeriodo): Observable<Response_Generico<ordencompraModel[]>> {
+		return this.http.post<Response_Generico<ordencompraModel[]>>(`${this.baseUrl}/visualizar-ordenes-x-proveedor-periodo`,orden);
+	}
+	getProveedoresxRequerimiento(idrequerimiento:string): Observable<Response_Generico<proveedorReq[]>> {
+		return this.http.get<Response_Generico<proveedorReq[]>>(`${this.baseUrl}/visualizar-ordenes-x-requerimiento/${idrequerimiento}`);
 	}
 }

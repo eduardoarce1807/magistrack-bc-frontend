@@ -125,6 +125,22 @@ export class SidebarComponent {
 						key: '7_8',
 						label: 'Cumplimiento FEE',
 						command: () => this.irA('pages/reportes/cumplimiento-fee')
+					},
+
+					{
+						key: '7_9',
+						label: 'Órdenes de Compra por Periodo',
+						command: () => this.irA('pages/reportes/orden-compra-periodo')
+					},
+					{
+						key: '7_10',
+						label: 'Compararivo de Precios',
+						command: () => this.irA('pages/reportes/comparativo-precio')
+					},
+					{
+						key: '7_10',
+						label: 'Stock actual vs Stock mín.',
+						command: () => this.irA('pages/reportes/comparativo-stock')
 					}
 				]
 			}] : []),
@@ -234,7 +250,7 @@ export class SidebarComponent {
 					items: [
 						{
 							key: '5_0',
-							label: 'Listado de Materia Prima',
+							label: 'Listado de Materias Primas',
 							command: () => this.irA('pages/inventario/inventario-matprima')
 						},
 						{

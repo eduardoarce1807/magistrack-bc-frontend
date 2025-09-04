@@ -332,6 +332,7 @@ export class InventarioMatprimaComponent {
 	guardarmateria(){
 			this.spinner=true
 			this.verdetalle=false
+		// console.log(this.fila_select,this.op)
 		this.materiaService.registrarMateriaprima(this.fila_select,this.op).subscribe({
 			next:(data)=>{
 				this.spinner=false

@@ -119,3 +119,18 @@ export class Detalleconformidad {
 	item:                number=0;
 	id_materia_prima_conf:number=0;
 }
+export class ordencompraPeriodo {
+	idproveedor:string|null=null
+	fechainicial:string|null=null
+	fechafinal:string|null=null
+	estado:string|null=null
+}
+export class proveedorReq {
+	itemitecotizacion:number=0;
+	cantidad:number=0;
+	id_proveedor:string|null=null
+	descripcion:string|null=null
+	impsubtotal:number=0;
+	impunit:number=0;
+	diasentrega:number=0;
+}

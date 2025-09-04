@@ -73,6 +73,13 @@ export class ReportesComponent {
 					)
 				);
 				break;
+			case "listado-compra":
+				this.cargarReporte(() =>
+					this.reportesService.imprimirordencompraProveedor(
+						data.ordencompra
+					)
+				);
+				break;
 
 			default:
 				break;
