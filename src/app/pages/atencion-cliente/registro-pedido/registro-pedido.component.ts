@@ -257,7 +257,8 @@ export class RegistroPedidoComponent implements OnInit, OnDestroy {
   listaClientes: any[] = [];
   clienteSeleccionado: number | null = null;
   getClientes(){
-    this.clienteService.getClientesByRol(2).subscribe(
+    var lstRolesExcluidos = [1,6,7,8,9,10];
+    this.clienteService.getClientesMenosRoles(lstRolesExcluidos).subscribe(
       (clientes) => {
         this.listaClientes = clientes;
         console.log('Clientes:', clientes);

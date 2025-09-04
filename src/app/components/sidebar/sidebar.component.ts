@@ -66,6 +66,21 @@ export class SidebarComponent {
 					label: 'Reporte de Ventas',
 					command: () => this.irA('pages/atencion-cliente/reporte-ventas')
 				},
+				{
+					key: '0_7',
+					label: 'Registro de Cupón',
+					command: () => this.irA('pages/gestion-producto/registro-cupon')
+				},
+				{
+					key: '0_8',
+					label: 'Listado de Cupones',
+					command: () => this.irA('pages/gestion-producto/listado-cupones')
+				},
+				{
+					key: '0_9',
+					label: 'Catálogo de Precios',
+					command: () => this.irA('pages/gestion-producto/catalogo-precios')
+				},
 			] : [])
 		];
 
@@ -174,40 +189,18 @@ export class SidebarComponent {
 			] : []),
 			...(user.rol.idRol === 1 ? [
 				{
-					key: '2',
-					label: 'Gestión Producto',
-					icon: 'pi pi-box',
-					items: [
-						{
-							key: '2_2',
-							label: 'Registro de Cupón',
-							command: () => this.irA('pages/gestion-producto/registro-cupon')
-						},
-						{
-							key: '2_3',
-							label: 'Listado de Cupones',
-							command: () => this.irA('pages/gestion-producto/listado-cupones')
-						},
-						{
-							key: '2_4',
-							label: 'Catálogo de Precios',
-							command: () => this.irA('pages/gestion-producto/catalogo-precios')
-						}
-					]
-				},
-				{
 					key: '3',
 					label: 'Compras',
 					icon: 'pi pi-shopping-cart',
 					items: [
 						{
 							key: '3_0',
-							label: 'Bandeja de Requerimientos',
+							label: 'Historial de Requerimientos',
 							command: () => this.irA('pages/compras/bandeja-requerimientos')
 						},
 						{
 							key: '3_1',
-							label: 'Requerimiento manual',
+							label: 'Solicitud de Requerimiento',
 							command: () => this.irA('pages/compras/requerimiento-manual')
 						},
 						// {
@@ -234,7 +227,7 @@ export class SidebarComponent {
 					items: [
 						{
 							key: '5_0',
-							label: 'Control Materia Prima',
+							label: 'Listado de Materia Prima',
 							command: () => this.irA('pages/inventario/inventario-matprima')
 						},
 						{
@@ -258,7 +251,7 @@ export class SidebarComponent {
 								},
 								{
 									key: '6_1',
-									label: 'Listado Maestro de Producto',
+									label: 'Mantenimiento de Producto',
 									command: () => this.irA('pages/gestion-producto/mantenimiento-producto')
 								}
 							]

@@ -25,6 +25,10 @@ export class ClienteService {
     return this.http.get<any[]>(`${this.baseUrl}/rol-menos/${idRol}`);
   }
 
+  getClientesMenosRoles(data: any): Observable<any[]> {
+    return this.http.post<any[]>(`${this.baseUrl}/rol-menos-lista`, data);
+  }
+
   getClienteCompleto(id: number): Observable<any> {
     let url = `${this.baseUrl}/listar-completo/${id}`;
     return this.http.get<any>(url);

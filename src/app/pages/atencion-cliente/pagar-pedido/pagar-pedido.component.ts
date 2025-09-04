@@ -247,7 +247,7 @@ export class PagarPedidoComponent implements OnInit, AfterViewInit {
             }
           );
           Swal.fire({
-            title: 'Pago realizado con éxito',
+            title: '¡Gracias por tu compra!',
             html:
               '<div>Tu pago ha sido procesado correctamente. Puedes revisar el estado de tu pedido en la sección de Bandeja de Pedidos.</div><br>' +
               `<strong>Número de pedido: ${this.pedido.idPedido}</strong><br>` +
