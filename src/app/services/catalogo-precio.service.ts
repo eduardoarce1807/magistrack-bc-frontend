@@ -27,6 +27,7 @@ export interface RolDTO {
 export interface CatalogoPrecioResponseDTO {
   idCatalogo: number;
   nombre: string;
+  colorEtiqueta?: string; // Campo opcional para el color del header
   rol: RolDTO;
   fechaCreacion: string;
   productos: CatalogoProductoDTO[];

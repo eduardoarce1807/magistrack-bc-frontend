@@ -50,18 +50,18 @@
 
     <!-- Tabla de Cálculos -->
     <div class="table-responsive">
-      <table class="table table-bordered table-hover">
+      <table class="table table-bordered table-hover" style="overflow-x: scroll; min-width: 1500px;">
         <thead class="table-dark">
           <tr>
             <th>Presentación</th>
-            <th>MP's</th>
+            <th style="min-width: 150px;">MP's</th>
             <th>Envase</th>
             <th>Maquila</th>
             <th>Total Neto</th>
-            <th style="width: 120px;">Ganancia (%)</th>
+            <th style="min-width: 150px;">Ganancia (%)</th>
             <th>Valor Bruto</th>
             <th>IGV (%)</th>
-            <th>Costo Final</th>
+            <th style="min-width: 150px;">Costo Final</th>
             <th>Precio Final</th>
             <th>Acciones</th>
           </tr>
@@ -124,7 +124,7 @@
               
               <!-- Ganancia (%) -->
               <td>
-                <div class="input-group input-group-sm">
+                <div class="input-group">
                   <input 
                     type="number" 
                     [(ngModel)]="fila.ganancia" 
@@ -149,7 +149,7 @@
               
               <!-- IGV (%) (Fijo) -->
               <td>
-                <div class="input-group input-group-sm">
+                <div class="input-group">
                   <input 
                     type="number" 
                     [value]="fila.igv" 
@@ -161,7 +161,7 @@
               
               <!-- Costo Final (Calculado) -->
               <td>
-                <div class="input-group input-group-sm">
+                <div class="input-group">
                   <span class="input-group-text">S/</span>
                   <input 
                     type="number" 
@@ -173,7 +173,7 @@
               
               <!-- Precio Final (Editable) -->
               <td>
-                <div class="input-group input-group-sm">
+                <div class="input-group">
                   <span class="input-group-text">S/</span>
                   <input 
                     type="number" 

@@ -273,14 +273,29 @@
 			@if(tipoComprobante != 1 && tipoComprobante != 2){
 				<div class="col-7"></div>
 			}
-			<div class="col-2 d-flex justify-content-end">
-				<button (click)="guardarDatosCliente()" class="btn btn-primary col-12" [disabled]="
-					(tipoComprobante == 1 && (!nombreCompletoCliente || !dniCliente || !isValidDni(dniCliente))) ||
-					(tipoComprobante == 2 && (!razonSocialCliente || !rucCliente || !isValidRuc(rucCliente))) ||
-					pedido.estadoPedido.idEstadoPedido > 1
-				">
-					<i class="bi bi-save"></i> Guardar
-				</button>
+			@if(tipoComprobante != 0){
+				<div class="col-2 d-flex justify-content-end">
+					<button (click)="guardarDatosCliente()" class="btn btn-primary col-12" [disabled]="
+						(tipoComprobante == 1 && (!nombreCompletoCliente || !dniCliente || !isValidDni(dniCliente))) ||
+						(tipoComprobante == 2 && (!razonSocialCliente || !rucCliente || !isValidRuc(rucCliente))) ||
+						pedido.estadoPedido.idEstadoPedido > 1
+					">
+						<i class="bi bi-save"></i> Guardar
+					</button>
+				</div>
+			}
+		</div>
+
+		<div class="row">
+			<div class="col-12 mt-3">
+				<p class="text-muted small mb-3">
+					<strong>DELIVERY GRATIS A PARTIR DE 350 SOLES Y PROVINCIA A PARTIR DE 500 SOLES</strong><br>
+					<strong>HORARIO DE RECOJO EN FARMACIA DE LUNES A VIERNES DE 9 AM A 5 PM</strong><br>
+					<strong>TIEMPO DE ENTREGA DEL PEDIDO (LIMA) = 24 HORAS (PUEDE VARIAR EN FECHAS FESTIVAS Y EVENTOS)</strong><br>
+					<strong>TIEMPO DE ENTREGA DEL PEDIDO (PROVINCIA) = 48 HORAS (PUEDE VARIAR EN FECHAS FESTIVAS Y EVENTOS)</strong><br>
+					<strong>MEDIOS DE PAGO: BCP Soles 1932458267078 a nombre de DERMOFARMACIA BELLA CURET YAPE/PLIN = 956324064</strong><br>
+					Estimado cliente sírvase a revisar bien su pedido, ya que una vez aprobada la cotización no habrá lugar a modificación y/o reclamo.
+				</p>
 			</div>
 		</div>
 
@@ -489,7 +504,7 @@
 									(input)="filtrarTabla(dt1, searchValue)" 
 									placeholder="Buscar por código, nombre, descripción..." />
 							</p-iconField>
-							<p-button [outlined]="true" icon="pi pi-filter-slash" label="Clear" (click)="clear(dt1)" />
+							<p-button [outlined]="true" icon="pi pi-filter-slash" label="Limpiar" (click)="clear(dt1)" />
 						</div>
 					</div>
 
