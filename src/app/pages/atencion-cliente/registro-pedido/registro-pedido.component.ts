@@ -97,6 +97,7 @@ export class RegistroPedidoComponent implements OnInit, OnDestroy {
 
   @ViewChild('successTpl', { static: false }) successTpl!: TemplateRef<any>;
   @ViewChild('successTplDireccion', { static: false }) successTplDireccion!: TemplateRef<any>;
+  @ViewChild('successTplNotDelivery', { static: false }) successTplNotDelivery!: TemplateRef<any>;
   toastService = inject(ToastService);
 
   idRol: number = 0;
@@ -124,6 +125,10 @@ export class RegistroPedidoComponent implements OnInit, OnDestroy {
 
   idMetodoEntregaSeleccionado = 0;
   idDireccionSeleccionada = 0;
+  
+  // Propiedades para nota delivery
+  notaDelivery: string = '';
+  notaDeliveryTimeout: any;
 
   nuevaDireccion : Direccion = {
     direccion: '',
@@ -395,6 +400,16 @@ export class RegistroPedidoComponent implements OnInit, OnDestroy {
     console.log('Método de entrega seleccionado:', this.idMetodoEntregaSeleccionado);
     this.idDireccionSeleccionada = 0; // Reiniciar la dirección seleccionada
     this.lstDirecciones = []; // Limpiar las direcciones
+    
+    // Limpiar nota delivery si no es delivery
+    if (this.idMetodoEntregaSeleccionado !== 2) {
+      this.notaDelivery = '';
+      if (this.notaDeliveryTimeout) {
+        clearTimeout(this.notaDeliveryTimeout);
+        this.notaDeliveryTimeout = null;
+      }
+    }
+    
     if (this.idMetodoEntregaSeleccionado === 1) { // Si es "Recojo en tienda"
       this.getDireccionesByTiendaId(1, firstRequest);
     }
@@ -483,6 +498,7 @@ export class RegistroPedidoComponent implements OnInit, OnDestroy {
       (pedido) => {
         if(pedido) {
           this.pedido = pedido;
+          this.notaDelivery = pedido.notaDelivery || '';
           this.codigoCupon = pedido.cupon ? pedido.cupon.codigo : '';
           if(pedido.metodoEntrega && pedido.metodoEntrega.idMetodoEntrega && pedido.metodoEntrega.idMetodoEntrega > 0
             && pedido.direccion && pedido.direccion.idDireccion && pedido.direccion.idDireccion > 0
@@ -1146,6 +1162,45 @@ export class RegistroPedidoComponent implements OnInit, OnDestroy {
           text: 'No se pudo actualizar los datos del cliente, inténtelo de nuevo.',
           showConfirmButton: true
         });
+      }
+    );
+  }
+
+  // Método para manejar cambios en el textarea de nota delivery
+  onNotaDeliveryChange() {
+    // Limpiar el timeout anterior si existe
+    if (this.notaDeliveryTimeout) {
+      clearTimeout(this.notaDeliveryTimeout);
+    }
+
+    // Configurar un nuevo timeout de 2 segundos
+    this.notaDeliveryTimeout = setTimeout(() => {
+      if (this.notaDelivery.trim() !== '' && this.idPedido) {
+        this.actualizarNotaDelivery();
+      }
+    }, 2000);
+  }
+
+  // Método para actualizar la nota de delivery en el backend
+  private actualizarNotaDelivery() {
+    const notaRequest = {
+      idPedido: this.idPedido,
+      notaDelivery: this.notaDelivery.trim()
+    };
+
+    console.log('Guardando nota de delivery:', notaRequest);
+    
+    this.pedidoService.actualizarNotaDelivery(notaRequest).subscribe(
+      (response: any) => {
+        if (response && response.idResultado && response.idResultado > 0) {
+          console.log('Nota de delivery actualizada correctamente');
+          this.showSuccess(this.successTplNotDelivery);
+        } else {
+          console.error('Error al actualizar nota de delivery:', response?.resultado);
+        }
+      },
+      (error: any) => {
+        console.error('Error al actualizar nota de delivery:', error);
       }
     );
   }
