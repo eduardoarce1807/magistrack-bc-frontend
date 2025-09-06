@@ -199,4 +199,9 @@ export class PedidoService {
 		return this.http.post<any[]>(url, data);
 	}
 
+	actualizarNotaDelivery(data: any): Observable<any> {
+		let url = `${this.baseUrl}/nota-delivery`;
+		return this.http.post<any>(url, data);
+	}
+
 }
