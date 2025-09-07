@@ -66,3 +66,24 @@ $bootstrap-icons-font-dir: "bootstrap-icons/font/fonts";
   color: white !important;
   border-color: #C07178 !important;
 }
+
+/* Fix para overlays de PrimeNG en modales */
+.p-column-filter-overlay,
+.p-overlaypanel,
+.p-dropdown-panel,
+.p-multiselect-panel,
+.p-calendar-panel,
+.p-component-overlay {
+  z-index: 99999 !important;
+}
+
+/* Específico para filtros dentro de modales de Bootstrap */
+.modal .p-column-filter-overlay,
+.modal .p-overlaypanel {
+  z-index: 99999 !important;
+}
+
+/* Asegurar que todos los overlays de PrimeNG estén por encima */
+.p-overlay {
+  z-index: 99999 !important;
+}

@@ -35,6 +35,14 @@ export class TrazabilidadPedidoComponent implements OnInit {
     // Aquí puedes cargar los datos iniciales del componente
   }
 
+  goBandejaPedidos() {
+    if(this.dataService.getLoggedUser().rol.idRol === 1) {
+      this.router.navigate(['/pages/atencion-cliente/bandeja-pedidos-administrador']);
+    } else {
+      this.router.navigate(['/pages/atencion-cliente/bandeja-pedidos']);
+    }
+  }
+
   // Método para cargar los pedidos
   cargarPedidos(): void {
     this.pedidoAuditoriaService.getAllAuditoriaByIdPedido(this.idPedido || '').subscribe(

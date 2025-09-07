@@ -362,6 +362,23 @@
 					</button>
 				</div> -->
 			</div>
+			
+			@if (idMetodoEntregaSeleccionado == 2) {
+				<div class="row mt-3">
+					<div class="col-md-12">
+						<label for="notaDelivery" class="form-label">Nota Delivery</label>
+						<textarea
+							id="notaDelivery"
+							class="form-control"
+							rows="3"
+							placeholder="Ingrese una nota para el delivery..."
+							[(ngModel)]="notaDelivery"
+							(input)="onNotaDeliveryChange()"
+							[disabled]="pedido.estadoPedido.idEstadoPedido > 1"
+						></textarea>
+					</div>
+				</div>
+			}
 		}
 
 		<!-- Botones de Acción -->
@@ -536,14 +553,14 @@
 						<div class="flex justify-content-between align-items-center">
 							Presentación
 							<p-sortIcon field="presentacion" />
-							<p-columnFilter type="number" field="presentacion" display="menu" class="ml-auto" />
+							<p-columnFilter type="text" field="presentacion" display="menu" class="ml-auto" />
 						</div>
 					</th>
 					<th pSortableColumn="precio">
 						<div class="flex justify-content-between align-items-center">
 							Precio (S/)
 							<p-sortIcon field="precio" />
-							<p-columnFilter type="number" field="precio" display="menu" class="ml-auto" />
+							<p-columnFilter type="text" field="precio" display="menu" class="ml-auto" />
 						</div>
 					</th>
 					<th>Acciones</th>
@@ -625,4 +642,5 @@
 
 <ng-template #successTpl>Cantidad actualizada correctamente.</ng-template>
 <ng-template #successTplDireccion>Método de entrega actualizado correctamente.</ng-template>
+<ng-template #successTplNotDelivery>Nota de delivery actualizado correctamente.</ng-template>
 <app-toasts aria-live="polite" aria-atomic="true"></app-toasts>
