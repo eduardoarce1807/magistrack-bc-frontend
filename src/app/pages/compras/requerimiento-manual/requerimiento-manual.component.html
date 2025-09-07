@@ -377,6 +377,7 @@
 									(ngModelChange)="cambiocantidad(customer)"/>
 							</td>
 							<td class="d-flex flex-column text-end">
+								Subtotal: S/ {{customer.impsubtotal | currency:' ':'symbol':'1.2-2':'en-US'}}
 								<p-inputNumber
 									[(ngModel)]="customer.costo_gramo"
 									inputId="minmaxfraction"
@@ -387,10 +388,10 @@
 									[maxFractionDigits]="5"
 									(ngModelChange)="cambiocantidad(customer)"/>
 <!--								<span class="text-danger fw-bold">{{ customer.costo_gramo | currency:' ':'symbol':'1.2-2':'en-US' }}</span>-->
-								Subtotal: S/ {{customer.impsubtotal | currency:' ':'symbol':'1.2-2':'en-US'}}
 							</td>
 							@if (selectedprov && selectedprov.idproveedor){
-							<td>
+							<td class="text-end">
+								cantidad
 								<p-inputNumber
 									[(ngModel)]="customer.diasentrega"
 									inputId="integeronly"

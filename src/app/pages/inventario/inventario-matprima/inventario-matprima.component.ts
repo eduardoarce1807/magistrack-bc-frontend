@@ -18,7 +18,7 @@ import {InputTextareaModule} from "primeng/inputtextarea";
 import {TagModule} from "primeng/tag";
 import {BadgeModule} from "primeng/badge";
 import {FileUploadEvent, FileUploadModule} from "primeng/fileupload";
-import {CurrencyPipe, DatePipe, NgIf} from "@angular/common";
+import {CommonModule, CurrencyPipe, DatePipe, NgIf} from "@angular/common";
 import {MostrarPdfComponent} from "../../../components/mostrar-pdf/mostrar-pdf.component";
 import {kardexModel, MovimientoModel, TipomovimientoModel} from "../../../model/kardexModel";
 import {KardexService} from "../../../services/inventario/kardex.service";
@@ -34,6 +34,7 @@ import {ParamaeService} from "../../../services/paramae.service";
 import {CalendarModule} from "primeng/calendar";
 import {FuncionesService} from "../../../services/funciones.service";
 import {ExcelService} from "../../../services/excel.service";
+import {CheckboxModule} from "primeng/checkbox";
 
 @Component({
   selector: 'app-inventario-matprima',
@@ -59,7 +60,9 @@ import {ExcelService} from "../../../services/excel.service";
 		CurrencyPipe,
 		PanelModule,
 		CalendarModule,
-		ButtonModule
+		ButtonModule,
+		CheckboxModule,
+		CommonModule
 	],
   templateUrl: './inventario-matprima.component.html',
   styleUrl: './inventario-matprima.component.scss',
@@ -72,6 +75,7 @@ export class InventarioMatprimaComponent {
 	collectionSize = 0;
 	listaRequerimientos: RequeremientossaveModel[] = [];
 	listaProveedores: soloproveedorModel[] = [];
+	selectedProveedor:soloproveedorModel[]=[]
 	cargamaterias:boolean=false
 	listaMaterias: MateriaprimaModel[] = [];
 	listaRequerimientospaginado: RequeremientossaveModel[] = [];
@@ -144,6 +148,7 @@ export class InventarioMatprimaComponent {
 						command: () => {
 							// this.router.navigate(['/installation']);
 							this.editarmateriaprima(this.fila_select)
+							this.cargarproveedoresasignados(this.fila_select.id_materia_prima)
 						}
 					},
 					{
@@ -204,6 +209,7 @@ export class InventarioMatprimaComponent {
 		this.cargarstockmin()
 		this.cargarfabricante()
 		this.cargartipomateria()
+		this.cargarproveedores()
 	}
 	cargarunidades(){
 		this.cargamaterias=true
@@ -311,8 +317,30 @@ export class InventarioMatprimaComponent {
 	}
 	nuevamateriaprima(){
 		this.verdetalle=true
+		this.selectedProveedor=[]
 		this.fila_select = new MateriaprimaModel()
 		this.op=1
+	}
+	cargarproveedores(){
+		this.proveedorService.getProveedor().subscribe({
+			next:(data)=>{
+				this.listaProveedores=data.data
+			},error:(err)=>{
+
+			}
+		})
+	}
+	cargarproveedoresasignados(id_materia_prima:number){
+		this.selectedProveedor=[]
+		this.fila_select.detalleproveedor=[]
+		this.proveedorService.getProveedoresconMateria(id_materia_prima).subscribe({
+			next:(data)=>{
+				this.selectedProveedor=data.data
+				this.fila_select.detalleproveedor=this.selectedProveedor
+			},error:(err)=>{
+
+			}
+		})
 	}
 	// guardarproveedor(){
 	// 	this.spinner=true
@@ -332,7 +360,9 @@ export class InventarioMatprimaComponent {
 	guardarmateria(){
 			this.spinner=true
 			this.verdetalle=false
-		// console.log(this.fila_select,this.op)
+			this.fila_select.detalleproveedor=[]
+			this.fila_select.detalleproveedor=this.selectedProveedor
+		// console.log(this.fila_select,this.op,'antes de enviar')
 		this.materiaService.registrarMateriaprima(this.fila_select,this.op).subscribe({
 			next:(data)=>{
 				this.spinner=false
@@ -685,5 +715,7 @@ export class InventarioMatprimaComponent {
 			sumarcampos
 		);
 	}
-
+	cambioprov(proveedor:soloproveedorModel){
+		console.log(this.selectedProveedor,proveedor,'proveedor')
+	}
 }

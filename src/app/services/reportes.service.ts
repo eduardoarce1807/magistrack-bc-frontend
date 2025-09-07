@@ -10,6 +10,7 @@ export class ReportesService {
 
 	private baseUrl = `${environment.apiUrl}/requerimientos`;
 	private baseUrlcompra = `${environment.apiUrl}/ordenescompra`;
+	private baseUrlkardex = `${environment.apiUrl}/kardex`;
 
 	constructor(private http: HttpClient) {}
 
@@ -25,5 +26,9 @@ export class ReportesService {
 	imprimirordencompraProveedor(orden: ordencompraPeriodo) {
 		const url = `${this.baseUrlcompra}/imprimir-listado-proveedor-x-periodo`;
 		return this.http.post(url, orden, { responseType: "blob" });
+	}
+	imprimirmateriaprimaProveedor(tipomateria:number,idproveedor:string) {
+		const url = `${this.baseUrlkardex}/imprimir-listado-kardex-tipomateria/${tipomateria}/${idproveedor}`;
+		return this.http.get(url, { responseType: "blob" });
 	}
 }

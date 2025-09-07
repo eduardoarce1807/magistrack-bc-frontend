@@ -39,7 +39,7 @@
 					<p-button icon="pi pi-file-pdf"  severity="info"
 							  pTooltip="Generar Pdf"
 							  tooltipPosition="left"
-							  class="mx-1" (click)="imprimir_ordencompra()"/>
+							  class="mx-1" (click)="imprimir_materiaprima()"/>
 					<p-button icon="pi pi-file-excel"  severity="info"
 							  pTooltip="Generar Excel"
 							  tooltipPosition="left"
@@ -104,74 +104,150 @@
 		</ng-template>
 		<ng-template pTemplate="header">
 			<tr>
-				<th pSortableColumn="id_orden_compra" style="min-width: 15px">
+				<th pSortableColumn="nombre" style="min-width: 200px">
 					<div class="flex justify-content-between align-items-center">
-						Id
-						<p-sortIcon field="id_orden_compra" />
-						<p-columnFilter type="text" field="id_orden_compra" display="menu" class="ml-auto" />
+						Nombre
+						<p-sortIcon field="nombre" />
+						<p-columnFilter type="text" field="nombre" display="menu" class="ml-auto" />
 					</div>
 				</th>
-				<th style="min-width: 15px">
+				<th pSortableColumn="stock_materia" style="min-width: 40px">
+					<div class="flex justify-content-between align-items-center">
+						Cant. Actual
+						<p-sortIcon field="stock_materia" />
+						<p-columnFilter type="numeric" field="stock_materia" display="menu" class="ml-auto" />
+					</div>
+				</th>
+				<th pSortableColumn="umbral_min" style="min-width: 40px">
+					<div class="flex justify-content-between align-items-center">
+						Umbral mín.
+						<p-sortIcon field="umbral_min" />
+						<p-columnFilter type="numeric" field="umbral_min" display="menu" class="ml-auto" />
+					</div>
+				</th>
+				<th pSortableColumn="porcentaje" style="min-width: 40px">
+					<div class="flex justify-content-between align-items-center">
+						% Referencial
+						<p-sortIcon field="porcentaje" />
+						<p-columnFilter type="numeric" field="porcentaje" display="menu" class="ml-auto" />
+					</div>
+				</th>
+				<th pSortableColumn="estado" style="min-width: 100px">
+					<div class="flex justify-content-between align-items-center">
+						Estado
+						<p-sortIcon field="estado" />
+						<p-columnFilter type="text" field="estado" display="menu" class="ml-auto" />
+					</div>
+				</th>
+				<th style="min-width: 50px">
 					<div class="flex justify-content-between align-items-center">
 						Proveedor
-					</div>
-				</th>
-				<th pSortableColumn="fechaemision" style="min-width: 100px">
-					<div class="flex justify-content-between align-items-center">
-						Fecha Emisión
-						<p-sortIcon field="fechaemision" />
-						<p-columnFilter type="text" field="fechaemision" display="menu" class="ml-auto" />
-					</div>
-				</th>
-				<th pSortableColumn="imptotal" style="min-width: 40px">
-					<div class="flex justify-content-between align-items-center">
-						ImpTotal
-						<p-sortIcon field="imptotal" />
-						<p-columnFilter type="text" field="imptotal" display="menu" class="ml-auto" />
-					</div>
-				</th>
-				<th pSortableColumn="estadoord" style="min-width: 40px">
-					<div class="flex justify-content-between align-items-center">
-						Estado OC
-						<p-sortIcon field="estadoord" />
-						<p-columnFilter type="text" field="estadoord" display="menu" class="ml-auto" />
-					</div>
-				</th>
-				<th pSortableColumn="responsable" style="min-width: 100px">
-					<div class="flex justify-content-between align-items-center">
-						Responsable
-						<p-sortIcon field="responsable" />
-						<p-columnFilter type="text" field="responsable" display="menu" class="ml-auto" />
+						<p-sortIcon field="descripcion" />
+						<p-columnFilter type="text" field="descripcion" display="menu" class="ml-auto" />
 					</div>
 				</th>
 			</tr>
 		</ng-template>
-		<ng-template pTemplate="body" let-customer let-expanded="expanded">
-			<tr class="p-selectable-row">
+		<ng-template pTemplate="body" let-customer>
+			<tr class="p-selectable-row" >
 				<td>
-					{{ customer.id_orden_compra }}
+					{{ customer.nombre }} - ({{ customer.abreviado }})
 				</td>
 				<td>
-					{{ selectedprov.descripcion }}
+					<div class="d-flex align-items-center text-end">
+
+							{{ customer.stock_materia }}
+					</div>
 				</td>
 				<td>
-					{{ customer.fechaemision }}
-				</td>
-				<td class="text-end">
-					{{ customer.imptotal | currency:' ':'symbol':'1.2-2':'en-US'}}
+						{{ customer.umbral_min }}
 
 				</td>
 				<td>
-					<p-tag severity="warning" [value]="customer.estadoord" [severity]="getEstadoOrden(customer.estadoord)" [rounded]="true" />
+					{{ customer.porcentaje }} %
 				</td>
 				<td>
-					{{ customer.responsable }}
+					@if (customer.estado){
+
+						<p-tag severity="warning" class="text-center" [value]="customer.estado" [severity]="getSeverity(customer.estado)" [rounded]="true" />
+
+					}
+				</td>
+				<td>
+					{{customer.descripcion}}
 				</td>
 			</tr>
 		</ng-template>
+<!--		<ng-template pTemplate="header">-->
+<!--			<tr>-->
+<!--				<th pSortableColumn="id_orden_compra" style="min-width: 15px">-->
+<!--					<div class="flex justify-content-between align-items-center">-->
+<!--						Id-->
+<!--						<p-sortIcon field="id_orden_compra" />-->
+<!--						<p-columnFilter type="text" field="id_orden_compra" display="menu" class="ml-auto" />-->
+<!--					</div>-->
+<!--				</th>-->
+<!--				<th style="min-width: 15px">-->
+<!--					<div class="flex justify-content-between align-items-center">-->
+<!--						Proveedor-->
+<!--					</div>-->
+<!--				</th>-->
+<!--				<th pSortableColumn="fechaemision" style="min-width: 100px">-->
+<!--					<div class="flex justify-content-between align-items-center">-->
+<!--						Fecha Emisión-->
+<!--						<p-sortIcon field="fechaemision" />-->
+<!--						<p-columnFilter type="text" field="fechaemision" display="menu" class="ml-auto" />-->
+<!--					</div>-->
+<!--				</th>-->
+<!--				<th pSortableColumn="imptotal" style="min-width: 40px">-->
+<!--					<div class="flex justify-content-between align-items-center">-->
+<!--						ImpTotal-->
+<!--						<p-sortIcon field="imptotal" />-->
+<!--						<p-columnFilter type="text" field="imptotal" display="menu" class="ml-auto" />-->
+<!--					</div>-->
+<!--				</th>-->
+<!--				<th pSortableColumn="estadoord" style="min-width: 40px">-->
+<!--					<div class="flex justify-content-between align-items-center">-->
+<!--						Estado OC-->
+<!--						<p-sortIcon field="estadoord" />-->
+<!--						<p-columnFilter type="text" field="estadoord" display="menu" class="ml-auto" />-->
+<!--					</div>-->
+<!--				</th>-->
+<!--				<th pSortableColumn="responsable" style="min-width: 100px">-->
+<!--					<div class="flex justify-content-between align-items-center">-->
+<!--						Responsable-->
+<!--						<p-sortIcon field="responsable" />-->
+<!--						<p-columnFilter type="text" field="responsable" display="menu" class="ml-auto" />-->
+<!--					</div>-->
+<!--				</th>-->
+<!--			</tr>-->
+<!--		</ng-template>-->
+<!--		<ng-template pTemplate="body" let-customer let-expanded="expanded">-->
+<!--			<tr class="p-selectable-row">-->
+<!--				<td>-->
+<!--					{{ customer.id_orden_compra }}-->
+<!--				</td>-->
+<!--				<td>-->
+<!--					{{ selectedprov.descripcion }}-->
+<!--				</td>-->
+<!--				<td>-->
+<!--					{{ customer.fechaemision }}-->
+<!--				</td>-->
+<!--				<td class="text-end">-->
+<!--					{{ customer.imptotal | currency:' ':'symbol':'1.2-2':'en-US'}}-->
+
+<!--				</td>-->
+<!--				<td>-->
+<!--					<p-tag severity="warning" [value]="customer.estadoord" [severity]="getEstadoOrden(customer.estadoord)" [rounded]="true" />-->
+<!--				</td>-->
+<!--				<td>-->
+<!--					{{ customer.responsable }}-->
+<!--				</td>-->
+<!--			</tr>-->
+<!--		</ng-template>-->
 		<ng-template pTemplate="emptymessage">
 			<tr>
-				<td colspan="8">No se encontraron órdenes de compras.</td>
+				<td colspan="8">No se encontraron materias o envases asignados.</td>
 			</tr>
 		</ng-template>
 	</p-table>

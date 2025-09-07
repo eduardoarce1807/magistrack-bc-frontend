@@ -192,16 +192,17 @@ export class ReporteComparativoStockComponent {
 	}
 
 
-	imprimir_ordencompra() {
+	imprimir_materiaprima() {
 		let json = {
 			data: {
-				ordencompra:this.ordenperiodo
+				idproveedor:this.selectedprov.idproveedor,
+				tipomateria:this.selectedtipomateria.id_tipomateria
 			},
-			tipo_proceso: "listado-compra",
-			tipo_reporte: "listado-compra",
+			tipo_proceso: "listado-materia",
+			tipo_reporte: "listado-materia",
 		};
 		this.dialogService.open(ReportesComponent, {
-			header: "Reporte Orden de compra por Periodo - "+this.selectedprov.descripcion,
+			header: "Reporte Materia Prima por Proveedor - "+this.selectedprov.descripcion,
 			width: "80%",
 			height: "97%",
 			contentStyle: { overflow: "auto" },
@@ -219,38 +220,42 @@ export class ReporteComparativoStockComponent {
 
 		// Define headers
 		cabecera = [
-			"ID Orden Compra",
-			"Fecha de Emisión",
-			"Importe Total",
+			"Materia Prima / Envase",
+			"Stock actual",
+			"Umbral Mínimo",
+			"Porcentaje",
 			"Estado",
-			"Responsable"
+			"Proveedor"
 		];
 
 		// Define fields (deben coincidir con los nombres del JSON)
 		campos = [
-			"id_orden_compra",
-			"fechaemision",
-			"imptotal",
-			"estadoord",
-			"responsable"
+			"nombre",
+			"stock_materia",
+			"umbral_min",
+			"porcentaje",
+			"estado",
+			"descripcion"
 		];
 
 		// Column widths
 		ancho = [
-			20, // id_materia_prima
-			40, // fechaemision
-			20, // imptotal
-			30, // estadoord
-			30, // responsable
+			50, // nombre
+			30, // stock
+			20, // umbral
+			20, // porcentaje
+			40, // estado
+			50, // proveedor
 		];
 
 		// Campos que se deben sumar (1 si es numérico acumulable)
 		sumarcampos = [
-			0, // id_materia_prima
 			0, // nombre
-			0, // costo_gramo
-			1, // id_requerimiento_stock
-			0  // estadorequerimiento
+			0, // stock
+			1, // umbral
+			0, // porcentaje
+			0,  // estado,
+			0  // proveedor
 		];
 
 		// Subcabecera con datos adicionales
@@ -283,5 +288,15 @@ export class ReporteComparativoStockComponent {
 				this.loading=false
 			}
 		})
+	}
+	getSeverity(estado: string | null | undefined): "success" | "info" | "warning" | "danger" | "secondary" | "contrast" | undefined {
+		if (!estado) return undefined;
+
+		switch (estado.toUpperCase()) {
+			case 'GENERAR REQUERIMIENTO': return 'danger';
+			case 'REQUIERE REPOSICIÓN': return 'warning';
+			case 'STOCK SUFICIENTE': return 'success';
+			default: return 'secondary';         // Gray (fallback)
+		}
 	}
 }

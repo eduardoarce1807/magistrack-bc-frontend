@@ -1,1 +1,172 @@
-<p>reporte-entradas-salidas works!</p>
+@if (spinner){
+	<app-carga></app-carga>
+}
+<p-toast></p-toast>
+<div class="p-5" >
+	<p-table
+		#dt
+		[value]="listaOrdenes"
+		dataKey="id_orden_compra"
+		[rowHover]="true"
+		[rows]="5"
+		[showCurrentPageReport]="true"
+		[rowsPerPageOptions]="[5, 25, 50]"
+		[loading]="loading"
+		[paginator]="true"
+		currentPageReportTemplate="{first} hasta {last} de {totalRecords} registros"
+		[filterDelay]="0"
+		styleClass="p-datatable-gridlines p-datatable-striped p-datatable-sm"
+		[tableStyle]="{'min-width': '40rem'}"
+		[expandedRowKeys]="expandedRows"
+		[globalFilterFields]="['id_orden_compra', 'fechaemision', 'imptotal','estadoord','celular','direccion','ruc']"
+	>
+		<ng-template pTemplate="caption">
+			<div class="flex justify-between items-center">
+				<h4 class="p-text-secondary fw-bold flex items-center"><img src="assets/img/lista-de-deseos.gif" width="50">Entradas y salidas x Periodo</h4>
+
+				<div>
+
+					<p-iconField iconPosition="left">
+						<p-inputIcon>
+							<i class="pi pi-search"></i>
+						</p-inputIcon>
+						<input pInputText #input (input)="dt.filterGlobal(input.value, 'contains')" placeholder="Buscador" />
+						<!--					<input pInputText type="text" [(ngModel)]="searchValue" (input)="dt.filterGlobal($event.target.value, 'contains')" placeholder="Keyboard Search" />-->
+					</p-iconField>
+					<p-button [outlined]="true" icon="pi pi-filter-slash" label="Clear" (click)="clear(dt)" />
+
+					<p-button label="Procesar" icon="pi pi-cog" class="mx-1" (click)="cambioproveedorperiodo()"/>
+					<p-button icon="pi pi-file-pdf"  severity="info"
+							  pTooltip="Generar Pdf"
+							  tooltipPosition="left"
+							  class="mx-1" (click)="imprimir_ordencompra()"/>
+					<p-button icon="pi pi-file-excel"  severity="info"
+							  pTooltip="Generar Excel"
+							  tooltipPosition="left"
+							  class="mx-1" (click)="download()"/>
+
+				</div>
+			</div>
+			<div class="row">
+				<div class="col-md-3 col-sm-6">
+
+					<label class="mx-3" >Proveedor:</label>
+					<p-dropdown
+						[options]="listaProveedores"
+						[(ngModel)]="selectedprov"
+						optionLabel="descripcion"
+						[loading]="cargaprov"
+						placeholder="Seleccionar Proveedor" />
+					<!--					<p-button [outlined]="true" icon="pi pi-file-plus" label="Historial Req." class="mx-1" severity="success"  />-->
+					<!--					<p-button  icon="pi pi-angle-double-up" label="Indicadores" severity="info"  class="mx-1"/>-->
+					<!--					<p-button [outlined]="true" icon="pi pi-print" label="Reportes" severity="info"  class="mx-1"/>-->
+				</div>
+
+				<div class="col-md-3 col-sm-6">
+					<label class="mx-3" >Fecha Inicial:</label>
+					<p-calendar
+						[(ngModel)]="fechainicial"
+						[iconDisplay]="'input'"
+						[showIcon]="true"
+						dateFormat="dd-mm-yy"
+						inputId="icondisplay" />
+				</div>
+				<div class="col-md-3 col-sm-6">
+					<label class="mx-3" >Fecha Final:</label>
+					<p-calendar
+						[(ngModel)]="fechafinal"
+						[iconDisplay]="'input'"
+						[showIcon]="true"
+						dateFormat="dd-mm-yy"
+						inputId="icondisplay" />
+				</div>
+				<div class="col-md-3 col-sm-6">
+
+					<label class="mx-3" >Estado:</label>
+					<p-dropdown
+						[options]="listaEstados"
+						[(ngModel)]="ordenperiodo.estado"
+						optionLabel="descripcion"
+						optionValue="descripcion"
+						placeholder="Seleccionar Estado" />
+					<!--					<p-button [outlined]="true" icon="pi pi-file-plus" label="Historial Req." class="mx-1" severity="success"  />-->
+					<!--					<p-button  icon="pi pi-angle-double-up" label="Indicadores" severity="info"  class="mx-1"/>-->
+					<!--					<p-button [outlined]="true" icon="pi pi-print" label="Reportes" severity="info"  class="mx-1"/>-->
+				</div>
+			</div>
+		</ng-template>
+		<ng-template pTemplate="header">
+			<tr>
+				<th pSortableColumn="id_orden_compra" style="min-width: 15px">
+					<div class="flex justify-content-between align-items-center">
+						Id
+						<p-sortIcon field="id_orden_compra" />
+						<p-columnFilter type="text" field="id_orden_compra" display="menu" class="ml-auto" />
+					</div>
+				</th>
+				<th style="min-width: 15px">
+					<div class="flex justify-content-between align-items-center">
+						Proveedor
+					</div>
+				</th>
+				<th pSortableColumn="fechaemision" style="min-width: 100px">
+					<div class="flex justify-content-between align-items-center">
+						Fecha Emisión
+						<p-sortIcon field="fechaemision" />
+						<p-columnFilter type="text" field="fechaemision" display="menu" class="ml-auto" />
+					</div>
+				</th>
+				<th pSortableColumn="imptotal" style="min-width: 40px">
+					<div class="flex justify-content-between align-items-center">
+						ImpTotal
+						<p-sortIcon field="imptotal" />
+						<p-columnFilter type="text" field="imptotal" display="menu" class="ml-auto" />
+					</div>
+				</th>
+				<th pSortableColumn="estadoord" style="min-width: 40px">
+					<div class="flex justify-content-between align-items-center">
+						Estado OC
+						<p-sortIcon field="estadoord" />
+						<p-columnFilter type="text" field="estadoord" display="menu" class="ml-auto" />
+					</div>
+				</th>
+				<th pSortableColumn="responsable" style="min-width: 100px">
+					<div class="flex justify-content-between align-items-center">
+						Responsable
+						<p-sortIcon field="responsable" />
+						<p-columnFilter type="text" field="responsable" display="menu" class="ml-auto" />
+					</div>
+				</th>
+			</tr>
+		</ng-template>
+		<ng-template pTemplate="body" let-customer let-expanded="expanded">
+			<tr class="p-selectable-row">
+				<td>
+					{{ customer.id_orden_compra }}
+				</td>
+				<td>
+					{{ selectedprov.descripcion }}
+				</td>
+				<td>
+					{{ customer.fechaemision }}
+				</td>
+				<td class="text-end">
+					{{ customer.imptotal | currency:' ':'symbol':'1.2-2':'en-US'}}
+
+				</td>
+				<td>
+					<p-tag severity="warning" [value]="customer.estadoord" [severity]="getEstadoOrden(customer.estadoord)" [rounded]="true" />
+				</td>
+				<td>
+					{{ customer.responsable }}
+				</td>
+			</tr>
+		</ng-template>
+		<ng-template pTemplate="emptymessage">
+			<tr>
+				<td colspan="8">No se encontraron órdenes de compras.</td>
+			</tr>
+		</ng-template>
+	</p-table>
+</div>
+

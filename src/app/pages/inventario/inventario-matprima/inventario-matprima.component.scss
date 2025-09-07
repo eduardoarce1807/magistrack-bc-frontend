@@ -24,3 +24,8 @@ ul li a{
 	line-height: 1rem;
 	margin-left: 10px;
 }
+.lista-prov{
+	max-height:150px;
+	overflow-y: auto;
+	overflow-x: hidden;
+}

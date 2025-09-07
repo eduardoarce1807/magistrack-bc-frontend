@@ -80,6 +80,14 @@ export class ReportesComponent {
 					)
 				);
 				break;
+			case "listado-materia":
+				this.cargarReporte(() =>
+					this.reportesService.imprimirmateriaprimaProveedor(
+						data.tipomateria,
+						data.idproveedor
+					)
+				);
+				break;
 
 			default:
 				break;

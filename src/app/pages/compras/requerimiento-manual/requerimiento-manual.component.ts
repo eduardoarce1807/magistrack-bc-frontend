@@ -207,8 +207,8 @@ export class RequerimientoManualComponent {
 
 		// this.detalle=this.selectedCustomers.detalle
 		let registro : iterequerimientoModel = new iterequerimientoModel()
-		registro.id_materia_prima=this.selectedCustomers.idMateriaPrima
-		registro.costo_gramo=this.selectedCustomers.costoGramo
+		registro.id_materia_prima=this.selectedCustomers.id_materia_prima
+		registro.costo_gramo=this.selectedCustomers.costo_gramo
 		registro.desmateriaprima=this.selectedCustomers.nombre
 
 		let existe = this.listaMateriaPrimaSelected.find(

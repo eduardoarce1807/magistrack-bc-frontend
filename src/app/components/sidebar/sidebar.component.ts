@@ -156,6 +156,11 @@ export class SidebarComponent {
 						key: '7_10',
 						label: 'Stock actual vs Stock mín.',
 						command: () => this.irA('pages/reportes/comparativo-stock')
+					},
+					{
+						key: '7_11',
+						label: 'Entradas y Salidas por periodo',
+						command: () => this.irA('pages/reportes/entradas-salidas')
 					}
 				]
 			}] : []),

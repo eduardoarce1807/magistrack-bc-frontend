@@ -22,6 +22,9 @@ export class ListaMateriaModel {
 	costo_gramo:number=0;
 	stock_materia:number=0;
 	stock_referencia:number=0;
+	idFabricante:number=0;
+	fabricante:string|null=null;
+
 
 }
 export class soloproveedorModel {
