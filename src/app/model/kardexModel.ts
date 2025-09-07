@@ -26,3 +26,9 @@ export class MovimientoModel {
 	movimiento:           string='';
 	id_movimiento:      number=0;
 }
+export class movimientoKardexTipo {
+	idproveedor:string|null=null
+	fechainicial:string|null=null
+	fechafinal:string|null=null
+	id_tipomateria:number=0;
+}

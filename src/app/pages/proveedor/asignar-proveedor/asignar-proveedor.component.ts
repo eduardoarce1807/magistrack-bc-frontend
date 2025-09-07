@@ -233,11 +233,14 @@ export class AsignarProveedorComponent {
 		this.selectedCustomers=[]
 		proveedor.detalle.forEach(e=>{
 			let registro:materiasprimasModel=new materiasprimasModel()
-			registro.nombre=e.nombre
-			registro.idMateriaPrima=e.id_materia_prima
-			registro.costoGramo=e.costo_gramo
+			registro.nombre=e.nombre!
+			registro.id_materia_prima=e.id_materia_prima
+			registro.costo_gramo=e.costo_gramo
+			registro.id_fabricante=e.idFabricante
+			registro.fabricante=e.fabricante!
 			this.selectedCustomers.push(registro)
 		})
+		// console.log(this.selectedCustomers)
 		// this.detalle=this.selectedCustomers.detalle
 		let registro : iterequerimientoModel = new iterequerimientoModel()
 		// registro.id_materia_prima=this.selectedCustomers.idMateriaPrima
@@ -253,9 +256,9 @@ export class AsignarProveedorComponent {
 		this.selectedCustomers.forEach(e=>{
 			let registro :materiaxproveedorModel=new materiaxproveedorModel()
 			registro.id_proveedor=this.fila_select.idproveedor
-			registro.id_materia_prima=e.idMateriaPrima
+			registro.id_materia_prima=e.id_materia_prima
 			registro.estado="ACTIVO"
-			registro.precio_prov=e.costoGramo
+			registro.precio_prov=e.costo_gramo
 			this.listadomateria.push(registro)
 		})
 		this.spinner=true

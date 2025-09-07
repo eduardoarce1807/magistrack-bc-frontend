@@ -8,13 +8,8 @@ ul li a{
 	text-decoration: none !important;
 
 }
-
-
-.p-menuitem-link .p-menuitem-icon{
-	color: #46b9ff;
-}
-.p-inputnumber,.p-dropdown{
-	width:100%;
+.back-tabla{
+	background: #ffe6ba !important;
 }
 .p-badge{
 	font-size: 0.55rem;
@@ -22,10 +17,9 @@ ul li a{
 	min-width: 1rem;
 	height: 1rem;
 	line-height: 1rem;
-	margin-left: 10px;
 }
-.lista-prov{
-	max-height:150px;
-	overflow-y: auto;
-	overflow-x: hidden;
+.observado{
+	background: #ffc1c1;
+	color: #9d1d1d;
+	font-weight:700;
 }

@@ -1,7 +1,7 @@
 import { Component, OnInit, ViewChild, ElementRef, AfterViewInit, OnDestroy } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Chart, registerables } from 'chart.js';
+import { Chart, registerables,ChartConfiguration  } from 'chart.js';
 import Swal from 'sweetalert2';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
@@ -237,7 +237,7 @@ export class ReportesGraficosComponent implements OnInit, AfterViewInit, OnDestr
 
   cargarDatosIniciales(): void {
     console.log('Iniciando carga de datos de filtros...');
-    
+
     // Cargar productos
     this.productoService.getProductos().subscribe({
       next: (productos: any[]) => {
@@ -367,7 +367,7 @@ export class ReportesGraficosComponent implements OnInit, AfterViewInit, OnDestr
   crearGraficoVentasProducto(): void {
     console.log('Creando gráficos de ventas por producto...');
     console.log('Datos disponibles:', this.datosVentasProducto);
-    
+
     // Destruir gráficos existentes
     if (this.barChart) {
       this.barChart.destroy();
@@ -394,9 +394,9 @@ export class ReportesGraficosComponent implements OnInit, AfterViewInit, OnDestr
       // Gráfico de barras horizontales - Top 10 productos por ingresos
       const ctxBar = this.ventasProductoBarChart.nativeElement.getContext('2d');
       const productosTop10 = this.datosVentasProducto.slice(0, 10);
-      
+
       console.log('Creando gráfico de barras con datos:', productosTop10);
-      
+
       this.barChart = new Chart(ctxBar, {
         type: 'bar',
         data: {
@@ -436,9 +436,9 @@ export class ReportesGraficosComponent implements OnInit, AfterViewInit, OnDestr
 
       // Gráfico de pie - Participación por producto
       const ctxPie = this.ventasProductoPieChart.nativeElement.getContext('2d');
-      
+
       console.log('Creando gráfico de pie con datos:', productosTop10);
-      
+
       this.pieChart = new Chart(ctxPie, {
         type: 'pie',
         data: {
@@ -446,8 +446,8 @@ export class ReportesGraficosComponent implements OnInit, AfterViewInit, OnDestr
           datasets: [{
             data: productosTop10.map(p => p.participacion),
             backgroundColor: [
-              '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', 
-              '#9966FF', '#FF9F40', '#FF6384', '#36A2EB', 
+              '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0',
+              '#9966FF', '#FF9F40', '#FF6384', '#36A2EB',
               '#FFCE56', '#4BC0C0'
             ]
           }]
@@ -465,9 +465,9 @@ export class ReportesGraficosComponent implements OnInit, AfterViewInit, OnDestr
           }
         }
       });
-      
+
       console.log('Gráficos creados exitosamente');
-      
+
     } catch (error) {
       console.error('Error al crear gráficos:', error);
     }
@@ -476,7 +476,7 @@ export class ReportesGraficosComponent implements OnInit, AfterViewInit, OnDestr
   crearGraficoVentasCliente(): void {
     console.log('Creando gráficos de ventas por cliente...');
     console.log('Datos disponibles:', this.datosVentasCliente);
-    
+
     // Destruir gráficos existentes
     if (this.clienteBarChart) {
       this.clienteBarChart.destroy();
@@ -503,9 +503,9 @@ export class ReportesGraficosComponent implements OnInit, AfterViewInit, OnDestr
       // Gráfico de barras - Top 10 clientes por ingresos
       const ctxBar = this.ventasClienteBarChart.nativeElement.getContext('2d');
       const clientesTop10 = this.datosVentasCliente.slice(0, 10);
-      
+
       console.log('Creando gráfico de barras de clientes con datos:', clientesTop10);
-      
+
       this.clienteBarChart = new Chart(ctxBar, {
         type: 'bar',
         data: {
@@ -544,11 +544,11 @@ export class ReportesGraficosComponent implements OnInit, AfterViewInit, OnDestr
 
       // Gráfico de línea - Ingresos por día (datos reales del API)
       const ctxLine = this.ventasClienteLineChart.nativeElement.getContext('2d');
-      
+
       // Usar datos del lineChart que vienen del API
       let lineChartLabels = [];
       let lineChartData = [];
-      
+
       // Verificar si tenemos datos de gráfico de línea del API
       if (this.datosGraficosCliente && this.datosGraficosCliente.lineChart) {
         // Formatear las fechas para mostrar solo día/mes - manejar formato YYYY-MM-DD directamente
@@ -559,7 +559,7 @@ export class ReportesGraficosComponent implements OnInit, AfterViewInit, OnDestr
           return this.datePipe.transform(fechaObj, 'dd/MM') || fecha;
         });
         lineChartData = this.datosGraficosCliente.lineChart.datasets[0].data;
-        
+
         console.log('Fechas originales del API:', this.datosGraficosCliente.lineChart.labels);
         console.log('Fechas transformadas para el gráfico:', lineChartLabels);
       } else {
@@ -567,7 +567,7 @@ export class ReportesGraficosComponent implements OnInit, AfterViewInit, OnDestr
         const fechaInicioFiltro = new Date(this.filtrosVentasCliente.fechaInicio);
         const fechaFinFiltro = new Date(this.filtrosVentasCliente.fechaFin);
         const diasEnRango = Math.min(30, Math.ceil((fechaFinFiltro.getTime() - fechaInicioFiltro.getTime()) / (1000 * 60 * 60 * 24)) + 1);
-        
+
         for (let i = 0; i < diasEnRango; i++) {
           const fecha = new Date(fechaInicioFiltro);
           fecha.setDate(fecha.getDate() + i);
@@ -575,9 +575,9 @@ export class ReportesGraficosComponent implements OnInit, AfterViewInit, OnDestr
           lineChartData.push(0);
         }
       }
-      
+
       console.log('Creando gráfico de línea de clientes con datos del API:', { lineChartLabels, lineChartData });
-      
+
       this.clienteLineChart = new Chart(ctxLine, {
         type: 'line',
         data: {
@@ -613,7 +613,7 @@ export class ReportesGraficosComponent implements OnInit, AfterViewInit, OnDestr
       });
 
       console.log('Gráficos de clientes creados exitosamente');
-      
+
     } catch (error) {
       console.error('Error al crear gráficos de clientes:', error);
     }
@@ -626,7 +626,7 @@ export class ReportesGraficosComponent implements OnInit, AfterViewInit, OnDestr
 
     // Gráfico de barras - Top clientes por tipo
     const ctxBar = this.ventasTipoClienteBarChart.nativeElement.getContext('2d');
-    
+
     this.tipoClienteBarChart = new Chart(ctxBar, {
       type: 'bar',
       data: {
@@ -666,7 +666,7 @@ export class ReportesGraficosComponent implements OnInit, AfterViewInit, OnDestr
     // Gráfico de línea - Tendencia por tipo de cliente
     const ctxLine = this.ventasTipoClienteLineChart.nativeElement.getContext('2d');
     const semanas = ['Sem 1', 'Sem 2', 'Sem 3', 'Sem 4'];
-    
+
     this.tipoClienteLineChart = new Chart(ctxLine, {
       type: 'line',
       data: {
@@ -721,7 +721,7 @@ export class ReportesGraficosComponent implements OnInit, AfterViewInit, OnDestr
     // Gráfico de columnas apiladas - Ingresos por canal
     const ctxStacked = this.ventasCanalStackedChart.nativeElement.getContext('2d');
     const semanas = ['Sem 1', 'Sem 2', 'Sem 3', 'Sem 4'];
-    
+
     this.canalStackedChart = new Chart(ctxStacked, {
       type: 'bar',
       data: {
@@ -770,7 +770,7 @@ export class ReportesGraficosComponent implements OnInit, AfterViewInit, OnDestr
 
     // Gráfico de pie - Participación por canal
     const ctxPie = this.ventasCanalPieChart.nativeElement.getContext('2d');
-    
+
     this.canalPieChart = new Chart(ctxPie, {
       type: 'pie',
       data: {
@@ -797,7 +797,7 @@ export class ReportesGraficosComponent implements OnInit, AfterViewInit, OnDestr
 
   crearGraficoTopN(): void {
     const ctx = this.topNChart.nativeElement.getContext('2d');
-    
+
     this.topChart = new Chart(ctx, {
       type: 'bar',
       data: {
@@ -838,7 +838,7 @@ export class ReportesGraficosComponent implements OnInit, AfterViewInit, OnDestr
   // Métodos para manejar cambios de rango de fechas
   onRangoFechaChange(filtros: any): void {
     const hoy = new Date();
-    
+
     switch (filtros.rangoFechas) {
       case 'hoy':
         filtros.fechaInicio = new Date(hoy);
@@ -1129,7 +1129,7 @@ export class ReportesGraficosComponent implements OnInit, AfterViewInit, OnDestr
   // Métodos de exportación
   private generarTextoFiltrosVentasProducto(): string {
     const filtros = [];
-    
+
     // Fechas
     const fechaInicio = this.datePipe.transform(this.filtrosVentasProducto.fechaInicio, 'dd/MM/yyyy');
     const fechaFin = this.datePipe.transform(this.filtrosVentasProducto.fechaFin, 'dd/MM/yyyy');
@@ -1163,7 +1163,7 @@ export class ReportesGraficosComponent implements OnInit, AfterViewInit, OnDestr
         const producto = this.productos.find(p => p.idProducto === id);
         return producto ? producto.productoMaestro.nombre : id;
       }).slice(0, 3).join(', ');
-      const textoProductos = this.filtrosVentasProducto.productosSeleccionados.length > 3 
+      const textoProductos = this.filtrosVentasProducto.productosSeleccionados.length > 3
         ? `${productosNombres} y ${this.filtrosVentasProducto.productosSeleccionados.length - 3} más`
         : productosNombres;
       filtros.push(`Productos: ${textoProductos}`);
@@ -1187,7 +1187,7 @@ export class ReportesGraficosComponent implements OnInit, AfterViewInit, OnDestr
 
   private generarTextoFiltrosVentasCliente(): string {
     const filtros = [];
-    
+
     // Fechas
     const fechaInicio = this.datePipe.transform(this.filtrosVentasCliente.fechaInicio, 'dd/MM/yyyy');
     const fechaFin = this.datePipe.transform(this.filtrosVentasCliente.fechaFin, 'dd/MM/yyyy');
@@ -1232,7 +1232,7 @@ export class ReportesGraficosComponent implements OnInit, AfterViewInit, OnDestr
         const cliente = this.clientes.find(c => c.idCliente === id);
         return cliente ? cliente.nombre : id;
       }).slice(0, 3).join(', ');
-      const textoClientes = this.filtrosVentasCliente.clientesSeleccionados.length > 3 
+      const textoClientes = this.filtrosVentasCliente.clientesSeleccionados.length > 3
         ? `${clientesNombres} y ${this.filtrosVentasCliente.clientesSeleccionados.length - 3} más`
         : clientesNombres;
       filtros.push(`Clientes: ${textoClientes}`);
@@ -1254,7 +1254,7 @@ export class ReportesGraficosComponent implements OnInit, AfterViewInit, OnDestr
 
     // Generar texto de filtros aplicados
     const filtrosTexto = this.generarTextoFiltrosVentasProducto();
-    
+
     // Fecha de generación
     const fechaGeneracion = this.datePipe.transform(new Date(), 'dd/MM/yyyy HH:mm');
 
@@ -1272,7 +1272,7 @@ export class ReportesGraficosComponent implements OnInit, AfterViewInit, OnDestr
     // Agregar columna inicial vacía
     cabecera.unshift("");
     campos.unshift("");
-    
+
     this.excelService.downloadExcel(
       datosExport,
       cabecera,
@@ -1298,7 +1298,7 @@ export class ReportesGraficosComponent implements OnInit, AfterViewInit, OnDestr
 
     // Generar texto de filtros aplicados
     const filtrosTexto = this.generarTextoFiltrosVentasCliente();
-    
+
     // Fecha de generación
     const fechaGeneracion = this.datePipe.transform(new Date(), 'dd/MM/yyyy HH:mm');
 
@@ -1314,7 +1314,7 @@ export class ReportesGraficosComponent implements OnInit, AfterViewInit, OnDestr
 
     cabecera.unshift("");
     campos.unshift("");
-    
+
     this.excelService.downloadExcel(
       datosExport,
       cabecera,
@@ -1344,7 +1344,7 @@ export class ReportesGraficosComponent implements OnInit, AfterViewInit, OnDestr
     const cabecera = ['Canal', '# Pedidos', 'Ingresos (S/)', '% Participación', 'Ticket Promedio'];
     const campos = ['Canal', '# Pedidos', 'Ingresos (S/)', '% Participación', 'Ticket Promedio'];
     const ancho = [20, 15, 20, 20, 20];
-    
+
     this.excelService.downloadExcel(
       datosExport,
       cabecera,
@@ -1367,7 +1367,7 @@ export class ReportesGraficosComponent implements OnInit, AfterViewInit, OnDestr
     const cabecera = ['Nombre', 'Ingresos (S/)', '% Participación'];
     const campos = ['Nombre', 'Ingresos (S/)', '% Participación'];
     const ancho = [30, 20, 20];
-    
+
     this.excelService.downloadExcel(
       datosExport,
       cabecera,
@@ -1423,26 +1423,26 @@ export class ReportesGraficosComponent implements OnInit, AfterViewInit, OnDestr
 
         const imgData = canvas.toDataURL('image/png');
         const pdf = new jsPDF('p', 'mm', 'a4');
-        
+
         const imgWidth = 190;
         const imgHeight = (canvas.height * imgWidth) / canvas.width;
-        
+
         let position = 10;
         const pageHeight = 280;
-        
+
         if (imgHeight <= pageHeight) {
           pdf.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight);
         } else {
           let remainingHeight = imgHeight;
-          
+
           while (remainingHeight > 0) {
             const currentHeight = Math.min(remainingHeight, pageHeight);
             const sourceY = imgHeight - remainingHeight;
-            
+
             pdf.addImage(imgData, 'PNG', 10, position, imgWidth, currentHeight);
-            
+
             remainingHeight -= pageHeight;
-            
+
             if (remainingHeight > 0) {
               pdf.addPage();
               position = 10;
@@ -1451,7 +1451,7 @@ export class ReportesGraficosComponent implements OnInit, AfterViewInit, OnDestr
         }
 
         pdf.save(fileName);
-        
+
         Swal.close();
         Swal.fire({
           icon: 'success',
@@ -1543,7 +1543,7 @@ export class ReportesGraficosComponent implements OnInit, AfterViewInit, OnDestr
           const producto = this.productos.find(p => p.idProducto === id);
           return producto ? producto.productoMaestro.nombre : id;
         }).slice(0, 3).join(', ');
-        const textoProductos = this.filtrosVentasProducto.productosSeleccionados.length > 3 
+        const textoProductos = this.filtrosVentasProducto.productosSeleccionados.length > 3
           ? `${productosNombres} y ${this.filtrosVentasProducto.productosSeleccionados.length - 3} más`
           : productosNombres;
         pdf.text(`• Productos: ${textoProductos}`, margin + 5, currentY);
@@ -1642,7 +1642,7 @@ export class ReportesGraficosComponent implements OnInit, AfterViewInit, OnDestr
           if (currentY > 280) {
             pdf.addPage();
             currentY = 20;
-            
+
             // Redibujar encabezados en nueva página
             xPos = margin;
             headers.forEach((header, headerIndex) => {
@@ -1677,7 +1677,7 @@ export class ReportesGraficosComponent implements OnInit, AfterViewInit, OnDestr
       }
 
       pdf.save(fileName);
-      
+
       Swal.close();
       Swal.fire({
         icon: 'success',
@@ -1782,7 +1782,7 @@ export class ReportesGraficosComponent implements OnInit, AfterViewInit, OnDestr
           const cliente = this.clientes.find(c => c.idCliente === id);
           return cliente ? cliente.nombre : id;
         }).slice(0, 3).join(', ');
-        const textoClientes = this.filtrosVentasCliente.clientesSeleccionados.length > 3 
+        const textoClientes = this.filtrosVentasCliente.clientesSeleccionados.length > 3
           ? `${clientesNombres} y ${this.filtrosVentasCliente.clientesSeleccionados.length - 3} más`
           : clientesNombres;
         pdf.text(`• Clientes: ${textoClientes}`, margin + 5, currentY);
@@ -1854,19 +1854,19 @@ export class ReportesGraficosComponent implements OnInit, AfterViewInit, OnDestr
         // Encabezados de tabla
         pdf.setFontSize(8);
         const headers = ['Cliente', 'Documento', 'Tipo', '# Pedidos', 'Unidades', 'Ingresos (S/)', 'Última Compra'];
-        
+
         // Calcular anchos para usar todo el ancho disponible (pageWidth - márgenes = 170mm)
         const anchoDisponible = pageWidth - (margin * 2); // 170mm disponibles
         const colWidths = [
           60,  // Cliente - más ancho para nombres largos
-          25,  // Documento 
+          25,  // Documento
           20,  // Tipo
           18,  // # Pedidos
           18,  // Unidades
           25,  // Ingresos (S/)
           24   // Última Compra
         ]; // Total: 170mm
-        
+
         let xPos = margin;
 
         // Dibujar encabezados
@@ -1882,7 +1882,7 @@ export class ReportesGraficosComponent implements OnInit, AfterViewInit, OnDestr
           if (currentY > 280) {
             pdf.addPage();
             currentY = 20;
-            
+
             // Redibujar encabezados en nueva página
             xPos = margin;
             headers.forEach((header, headerIndex) => {
@@ -1918,7 +1918,7 @@ export class ReportesGraficosComponent implements OnInit, AfterViewInit, OnDestr
       }
 
       pdf.save(fileName);
-      
+
       Swal.close();
       Swal.fire({
         icon: 'success',
@@ -2040,7 +2040,7 @@ export class ReportesGraficosComponent implements OnInit, AfterViewInit, OnDestr
           if (currentY > 280) {
             pdf.addPage();
             currentY = 20;
-            
+
             // Redibujar encabezados en nueva página
             xPos = margin;
             headers.forEach((header, headerIndex) => {
@@ -2074,7 +2074,7 @@ export class ReportesGraficosComponent implements OnInit, AfterViewInit, OnDestr
       }
 
       pdf.save(fileName);
-      
+
       Swal.close();
       Swal.fire({
         icon: 'success',
@@ -2178,7 +2178,7 @@ export class ReportesGraficosComponent implements OnInit, AfterViewInit, OnDestr
           if (currentY > 280) {
             pdf.addPage();
             currentY = 20;
-            
+
             // Redibujar encabezados en nueva página
             xPos = margin;
             headers.forEach((header, headerIndex) => {
@@ -2211,7 +2211,7 @@ export class ReportesGraficosComponent implements OnInit, AfterViewInit, OnDestr
       }
 
       pdf.save(fileName);
-      
+
       Swal.close();
       Swal.fire({
         icon: 'success',

@@ -73,6 +73,21 @@ export class ReportesComponent {
 					)
 				);
 				break;
+			case "listado-compra":
+				this.cargarReporte(() =>
+					this.reportesService.imprimirordencompraProveedor(
+						data.ordencompra
+					)
+				);
+				break;
+			case "listado-materia":
+				this.cargarReporte(() =>
+					this.reportesService.imprimirmateriaprimaProveedor(
+						data.tipomateria,
+						data.idproveedor
+					)
+				);
+				break;
 
 			default:
 				break;

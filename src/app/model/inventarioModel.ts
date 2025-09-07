@@ -1,3 +1,5 @@
+import {soloproveedorModel} from "./proveedoresModel";
+
 export class MateriaprimaModel {
 	id_materia_prima: number=0;
 	nombre:           string='';
@@ -18,7 +20,8 @@ export class MateriaprimaModel {
 	lote:              string='';
 	peso_bruto:        number=0;
 	peso_neto:         number=0;
-	id_tipomateria:	number=0;
+	id_tipomateria:	number=1;
+	detalleproveedor:soloproveedorModel[]=[]
 
 }
 export class UnidadmedModel {

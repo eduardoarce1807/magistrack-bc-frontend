@@ -222,7 +222,8 @@
 					[options]="listaTipomateria"
 					[(ngModel)]="fila_select.id_tipomateria"
 					optionLabel="tipomateria"
-					optionValue="id_tipomatera"
+					optionValue="id_tipomateria"
+					appendTo="body"
 					placeholder="Seleccionar Tipo" />
 			</div>
 			<div class="col-md-6 d-flex flex-column">
@@ -257,11 +258,25 @@
 					[(ngModel)]="fila_select.id_fabricante"
 					optionLabel="fabricante"
 					optionValue="id_fabricante"
+					appendTo="body"
 					placeholder="Seleccionar Fabricante" />
 			</div>
 		</div>
 		<div class="row">
-			<div class="col-md-12 d-flex flex-column">
+
+			<div class='col-md-6 col-sm-12'>
+				<label class="p-text-secondary fw-bold">Asignar Proveedores</label>
+					<div class="d-flex flex-column lista-prov">
+						<div *ngFor="let proveedor of listaProveedores" class="field-checkbox ">
+							<p-checkbox
+								[(ngModel)]="selectedProveedor"
+								[label]="proveedor.descripcion!"
+								[value]="proveedor"
+							 	(ngModelChange)="cambioprov(proveedor)"/>
+						</div>
+					</div>
+			</div>
+			<div class="col-md-6 col-sd-12 d-flex flex-column">
 				<label class="p-text-secondary fw-bold">Observaciones</label>
 				<textarea
 					rows="5"
@@ -272,22 +287,22 @@
 			</div>
 		</div>
 		<ng-template pTemplate="footer">
-			<p-button [outlined]="true" icon="pi pi-trash" label="Cancelar" class="mx-1" severity="danger" (click)="verdetalle=false;"  />
+	 		<p-button [outlined]="true" icon="pi pi-trash" label="Cancelar" class="mx-1" severity="danger" (click)="verdetalle=false;"  />
 			<p-button  icon="pi pi-save" label="Registrar Materia" class="mx-1" severity="success"  (click)="guardarmateria()"/>
 		</ng-template>
 	</p-dialog>
 }
 @if (verdardebaja){
-	<p-dialog
-		[modal]="true"
+    <p-dialog
+	 	[modal]="true"
 		[(visible)]="verdardebaja"
 		[style]="{ width: '45vw' }"
-		[breakpoints]="{ '1199px': '75vw', '575px': '90vw' }"
+	 	[breakpoints]="{ '1199px': '75vw', '575px': '90vw' }"
 		[maximizable]="true">
 		<ng-template pTemplate="header">
 				<h5 class="text-danger border-3 rounded-3 bg-danger-subtle p-2 d-flex justify-content-center align-items-center">
-					<img src="assets/img/crema-organica.gif" width="40" style="border-radius: 50%;padding: 5px">
-					Dar de baja materia prima: {{fila_select.nombre}}<i class="pi pi-exclamation-triangle ml-2" style="color: #bb1b1b; font-size:1.5rem;"></i>
+	 				<img src="assets/img/crema-organica.gif" width="40" style="border-radius: 50%;padding: 5px">
+	 				Dar de baja materia prima: {{fila_select.nombre}}<i class="pi pi-exclamation-triangle ml-2" style="color: #bb1b1b; font-size:1.5rem;"></i>
 				</h5>
 
 		</ng-template>
@@ -296,7 +311,7 @@
 				<label class="p-text-secondary fw-bold">Materia Prima</label>
 				<div class="row">
 					<div class="col-md-3">
-						<input
+	 					<input
 							class="w-full"
 							type="number"
 							pInputText
@@ -378,20 +393,26 @@
 									appendTo="body"
 									[iconDisplay]="'input'"
 									[showIcon]="true" inputId="icondisplay"
-									pStyleClass="fs-11 example-full-width"
+	 								pStyleClass="fs-11 example-full-width"
 									[style]="{ width: '100%' }"
 									[showTime]="true"
 									[hourFormat]="'24'"
 									[inputStyle]="{ width: '100%' }"/>
 					</div>
 				</div>
-				<label class="p-text-secondary fw-bold">Motivo para dar de Baja</label>
-				<textarea
-					rows="3"
-					cols="30"
-					pInputTextarea
-					[(ngModel)]="subirBaja.observaciones">
-				</textarea>
+				<div class='row'>
+					<div class='col-md-12 col-sm-12'>
+
+						<label class="p-text-secondary fw-bold">Motivo para dar de Baja</label>
+						<textarea
+						rows="3"
+						cols="30"
+						pInputTextarea
+						[(ngModel)]="subirBaja.observaciones">
+						</textarea>
+					</div>
+				</div>
+
 
 				<div class="row">
 					<div class="col-md-4 col-sm-12 d-flex flex-column">
@@ -825,6 +846,7 @@
 									(ngModelChange)="cambiocantidad(customer)"/>
 							</td>
 							<td class="d-flex flex-column text-end">
+								Subtotal: S/ {{customer.impsubtotal | currency:' ':'symbol':'1.2-2':'en-US'}}
 								<p-inputNumber
 									[(ngModel)]="customer.costo_gramo"
 									inputId="minmaxfraction"
@@ -835,7 +857,6 @@
 									[maxFractionDigits]="5"
 									(ngModelChange)="cambiocantidad(customer)"/>
 								<!--								<span class="text-danger fw-bold">{{ customer.costo_gramo | currency:' ':'symbol':'1.2-2':'en-US' }}</span>-->
-								Subtotal: S/ {{customer.impsubtotal | currency:' ':'symbol':'1.2-2':'en-US'}}
 							</td>
 							@if (selectedprov && selectedprov.idproveedor){
 								<td>
