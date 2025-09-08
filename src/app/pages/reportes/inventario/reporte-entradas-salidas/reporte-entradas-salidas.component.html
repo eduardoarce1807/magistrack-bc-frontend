@@ -5,7 +5,7 @@
 <div class="p-5" >
 	<p-table
 		#dt
-		[value]="listaOrdenes"
+		[value]="listaKardex"
 		dataKey="id_orden_compra"
 		[rowHover]="true"
 		[rows]="5"
@@ -49,17 +49,6 @@
 			</div>
 			<div class="row">
 				<div class="col-md-3 col-sm-6">
-
-					<label class="mx-3" >Proveedor:</label>
-					<p-dropdown
-						[options]="listaProveedores"
-						[(ngModel)]="selectedprov"
-						optionLabel="descripcion"
-						[loading]="cargaprov"
-						placeholder="Seleccionar Proveedor" />
-					<!--					<p-button [outlined]="true" icon="pi pi-file-plus" label="Historial Req." class="mx-1" severity="success"  />-->
-					<!--					<p-button  icon="pi pi-angle-double-up" label="Indicadores" severity="info"  class="mx-1"/>-->
-					<!--					<p-button [outlined]="true" icon="pi pi-print" label="Reportes" severity="info"  class="mx-1"/>-->
 				</div>
 
 				<div class="col-md-3 col-sm-6">
@@ -82,84 +71,229 @@
 				</div>
 				<div class="col-md-3 col-sm-6">
 
-					<label class="mx-3" >Estado:</label>
-					<p-dropdown
-						[options]="listaEstados"
-						[(ngModel)]="ordenperiodo.estado"
-						optionLabel="descripcion"
-						optionValue="descripcion"
-						placeholder="Seleccionar Estado" />
-					<!--					<p-button [outlined]="true" icon="pi pi-file-plus" label="Historial Req." class="mx-1" severity="success"  />-->
-					<!--					<p-button  icon="pi pi-angle-double-up" label="Indicadores" severity="info"  class="mx-1"/>-->
-					<!--					<p-button [outlined]="true" icon="pi pi-print" label="Reportes" severity="info"  class="mx-1"/>-->
 				</div>
 			</div>
 		</ng-template>
 		<ng-template pTemplate="header">
 			<tr>
-				<th pSortableColumn="id_orden_compra" style="min-width: 15px">
+				<th pSortableColumn="fecha" style="min-width: 40px">
 					<div class="flex justify-content-between align-items-center">
-						Id
-						<p-sortIcon field="id_orden_compra" />
-						<p-columnFilter type="text" field="id_orden_compra" display="menu" class="ml-auto" />
+						Fecha
+						<p-sortIcon field="fecha" />
+						<p-columnFilter type="date" field="fecha" display="menu" class="ml-auto" />
 					</div>
 				</th>
-				<th style="min-width: 15px">
+				<th pSortableColumn="movimiento" style="min-width: 100px">
 					<div class="flex justify-content-between align-items-center">
-						Proveedor
+						Movimiento
+						<p-sortIcon field="movimiento" />
+						<p-columnFilter type="text" field="movimiento" display="menu" class="ml-auto" />
 					</div>
 				</th>
-				<th pSortableColumn="fechaemision" style="min-width: 100px">
+				<th pSortableColumn="documento" style="min-width: 100px">
 					<div class="flex justify-content-between align-items-center">
-						Fecha Emisión
-						<p-sortIcon field="fechaemision" />
-						<p-columnFilter type="text" field="fechaemision" display="menu" class="ml-auto" />
+						Documento
+						<p-sortIcon field="documento" />
+						<p-columnFilter type="text" field="documento" display="menu" class="ml-auto" />
 					</div>
 				</th>
-				<th pSortableColumn="imptotal" style="min-width: 40px">
-					<div class="flex justify-content-between align-items-center">
-						ImpTotal
-						<p-sortIcon field="imptotal" />
-						<p-columnFilter type="text" field="imptotal" display="menu" class="ml-auto" />
+				<th style="min-width:100px" class="text-success">
+					<div class="flex align-items-center">
+						Entrada
+						<p-columnFilter field="cant_entrada" matchMode="between" display="menu" [showMatchModes]="false" [showOperator]="false" [showAddButton]="false">
+							<ng-template pTemplate="filter" let-filter="filterCallback">
+								<p-slider [(ngModel)]="activityValuesEntrada" [range]="true" (onSlideEnd)="filter($event.values)" [max]="9999" styleClass="m-3" />
+								<div class="flex align-items-center px-2">
+									<span>{{ activityValuesEntrada[0] }} - </span>
+									<span> {{ activityValuesEntrada[1] }}</span>
+								</div>
+							</ng-template>
+						</p-columnFilter>
 					</div>
 				</th>
-				<th pSortableColumn="estadoord" style="min-width: 40px">
-					<div class="flex justify-content-between align-items-center">
-						Estado OC
-						<p-sortIcon field="estadoord" />
-						<p-columnFilter type="text" field="estadoord" display="menu" class="ml-auto" />
+				<th style="min-width:100px" class="text-danger">
+					<div class="flex align-items-center">
+						Salida
+						<p-columnFilter field="cant_salida" matchMode="between" display="menu" [showMatchModes]="false" [showOperator]="false" [showAddButton]="false">
+							<ng-template pTemplate="filter" let-filter="filterCallback">
+								<p-slider [(ngModel)]="activityValuesSalida" [range]="true" (onSlideEnd)="filter($event.values)" [max]="9999" styleClass="m-3" />
+								<div class="flex align-items-center px-2">
+									<span>{{ activityValuesSalida[0] }} - </span>
+									<span> {{ activityValuesSalida[1] }}</span>
+								</div>
+							</ng-template>
+						</p-columnFilter>
 					</div>
 				</th>
-				<th pSortableColumn="responsable" style="min-width: 100px">
-					<div class="flex justify-content-between align-items-center">
-						Responsable
-						<p-sortIcon field="responsable" />
-						<p-columnFilter type="text" field="responsable" display="menu" class="ml-auto" />
+				<th style="min-width:100px">
+					<div class="flex align-items-center">
+						Stock
+						<p-columnFilter field="cant_actual" matchMode="between" display="menu" [showMatchModes]="false" [showOperator]="false" [showAddButton]="false">
+							<ng-template pTemplate="filter" let-filter="filterCallback">
+								<p-slider [(ngModel)]="activityValuesActual" [range]="true" (onSlideEnd)="filter($event.values)" [max]="9999" styleClass="m-3" />
+								<div class="flex align-items-center px-2">
+									<span>{{ activityValuesActual[0] }} - </span>
+									<span> {{ activityValuesActual[1] }}</span>
+								</div>
+							</ng-template>
+						</p-columnFilter>
 					</div>
 				</th>
+				<th pSortableColumn="impunit" style="min-width: 40px">
+					<div class="flex justify-content-between align-items-center">
+						ImpUnitario
+						<p-sortIcon field="impunit" />
+						<p-columnFilter type="numeric" field="impunit" display="menu" class="ml-auto" />
+					</div>
+				</th>
+				<th pSortableColumn="observaciones" style="min-width: 40px">
+					<div class="flex justify-content-between align-items-center">
+						Observaciones
+						<p-sortIcon field="observaciones" />
+						<p-columnFilter type="numeric" field="observaciones" display="menu" class="ml-auto" />
+					</div>
+				</th>
+
+				<!--				<th style="min-width: 50px">-->
+				<!--					<div class="flex justify-content-between align-items-center">-->
+				<!--						Acciones-->
+				<!--					</div>-->
+				<!--				</th>-->
+<!--				@if(cambio_pres==2){-->
+
+<!--					<th pSortableColumn="ficha_tecnica" style="min-width: 80px">-->
+<!--						<div class="flex justify-content-between align-items-center">-->
+<!--							Ficha Técnica-->
+<!--							<p-sortIcon field="ficha_tecnica" />-->
+<!--							<p-columnFilter type="text" field="ficha_tecnica" display="menu" class="ml-auto" />-->
+<!--						</div>-->
+<!--					</th>-->
+<!--					<th pSortableColumn="fecha_vencimiento" style="min-width: 120px">-->
+<!--						<div class="flex justify-content-between align-items-center">-->
+<!--							Fecha Vencimiento-->
+<!--							<p-sortIcon field="fecha_vencimiento" />-->
+<!--							<p-columnFilter type="text" field="fecha_vencimiento" display="menu" class="ml-auto" />-->
+<!--						</div>-->
+<!--					</th>-->
+<!--					<th pSortableColumn="lote" style="min-width: 80px">-->
+<!--						<div class="flex justify-content-between align-items-center">-->
+<!--							Lote-->
+<!--							<p-sortIcon field="lote" />-->
+<!--							<p-columnFilter type="text" field="lote" display="menu" class="ml-auto" />-->
+<!--						</div>-->
+<!--					</th>-->
+<!--					<th pSortableColumn="pureza" style="min-width: 80px">-->
+<!--						<div class="flex justify-content-between align-items-center">-->
+<!--							Pureza-->
+<!--							<p-sortIcon field="pureza" />-->
+<!--							<p-columnFilter type="numeric" field="pureza" display="menu" class="ml-auto" />-->
+<!--						</div>-->
+<!--					</th>-->
+<!--					<th pSortableColumn="peso_bruto" style="min-width: 80px">-->
+<!--						<div class="flex justify-content-between align-items-center">-->
+<!--							Peso Bruto-->
+<!--							<p-sortIcon field="peso_bruto" />-->
+<!--							<p-columnFilter type="numeric" field="peso_bruto" display="menu" class="ml-auto" />-->
+<!--						</div>-->
+<!--					</th>-->
+<!--					<th pSortableColumn="peso_neto" style="min-width: 80px">-->
+<!--						<div class="flex justify-content-between align-items-center">-->
+<!--							Peso Neto-->
+<!--							<p-sortIcon field="peso_neto" />-->
+<!--							<p-columnFilter type="numeric" field="peso_neto" display="menu" class="ml-auto" />-->
+<!--						</div>-->
+<!--					</th>-->
+<!--				}-->
 			</tr>
 		</ng-template>
-		<ng-template pTemplate="body" let-customer let-expanded="expanded">
-			<tr class="p-selectable-row">
+		<ng-template pTemplate="body" let-customer>
+			<tr class="p-selectable-row" >
 				<td>
-					{{ customer.id_orden_compra }}
+					{{ customer.fecha | date:'dd-MM-yyyy' }}
 				</td>
 				<td>
-					{{ selectedprov.descripcion }}
+					@if (customer.id_tipomovimiento=='E'){
+						<div class="d-flex justify-content-center">
+							<p-tag icon="pi pi-sort-numeric-up" severity="success" [value]="customer.movimiento"/>
+						</div>
+					} @else {
+						<div class="d-flex justify-content-center">
+							<p-tag icon="pi pi-sort-numeric-down" severity="danger" [value]="customer.movimiento"/>
+						</div>
+					}
 				</td>
 				<td>
-					{{ customer.fechaemision }}
+					{{ customer.documento }}
 				</td>
-				<td class="text-end">
-					{{ customer.imptotal | currency:' ':'symbol':'1.2-2':'en-US'}}
+				<td>
+					@if (customer.cant_entrada>0){
+						<div class="d-flex justify-content-center">
+							<p class="text-success mx-1">{{ customer.cant_entrada }}</p>
+							<i class="pi pi-plus" style="color: green;font-size:0.8rem"></i>
+						</div>
+					} @else {
+						{{ customer.cant_entrada }}
 
+					}
 				</td>
 				<td>
-					<p-tag severity="warning" [value]="customer.estadoord" [severity]="getEstadoOrden(customer.estadoord)" [rounded]="true" />
+					@if (customer.cant_salida>0){
+						<div class="d-flex justify-content-center">
+							<p class="text-danger mx-1">{{ customer.cant_salida }}</p>
+							<i class="pi pi-minus text-danger" style="font-size:0.8rem"></i>
+						</div>
+					}@else{
+						{{ customer.cant_salida }}
+					}
 				</td>
 				<td>
-					{{ customer.responsable }}
+					{{ customer.cant_actual }}
 				</td>
+				<td>
+					{{ customer.impunit }}
+				</td>
+				<td>
+					@if (customer.path_kardex){
+						<a
+							[href]="customer.path_kardex"
+							target="_blank"
+							rel="noopener noreferrer"
+							pTooltip="Ver Archivo"
+							tooltipPosition="right">
+							<i class="pi pi-file-check" style="color: #7e088c;font-size: 1.5rem;cursor:pointer"></i>
+						</a>
+
+
+					}{{ customer.observaciones }}
+				</td>
+				<!--				<td>-->
+				<!--					<p-button (onClick)="menu.toggle($event);fila_select=customer"-->
+				<!--							  [text]="true"-->
+				<!--							  pTooltip="Opciones de Menú"-->
+				<!--							  tooltipPosition="left"-->
+				<!--							  icon="pi pi-ellipsis-v"/>-->
+				<!--				</td>-->
+<!--				@if(cambio_pres==2){-->
+<!--					<td>-->
+<!--						{{ customer.ficha_tecnica }}-->
+<!--					</td>-->
+<!--					<td>-->
+<!--						{{ customer.fecha_vencimiento | date : "dd-MM-YYYY"}}-->
+<!--					</td>-->
+<!--					<td>-->
+<!--						{{ customer.lote }}-->
+<!--					</td>-->
+<!--					<td>-->
+<!--						{{ customer.pureza }}-->
+<!--					</td>-->
+<!--					<td>-->
+<!--						{{ customer.peso_bruto | currency:' ':'symbol':'1.2-2':'en-US'}}-->
+<!--					</td>-->
+<!--					<td>-->
+<!--						{{ customer.peso_neto | currency:' ':'symbol':'1.2-2':'en-US'}}-->
+<!--					</td>-->
+
+<!--				}-->
 			</tr>
 		</ng-template>
 		<ng-template pTemplate="emptymessage">

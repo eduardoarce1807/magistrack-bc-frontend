@@ -88,6 +88,13 @@ export class ReportesComponent {
 					)
 				);
 				break;
+			case "listado-kardex":
+				this.cargarReporte(() =>
+					this.reportesService.imprimirkardexPeriodo(
+						data.kardex
+					)
+				);
+				break;
 
 			default:
 				break;

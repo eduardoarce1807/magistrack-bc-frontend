@@ -1,6 +1,6 @@
 import {Component, ViewChildren, ViewEncapsulation} from '@angular/core';
 import {NgbHighlight, NgbPaginationModule} from "@ng-bootstrap/ng-bootstrap";
-import {AsyncPipe, CommonModule, CurrencyPipe, DatePipe, DecimalPipe} from "@angular/common";
+import {AsyncPipe, CommonModule, CurrencyPipe, DatePipe, DecimalPipe, registerLocaleData} from "@angular/common";
 import {FormsModule} from "@angular/forms";
 import {
 	iterequerimientoModel,
@@ -36,6 +36,10 @@ import {CotizacionesService} from "../../../services/compras/cotizaciones.servic
 import {CargaComponent} from "../../../components/carga/carga.component";
 import {ReportesComponent} from "../../../components/reportes/reportes.component";
 import {DialogService} from "primeng/dynamicdialog";
+import localeEsPe from '@angular/common/locales/es-PE';
+
+// registrar locale antes de bootstrapApplication
+registerLocaleData(localeEsPe, 'es-PE');
 
 
 @Component({

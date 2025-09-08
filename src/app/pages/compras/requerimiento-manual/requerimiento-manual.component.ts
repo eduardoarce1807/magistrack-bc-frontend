@@ -2,7 +2,16 @@ import {Component, ViewEncapsulation} from '@angular/core';
 import {BadgeModule} from "primeng/badge";
 import {Button, ButtonModule} from "primeng/button";
 import {CalendarModule} from "primeng/calendar";
-import {AsyncPipe, CommonModule, CurrencyPipe, DatePipe, DecimalPipe, NgForOf, NgIf} from "@angular/common";
+import {
+	AsyncPipe,
+	CommonModule,
+	CurrencyPipe,
+	DatePipe,
+	DecimalPipe,
+	NgForOf,
+	NgIf,
+	registerLocaleData
+} from "@angular/common";
 import {DialogModule} from "primeng/dialog";
 import {FileUploadModule} from "primeng/fileupload";
 import {IconFieldModule} from "primeng/iconfield";
@@ -36,6 +45,10 @@ import Swal from "sweetalert2";
 import {emailordenModel} from "../../../model/enviarEmailModel";
 import {Router} from "@angular/router";
 import {UppercaseDirective} from "../../../directives/uppercase.directive";
+import localeEsPe from '@angular/common/locales/es-PE';
+
+// registrar locale antes de bootstrapApplication
+registerLocaleData(localeEsPe, 'es-PE');
 
 @Component({
   selector: 'app-requerimiento-manual',

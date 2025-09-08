@@ -18,7 +18,7 @@ import {InputTextareaModule} from "primeng/inputtextarea";
 import {TagModule} from "primeng/tag";
 import {BadgeModule} from "primeng/badge";
 import {FileUploadEvent, FileUploadModule} from "primeng/fileupload";
-import {CommonModule, CurrencyPipe, DatePipe, NgIf} from "@angular/common";
+import {CommonModule, CurrencyPipe, DatePipe, NgIf, registerLocaleData} from "@angular/common";
 import {MostrarPdfComponent} from "../../../components/mostrar-pdf/mostrar-pdf.component";
 import {kardexModel, MovimientoModel, TipomovimientoModel} from "../../../model/kardexModel";
 import {KardexService} from "../../../services/inventario/kardex.service";
@@ -35,6 +35,10 @@ import {CalendarModule} from "primeng/calendar";
 import {FuncionesService} from "../../../services/funciones.service";
 import {ExcelService} from "../../../services/excel.service";
 import {CheckboxModule} from "primeng/checkbox";
+import localeEsPe from '@angular/common/locales/es-PE';
+
+// registrar locale antes de bootstrapApplication
+registerLocaleData(localeEsPe, 'es-PE');
 
 @Component({
   selector: 'app-inventario-matprima',

@@ -2,7 +2,7 @@ import {Component, ViewEncapsulation} from '@angular/core';
 import {Button} from "primeng/button";
 import {CalendarModule} from "primeng/calendar";
 import {CargaComponent} from "../../../../components/carga/carga.component";
-import {CommonModule, CurrencyPipe, DatePipe} from "@angular/common";
+import {CommonModule, CurrencyPipe, DatePipe, registerLocaleData} from "@angular/common";
 import {DropdownModule} from "primeng/dropdown";
 import {IconFieldModule} from "primeng/iconfield";
 import {InputIconModule} from "primeng/inputicon";
@@ -40,6 +40,13 @@ import {ProveedorService} from "../../../../services/compras/proveedor.service";
 import {OrdencompraService} from "../../../../services/compras/ordencompra.service";
 import {ValidacionesService} from "../../../../services/compras/validaciones.service";
 import {ReportesComponent} from "../../../../components/reportes/reportes.component";
+import {KardexService} from "../../../../services/inventario/kardex.service";
+import {kardexModel, kardexPeriodo} from "../../../../model/kardexModel";
+import {SliderModule} from "primeng/slider";
+import localeEsPe from '@angular/common/locales/es-PE';
+
+// registrar locale antes de bootstrapApplication
+registerLocaleData(localeEsPe, 'es-PE');
 
 @Component({
   selector: 'app-reporte-entradas-salidas',
@@ -62,11 +69,11 @@ import {ReportesComponent} from "../../../../components/reportes/reportes.compon
 		FileUploadModule,
 		InputTextareaModule,
 		ProgressBarModule,
-		FormsModule, CommonModule, CalendarModule, InputSwitchModule, TagModule, UppercaseDirective, RadioButtonModule, RouterLink
+		FormsModule, CommonModule, CalendarModule, InputSwitchModule, TagModule, UppercaseDirective, RadioButtonModule, RouterLink, SliderModule
 	],
   templateUrl: './reporte-entradas-salidas.component.html',
   styleUrl: './reporte-entradas-salidas.component.scss',
-	providers: [MessageService,DatePipe,FuncionesService,DialogService,ExcelService],
+	providers: [MessageService,DatePipe,FuncionesService,DialogService,ExcelService,],
 	encapsulation: ViewEncapsulation.None,
 })
 export class ReporteEntradasSalidasComponent {
@@ -75,8 +82,12 @@ export class ReporteEntradasSalidasComponent {
 	collectionSize = 0;
 	expandedRows = {};
 	fechaemision:any=new Date()
+	listaKardex:kardexModel[]=[]
 	listaOrdenes: ordencompraModel[] = [];
 	listaProveedores: soloproveedorModel[] = [];
+	activityValuesEntrada: number[] = [0, 9999];
+	activityValuesSalida: number[] = [0, 9999];
+	activityValuesActual: number[] = [0, 9999];
 	listaEstados:any[]= [{
 		codigo:1,
 		descripcion:'PENDIENTE'
@@ -96,7 +107,7 @@ export class ReporteEntradasSalidasComponent {
 	verordencompra:boolean=false
 	fila_select:ordencompraModel = new ordencompraModel()
 	detalle_select:Detalleorden=new Detalleorden()
-	ordenperiodo:ordencompraPeriodo=new ordencompraPeriodo()
+	kardexperiodo:kardexPeriodo=new kardexPeriodo()
 	verobservaciones:boolean=false
 	verfactura:boolean=false
 
@@ -116,21 +127,14 @@ export class ReporteEntradasSalidasComponent {
 				private proveedorService:ProveedorService,
 				private ordenService:OrdencompraService,private  validacionService:ValidacionesService,
 				private sanitizer: DomSanitizer,private funcionesService:FuncionesService,
-				private router:Router,public dialogService: DialogService,private excelService: ExcelService,) {
+				private router:Router,public dialogService: DialogService,private excelService: ExcelService,
+				private kardexService:KardexService) {
 		this.loading=false
 
 	}
 
 	ngOnInit(){
 		this.cargaprov=true
-		this.proveedorService.getProveedor().subscribe({
-			next:(data)=>{
-				this.listaProveedores=data.data
-				this.cargaprov=false
-			},error:(err)=>{
-				this.cargaprov=false
-			}
-		})
 	}
 
 
@@ -154,20 +158,14 @@ export class ReporteEntradasSalidasComponent {
 		// this.listaMateriaPrimaxProveedor=this.selectedprov.detalle
 		// this.listaMateriaPrimaSelected=[]
 		// this.requerimientosave.imptotal=0
-		this.ordenperiodo.idproveedor=this.selectedprov.idproveedor
-		this.ordenperiodo.fechainicial=this.funcionesService.convetir_de_date_a_string_fecha(this.fechainicial)
-		this.ordenperiodo.fechafinal=this.funcionesService.convetir_de_date_a_string_fecha(this.fechafinal)
+		this.kardexperiodo.fechainicial=this.funcionesService.convetir_de_date_a_string_fecha(this.fechainicial)
+		this.kardexperiodo.fechafinal=this.funcionesService.convetir_de_date_a_string_fecha(this.fechafinal)
+		console.log(this.kardexperiodo,"envio kardex")
 		this.spinner=true
-		this.ordenService.getOrdenesxProveedorperiodo(this.ordenperiodo).subscribe({
+		this.kardexService.getKardexPeriodo(this.kardexperiodo).subscribe({
 			next:(data)=>{
-
-				this.listaOrdenes=data.data
-				// this.listaOrdenes.forEach(e=>{
-				// 	e.detalleorden.forEach(l=>{
-				// 		l.switchcumple=l.cumple==1?true:false
-				// 	})
-				// })
 				this.spinner=false
+				this.listaKardex=data.data
 			},error:(err)=>{
 				this.spinner=false
 			}
@@ -193,13 +191,13 @@ export class ReporteEntradasSalidasComponent {
 	imprimir_ordencompra() {
 		let json = {
 			data: {
-				ordencompra:this.ordenperiodo
+				kardex:this.kardexperiodo
 			},
-			tipo_proceso: "listado-compra",
-			tipo_reporte: "listado-compra",
+			tipo_proceso: "listado-kardex",
+			tipo_reporte: "listado-kardex",
 		};
 		this.dialogService.open(ReportesComponent, {
-			header: "Reporte Orden de compra por Periodo - "+this.selectedprov.descripcion,
+			header: "Reporte Kardex por Periodo",
 			width: "80%",
 			height: "97%",
 			contentStyle: { overflow: "auto" },
@@ -215,60 +213,124 @@ export class ReporteEntradasSalidasComponent {
 		let subcabecera: any[] = [];
 		let sumarcampos: any[] = [];
 
-		// Define headers
+		// Encabezados visibles en el Excel
 		cabecera = [
-			"ID Orden Compra",
-			"Fecha de Emisión",
-			"Importe Total",
-			"Estado",
-			"Responsable"
+			"Fecha",
+			"Documento",
+			"Cantidad Entrada",
+			"Cantidad Salida",
+			"Cantidad Actual",
+			"Stock Materia",
+			"Importe Unitario",
+			"Observaciones",
+			"ID Materia Prima",
+			"ID Movimiento",
+			"Archivo Base64",
+			"Path Kardex",
+			"Extensión Doc",
+			"Movimiento",
+			"ID Tipo Movimiento",
+			"Ficha Técnica",
+			"Fecha Vencimiento",
+			"Pureza",
+			"Lote",
+			"Peso Bruto",
+			"Peso Neto"
 		];
 
-		// Define fields (deben coincidir con los nombres del JSON)
+		// Campos que deben coincidir con el JSON
 		campos = [
-			"id_orden_compra",
-			"fechaemision",
-			"imptotal",
-			"estadoord",
-			"responsable"
+			"fecha",
+			"documento",
+			"cant_entrada",
+			"cant_salida",
+			"cant_actual",
+			"stock_materia",
+			"impunit",
+			"observaciones",
+			"id_materia_prima",
+			"id_movimiento",
+			"archivobase64",
+			"path_kardex",
+			"extensiondoc",
+			"movimiento",
+			"id_tipomovimiento",
+			"ficha_tecnica",
+			"fecha_vencimiento",
+			"pureza",
+			"lote",
+			"peso_bruto",
+			"peso_neto"
 		];
 
-		// Column widths
+		// Anchos de columnas (puedes ajustarlos)
 		ancho = [
+			20, // fecha
+			25, // documento
+			20, // cant_entrada
+			20, // cant_salida
+			20, // cant_actual
+			20, // stock_materia
+			20, // impunit
+			40, // observaciones
 			20, // id_materia_prima
-			40, // fechaemision
-			20, // imptotal
-			30, // estadoord
-			30, // responsable
+			20, // id_movimiento
+			40, // archivobase64
+			40, // path_kardex
+			20, // extensiondoc
+			20, // movimiento
+			25, // id_tipomovimiento
+			30, // ficha_tecnica
+			20, // fecha_vencimiento
+			20, // pureza
+			20, // lote
+			20, // peso_bruto
+			20  // peso_neto
 		];
 
-		// Campos que se deben sumar (1 si es numérico acumulable)
+		// Campos numéricos que quieres acumular/sumar
 		sumarcampos = [
+			0, // fecha
+			0, // documento
+			1, // cant_entrada
+			1, // cant_salida
+			1, // cant_actual
+			1, // stock_materia
+			1, // impunit
+			0, // observaciones
 			0, // id_materia_prima
-			0, // nombre
-			0, // costo_gramo
-			1, // id_requerimiento_stock
-			0  // estadorequerimiento
+			0, // id_movimiento
+			0, // archivobase64
+			0, // path_kardex
+			0, // extensiondoc
+			0, // movimiento
+			0, // id_tipomovimiento
+			0, // ficha_tecnica
+			0, // fecha_vencimiento
+			1, // pureza
+			0, // lote
+			1, // peso_bruto
+			1  // peso_neto
 		];
 
-		// Subcabecera con datos adicionales
+		// Subcabecera opcional
 		subcabecera = [
-			"# Items: " + (this.listaOrdenes?.length || 0)
+			"# Items: " + (this.listaKardex?.length || 0)
 		];
 
-		// Agregar columna inicial vacía
+		// Agregar columna inicial vacía si tu servicio Excel lo requiere
 		cabecera.unshift("");
 		campos.unshift("");
 
-		// Llamar a servicio Excel
+		// Llamada al servicio de Excel
 		this.excelService.downloadExcel(
-			this.listaOrdenes, // viene del API
+			this.listaKardex, // los datos que vienen del API con ese JSON
 			cabecera,
 			campos,
-			"Listado orden de Compras -"+this.selectedprov.descripcion,
+			"Kardex Materias Primas",
 			ancho,
 			subcabecera,
-			"orden-compra",
+			"kardex_materias_primas",
 			sumarcampos
 		);
 	}

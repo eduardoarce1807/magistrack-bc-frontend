@@ -83,15 +83,25 @@ export class FuncionesService {
 			return null;
 		}
 	}
+	// convetir_de_date_a_string_fecha(fecha: Date): string | null {
+	// 	if (fecha) {
+	// 		let valorfecha = this.datePipe.transform(
+	// 			new Date(fecha),
+	// 			"yyyy-MM-dd"
+	// 		);
+	// 		return valorfecha;
+	// 	} else {
+	// 		return null;
+	// 	}
+	// }
 	convetir_de_date_a_string_fecha(fecha: Date): string | null {
-		if (fecha) {
-			let valorfecha = this.datePipe.transform(
-				new Date(fecha),
-				"yyyy-MM-dd"
-			);
-			return valorfecha;
-		} else {
-			return null;
-		}
+		if (!fecha) return null;
+
+		const d = new Date(fecha);
+		const year = d.getFullYear();
+		const month = String(d.getMonth() + 1).padStart(2, '0');
+		const day = String(d.getDate()).padStart(2, '0');
+
+		return `${year}-${month}-${day}`;
 	}
 }

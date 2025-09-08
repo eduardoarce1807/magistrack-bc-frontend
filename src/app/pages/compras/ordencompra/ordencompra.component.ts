@@ -3,7 +3,7 @@ import {BadgeModule} from "primeng/badge";
 import {Button} from "primeng/button";
 import {CalendarModule} from "primeng/calendar";
 import {CargaComponent} from "../../../components/carga/carga.component";
-import {CommonModule, CurrencyPipe, DatePipe, NgForOf, NgIf} from "@angular/common";
+import {CommonModule, CurrencyPipe, DatePipe, NgForOf, NgIf, registerLocaleData} from "@angular/common";
 import {DialogModule} from "primeng/dialog";
 import {DropdownModule} from "primeng/dropdown";
 import {FileUploadEvent, FileUploadModule} from "primeng/fileupload";
@@ -43,6 +43,10 @@ import {RadioButtonModule} from "primeng/radiobutton";
 import {Router, RouterLink} from "@angular/router";
 import {DataService} from "../../../services/data.service";
 import {FuncionesService} from "../../../services/funciones.service";
+import localeEsPe from '@angular/common/locales/es-PE';
+
+// registrar locale antes de bootstrapApplication
+registerLocaleData(localeEsPe, 'es-PE');
 
 @Component({
   selector: 'app-ordencompra',

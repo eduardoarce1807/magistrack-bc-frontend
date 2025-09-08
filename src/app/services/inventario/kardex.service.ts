@@ -4,7 +4,7 @@ import {HttpClient} from "@angular/common/http";
 import {Observable} from "rxjs";
 import {Response_Generico} from "../../model/reponseGeneric";
 import {MateriaprimaModel, UnidadmedModel} from "../../model/inventarioModel";
-import {kardexModel, MovimientoModel, TipomovimientoModel} from "../../model/kardexModel";
+import {kardexModel, kardexPeriodo, MovimientoModel, TipomovimientoModel} from "../../model/kardexModel";
 
 @Injectable({
   providedIn: 'root'
@@ -29,6 +29,9 @@ export class KardexService {
 	}
 	getKardextipoMateriaProveedor(id_tipomateria:Number,idproveedor:String): Observable<Response_Generico<kardexModel[]>> {
 		return this.http.get<Response_Generico<kardexModel[]>>(`${this.baseUrl}/obtener-kardex-x-tipomateria/${id_tipomateria}/${idproveedor}`);
+	}
+	getKardexPeriodo(kardexperiodo:kardexPeriodo): Observable<Response_Generico<kardexModel[]>> {
+		return this.http.post<Response_Generico<kardexModel[]>>(`${this.baseUrl}/obtener-kardex-x-periodo`,kardexperiodo);
 	}
 
 }

@@ -32,3 +32,7 @@ export class movimientoKardexTipo {
 	fechafinal:string|null=null
 	id_tipomateria:number=0;
 }
+export class kardexPeriodo {
+	fechainicial:string|null=null
+	fechafinal:string|null=null
+}
