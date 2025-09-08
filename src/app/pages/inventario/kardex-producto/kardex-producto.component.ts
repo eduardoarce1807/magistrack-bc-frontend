@@ -13,12 +13,16 @@ import {Table, TableModule} from "primeng/table";
 import {TagModule} from "primeng/tag";
 import {ToastModule} from "primeng/toast";
 import {TooltipModule} from "primeng/tooltip";
-import {CommonModule, DatePipe} from "@angular/common";
+import {CommonModule, DatePipe, registerLocaleData} from "@angular/common";
 import {SliderModule} from "primeng/slider";
 import {FormsModule} from "@angular/forms";
 import {DropdownModule} from "primeng/dropdown";
 import {ExcelService} from "../../../services/excel.service";
 import {FuncionesService} from "../../../services/funciones.service";
+import localeEsPe from '@angular/common/locales/es-PE';
+
+// registrar locale antes de bootstrapApplication
+registerLocaleData(localeEsPe, 'es-PE');
 
 @Component({
   selector: 'app-kardex-producto',

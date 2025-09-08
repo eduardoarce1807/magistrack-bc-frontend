@@ -3,7 +3,7 @@ import {BadgeModule} from "primeng/badge";
 import {Button} from "primeng/button";
 import {CalendarModule} from "primeng/calendar";
 import {CargaComponent} from "../../../../components/carga/carga.component";
-import {CommonModule, CurrencyPipe, DatePipe, NgIf} from "@angular/common";
+import {CommonModule, CurrencyPipe, DatePipe, NgIf, registerLocaleData} from "@angular/common";
 import {DialogModule} from "primeng/dialog";
 import {DropdownModule} from "primeng/dropdown";
 import {FileUploadEvent, FileUploadModule} from "primeng/fileupload";
@@ -40,6 +40,10 @@ import {FuncionesService} from "../../../../services/funciones.service";
 import {ReportesComponent} from "../../../../components/reportes/reportes.component";
 import {DialogService} from "primeng/dynamicdialog";
 import {ExcelService} from "../../../../services/excel.service";
+import localeEsPe from '@angular/common/locales/es-PE';
+
+// registrar locale antes de bootstrapApplication
+registerLocaleData(localeEsPe, 'es-PE');
 
 @Component({
   selector: 'app-orden-compra-periodo',

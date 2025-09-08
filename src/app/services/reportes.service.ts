@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import {environment} from "../../environments/environment";
 import {HttpClient} from "@angular/common/http";
 import {ordencompraPeriodo} from "../model/ordencompraModel";
+import {kardexPeriodo} from "../model/kardexModel";
 
 @Injectable({
   providedIn: 'root'
@@ -30,5 +31,9 @@ export class ReportesService {
 	imprimirmateriaprimaProveedor(tipomateria:number,idproveedor:string) {
 		const url = `${this.baseUrlkardex}/imprimir-listado-kardex-tipomateria/${tipomateria}/${idproveedor}`;
 		return this.http.get(url, { responseType: "blob" });
+	}
+	imprimirkardexPeriodo(kardex: kardexPeriodo) {
+		const url = `${this.baseUrlkardex}/imprimir-listado-kardex-x-periodo`;
+		return this.http.post(url, kardex, { responseType: "blob" });
 	}
 }

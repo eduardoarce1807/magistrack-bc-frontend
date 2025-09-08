@@ -52,7 +52,7 @@
 						<p-columnFilter type="numeric" field="id_materia_prima" display="menu" class="ml-auto" />
 					</div>
 				</th>
-				<th pSortableColumn="nombre" style="min-width: 200px">
+				<th pSortableColumn="nombre" style="min-width: 300px">
 					<div class="flex justify-content-between align-items-center">
 						Nombre
 						<p-sortIcon field="nombre" />
@@ -400,8 +400,6 @@
 									[inputStyle]="{ width: '100%' }"/>
 					</div>
 				</div>
-				<div class='row'>
-					<div class='col-md-12 col-sm-12'>
 
 						<label class="p-text-secondary fw-bold">Motivo para dar de Baja</label>
 						<textarea
@@ -410,8 +408,6 @@
 						pInputTextarea
 						[(ngModel)]="subirBaja.observaciones">
 						</textarea>
-					</div>
-				</div>
 
 
 				<div class="row">
