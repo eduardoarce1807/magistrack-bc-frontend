@@ -53,16 +53,28 @@
                         }
                     </td>
 					<td>
-						<button class="btn btn-primary btn-sm me-2" (click)="router.navigate(['/pages/gestion-producto/registro-cupon', item.codigo])">
-							Editar
+						<button 
+							class="btn btn-primary btn-sm me-2" 
+							(click)="router.navigate(['/pages/gestion-producto/registro-cupon', item.codigo])"
+							ngbTooltip="Editar cupón"
+							placement="top">
+							<i class="bi bi-pencil-square"></i>
 						</button>
                         @if(item.estado) {
-                            <button class="btn btn-danger btn-sm" (click)="desactivarCupon(item.idCupon)">
-                                Desactivar
+                            <button 
+								class="btn btn-danger btn-sm" 
+								(click)="desactivarCupon(item.idCupon)"
+								ngbTooltip="Desactivar cupón"
+								placement="top">
+                                <i class="bi bi-toggle-on"></i>
                             </button>
                         }@else {
-                            <button class="btn btn-success btn-sm" (click)="activarCupon(item.idCupon)">
-                                Activar
+                            <button 
+								class="btn btn-success btn-sm" 
+								(click)="activarCupon(item.idCupon)"
+								ngbTooltip="Activar cupón"
+								placement="top">
+                                <i class="bi bi-toggle-off"></i>
                             </button>
                         }
 					</td>
