@@ -309,7 +309,7 @@ export class SidebarComponent {
 
 	}
 	irA(ruta: string): void {
-		if(ruta == "pages/atencion-cliente/bandeja-pedidos" && localStorage.getItem('usuario-magistrack-bc') != null && JSON.parse(localStorage.getItem('usuario-magistrack-bc')!).rol.idRol == 1){
+		if(ruta == "pages/atencion-cliente/bandeja-pedidos" && localStorage.getItem('usuario-magistrack-bc') != null && (JSON.parse(localStorage.getItem('usuario-magistrack-bc')!).rol.idRol == 1 || JSON.parse(localStorage.getItem('usuario-magistrack-bc')!).rol.idRol == 5)){
 			ruta = "pages/atencion-cliente/bandeja-pedidos-administrador";
 		}
 		this.router.navigate([`/${ruta}`]);

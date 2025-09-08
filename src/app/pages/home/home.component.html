@@ -32,7 +32,7 @@
 					<p class="card-text">
 						Gestiona y controla tus pedidos fácilmente.
 					</p>
-					@if (dataService.getLoggedUser().rol.idRol == 1) {
+					@if (dataService.getLoggedUser().rol.idRol == 1 || dataService.getLoggedUser().rol.idRol == 5) {
 						<button
 							class="btn btn-primary w-100"
 							(click)="irA('pages/atencion-cliente/bandeja-pedidos-administrador')"

@@ -4,7 +4,7 @@ import { AuthGuard } from '../../guards/auth.guard';
 export const atencionClienteRoutes: Routes = [
   { path: 'registro-cliente', loadComponent: () => import('./registro-cliente/registro-cliente.component').then(m => m.RegistroClienteComponent), canActivate: [AuthGuard], data: { roles: [1, 5] } },
   { path: 'registro-cliente/:idCliente', loadComponent: () => import('./registro-cliente/registro-cliente.component').then(m => m.RegistroClienteComponent), canActivate: [AuthGuard], data: { roles: [1, 5] } },
-  { path: 'bandeja-pedidos', loadComponent: () => import('./bandeja-pedidos/bandeja-pedidos.component').then(m => m.BandejaPedidosComponent), canActivate: [AuthGuard], data: { roles: [2, 5] } },
+  { path: 'bandeja-pedidos', loadComponent: () => import('./bandeja-pedidos/bandeja-pedidos.component').then(m => m.BandejaPedidosComponent), canActivate: [AuthGuard], data: { roles: [2] } },
   { path: 'bandeja-pedidos-administrador', loadComponent: () => import('./bandeja-pedidos-administrador/bandeja-pedidos-administrador.component').then(m => m.BandejaPedidosAdministradorComponent), canActivate: [AuthGuard], data: { roles: [1, 5] } },
   { path: 'registro-pedido', loadComponent: () => import('./registro-pedido/registro-pedido.component').then(m => m.RegistroPedidoComponent), canActivate: [AuthGuard], data: { roles: [1, 2, 5] } },
   { path: 'registro-pedido/:idPedido', loadComponent: () => import('./registro-pedido/registro-pedido.component').then(m => m.RegistroPedidoComponent), canActivate: [AuthGuard], data: { roles: [1, 2, 5] } },
