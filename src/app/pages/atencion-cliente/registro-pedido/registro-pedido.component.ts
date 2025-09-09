@@ -246,7 +246,7 @@ export class RegistroPedidoComponent implements OnInit, OnDestroy {
   }
 
   goBandejaPedidos() {
-    if(this.dataService.getLoggedUser().rol.idRol === 1) {
+    if(this.dataService.getLoggedUser().rol.idRol === 1 || this.dataService.getLoggedUser().rol.idRol === 5) {
       this.router.navigate(['/pages/atencion-cliente/bandeja-pedidos-administrador']);
     } else {
       this.router.navigate(['/pages/atencion-cliente/bandeja-pedidos']);
@@ -500,6 +500,12 @@ export class RegistroPedidoComponent implements OnInit, OnDestroy {
           this.pedido = pedido;
           this.notaDelivery = pedido.notaDelivery || '';
           this.codigoCupon = pedido.cupon ? pedido.cupon.codigo : '';
+
+          if(pedido.cupon){
+            this.cuponValidado = true;
+            this.textoCupon = "Cupón válido.";
+          }
+
           if(pedido.metodoEntrega && pedido.metodoEntrega.idMetodoEntrega && pedido.metodoEntrega.idMetodoEntrega > 0
             && pedido.direccion && pedido.direccion.idDireccion && pedido.direccion.idDireccion > 0
           ) {
@@ -531,7 +537,10 @@ export class RegistroPedidoComponent implements OnInit, OnDestroy {
   }
 
   getProductosBusquedaAvanzada(content: TemplateRef<any>) {
-    this.productoService.getCatalogoProductosByCliente(this.dataService.getLoggedUser().cliente.idCliente).subscribe((data: any) => {
+
+    let idCliente = this.dataService.getLoggedUser().rol.idRol == 1 || this.dataService.getLoggedUser().rol.idRol == 5 ? this.pedido.cliente.idCliente : this.dataService.getLoggedUser().cliente.idCliente;
+
+    this.productoService.getCatalogoProductosByCliente(idCliente).subscribe((data: any) => {
       this.productosBusquedaAvanzada = data;
       this.collectionSize = data.length;
       this.modalService.open(content, {backdrop: 'static', keyboard: false, size: 'xl'});
@@ -641,7 +650,10 @@ export class RegistroPedidoComponent implements OnInit, OnDestroy {
 
   buscarProducto(){
     if (this.query) {
-      this.productoService.getBuscarProductos(this.dataService.getLoggedUser().cliente.idCliente, this.query).subscribe((data: any) => {
+
+      let idCliente = this.dataService.getLoggedUser().rol.idRol == 1 || this.dataService.getLoggedUser().rol.idRol == 5 ? this.pedido.cliente.idCliente : this.dataService.getLoggedUser().cliente.idCliente;
+
+      this.productoService.getBuscarProductos(idCliente, this.query).subscribe((data: any) => {
         this.productosBusqueda = data;
         this.searchFocused = true;
       },
@@ -726,7 +738,8 @@ export class RegistroPedidoComponent implements OnInit, OnDestroy {
 
                   if (clienteValido) {
                     // CLIENTE VÁLIDO - Verificar productos
-                    const esParaTodosLosProductos = !response.productos || response.productos.length === 0;
+                    const esParaTodosLosProductos = !response.productos || response.productos.length === 0 || 
+                      (response.productos.length === 1 && response.productos[0].idProducto === "-1");
                     let productoValido = false;
 
                     if (esParaTodosLosProductos) {
@@ -744,6 +757,8 @@ export class RegistroPedidoComponent implements OnInit, OnDestroy {
                       this.textoErrorCupon = '';
                       this.cuponValidado = true;
                       this.textoCupon = "Cupón válido.";
+
+                      this.pedido.cupon = response; // Asignar el cupón al pedido
 
                       //ACTUALIZAR PRODUCTO DEL PEDIDO CON DESCUENTO
                       let cuponRequest = {
@@ -830,6 +845,66 @@ export class RegistroPedidoComponent implements OnInit, OnDestroy {
       }
     );
     
+  }
+
+  quitarCupon() {
+    Swal.fire({
+      title: '¿Estás seguro?',
+      text: '¿Deseas quitar el cupón aplicado al pedido?',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Sí, quitar cupón',
+      cancelButtonText: 'Cancelar'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        // Crear request para quitar cupón
+        let quitarCuponRequest = {
+          idPedido: this.idPedido!
+        };
+
+        this.pedidoService.quitarCuponPedido(quitarCuponRequest).subscribe(
+          (data: any) => {
+            if (data && data.idResultado && data.idResultado > 0) {
+              // Restablecer todas las variables relacionadas al cupón
+              this.errorCupon = false;
+              this.textoErrorCupon = '';
+              this.cuponValidado = false;
+              this.textoCupon = '';
+              this.codigoCupon = '';
+              this.pedido.cupon = null;
+
+              Swal.fire({
+                icon: 'success',
+                title: '¡Listo!',
+                text: data.mensaje || 'El cupón ha sido quitado correctamente.',
+                showConfirmButton: true
+              });
+
+              // Recargar productos para reflejar los cambios (quitar descuentos)
+              this.cargarProductosByIdPedido(this.idPedido!);
+            } else {
+              Swal.fire({
+                icon: 'error',
+                title: 'Oops!',
+                text: data.mensaje || 'No se pudo quitar el cupón.',
+                showConfirmButton: true
+              });
+            }
+          },
+          (error: any) => {
+            console.error('Error al quitar cupón', error);
+            Swal.fire({
+              icon: 'error',
+              title: 'Oops!',
+              text: 'No se pudo quitar el cupón, inténtelo de nuevo.',
+              showConfirmButton: true
+            });
+          }
+        );
+      }
+    });
   }
 
   totalPedido = 0;

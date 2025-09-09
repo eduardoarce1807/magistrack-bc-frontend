@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { NgbTypeaheadModule, NgbPaginationModule } from '@ng-bootstrap/ng-bootstrap';
+import { NgbTypeaheadModule, NgbPaginationModule, NgbTooltipModule } from '@ng-bootstrap/ng-bootstrap';
 import Swal from 'sweetalert2';
 import { ClienteService } from '../../../services/cliente.service';
 import { PedidoService } from '../../../services/pedido.service';
@@ -11,7 +11,7 @@ import { CommonModule } from '@angular/common';
 @Component({
   selector: 'app-listado-cupones',
   standalone: true,
-  imports: [FormsModule, NgbTypeaheadModule, NgbPaginationModule, CommonModule],
+  imports: [FormsModule, NgbTypeaheadModule, NgbPaginationModule, CommonModule, NgbTooltipModule],
   templateUrl: './listado-cupones.component.html',
   styleUrl: './listado-cupones.component.scss'
 })

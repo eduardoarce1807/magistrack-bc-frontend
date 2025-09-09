@@ -30,6 +30,9 @@
 						style="height: 60px"
 					/>
 					<h6 class="fw-bold text-start">{{ producto.productoMaestro.nombre }}</h6>
+					@if (producto.tipoEnvase) {
+						<p class="text-muted small text-start">{{ producto.tipoEnvase }}</p>
+					}
 					<p class="text-muted small text-start">{{ producto.presentacion + ' ' + producto.tipoPresentacion.descripcion }}</p>
 					<p class="fw-bold text-start">S/{{ producto.precio.toFixed(2) }}</p>
 				</div>

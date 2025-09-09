@@ -194,6 +194,11 @@ export class PedidoService {
 		return this.http.post<any>(url, data);
 	}
 
+	quitarCuponPedido(data: any): Observable<any> {
+		let url = `${this.baseUrl}/quitar-cupon`;
+		return this.http.post<any>(url, data);
+	}
+
 	getReportePedidos(data: any): Observable<any[]> {
 		let url = `${this.baseUrl}/filtrar`;
 		return this.http.post<any[]>(url, data);
