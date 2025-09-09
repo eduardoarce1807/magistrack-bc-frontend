@@ -141,7 +141,7 @@ export class SidebarComponent {
 						label: 'Cumplimiento FEE',
 						command: () => this.irA('pages/reportes/cumplimiento-fee')
 					},
-
+					...([1].includes(user.rol.idRol) ? [
 					{
 						key: '7_9',
 						label: 'Órdenes de Compra por Periodo',
@@ -162,6 +162,7 @@ export class SidebarComponent {
 						label: 'Entradas y Salidas por periodo',
 						command: () => this.irA('pages/reportes/entradas-salidas')
 					}
+					]: []),
 				]
 			}] : []),
 			...(user.rol.idRol === 1 || user.rol.idRol === 5 || user.rol.idRol === 6 || user.rol.idRol === 7 || user.rol.idRol === 8 || user.rol.idRol === 9 ? [
@@ -248,7 +249,7 @@ export class SidebarComponent {
 					items: [
 						{
 							key: '5_0',
-							label: 'Listado de Materias Primas',
+							label: 'Listado de Materias Primas y Envases',
 							command: () => this.irA('pages/inventario/inventario-matprima')
 						},
 						{
