@@ -39,6 +39,7 @@ export class iterequerimientoModel {
 	cantidad_cotizada_total: number=0;
 	diasentrega:number=0
 	condicion_adicional:string|null=null
+	abreviado:string=''
 
 }
 

@@ -67,17 +67,30 @@ export class KardexProductoComponent {
 	}]
 	cambio_pres:number=1
 	spinner:boolean=false
+	cantidadentrada:number=0
+	cantidadsalida:number=0
+	stock:number=0
 	constructor(private kardexService:KardexService,
 				private route: ActivatedRoute,
 				private excelService:ExcelService) {
 	}
 	ngOnInit(){
 		this.spinner=true
+		this.cantidadentrada=0
+		this.cantidadsalida=0
+		this.stock=0
 		this.id_materia_prima= Number(this.route.snapshot.paramMap.get('id_materia_prima'));
 		this.kardexService.getKardexMateriaPrima(this.id_materia_prima).subscribe({
 			next:(data)=>{
 				this.spinner=false
 				this.listaKardex=data.data
+				this.listaKardex.forEach(e=>{
+					this.cantidadentrada+=e.cant_entrada
+					this.cantidadsalida+=e.cant_salida
+					this.stock+=e.cant_actual
+
+				})
+
 			},error:(err)=>{
 				this.spinner=false
 			}
