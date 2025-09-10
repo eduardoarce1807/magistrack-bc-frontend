@@ -3,6 +3,7 @@ export class kardexModel {
 	documento:        string='';
 	cant_entrada:     number=0;
 	cant_salida:      number=0;
+	cant_actual:	  number=0;
 	impunit:          number=0;
 	id_materia_prima: number=0;
 	observaciones:    string='';
@@ -16,6 +17,8 @@ export class kardexModel {
 	lote:              string='';
 	peso_bruto:        number=0;
 	peso_neto:         number=0;
+	impsubtotalentrada:number=0;
+	impsubtotalsalida:number=0
 }
 export class TipomovimientoModel {
 	id_tipomovimiento: string='';

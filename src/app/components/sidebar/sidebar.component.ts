@@ -161,6 +161,16 @@ export class SidebarComponent {
 						key: '7_11',
 						label: 'Entradas y Salidas por periodo',
 						command: () => this.irA('pages/reportes/entradas-salidas')
+					},
+					{
+						key: '7_12',
+						label: 'Valorización de entradas y salidas',
+						command: () => this.irA('pages/reportes/reporte-valorizacion')
+					},
+					{
+						key: '7_13',
+						label: 'Ingreso por Categoría',
+						command: () => this.irA('pages/reportes/reporte-valorizacion')
 					}
 					]: []),
 				]

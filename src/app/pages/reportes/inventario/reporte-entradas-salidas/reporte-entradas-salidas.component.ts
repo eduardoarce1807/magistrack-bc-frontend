@@ -327,10 +327,10 @@ export class ReporteEntradasSalidasComponent {
 			this.listaKardex, // los datos que vienen del API con ese JSON
 			cabecera,
 			campos,
-			"Kardex Materias Primas",
+			"Entradas/Salidas Materias Primas",
 			ancho,
 			subcabecera,
-			"kardex_materias_primas",
+			"entrada_salida_materias_primas",
 			sumarcampos
 		);
 	}

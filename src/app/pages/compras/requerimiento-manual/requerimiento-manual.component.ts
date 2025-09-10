@@ -246,7 +246,8 @@ export class RequerimientoManualComponent {
 		registro.id_materia_prima=this.selectedCustomersProv.id_materia_prima
 		registro.costo_gramo=this.selectedCustomersProv.costo_gramo
 		registro.desmateriaprima=this.selectedCustomersProv.nombre
-
+		registro.abreviado=this.selectedCustomersProv.abreviado
+		console.log(registro,'registro nuevo')
 		let existe = this.listaMateriaPrimaSelected.find(
 			x => x.id_materia_prima === registro.id_materia_prima
 		);

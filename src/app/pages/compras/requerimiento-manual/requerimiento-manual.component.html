@@ -134,7 +134,7 @@
 							</th>
 							<th pSortableColumn="costo_gramo" style="min-width: 50px">
 								<div class="flex justify-content-between align-items-center">
-									S/. gramo
+									S/-unid
 									<p-sortIcon field="costo_gramo" />
 								</div>
 							</th>
@@ -227,7 +227,7 @@
 							</th>
 							<th pSortableColumn="costoGramo" style="min-width: 50px">
 								<div class="flex justify-content-between align-items-center">
-									S/. gramo
+									S/. unid
 									<p-sortIcon field="costoGramo" />
 									<p-columnFilter type="number" field="costoGramo" display="menu" class="ml-auto" />
 								</div>
@@ -336,7 +336,7 @@
 							</th>
 							<th pSortableColumn="costo_gramo" style="width: 180px">
 								<div class="flex justify-content-between align-items-center">
-									S/. gramo
+									S/. unid
 									<p-sortIcon field="costo_gramo" />
 									<p-columnFilter type="number" field="costo_gramo" display="menu" class="ml-auto" />
 								</div>
@@ -362,22 +362,31 @@
 							<td>
 								{{ rowIndex+1 }}
 							</td>
-							<td>
+							<td colspan="2">
 								<!--					<img src="https://primefaces.org/cdn/primeng/images/demo/flag/flag_placeholder.png" [class]="'flag flag-' + customer.country.code" style="width: 20px" />-->
 								<span class="ml-1 vertical-align-middle text-danger fw-bold">{{ customer.desmateriaprima }}</span>
 
+							</td>
+							<td class="d-flex align-items-center text-end">
+								Subtotal: S/ {{customer.impsubtotal | currency:' ':'symbol':'1.2-2':'en-US'}}
+							</td>
+						</tr>
+						<tr class="p-selectable-row"  >
+							<td>
+
+							</td>
+							<td>
 								<p-inputNumber
 									[(ngModel)]="customer.cantidad_requerida"
 									inputId="minmaxfraction"
 									mode="decimal"
 									class="w-full text-end"
-									suffix="(g)"
+									[suffix]="' ('+customer.abreviado+')'"
 									[minFractionDigits]="0"
 									[maxFractionDigits]="5"
 									(ngModelChange)="cambiocantidad(customer)"/>
 							</td>
 							<td class="d-flex flex-column text-end">
-								Subtotal: S/ {{customer.impsubtotal | currency:' ':'symbol':'1.2-2':'en-US'}}
 								<p-inputNumber
 									[(ngModel)]="customer.costo_gramo"
 									inputId="minmaxfraction"
@@ -387,16 +396,15 @@
 									[minFractionDigits]="4"
 									[maxFractionDigits]="5"
 									(ngModelChange)="cambiocantidad(customer)"/>
-<!--								<span class="text-danger fw-bold">{{ customer.costo_gramo | currency:' ':'symbol':'1.2-2':'en-US' }}</span>-->
+								<!--								<span class="text-danger fw-bold">{{ customer.costo_gramo | currency:' ':'symbol':'1.2-2':'en-US' }}</span>-->
 							</td>
 							@if (selectedprov && selectedprov.idproveedor){
-							<td class="text-end">
-								cantidad
-								<p-inputNumber
-									[(ngModel)]="customer.diasentrega"
-									inputId="integeronly"
-								/>
-							</td>
+								<td class="text-end">
+									<p-inputNumber
+										[(ngModel)]="customer.diasentrega"
+										inputId="integeronly"
+									/>
+								</td>
 							}
 							<td>
 								<i class="pi pi-trash" style="color: red"

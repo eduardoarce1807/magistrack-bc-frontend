@@ -17,6 +17,7 @@ export class proveedorModel {
 }
 
 export class ListaMateriaModel {
+	abreviado:string=''
 	id_materia_prima:number=0;
 	nombre: string|null=null;
 	costo_gramo:number=0;

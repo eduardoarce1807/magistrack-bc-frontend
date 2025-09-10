@@ -8,14 +8,10 @@
 		[value]="listaKardex"
 		dataKey="id_kardex"
 		[rowHover]="true"
-		[rows]="5"
-		[showCurrentPageReport]="true"
-		[rowsPerPageOptions]="[5, 25, 50]"
-		[paginator]="true"
-		currentPageReportTemplate="{first} hasta {last} de {totalRecords} registros"
 		[filterDelay]="0"
 		styleClass="p-datatable-gridlines p-datatable-striped p-datatable-sm"
 		[tableStyle]="{'min-width': '40rem'}"
+		[scrollable]="true" scrollHeight="400px"
 		[globalFilterFields]="['id_materia_prima', 'id_kardex','fecha','ficha_tecnica','lote','fecha_vencimiento','movimiento','id_tipomovimiento']"
 	>
 		<ng-template pTemplate="caption">
@@ -208,7 +204,7 @@
 				<td>
 					{{ customer.documento }}
 				</td>
-				<td>
+				<td class="text-end">
 					@if (customer.cant_entrada>0){
 						<div class="d-flex justify-content-center">
 						<p class="text-success mx-1">{{ customer.cant_entrada }}</p>
@@ -219,7 +215,7 @@
 
 					}
 				</td>
-				<td>
+				<td class="text-end">
 					@if (customer.cant_salida>0){
 						<div class="d-flex justify-content-center">
 							<p class="text-danger mx-1">{{ customer.cant_salida }}</p>
@@ -229,7 +225,7 @@
 						{{ customer.cant_salida }}
 					}
 				</td>
-				<td>
+				<td class="text-end">
 					{{ customer.cant_actual }}
 				</td>
 				<td>
@@ -277,6 +273,14 @@
 					</td>
 
 				}
+			</tr>
+		</ng-template>
+		<ng-template pTemplate="footer">
+			<tr>
+				<td colspan="3" class="text-right">Total:</td>
+				<td class="text-end">{{cantidadentrada}}</td>
+				<td class="text-end">{{cantidadsalida}}</td>
+				<td class="text-end">{{stock}}</td>
 			</tr>
 		</ng-template>
 		<ng-template pTemplate="emptymessage">
