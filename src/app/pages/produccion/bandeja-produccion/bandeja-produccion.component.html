@@ -299,6 +299,41 @@
 	</div>
 </ng-template>
 
+<ng-template #codigoBarraMasivo let-modal>
+	<div class="modal-header">
+		<h4 class="modal-title" id="modal-basic-title">Códigos de Barras - Impresión Masiva</h4>
+		<button
+			type="button"
+			class="btn-close"
+			aria-label="Close"
+			(click)="modal.dismiss('Cross click')"
+		></button>
+	</div>
+	<div class="modal-body">
+		<div class="text-center">
+			<p><strong>Productos recibidos en producción ({{ productosCodigoBarrasMasivo.length }})</strong></p>
+			<hr>
+			<div id="barcodesMasivoDiv">
+				<div *ngFor="let producto of productosCodigoBarrasMasivo; let i = index" 
+					 class="mb-4 d-flex justify-content-center">
+					<div style="border: 1px dashed #ccc; padding: 20px; text-align: center;">
+						<p style="margin: 0 0 10px 0; font-weight: bold;">{{ producto.nombreProducto }}</p>
+						<p style="margin: 0 0 10px 0; font-size: 12px;">Bulk: {{ producto.idBulk }}</p>
+						<div class="d-flex justify-content-center">
+							<svg [id]="'barcode-masivo-' + i" class="barcode"></svg>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="d-flex justify-content-center mt-3">
+			<button class="btn btn-primary" (click)="imprimirCodigoBarraMasivo('barcodesMasivoDiv')">
+				<i class="bi bi-printer-fill"></i> Imprimir Todos
+			</button>
+		</div>
+	</div>
+</ng-template>
+
 <ng-template #nota let-modal>
 	<div class="modal-header">
 		<h4 class="modal-title" id="modal-basic-title">Agregar nota</h4>
