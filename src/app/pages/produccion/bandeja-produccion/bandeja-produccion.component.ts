@@ -108,7 +108,9 @@ export class BandejaProduccionComponent implements OnInit {
 
 	// Métodos para impresión de código de barras
 	@ViewChild('codigoBarraIndividual', { static: true }) codigoBarraIndividual: TemplateRef<any> | null = null;
+	@ViewChild('codigoBarraMasivo', { static: true }) codigoBarraMasivo: TemplateRef<any> | null = null;
 	itemCodigoBarras: any = null;
+	productosCodigoBarrasMasivo: any[] = [];
 
 	openModalCodigoBarraIndividual(item: any) {
 		if (!item.idBulk) {
@@ -140,6 +142,29 @@ export class BandejaProduccionComponent implements OnInit {
 		}
 	}
 
+	openModalCodigoBarraMasivo(productos: any[]) {
+		this.productosCodigoBarrasMasivo = productos;
+		if (this.codigoBarraMasivo) {
+			this.modalService.open(this.codigoBarraMasivo, { size: 'xl' });
+			setTimeout(() => {
+				this.initBarcodesMasivos();
+			}, 100);
+		}
+	}
+
+	initBarcodesMasivos(): void {
+		this.productosCodigoBarrasMasivo.forEach((producto, index) => {
+			if (producto && producto.idBulk) {
+				JsBarcode(`#barcode-masivo-${index}`, producto.idBulk, {
+					width: 2,
+					height: 100,
+					displayValue: true,
+					fontSize: 16
+				});
+			}
+		});
+	}
+
 	imprimirCodigoBarraIndividual(divId: string): void {
 		const printContents = document.getElementById(divId)?.innerHTML;
 		if (!printContents) {
@@ -155,6 +180,33 @@ export class BandejaProduccionComponent implements OnInit {
 		if (printWindow) {
 			printWindow.document.write('<html><head><title>Código de Barras</title>');
 			printWindow.document.write('<style>body{margin:0;padding:20px;text-align:center;} @media print { body { -webkit-print-color-adjust: exact; } }</style>');
+			printWindow.document.write('</head><body>');
+			printWindow.document.write(printContents);
+			printWindow.document.write('</body></html>');
+			printWindow.document.close();
+			printWindow.focus();
+			setTimeout(() => {
+				printWindow.print();
+				printWindow.close();
+			}, 500);
+		}
+	}
+
+	imprimirCodigoBarraMasivo(divId: string): void {
+		const printContents = document.getElementById(divId)?.innerHTML;
+		if (!printContents) {
+			Swal.fire({
+				icon: 'error',
+				title: 'Oops!',
+				text: 'No se encontró el contenido para imprimir.',
+				showConfirmButton: true,
+			});
+			return;
+		}
+		const printWindow = window.open('', '', 'height=800,width=1000');
+		if (printWindow) {
+			printWindow.document.write('<html><head><title>Códigos de Barras - Impresión Masiva</title>');
+			printWindow.document.write('<style>body{margin:0;padding:20px;} @media print { body { -webkit-print-color-adjust: exact; } .mb-4 { page-break-inside: avoid; margin-bottom: 1rem; } }</style>');
 			printWindow.document.write('</head><body>');
 			printWindow.document.write(printContents);
 			printWindow.document.write('</body></html>');
@@ -210,16 +262,16 @@ export class BandejaProduccionComponent implements OnInit {
 			title: '¿Imprimir Códigos de Barras?',
 			html: `<p>Los siguientes productos han sido recibidos en producción y tienen códigos bulk disponibles:</p>
 				   <ul style="text-align: left; margin: 10px 0;">${productosHtml}</ul>
-				   <p>¿Deseas imprimir los códigos de barras ahora?</p>`,
+				   <p>¿Deseas imprimir todos los códigos de barras en una sola hoja?</p>`,
 			icon: 'question',
 			showCancelButton: true,
-			confirmButtonText: 'Sí, imprimir',
+			confirmButtonText: 'Sí, imprimir todos',
 			cancelButtonText: 'No, después',
 			allowOutsideClick: false
 		}).then((result) => {
 			if (result.isConfirmed) {
-				// Abrir el primer producto y dar la opción de continuar con los demás
-				this.imprimirCodigosBarrasSecuencial(productosConBulk, 0);
+				// Abrir el modal masivo con todos los productos
+				this.openModalCodigoBarraMasivo(productosConBulk);
 			}
 		});
 	}
@@ -732,8 +784,17 @@ export class BandejaProduccionComponent implements OnInit {
 		let errores = 0;
 		const totalProductos = productosSeleccionados.length;
 
-		// Procesar cada producto individualmente
-		productosSeleccionados.forEach((item, index) => {
+		// Función recursiva para procesar productos de forma secuencial
+		const procesarProductoSecuencial = (index: number) => {
+			if (index >= productosSeleccionados.length) {
+				// Todos los productos han sido procesados
+				this.mostrarResultadoMasivo(procesadosExitosos, errores, totalProductos, 'recibidos');
+				return;
+			}
+
+			const item = productosSeleccionados[index];
+			console.log(`Procesando producto ${index + 1}/${totalProductos}: ${item.nombreProducto}`);
+			
 			this.productoService
 				.updateEstadoProductoMaestro({
 					idProductoMaestro: item.idProductoMaestro,
@@ -750,23 +811,23 @@ export class BandejaProduccionComponent implements OnInit {
 						// Procesar hoja de producción y kardex para cada producto
 						this.procesarHojaProduccionYKardex(item);
 						procesadosExitosos++;
+						console.log(`Producto ${index + 1}/${totalProductos} procesado exitosamente: ${item.nombreProducto}`);
 						
-						// Verificar si todos los productos han sido procesados
-						if (procesadosExitosos + errores === totalProductos) {
-							this.mostrarResultadoMasivo(procesadosExitosos, errores, totalProductos, 'recibidos');
-						}
+						// IMPORTANTE: Solo continuar con el siguiente después de que este request haya terminado completamente
+						procesarProductoSecuencial(index + 1);
 					},
 					(error) => {
 						console.error(`Error al recibir producto ${item.nombreProducto}:`, error);
 						errores++;
 						
-						// Verificar si todos los productos han sido procesados
-						if (procesadosExitosos + errores === totalProductos) {
-							this.mostrarResultadoMasivo(procesadosExitosos, errores, totalProductos, 'recibidos');
-						}
+						// IMPORTANTE: Continuar con el siguiente producto incluso si este falló, pero solo después del error
+						procesarProductoSecuencial(index + 1);
 					}
 				);
-		});
+		};
+
+		// Iniciar el procesamiento secuencial
+		procesarProductoSecuencial(0);
 	}
 
 	enviarCalidadMasivo() {
@@ -803,8 +864,17 @@ export class BandejaProduccionComponent implements OnInit {
 		let errores = 0;
 		const totalProductos = productosSeleccionados.length;
 
-		// Procesar cada producto individualmente
-		productosSeleccionados.forEach((item, index) => {
+		// Función recursiva para procesar productos de forma secuencial
+		const procesarProductoSecuencial = (index: number) => {
+			if (index >= productosSeleccionados.length) {
+				// Todos los productos han sido procesados
+				this.mostrarResultadoMasivo(procesadosExitosos, errores, totalProductos, 'enviados a calidad');
+				return;
+			}
+
+			const item = productosSeleccionados[index];
+			console.log(`Procesando producto ${index + 1}/${totalProductos}: ${item.nombreProducto}`);
+			
 			this.productoService
 				.updateEstadoProductoMaestro({
 					idProductoMaestro: item.idProductoMaestro,
@@ -835,32 +905,39 @@ export class BandejaProduccionComponent implements OnInit {
 							this.productoService.updateEstadoProductoBulk(bulkData).subscribe(
 								(bulkResponse) => {
 									console.log(`Estado bulk actualizado correctamente para ${item.nombreProducto}:`, bulkResponse);
+									// IMPORTANTE: Solo continuar después de que el bulk request también termine
+									procesadosExitosos++;
+									console.log(`Producto ${index + 1}/${totalProductos} enviado a calidad exitosamente: ${item.nombreProducto}`);
+									procesarProductoSecuencial(index + 1);
 								},
 								(bulkError) => {
 									console.error(`Error al actualizar estado bulk para ${item.nombreProducto}:`, bulkError);
-									// No afecta el contador de errores ya que la operación principal fue exitosa
+									// Aunque falle el bulk, consideramos el producto como procesado exitoso
+									procesadosExitosos++;
+									console.log(`Producto ${index + 1}/${totalProductos} enviado a calidad exitosamente: ${item.nombreProducto} (con error en bulk)`);
+									procesarProductoSecuencial(index + 1);
 								}
 							);
-						}
-
-						procesadosExitosos++;
-						
-						// Verificar si todos los productos han sido procesados
-						if (procesadosExitosos + errores === totalProductos) {
-							this.mostrarResultadoMasivo(procesadosExitosos, errores, totalProductos, 'enviados a calidad');
+						} else {
+							// Si no tiene idBulk, continuar inmediatamente
+							procesadosExitosos++;
+							console.log(`Producto ${index + 1}/${totalProductos} enviado a calidad exitosamente: ${item.nombreProducto}`);
+							// IMPORTANTE: Solo continuar después de que este request haya terminado completamente
+							procesarProductoSecuencial(index + 1);
 						}
 					},
 					(error) => {
 						console.error(`Error al enviar producto ${item.nombreProducto} a calidad:`, error);
 						errores++;
 						
-						// Verificar si todos los productos han sido procesados
-						if (procesadosExitosos + errores === totalProductos) {
-							this.mostrarResultadoMasivo(procesadosExitosos, errores, totalProductos, 'enviados a calidad');
-						}
+						// IMPORTANTE: Continuar con el siguiente producto incluso si este falló, pero solo después del error
+						procesarProductoSecuencial(index + 1);
 					}
 				);
-		});
+		};
+
+		// Iniciar el procesamiento secuencial
+		procesarProductoSecuencial(0);
 	}
 
 	mostrarResultadoMasivo(exitosos: number, errores: number, total: number, accion: string) {
