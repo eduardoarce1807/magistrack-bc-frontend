@@ -72,7 +72,7 @@
 						<p-columnFilter type="text" field="celular" display="menu" class="ml-auto" />
 					</div>
 				</th>
-				<th pSortableColumn="direccion" style="min-width: 40px">
+				<th pSortableColumn="direccion" style="min-width: 350px">
 					<div class="flex justify-content-between align-items-center">
 						Dirección
 						<p-sortIcon field="direccion" />
@@ -121,17 +121,16 @@
 						<p-columnFilter type="text" field="cci" display="menu" class="ml-auto" />
 					</div>
 				</th>
-				<th style="min-width: 10rem">
-					<div class="flex justify-content-between align-items-center">
-						Acciones
-					</div>
-				</th>
 			</tr>
 		</ng-template>
 		<ng-template pTemplate="body" let-customer>
 			<tr class="p-selectable-row" >
 				<td>
 					{{ customer.idproveedor }}
+					<p-button  [rounded]="true" icon="pi pi-pencil" class="mx-1" severity="success"
+							   pTooltip="Editar Proveedor"
+							   tooltipPosition="right"
+							   (click)="editarproveedor(customer)"/>
 				</td>
 				<td>
 					{{ customer.descripcion }}
@@ -166,9 +165,6 @@
 				<td>
 					{{ customer.cci }}
 				</td>
-				<td>
-					<p-button  [rounded]="true" icon="pi pi-pencil" class="mx-1" severity="success"  (click)="editarproveedor(customer)"/>
-				</td>
 			</tr>
 		</ng-template>
 		<ng-template pTemplate="emptymessage">
@@ -195,7 +191,7 @@
 		<div class="row">
 			<div class="col-md-4 col-sm-12">
 				@if (op==2){
-					<label class="p-text-secondary fw-bold">ID Proveedor</label>
+					<label class="p-text-secondary fw-bold mt-2">ID Proveedor</label>
 					<input
 						class="w-full"
 						type="text"
@@ -205,20 +201,31 @@
 				} @else {
 					<img src="assets/img/gestion.png" width="65">
 				}
-				<label class="p-text-secondary fw-bold">Nombre</label>
-				<input
-					class="w-full"
-					type="text"
-					pInputText
-					[(ngModel)]="fila_select.descripcion" />
-				<label class="p-text-secondary fw-bold">Representante</label>
-				<input
-					class="w-full"
-					type="text"
-					pInputText
-					[(ngModel)]="fila_select.representante" />
+				<label class="p-text-secondary fw-bold mt-2"
+					   [ngClass]="(!fila_select.descripcion && form.invalid_nombre)?'text-danger':null">Nombre <i class="pi pi-info-circle" style="color: red;font-size: 0.7rem"></i>
 
-				<label class="p-text-secondary fw-bold">Ruc</label>
+				</label>
+				<input
+					class="w-full"
+					type="text"
+					pInputText
+					[(ngModel)]="fila_select.descripcion"
+					[class.ng-invalid]="!fila_select.descripcion && form.invalid_nombre"
+					[class.ng-dirty]="!fila_select.descripcion && form.invalid_nombre"/>
+
+				<label class="p-text-secondary fw-bold mt-2"
+					   [ngClass]="(!fila_select.representante && form.invalid_representante)?'text-danger':null"
+				>Representante <i class="pi pi-info-circle" style="color: red;font-size: 0.7rem"></i>
+					</label>
+				<input
+					class="w-full"
+					type="text"
+					pInputText
+					[(ngModel)]="fila_select.representante"
+					[class.ng-invalid]="!fila_select.representante && form.invalid_representante"
+					[class.ng-dirty]="!fila_select.representante && form.invalid_representante"/>
+
+				<label class="p-text-secondary fw-bold mt-2">Ruc</label>
 				<input
 					class="w-full"
 					type="text"
@@ -228,25 +235,29 @@
 			</div>
 			<div class="col-md-4 col-sm-12">
 
-				<label class="p-text-secondary fw-bold">Correo</label>
+				<label class="p-text-secondary fw-bold mt-2">Correo</label>
 				<input
 					class="w-full"
 					type="text"
 					pInputText
 					[(ngModel)]="fila_select.correo" />
-				<label class="p-text-secondary fw-bold">Celular</label>
+				<label class="p-text-secondary fw-bold mt-2"
+					   [ngClass]="(!fila_select.celular && form.invalid_celular)?'text-danger':null">Celular <i class="pi pi-info-circle" style="color: red;font-size: 0.7rem"></i>
+					</label>
 				<input
 					class="w-full"
 					type="text"
 					pInputText
-					[(ngModel)]="fila_select.celular" />
-				<label class="p-text-secondary fw-bold">Dirección</label>
+					[(ngModel)]="fila_select.celular"
+					[class.ng-invalid]="!fila_select.celular && form.invalid_celular"
+					[class.ng-dirty]="!fila_select.celular && form.invalid_celular"/>
+				<label class="p-text-secondary fw-bold mt-2">Dirección</label>
 				<input
 					class="w-full"
 					type="text"
 					pInputText
 					[(ngModel)]="fila_select.direccion" />
-				<label class="p-text-secondary fw-bold">CCi</label>
+				<label class="p-text-secondary fw-bold mt-2">CCi</label>
 				<input
 					class="w-full"
 					type="text"
@@ -255,27 +266,27 @@
 			</div>
 			<div class="col-md-4 col-sm-12 d-flex flex-column">
 
-				<label class="p-text-secondary fw-bold">Banco</label>
+				<label class="p-text-secondary fw-bold mt-2">Banco</label>
 				<p-dropdown
 					[options]="listaBancos"
 					[(ngModel)]="fila_select.id_banco"
 					optionLabel="nombre"
 					optionValue="idBanco"
 					placeholder="Seleccionar Banco" />
-				<label class="p-text-secondary fw-bold">Rubros</label>
+				<label class="p-text-secondary fw-bold mt-2">Rubros</label>
 				<p-dropdown
 					[options]="listaRubros"
 					[(ngModel)]="fila_select.id_rubros"
 					optionLabel="rubro"
 					optionValue="id_rubros"
 					placeholder="Seleccionar Rubro" />
-				<label class="p-text-secondary fw-bold">Cuenta Soles</label>
+				<label class="p-text-secondary fw-bold mt-2">Cuenta Soles</label>
 				<input
 					class="w-full"
 					type="text"
 					pInputText
 					[(ngModel)]="fila_select.cuenta_soles" />
-				<label class="p-text-secondary fw-bold">Cuenta Dolares</label>
+				<label class="p-text-secondary fw-bold mt-2">Cuenta Dolares</label>
 				<input
 					class="w-full"
 					type="text"
