@@ -3,7 +3,14 @@
 		<button style="position: absolute;" class="btn btn-link text-decoration-none p-0" (click)="goBandejaPedidos()">
 			<i class="bi bi-arrow-left"></i> Regresar a bandeja de pedidos
 		</button>
-		<h2 style="text-align: center;">Registro de Pedido</h2>
+		<h2 style="text-align: center;">
+			Registro de Pedido
+			@if (modoPreparadoMagistral) {
+				<span class="badge bg-info ms-2">Preparados Magistrales</span>
+			} @else {
+				<span class="badge bg-primary ms-2">Productos Regulares</span>
+			}
+		</h2>
 
 		<div class="d-flex justify-content-start mb-3">
 			<div class="text-start">
@@ -11,9 +18,8 @@
 			</div>
 		</div>
 
-		<!-- Buscador de Producto -->
-
-		@if (pedido.estadoPedido.idEstadoPedido == 1) {
+		<!-- Buscador de Producto (solo para pedidos regulares) -->
+		@if (pedido.estadoPedido.idEstadoPedido == 1 && !modoPreparadoMagistral) {
 			<div class="row">
 			<div class="col-md-8">
 				<label for="cantidad" class="form-label">Buscar producto</label>
@@ -76,7 +82,8 @@
 		</div>
 		}
 
-		<!-- Tabla de Productos -->
+		<!-- Tabla de Productos Regulares -->
+		@if (!modoPreparadoMagistral) {
 		<table
 			class="table table-bordered align-middle mt-4"
 		>
@@ -169,6 +176,94 @@
 				</tr>
 			</tbody>
 		</table>
+		}
+
+		<!-- Tabla de Preparados Magistrales -->
+		@if (modoPreparadoMagistral) {
+		<table
+			class="table table-bordered align-middle mt-4"
+		>
+			<thead class="table-primary">
+				<tr>
+					<th scope="col">Código</th>
+					<th scope="col">Nombre</th>
+					<th scope="col">Descripción</th>
+					<th scope="col">Presentación</th>
+					<th scope="col">Estado</th>
+					<th scope="col">Cantidad</th>
+					<th scope="col">Precio Unitario</th>
+					<th scope="col">Subtotal</th>
+					<th scope="col">pH Definido</th>
+					<th scope="col">Opciones</th>
+				</tr>
+			</thead>
+			<tbody>
+				@for (preparado of preparadosMagistrales; track $index) {
+				<tr>
+					<td>{{preparado.idPreparadoMagistral}}</td>
+					<td>{{preparado.nombre}}</td>
+					<td>{{preparado.descripcion}}</td>
+					<td>{{preparado.presentacion + ' ' + preparado.tipoPresentacion}}</td>
+					<td>
+						<span class="badge" 
+							[ngClass]="{
+								'bg-secondary': preparado.idEstadoProducto === 1,
+								'bg-info': preparado.idEstadoProducto === 2,
+								'bg-warning': preparado.idEstadoProducto === 3,
+								'bg-success': preparado.idEstadoProducto === 4
+							}">
+							{{preparado.estadoProducto}}
+						</span>
+					</td>
+					<td style="max-width: 50px;">
+						<input
+							type="number"
+							class="form-control form-control-sm"
+							min="1"
+							[disabled]="pedido.estadoPedido.idEstadoPedido > 1"
+							[value]="preparado.cantidad" 
+              				(change)="changeCantidadPreparado(preparado, $event)" 
+						/>
+					</td>
+					<td>
+						<div class="d-flex justify-content-end align-items-center">
+							<span>S/ {{preparado.precio.toFixed(2)}}</span>
+						</div>
+					</td>
+					<td>
+						S/ {{preparado.subtotal.toFixed(2)}}
+					</td>
+					<td>
+						@if (preparado.phDefinidoMin && preparado.phDefinidoMax) {
+							{{preparado.phDefinidoMin}} - {{preparado.phDefinidoMax}}
+						} @else {
+							-
+						}
+					</td>
+					<td style="min-width: 90px">
+						<!-- @if (pedido.estadoPedido.idEstadoPedido == 1) {
+							<button class="btn btn-danger btn-sm me-2" (click)="eliminarPreparado(preparado)">
+								<i class="bi bi-trash3-fill"></i>
+							</button>
+						}
+						@if (idRol == 1) {
+						<button class="btn btn-info btn-sm" 
+							title="Ver detalles del preparado magistral">
+							<i class="bi bi-eye"></i>
+						</button>
+						} -->
+					</td>
+				</tr>
+				}
+				<tr>
+					<td colspan="7" class="text-end fw-bold">Total Pedido:</td>
+					<td colspan="3" class="fw-bold">
+						S/ {{totalPedido.toFixed(2)}}
+					</td>
+				</tr>
+			</tbody>
+		</table>
+		}
 
 		<div class="row">
 			<div class="col-4">
@@ -397,7 +492,7 @@
 			<!-- @if (idRol == 1){
 				<button class="btn btn-primary">Enviar a Producción</button>
 			} -->
-			@if (pedido.estadoPedido.idEstadoPedido == 1 && productosPedido.length > 0) {
+			@if (pedido.estadoPedido.idEstadoPedido == 1 && (productosPedido.length > 0 || preparadosMagistrales.length > 0)) {
 				<button
 					class="btn btn-success me-2"
 					[disabled]="isLoading || disabledPagar || 

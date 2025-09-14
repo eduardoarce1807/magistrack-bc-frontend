@@ -1,0 +1,124 @@
+<div class="container-fluid mt-5" style="padding: 0px 60px;">
+  <div class="card shadow-lg p-4 rounded-4">
+
+    <button style="position: absolute;" class="btn btn-link text-decoration-none p-0" (click)="router.navigate(['/pages/home'])">
+      <i class="bi bi-arrow-left"></i> Home
+    </button>
+
+    <h2 class="mb-4 text-center">Solicitudes de Preparados Magistrales</h2>
+
+    <!-- Tabla de solicitudes -->
+    <p-table
+      #dt1
+      *ngIf="solicitudes.length > 0; else noDataTemplate"
+      [value]="solicitudes"
+      [paginator]="true"
+      [rows]="pageSize"
+      [totalRecords]="collectionSize"
+      [responsiveLayout]="'scroll'"
+      class="mt-2"
+      [showCurrentPageReport]="true"
+      currentPageReportTemplate="{first} a {last} de {totalRecords} registros"
+      [filterDelay]="0"
+      styleClass="p-datatable-gridlines p-datatable-striped p-datatable-sm mt-1"
+      [tableStyle]="{'min-width': '50rem'}"
+      [rowsPerPageOptions]="[5, 25, 50]"
+      dataKey="id"
+      [globalFilterFields]="['id', 'clienteNombre', 'descripcion', 'fechaCreacion']"
+    >
+      <ng-template pTemplate="caption">
+        <div class="flex justify-between items-center">
+          <div class="text-end">
+            <p-iconField iconPosition="left">
+              <p-inputIcon>
+                <i class="pi pi-search"></i>
+              </p-inputIcon>
+              <input 
+                pInputText 
+                [(ngModel)]="searchValue"
+                (input)="filtrarTabla(dt1, searchValue)" 
+                placeholder="Buscar por ID, cliente, descripción..." />
+            </p-iconField>
+            <p-button [outlined]="true" icon="pi pi-filter-slash" label="Limpiar" (click)="clear(dt1)" />
+          </div>
+        </div>
+      </ng-template>
+
+      <ng-template pTemplate="header">
+        <tr>
+          <th pSortableColumn="id">
+            ID <p-sortIcon field="id"></p-sortIcon>
+          </th>
+          <th pSortableColumn="clienteNombre">
+            Cliente <p-sortIcon field="clienteNombre"></p-sortIcon>
+          </th>
+          <th pSortableColumn="descripcion">
+            Descripción <p-sortIcon field="descripcion"></p-sortIcon>
+          </th>
+          <th pSortableColumn="fechaCreacion">
+            Fecha Creación <p-sortIcon field="fechaCreacion"></p-sortIcon>
+          </th>
+          <th pSortableColumn="atendido">
+            Estado <p-sortIcon field="atendido"></p-sortIcon>
+          </th>
+          <th>Acciones</th>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="body" let-solicitud>
+        <tr>
+          <td>{{ solicitud.id }}</td>
+          <td>{{ solicitud.clienteNombre }}</td>
+          <td>
+            <div class="text-truncate" style="max-width: 300px;" [title]="solicitud.descripcion">
+              {{ solicitud.descripcion }}
+            </div>
+          </td>
+          <td>{{ formatearFecha(solicitud.fechaCreacion) }}</td>
+          <td>
+            <span [class]="getEstadoClass(solicitud.atendido)">
+              {{ getEstadoTexto(solicitud.atendido) }}
+            </span>
+          </td>
+          <td>
+            <button 
+              type="button" 
+              class="btn btn-primary btn-sm me-2"
+              (click)="verArchivo(solicitud.urlAdjunto)"
+              [title]="'Ver archivo adjunto'">
+              <i class="bi bi-file-earmark-text"></i>
+              Ver Archivo
+            </button>
+            <button 
+              type="button" 
+              class="btn btn-success btn-sm"
+              (click)="atenderSolicitud(solicitud)"
+              [disabled]="solicitud.atendido"
+              [title]="solicitud.atendido ? 'Solicitud ya atendida' : 'Atender solicitud'">
+              <i class="bi bi-check-circle"></i>
+              {{ solicitud.atendido ? 'Atendida' : 'Atender' }}
+            </button>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+
+    <!-- Template cuando no hay datos -->
+    <ng-template #noDataTemplate>
+      <div class="text-center py-5" *ngIf="!isLoading">
+        <i class="bi bi-inbox display-1 text-muted"></i>
+        <h4 class="text-muted mt-3">No hay solicitudes registradas</h4>
+        <p class="text-muted">Las solicitudes de preparados magistrales aparecerán aquí cuando se registren.</p>
+      </div>
+      
+      <!-- Loading -->
+      <div class="text-center py-5" *ngIf="isLoading">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Cargando...</span>
+        </div>
+        <h4 class="text-muted mt-3">Cargando solicitudes...</h4>
+      </div>
+    </ng-template>
+
+  </div>
+</div>

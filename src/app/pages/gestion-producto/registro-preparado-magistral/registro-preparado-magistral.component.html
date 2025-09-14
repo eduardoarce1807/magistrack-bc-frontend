@@ -1,0 +1,370 @@
+<div class="container-fluid mt-5" style="padding: 0px 60px;">
+  <div class="card shadow-lg p-4 rounded-4">
+    
+    <!-- Botón de navegación -->
+    <button style="position: absolute;" class="btn btn-link text-decoration-none p-0" 
+            (click)="volverCalculadora()">
+      <i class="bi bi-arrow-left"></i> Calculadora Maestra
+    </button>
+
+    <h2 class="mb-4 text-center">Registro de Preparado Magistral</h2>
+
+    <p-stepper 
+        [linear]="true" 
+        [(activeStep)]="currentStep"
+        (onStepChange)="onStepChange($event)">
+        
+        <!-- Paso 1: Datos básicos y componentes -->
+        <p-stepperPanel header="Datos básicos y componentes">
+            <ng-template pTemplate="content" let-nextCallback="nextCallback" let-index="index">
+                <div class="flex flex-column h-12rem">
+                    <div class="flex font-medium">
+                        <div class="row w-50">
+                            <!-- Nombre -->
+                            <div class="mb-3">
+                                <label for="nombre" class="form-label">Nombre del Preparado *</label>
+                                <input type="text" id="nombre" [(ngModel)]="preparado.nombre" 
+                                       class="form-control" placeholder="Ingrese el nombre del preparado" required />
+                            </div>
+                            
+                            <!-- Descripción -->
+                            <div class="mb-3">
+                                <label for="descripcion" class="form-label">Descripción *</label>
+                                <textarea id="descripcion" [(ngModel)]="preparado.descripcion" 
+                                          class="form-control" rows="3" 
+                                          placeholder="Ingrese la descripción del preparado" required></textarea>
+                            </div>
+                            
+                            <!-- pH definido min y max -->
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label for="phMin" class="form-label">pH Mín. *</label>
+                                    <input type="number" id="phMin" [(ngModel)]="preparado.phDefinidoMin" 
+                                           class="form-control" placeholder="pH mínimo" step="0.1" required />
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="phMax" class="form-label">pH Máx. *</label>
+                                    <input type="number" id="phMax" [(ngModel)]="preparado.phDefinidoMax" 
+                                           class="form-control" placeholder="pH máximo" step="0.1" required />
+                                </div>
+                            </div>
+
+                            <!-- Presentación (solo lectura) -->
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label for="presentacion" class="form-label">Presentación</label>
+                                    <input type="number" id="presentacion" [(ngModel)]="preparado.presentacion" 
+                                           class="form-control" readonly />
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="precio" class="form-label">Precio</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">S/</span>
+                                        <input type="number" id="precio" [(ngModel)]="preparado.precio" 
+                                               class="form-control" readonly />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <p-divider layout="vertical" />
+                        
+                        <div class="row w-50">
+                            <!-- Materias Primas -->
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h5>Materias Primas</h5>
+                                <button type="button" class="btn btn-primary" (click)="agregarMateriaPrima()">
+                                    <i class="bi bi-plus-circle"></i> Agregar Materia Prima
+                                </button>
+                            </div>
+                            
+                            <div *ngFor="let materia of preparado.materiasPrimas; let i = index; trackBy: trackByIndex" class="row mb-3 pr-3">
+                                <div class="col-md-7">
+                                    <label class="form-label">Materia Prima</label>
+                                    <select [(ngModel)]="materia.idMateriaPrima" [name]="'materia-prima-' + i" 
+                                            class="form-select" required [compareWith]="compareFn">
+                                        <option [ngValue]="0" disabled>Seleccione una materia prima</option>
+                                        <option *ngFor="let mp of materiasPrimas; trackBy: trackByMateriaPrima" [ngValue]="mp.idMateriaPrima">
+                                            {{ mp.nombre }}
+                                        </option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Cantidad</label>
+                                    <div class="input-group">
+                                        <input type="number" [(ngModel)]="materia.cantidad" 
+                                               [name]="'cantidad-' + i"
+                                               class="form-control" placeholder="Ingrese la cantidad" 
+                                               [min]="0" required />
+                                        <span class="input-group-text">%</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-1 d-flex align-items-end">
+                                    <button type="button" class="btn btn-danger" 
+                                            (click)="eliminarMateriaPrima(i)"
+                                            [disabled]="preparado.materiasPrimas.length === 1">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Mostrar suma total -->
+                            <div class="row mb-3" *ngIf="preparado.materiasPrimas.length > 0">
+                                <div class="col-md-11">
+                                    <div class="alert" 
+                                         [ngClass]="sumaMateriasPrimas === 100 ? 'alert-success' : 'alert-warning'">
+                                        <strong>Total: {{ sumaMateriasPrimas }}%</strong>
+                                        <span *ngIf="sumaMateriasPrimas !== 100"> - La suma debe ser exactamente 100%</span>
+                                        <span *ngIf="sumaMateriasPrimas === 100"> - ✓ Suma correcta</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Procedimientos -->
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h5>Procedimientos</h5>
+                                <button type="button" class="btn btn-primary btn-sm" (click)="agregarProcedimiento()">
+                                    <i class="bi bi-plus-circle"></i> Agregar Paso
+                                </button>
+                            </div>
+                            
+                            <div *ngFor="let proc of preparado.procedimientos; let i = index" class="row mb-3">
+                                <div class="col-md-11">
+                                    <div class="input-group">
+                                        <span class="input-group-text">{{ proc.orden }}.</span>
+                                        <input type="text" [(ngModel)]="proc.descripcion" 
+                                               class="form-control" placeholder="Descripción del paso" required />
+                                    </div>
+                                </div>
+                                <div class="col-md-1">
+                                    <button type="button" class="btn btn-danger btn-sm" 
+                                            (click)="eliminarProcedimiento(i)"
+                                            [disabled]="preparado.procedimientos.length === 1">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex pt-4 justify-content-end">
+                    <p-button 
+                        label="Continuar" 
+                        icon="pi pi-arrow-right" 
+                        iconPos="right" 
+                        (onClick)="nextCallback.emit()"
+                        [disabled]="!datosBasicosValidos" />
+                </div>
+            </ng-template>
+        </p-stepperPanel>
+
+        <!-- Paso 2: Datos adicionales -->
+        <p-stepperPanel header="Datos adicionales">
+            <ng-template pTemplate="content" let-prevCallback="prevCallback" let-nextCallback="nextCallback">
+                <div class="flex flex-column h-12rem">
+                    <div class="flex font-medium">
+                        <div class="row w-50">
+                            <!-- Elementos de Seguridad Personal -->
+                            <div class="mb-3">
+                                <label for="elementosSeguridad" class="form-label">Elementos de Seguridad Personal</label>
+                                <textarea id="elementosSeguridad" [(ngModel)]="preparado.elementosSeguridadPersonal" 
+                                          class="form-control" rows="2" 
+                                          placeholder="Descripción de elementos de seguridad"></textarea>
+                            </div>
+                            
+                            <!-- Utillaje -->
+                            <div class="mb-3">
+                                <label for="utillaje" class="form-label">Utillaje</label>
+                                <textarea id="utillaje" [(ngModel)]="preparado.utillaje" 
+                                          class="form-control" rows="2" 
+                                          placeholder="Descripción del utillaje necesario"></textarea>
+                            </div>
+                            
+                            <!-- Control de Calidad -->
+                            <div class="mb-3">
+                                <label for="controlCalidad" class="form-label">Control de Calidad</label>
+                                <textarea id="controlCalidad" [(ngModel)]="preparado.controlCalidad" 
+                                          class="form-control" rows="2" 
+                                          placeholder="Procedimientos de control de calidad"></textarea>
+                            </div>
+                            
+                            <!-- Tipo de Envase -->
+                            <div class="mb-3">
+                                <label for="tipoEnvase" class="form-label">Tipo de Envase</label>
+                                <input type="text" id="tipoEnvase" [(ngModel)]="preparado.tipoEnvase" 
+                                       class="form-control" placeholder="Descripción del envase" />
+                            </div>
+                            
+                            <!-- Color de Etiqueta -->
+                            <div class="mb-3">
+                                <label for="colorEtiqueta" class="form-label">Color de Etiqueta</label>
+                                <input type="text" id="colorEtiqueta" [(ngModel)]="preparado.colorEtiqueta" 
+                                       class="form-control" placeholder="Color de la etiqueta" />
+                            </div>
+                        </div>
+                        
+                        <p-divider layout="vertical" />
+                        
+                        <div class="row w-50">
+                            <!-- Indicaciones y Posología -->
+                            <div class="mb-3">
+                                <label for="indicaciones" class="form-label">Indicaciones y Posología</label>
+                                <textarea id="indicaciones" [(ngModel)]="preparado.indicacionesPosologia" 
+                                          class="form-control" rows="2" 
+                                          placeholder="Indicaciones de uso y dosificación"></textarea>
+                            </div>
+                            
+                            <!-- Conservación -->
+                            <div class="mb-3">
+                                <label for="conservacion" class="form-label">Conservación</label>
+                                <textarea id="conservacion" [(ngModel)]="preparado.conservacion" 
+                                          class="form-control" rows="2" 
+                                          placeholder="Condiciones de conservación"></textarea>
+                            </div>
+                            
+                            <!-- Reacciones Adversas -->
+                            <div class="mb-3">
+                                <label for="reacciones" class="form-label">Reacciones Adversas</label>
+                                <textarea id="reacciones" [(ngModel)]="preparado.reaccionesAdversas" 
+                                          class="form-control" rows="2" 
+                                          placeholder="Posibles reacciones adversas"></textarea>
+                            </div>
+                            
+                            <!-- Precauciones y Contraindicaciones -->
+                            <div class="mb-3">
+                                <label for="precauciones" class="form-label">Precauciones y Contraindicaciones</label>
+                                <textarea id="precauciones" [(ngModel)]="preparado.precaucionesContraindicaciones" 
+                                          class="form-control" rows="2" 
+                                          placeholder="Precauciones y contraindicaciones"></textarea>
+                            </div>
+                            
+                            <!-- Observaciones -->
+                            <div class="mb-3">
+                                <label for="observacionesPrep" class="form-label">Observaciones</label>
+                                <textarea id="observacionesPrep" [(ngModel)]="preparado.observaciones" 
+                                          class="form-control" rows="2" 
+                                          placeholder="Observaciones adicionales"></textarea>
+                            </div>
+                            
+                            <!-- Bibliografía -->
+                            <div class="mb-3">
+                                <label for="bibliografia" class="form-label">Bibliografía</label>
+                                <textarea id="bibliografia" [(ngModel)]="preparado.bibliografia" 
+                                          class="form-control" rows="2" 
+                                          placeholder="Referencias bibliográficas"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex pt-4 justify-content-between">
+                    <p-button label="Atrás" icon="pi pi-arrow-left" (onClick)="prevCallback.emit()" />
+                    <p-button 
+                        label="Guardar Preparado" 
+                        icon="pi pi-arrow-right" 
+                        iconPos="right" 
+                        (onClick)="guardarPreparado(nextCallback)"
+                        [disabled]="isSubmitting" />
+                </div>
+            </ng-template>
+        </p-stepperPanel>
+
+        <!-- Paso 3: Datos del pedido -->
+        <p-stepperPanel header="Crear pedido">
+            <ng-template pTemplate="content" let-prevCallback="prevCallback" let-nextCallback="nextCallback">
+                <div class="flex flex-column h-12rem">
+                    <div class="surface-ground flex-auto flex justify-content-center align-items-center font-medium">
+                        <div class="col-md-8">
+                            <h5 class="mb-4">Datos para la creación del pedido</h5>
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label for="canalVenta" class="form-label">Canal de Venta *</label>
+                                    <select name="canalVenta" id="canalVenta" [(ngModel)]="pedidoData.idCanalVenta" 
+                                            class="form-select" required [compareWith]="compareFn">
+                                        <option [ngValue]="0">Seleccione canal de venta</option>
+                                        <option *ngFor="let canal of canalesVenta; trackBy: trackByCanalVenta" [ngValue]="canal.idCanalVenta">
+                                            {{ canal.descripcion }}
+                                        </option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="metodoEntrega" class="form-label">Método de Entrega *</label>
+                                    <select name="metodoEntrega" id="metodoEntrega" [(ngModel)]="pedidoData.idMetodoEntrega" 
+                                            class="form-select" required [compareWith]="compareFn">
+                                        <option [ngValue]="0">Seleccione método de entrega</option>
+                                        <option *ngFor="let metodo of metodosEntrega; trackBy: trackByMetodoEntrega" [ngValue]="metodo.idMetodoEntrega">
+                                            {{ metodo.descripcion }}
+                                        </option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label for="cantidad" class="form-label">Cantidad *</label>
+                                    <input type="number" id="cantidad" [(ngModel)]="pedidoData.cantidad" 
+                                           class="form-control" [min]="1" placeholder="Cantidad de unidades" required />
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="fechaEntrega" class="form-label">Fecha Estimada de Entrega *</label>
+                                    <input type="date" id="fechaEntrega" [(ngModel)]="pedidoData.fechaEstimadaEntrega" 
+                                           class="form-control" [min]="fechaMinimaEntrega" required />
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="observacionesPedido" class="form-label">Observaciones del Pedido</label>
+                                <textarea id="observacionesPedido" [(ngModel)]="pedidoData.observaciones" 
+                                          class="form-control" rows="3" 
+                                          placeholder="Observaciones para el pedido"></textarea>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="observacionPreparado" class="form-label">Observaciones del Preparado</label>
+                                <textarea id="observacionPreparado" [(ngModel)]="pedidoData.observacionPreparado" 
+                                          class="form-control" rows="3" 
+                                          placeholder="Observaciones específicas para la preparación"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex pt-4 justify-content-between">
+                    <p-button label="Atrás" icon="pi pi-arrow-left" (onClick)="prevCallback.emit()" 
+                              [disabled]="!preparadoCreado" />
+                    <p-button 
+                        label="Crear Pedido" 
+                        icon="pi pi-check" 
+                        iconPos="right" 
+                        (onClick)="crearPedido()"
+                        [disabled]="!pedidoValido || isSubmitting" />
+                </div>
+            </ng-template>
+        </p-stepperPanel>
+
+        <!-- Paso 4: Resumen -->
+        <p-stepperPanel header="Resumen">
+            <ng-template pTemplate="content">
+                <div class="flex flex-column h-12rem">
+                    <div class="text-center">
+                        <i class="bi bi-check-circle-fill text-success" style="font-size: 4rem;"></i>
+                        <h3 class="text-success mt-3">¡Proceso completado exitosamente!</h3>
+                        <p class="mt-3">El preparado magistral y pedido han sido creados correctamente.</p>
+                        
+                        <div class="mt-4">
+                            <p><strong>ID Preparado Magistral:</strong> {{ idPreparadoMagistralCreado }}</p>
+                            <p><strong>Precio:</strong> S/ {{ preparado.precio.toFixed(2) }}</p>
+                            <p><strong>Presentación:</strong> {{ preparado.presentacion }} {{ obtenerTipoPresentacion(preparado.idTipoPresentacion) }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex pt-4 justify-content-center">
+                    <p-button 
+                        label="Regresar a Solicitudes"
+                        icon="pi pi-arrow-left"
+                        (onClick)="router.navigate(['/pages/gestion-producto/bandeja-solicitudes-preparados-magistrales'])" />
+                </div>
+            </ng-template>
+        </p-stepperPanel>
+    </p-stepper>
+  </div>
+</div>

@@ -34,6 +34,13 @@ export class CalculadoraMaestraComponent implements OnInit {
   private routeSubscription: Subscription | null = null;
   isStandaloneMode: boolean = false; // Flag para identificar acceso directo sin parámetros
 
+  // Propiedades para modo preparado magistral
+  modoPreparadoMagistral: boolean = false;
+  idSolicitudPreparadoMagistral: number = 0;
+  idClientePreparadoMagistral: number = 0;
+  descripcionSolicitud: string = '';
+  idTipoPresentacion: number = 1; // Default tipo presentación
+
   nombrePersonalizado: string = '';
   descripcionPersonalizada: string = '';
   detallePersonalizacion: string = '';
@@ -86,6 +93,29 @@ export class CalculadoraMaestraComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    // Primero verificar si hay query parameters para modo preparado magistral
+    this.route.queryParams.subscribe(queryParams => {
+      if (queryParams['modo'] === 'preparado-magistral') {
+        this.modoPreparadoMagistral = true;
+        this.idSolicitudPreparadoMagistral = parseInt(queryParams['idSolicitud']) || 0;
+        this.idClientePreparadoMagistral = parseInt(queryParams['idCliente']) || 0;
+        this.descripcionSolicitud = queryParams['descripcion'] || '';
+        this.idTipoPresentacion = parseInt(queryParams['idTipoPresentacion']) || 1;
+        
+        // En modo preparado magistral, no necesitamos productos existentes
+        this.isStandaloneMode = true;
+        this.getMateriasPrimas();
+        this.getBasesProductos();
+        
+        // Cargar datos guardados después de un pequeño delay para asegurar que las materias primas y bases estén cargadas
+        setTimeout(() => {
+          this.cargarDatosGuardados();
+        }, 200);
+        return;
+      }
+    });
+
+    // Manejo normal de parámetros de ruta para edición de productos existentes
     this.routeSubscription = this.route.paramMap.subscribe(params => {
       this.idPedido = params.get('idPedido');
       this.idProducto = params.get('idProducto');
@@ -119,6 +149,7 @@ export class CalculadoraMaestraComponent implements OnInit {
     this.materiaPrimaService.getMateriasPrimas().subscribe(
       (data: any[]) => {
         this.materiasPrimas = data;
+        console.log('Materias primas cargadas:', this.materiasPrimas.length);
       },
       (error) => {
         console.error('Error al obtener las materias primas', error);
@@ -130,8 +161,19 @@ export class CalculadoraMaestraComponent implements OnInit {
     this.baseProductoService.getBasesProductos().subscribe(
       (data: any[]) => {
         this.bases = data;
-        this.base = this.bases[4]; // Asignar la primera base como predeterminada
-        console.log('Bases de productos:', this.bases);
+        
+        // Solo asignar base por defecto si no hay una base ya cargada
+        if (!this.base || !this.base.idBaseProducto) {
+          this.base = this.bases[4]; // Asignar la quinta base como predeterminada
+          this.IdBase = this.base.idBaseProducto;
+        }
+        
+        console.log('Bases de productos cargadas:', this.bases.length);
+        console.log('Base actual:', this.base);
+        console.log('IdBase actual:', this.IdBase);
+        
+        // Calcular precios después de cargar las bases
+        this.updatePrecios();
       },
       (error) => {
         console.error('Error al obtener las bases de productos', error);
@@ -211,12 +253,18 @@ export class CalculadoraMaestraComponent implements OnInit {
   }
 
   updatePrecios(): void {
+    // Verificar que la base esté definida antes de calcular
+    if (!this.base || !this.base.porcentaje) {
+      console.log('Base no definida, saltando cálculo de precios');
+      return;
+    }
+
     const factor = Math.pow(10, 2);
     const factorPrecioVentaFinal = Math.pow(10, 2);
     const factorPrecioVentaFinalRedondeado = Math.pow(10, 0);
     let sumaCostoPorcentaje = 0;
     this.componentes.forEach(componente => {
-      sumaCostoPorcentaje += componente.costoPorPorcentaje;
+      sumaCostoPorcentaje += componente.costoPorPorcentaje || 0;
     });
     this.totalCosto = this.envase + this.maquila + sumaCostoPorcentaje;
     this.precioNeto = this.totalCosto + (this.totalCosto * this.gananciaBC);
@@ -229,6 +277,13 @@ export class CalculadoraMaestraComponent implements OnInit {
     this.precioVentaFinal = precioConIgv + (precioConIgv * this.base.porcentaje);
     this.precioVentaFinal = Math.round((this.precioVentaFinal) * factorPrecioVentaFinal) / factorPrecioVentaFinal;
     this.precioVentaFinalRedondeado = Math.round((this.precioVentaFinal) * factorPrecioVentaFinalRedondeado) / factorPrecioVentaFinalRedondeado;
+    
+    console.log('Precios actualizados:', {
+      totalCosto: this.totalCosto,
+      precioNeto: this.precioNeto,
+      precioVentaFinal: this.precioVentaFinal,
+      precioVentaFinalRedondeado: this.precioVentaFinalRedondeado
+    });
   }
 
   agregarComponente(): void {
@@ -266,6 +321,149 @@ export class CalculadoraMaestraComponent implements OnInit {
       const factor = Math.pow(10, maxDecimales);
       const redondeado = Math.round(valor * factor) / factor;
       this.componentes[index][propiedad] = redondeado;
+    }
+  }
+
+  // Métodos para modo preparado magistral
+  cargarDatosGuardados(): void {
+    if (this.idSolicitudPreparadoMagistral > 0) {
+      const datosGuardados = localStorage.getItem(`calculadora_datos_${this.idSolicitudPreparadoMagistral}`);
+      if (datosGuardados) {
+        try {
+          const datos = JSON.parse(datosGuardados);
+          // Restaurar datos de la calculadora
+          this.nombrePersonalizado = datos.nombrePersonalizado || this.descripcionSolicitud;
+          this.descripcionPersonalizada = datos.descripcionPersonalizada || '';
+          this.detallePersonalizacion = datos.detallePersonalizacion || '';
+          this.componentes = datos.componentes || [];
+          this.precioVentaFinal = datos.precioVentaFinal || 0;
+          
+          // Restaurar la base correctamente
+          if (datos.base && datos.base.idBaseProducto) {
+            this.base = datos.base;
+            this.IdBase = datos.base.idBaseProducto;
+          }
+          
+          // Restaurar otros valores calculados si existen
+          if (datos.presentacion) this.presentacion = datos.presentacion;
+          if (datos.envase) this.envase = datos.envase;
+          if (datos.maquila) this.maquila = datos.maquila;
+          if (datos.gananciaBC) this.gananciaBC = datos.gananciaBC;
+          if (datos.precioVentaFinalRedondeado) this.precioVentaFinalRedondeado = datos.precioVentaFinalRedondeado;
+          if (datos.totalCosto) this.totalCosto = datos.totalCosto;
+          if (datos.precioNeto) this.precioNeto = datos.precioNeto;
+          
+          console.log('Datos restaurados:', {
+            base: this.base,
+            IdBase: this.IdBase,
+            componentes: this.componentes.length,
+            precio: this.precioVentaFinal
+          });
+          
+          // Recalcular precios después de restaurar datos
+          setTimeout(() => {
+            this.sincronizarBase();
+            this.updatePrecios();
+          }, 150);
+        } catch (error) {
+          console.error('Error al cargar datos guardados:', error);
+        }
+      } else {
+        // Si no hay datos guardados, usar la descripción de la solicitud como nombre
+        this.nombrePersonalizado = this.descripcionSolicitud;
+        // Inicializar con al menos un componente básico si está vacío
+        this.inicializarComponentesBasicos();
+      }
+    }
+  }
+
+  guardarDatos(): void {
+    if (this.idSolicitudPreparadoMagistral > 0) {
+      const datosParaGuardar = {
+        nombrePersonalizado: this.nombrePersonalizado,
+        descripcionPersonalizada: this.descripcionPersonalizada,
+        detallePersonalizacion: this.detallePersonalizacion,
+        componentes: this.componentes,
+        precioVentaFinal: this.precioVentaFinal,
+        precioVentaFinalRedondeado: this.precioVentaFinalRedondeado,
+        base: this.base,
+        presentacion: this.presentacion,
+        envase: this.envase,
+        maquila: this.maquila,
+        gananciaBC: this.gananciaBC,
+        totalCosto: this.totalCosto,
+        precioNeto: this.precioNeto
+      };
+      localStorage.setItem(`calculadora_datos_${this.idSolicitudPreparadoMagistral}`, JSON.stringify(datosParaGuardar));
+    }
+  }
+
+  continuarConRegistro(): void {
+    if (!this.validarDatosParaContinuar()) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Datos incompletos',
+        text: 'Por favor complete el cálculo antes de continuar. Debe tener un precio final válido y al menos un componente.',
+        confirmButtonText: 'Entendido'
+      });
+      return;
+    }
+
+    // Guardar datos actuales
+    this.guardarDatos();
+
+    // Navegar al registro de preparado magistral
+    this.router.navigate(['/pages/gestion-producto/registro-preparado-magistral'], {
+      queryParams: {
+        idSolicitud: this.idSolicitudPreparadoMagistral,
+        idCliente: this.idClientePreparadoMagistral,
+        idTipoPresentacion: this.idTipoPresentacion
+      }
+    });
+  }
+
+  validarDatosParaContinuar(): boolean {
+    return this.precioVentaFinal > 0 && this.componentes.length > 0;
+  }
+
+  sincronizarBase(): void {
+    // Asegurar que IdBase y base estén sincronizados
+    if (this.base && this.base.idBaseProducto && this.IdBase !== this.base.idBaseProducto) {
+      this.IdBase = this.base.idBaseProducto;
+      console.log('Base sincronizada. IdBase:', this.IdBase, 'Base:', this.base);
+    } else if (this.IdBase && this.bases.length > 0) {
+      const baseEncontrada = this.bases.find(b => b.idBaseProducto === this.IdBase);
+      if (baseEncontrada && baseEncontrada !== this.base) {
+        this.base = baseEncontrada;
+        console.log('Base actualizada desde IdBase:', this.IdBase, 'Base:', this.base);
+      }
+    }
+  }
+
+  inicializarComponentesBasicos(): void {
+    // Solo inicializar si no hay componentes y hay materias primas disponibles
+    if (this.componentes.length === 0 && this.materiasPrimas.length > 0) {
+      const factor = Math.pow(10, 4);
+      const porcentajeInicial = 0.1; // 10% inicial
+      const componenteBasico = {
+        id: 1,
+        idMateriaPrima: this.materiasPrimas[0].idMateriaPrima,
+        costoGramo: this.materiasPrimas[0].costoGramo,
+        porcentaje: porcentajeInicial,
+        gramoPorPresentacion: Math.round(((porcentajeInicial * this.presentacion) * 1.5) * factor) / factor,
+        costoPorPorcentaje: 0
+      };
+      
+      // Calcular costoPorPorcentaje
+      componenteBasico.costoPorPorcentaje = Math.round((componenteBasico.gramoPorPresentacion * componenteBasico.costoGramo) * factor) / factor;
+      
+      this.componentes.push(componenteBasico);
+      console.log('Componente básico inicializado:', componenteBasico);
+      
+      // Actualizar precios después de agregar el componente
+      setTimeout(() => {
+        this.updatePrecios();
+      }, 100);
     }
   }
 

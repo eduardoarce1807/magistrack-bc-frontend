@@ -69,6 +69,31 @@ interface PedidoProducto {
   tipoPresentacion: string;
 }
 
+interface PreparadoMagistral {
+  idPedido: string;
+  idPreparadoMagistral: string;
+  nombre: string;
+  descripcion: string;
+  precio: number;
+  cantidad: number;
+  subtotal: number;
+  presentacion: number;
+  tipoPresentacion: string;
+  idEstadoPedido: number;
+  estadoPedido: string;
+  idEstadoProducto: number;
+  estadoProducto: string;
+  observacion: string;
+  phDefinidoMin: number;
+  phDefinidoMax: number;
+  phCalidad: number | null;
+  carOrganolepticasCalidad: string | null;
+  viscosidadCalidad: string | null;
+  fechaPreparacion: string | null;
+  lotePreparacion: string | null;
+  fechaVencimiento: string | null;
+}
+
 interface PedidoProductoRequest {
   idPedido: string;
   idProducto: string;
@@ -120,6 +145,10 @@ export class RegistroPedidoComponent implements OnInit, OnDestroy {
   pedido: any = {estadoPedido: 0};
   private routeSubscription: Subscription | null = null;
 
+  // Modo preparado magistral
+  modoPreparadoMagistral: boolean = false;
+  preparadosMagistrales: PreparadoMagistral[] = [];
+
   isLoading: boolean = false;
   disabledPagar: boolean = false;
 
@@ -163,7 +192,7 @@ export class RegistroPedidoComponent implements OnInit, OnDestroy {
         this.getUbigeoData();
         this.getMetodosEntrega();
         this.getPedidoById(this.idPedido);
-        this.cargarProductosByIdPedido(this.idPedido);
+        // cargarProductosByIdPedido se ejecutará después de getPedidoById
       }else{
 
         if(this.dataService.getLoggedUser().rol.idRol === 1 || this.dataService.getLoggedUser().rol.idRol === 5) {
@@ -482,8 +511,13 @@ export class RegistroPedidoComponent implements OnInit, OnDestroy {
     }).subscribe(
       (response) => {
         this.showSuccess(this.successTplDireccion);
-        if(this.productosPedido.length > 0) {
-          this.disabledPagar = false; // Habilitar el botón de pagar si hay productos en el pedido
+        // Verificar si hay productos o preparados magistrales en el pedido
+        const tieneItems = this.modoPreparadoMagistral ? 
+          this.preparadosMagistrales.length > 0 : 
+          this.productosPedido.length > 0;
+        
+        if(tieneItems) {
+          this.disabledPagar = false; // Habilitar el botón de pagar si hay items en el pedido
         }
       },
       (error) => {
@@ -498,6 +532,11 @@ export class RegistroPedidoComponent implements OnInit, OnDestroy {
       (pedido) => {
         if(pedido) {
           this.pedido = pedido;
+          
+          // Activar modo preparado magistral si corresponde
+          this.modoPreparadoMagistral = pedido.tipoPedido === "PREPARADO_MAGISTRAL";
+          console.log('Modo preparado magistral:', this.modoPreparadoMagistral);
+          
           this.notaDelivery = pedido.notaDelivery || '';
           this.codigoCupon = pedido.cupon ? pedido.cupon.codigo : '';
 
@@ -527,6 +566,9 @@ export class RegistroPedidoComponent implements OnInit, OnDestroy {
             this.rucCliente = this.tipoComprobante == 2 ? this.pedido.documento.numeroDocumentoCliente : '';
             this.razonSocialCliente = this.tipoComprobante == 2 ? this.pedido.documento.razonSocialCliente : '';
           }
+
+          // Cargar productos después de obtener los datos del pedido
+          this.cargarProductosByIdPedido(idPedido);
         }
         console.log('Pedido:', pedido);
       },
@@ -672,8 +714,33 @@ export class RegistroPedidoComponent implements OnInit, OnDestroy {
   }
 
   cargarProductosByIdPedido(idPedido: string) {
-    this.pedidoService.getProductosByIdPedido(idPedido).subscribe((data: any) => {
+    // Validar si el pedido es de tipo "PREPARADO_MAGISTRAL"
+    if (this.modoPreparadoMagistral) {
+      // Usar endpoint específico para preparados magistrales
+      this.pedidoService.getPreparadosMagistralesByIdPedido(idPedido).subscribe((data: PreparadoMagistral[]) => {
+        this.preparadosMagistrales = data;
+        this.productosPedido = []; // Limpiar productos regulares
+        this.totalPedido = 0; // Reiniciar el total del pedido
+        this.preparadosMagistrales.forEach((preparado: PreparadoMagistral) => {
+          this.totalPedido += preparado.subtotal;
+        });
+        // Para preparados magistrales, no aplica la validación de personalizado
+        this.disabledPagar = false;
+      },
+      (error) => {
+        console.error('Error al obtener preparados magistrales del pedido', error);
+        Swal.fire({
+          icon: 'error',
+          title: 'Oops!',
+          text: 'No se pudo obtener los preparados magistrales del pedido "'+this.idPedido+'", inténtelo de nuevo.',
+          showConfirmButton: true
+        });
+      });
+    } else {
+      // Usar endpoint normal para productos regulares
+      this.pedidoService.getProductosByIdPedido(idPedido).subscribe((data: PedidoProducto[]) => {
         this.productosPedido = data;
+        this.preparadosMagistrales = []; // Limpiar preparados magistrales
         this.totalPedido = 0; // Reiniciar el total del pedido
         this.productosPedido.forEach((producto: PedidoProducto) => {
           this.totalPedido += producto.subtotal;
@@ -692,6 +759,7 @@ export class RegistroPedidoComponent implements OnInit, OnDestroy {
           showConfirmButton: true
         });
       });
+    }
   }
 
 
@@ -747,9 +815,17 @@ export class RegistroPedidoComponent implements OnInit, OnDestroy {
                     } else {
                       // Verificar si algún producto del pedido está en la lista de productos del cupón
                       const productosCupon = response.productos.map((p: any) => p.idProducto);
-                      productoValido = this.productosPedido.some((prod: any) =>
-                        productosCupon.includes(prod.idProducto)
-                      );
+                      if (this.modoPreparadoMagistral) {
+                        // Para preparados magistrales, usar idPreparadoMagistral
+                        productoValido = this.preparadosMagistrales.some((prep: any) =>
+                          productosCupon.includes(prep.idPreparadoMagistral)
+                        );
+                      } else {
+                        // Para productos regulares, usar idProducto
+                        productoValido = this.productosPedido.some((prod: any) =>
+                          productosCupon.includes(prod.idProducto)
+                        );
+                      }
                     }
 
                     if (productoValido) {
@@ -1041,6 +1117,51 @@ export class RegistroPedidoComponent implements OnInit, OnDestroy {
     
   }
 
+  changeCantidadPreparado(preparado: PreparadoMagistral, event: Event) {
+    this.isLoading = true;
+
+    clearTimeout(this.updateTimeout);
+    const cantidad = (event.target as HTMLInputElement).value;
+    if (cantidad) {
+      const cantidadNumber = parseInt(cantidad, 10);
+      if (!isNaN(cantidadNumber) && cantidadNumber > 0) {
+        preparado.cantidad = cantidadNumber;
+        preparado.subtotal = preparado.precio * preparado.cantidad;
+      } else {
+        Swal.fire({
+          icon: 'error',
+          title: 'Oops!',
+          text: 'La cantidad debe ser un número positivo.',
+          showConfirmButton: true
+        });
+      }
+    } else {
+      preparado.cantidad = 1;
+      preparado.subtotal = preparado.precio * preparado.cantidad;
+      Swal.fire({
+        icon: 'error',
+        title: 'Oops!',
+        text: 'La cantidad no puede estar vacía.',
+        showConfirmButton: true
+      });
+    }
+
+    // Establece un nuevo temporizador para 1 segundo
+    this.updateTimeout = setTimeout(() => {
+      const cantidadNumber = parseInt(cantidad, 10);
+      if (!isNaN(cantidadNumber) && cantidadNumber > 0) {
+        preparado.cantidad = cantidadNumber;
+        preparado.subtotal = preparado.precio * preparado.cantidad;
+      }
+
+      // TODO: Implementar endpoint para actualizar cantidad de preparado magistral
+      // Por ahora, solo actualizamos localmente y recargamos
+      this.showSuccess(this.successTpl);
+      this.cargarProductosByIdPedido(this.idPedido!);
+      this.isLoading = false;
+    }, 1000);
+  }
+
   selectProducto(producto: Producto, busquedaAvanzada: boolean = false) {
     this.query = producto.productoMaestro.nombre + " - " + producto.presentacion + " " + producto.tipoPresentacion.descripcion;
     this.productosBusqueda = [];
@@ -1083,6 +1204,47 @@ export class RegistroPedidoComponent implements OnInit, OnDestroy {
                 icon: 'error',
                 title: 'Oops!',
                 text: 'No se pudo eliminar el producto del pedido, inténtelo de nuevo.',
+                showConfirmButton: true
+              });
+            }
+          });
+      }
+    })
+  }
+
+  eliminarPreparado(preparado: PreparadoMagistral) {
+    Swal.fire({
+      title: '¿Estás seguro?',
+      html: "¿Deseas eliminar el preparado magistral '<b>" + preparado.nombre + "</b>' del pedido?",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Sí, eliminar'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        // TODO: Implementar endpoint específico para eliminar preparados magistrales
+        // Por ahora, usar el endpoint genérico (puede necesitar ajustes en el backend)
+        this.pedidoService.deleteProductoDePedido(this.idPedido!, preparado.idPreparadoMagistral).subscribe(
+          {
+            next: (response) => {
+              Swal.fire({
+                icon: 'success',
+                title: '¡Listo!',
+                text: 'El preparado magistral ha sido eliminado correctamente.',
+                showConfirmButton: true
+              });
+              this.cargarProductosByIdPedido(this.idPedido!);
+              if(this.codigoCupon && this.codigoCupon.trim() !== '') {
+                this.validarCodigoCupon();
+              }
+            },
+            error: (error) => {
+              console.error('Error al eliminar preparado magistral del pedido', error);
+              Swal.fire({
+                icon: 'error',
+                title: 'Oops!',
+                text: 'No se pudo eliminar el preparado magistral del pedido, inténtelo de nuevo.',
                 showConfirmButton: true
               });
             }
