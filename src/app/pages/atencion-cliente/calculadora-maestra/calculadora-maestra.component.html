@@ -2,13 +2,25 @@
 	<div class="card shadow-lg p-4 rounded-4 mb-4">
 		<h2 class="mb-4 text-center">Calculadora Maestra</h2>
 
-        <div class="d-flex justify-content-start mb-3" *ngIf="!isStandaloneMode">
+        <div class="d-flex justify-content-start mb-3" *ngIf="!isStandaloneMode && !modoPreparadoMagistral">
 			<div class="text-start">
 				<p class="mb-0"><span class="fw-bold">Pedido:</span> {{idPedido}}</p>
 				<p class="mb-0"><span class="fw-bold">Producto:</span> {{idProducto}}</p>
                 <p class="mb-0"><span class="fw-bold">Nombre Producto:</span> {{nombrePersonalizado}}</p>
                 <p class="mb-0"><span class="fw-bold">Descripción Producto:</span> {{descripcionPersonalizada}}</p>
                 <p class="mb-0"><span class="fw-bold">Glosa/Detalles:</span> {{detallePersonalizacion}}</p>
+			</div>
+		</div>
+
+        <div class="d-flex justify-content-start mb-3" *ngIf="modoPreparadoMagistral">
+			<div class="text-start">
+                <div class="alert alert-info mb-3">
+                    <h5 class="alert-heading"><i class="bi bi-flask me-2"></i>Modo: Preparado Magistral</h5>
+                    <hr>
+                    <p class="mb-1"><span class="fw-bold">Solicitud ID:</span> {{idSolicitudPreparadoMagistral}}</p>
+                    <p class="mb-1"><span class="fw-bold">Cliente ID:</span> {{idClientePreparadoMagistral}}</p>
+                    <p class="mb-0"><span class="fw-bold">Descripción:</span> {{descripcionSolicitud}}</p>
+                </div>
 			</div>
 		</div>
 
@@ -23,12 +35,12 @@
             </div>
             <div class="col-md-2">
                 <label for="porcentaje" class="form-label">Grado de dificultad</label>
-                <input disabled type="number" name="porcentaje" [value]="base.porcentaje" (input)="onBasePorcentajeChange($event)" class="form-control" id="porcentaje" placeholder="Ingrese grado de dificultad" step="0.01" required>
+                <input disabled type="number" name="porcentaje" [value]="base?.porcentaje || 0" (input)="onBasePorcentajeChange($event)" class="form-control" id="porcentaje" placeholder="Ingrese grado de dificultad" step="0.01" required>
             </div>
 
             <div class="col-md-2">
                 <label for="presentacion" class="form-label">Presentación</label>
-                <input type="number" name="presentacion" [(ngModel)]="presentacion" class="form-control" id="presentacion" placeholder="Ingrese presentación" value="30" min="0" max="100" step="0.01" required>
+                <input type="number" name="presentacion" [(ngModel)]="presentacion" (ngModelChange)="updatePrecios()" class="form-control" id="presentacion" placeholder="Ingrese presentación" value="30" min="0" max="100" step="0.01" required>
 
             </div>
             
@@ -181,9 +193,15 @@
                 <input type="number" name="precioVentaFinalRedondeado" [(ngModel)]="precioVentaFinalRedondeado" class="form-control" id="precioVentaFinalRedondeado" placeholder="Ingrese precioVentaFinalRedondeado" required>
             </div>
             </div>
-            <div class="text-end" *ngIf="!isStandaloneMode">
+            <div class="text-end" *ngIf="!isStandaloneMode && !modoPreparadoMagistral">
                 <button class="btn btn-danger" (click)="router.navigate(['/pages/atencion-cliente/bandeja-personalizacion'])">Cancelar</button>
                 <button class="btn btn-primary ms-2" (click)="savePrecioPersonalizado();">Guardar</button>
+            </div>
+            <div class="text-end" *ngIf="modoPreparadoMagistral">
+                <button class="btn btn-outline-secondary me-2" (click)="guardarDatos()">Guardar Progreso</button>
+                <button class="btn btn-primary" (click)="continuarConRegistro()" [disabled]="!validarDatosParaContinuar()">
+                    <i class="bi bi-arrow-right me-2"></i>Continuar con Registro
+                </button>
             </div>
         </div>
 

@@ -45,6 +45,13 @@ export class SidebarComponent {
 					command: () => this.irA('pages/atencion-cliente/bandeja-pedidos')
 				}
 			] : []),
+			...([2,3,4].includes(user.rol.idRol) ? [
+				{
+					key: '0_10',
+					label: 'Solicitud Preparado Magistral',
+					command: () => this.irA('pages/atencion-cliente/solicitud-preparado-magistral')
+				}
+			] : []),
 			...(atencionClienteAccessRoles.includes(user.rol.idRol) ? [
 				{
 					key: '0_3',
@@ -312,6 +319,11 @@ export class SidebarComponent {
 							key: '6_6',
 							label: 'Calculadora de Cápsulas/Óvulos',
 							command: () => this.irA('pages/atencion-cliente/calculadora-capsulas')
+						},
+						{
+							key: '6_7',
+							label: 'Solicitudes Preparados Magistrales',
+							command: () => this.irA('pages/gestion-producto/bandeja-solicitudes-preparados-magistrales')
 						},
 					]
 				}

@@ -29,6 +29,10 @@ export class PedidoService {
 		return this.http.get<any[]>(`${this.baseUrl}/listar`);
 	}
 
+	crearPedidoPreparadoMagistral(data: any): Observable<any> {
+		return this.http.post<any>(`${this.baseUrl}/preparado-magistral`, data);
+	}
+
   getPedidosDespacho(): Observable<any[]> {
     let url = `${this.baseUrl}/bandeja-despacho`;
     return this.http.get<any[]>(url);
@@ -71,6 +75,11 @@ export class PedidoService {
 
 	getProductosByIdPedido(idPedido: string): Observable<any[]> {
 		let url = `${this.baseUrl}/${idPedido}/productos`;
+		return this.http.get<any[]>(url);
+	}
+
+	getPreparadosMagistralesByIdPedido(idPedido: string): Observable<any[]> {
+		let url = `${this.baseUrl}/${idPedido}/preparados-magistrales`;
 		return this.http.get<any[]>(url);
 	}
 
