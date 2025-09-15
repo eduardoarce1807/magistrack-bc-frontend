@@ -101,8 +101,8 @@
 			}
 
 			<div class="mb-3">
-				<label for="numeroOperacion" class="form-label">Número de Operación*</label>
-				<input type="text" id="numeroOperacion" class="form-control" [(ngModel)]="pagoManual.numeroOperacion" required name="numeroOperacion">
+				<label for="numeroOperacion" class="form-label">Número de Operación{{ pagoManual.idTipoPago == 4 ? '' : '*' }}</label>
+				<input type="text" id="numeroOperacion" class="form-control" [(ngModel)]="pagoManual.numeroOperacion" [required]="pagoManual.idTipoPago != 4" name="numeroOperacion">
 			</div>
 			<div class="mb-3">
 				<label for="fechaPago" class="form-label">Fecha de Pago*</label>
@@ -120,7 +120,7 @@
 		</div>
 		<div class="modal-footer">
 			<button type="button" class="btn btn-secondary" (click)="modal.dismiss('cancel')">Cancelar</button>
-			<button type="submit" class="btn btn-success" [disabled]="!pagoManualForm.form.valid">Registrar Pago</button>
+			<button type="submit" class="btn btn-success" [disabled]="!esFormularioValido(pagoManualForm)">Registrar Pago</button>
 		</div>
 	</form>
 </ng-template>
