@@ -218,4 +218,9 @@ export class PedidoService {
 		return this.http.post<any>(url, data);
 	}
 
+	getPreparadoMagistralById(idPreparadoMagistral: string): Observable<any> {
+		let url = `${environment.apiUrl}/preparado-magistral/${idPreparadoMagistral}`;
+		return this.http.get<any>(url);
+	}
+
 }

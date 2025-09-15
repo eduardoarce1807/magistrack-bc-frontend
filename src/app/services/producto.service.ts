@@ -62,6 +62,11 @@ export class ProductoService {
     return this.http.post<any>(url, data);
   }
 
+  updateEstadoPreparadoMagistral(data: any): Observable<any> {
+    let url = `${this.baseUrl}/estado-preparado-magistral`;
+    return this.http.post<any>(url, data);
+  }
+
   updateEstadoProductoPedidoMasivo(data: any): Observable<any> {
     let url = `${this.baseUrl}/estado-masivo`;
     return this.http.post<any>(url, data);
@@ -82,8 +87,18 @@ export class ProductoService {
     return this.http.put<any>(url, data);
   }
 
+  updatePreparadoMagistralCalidad(data: any): Observable<any> {
+    let url = `${this.baseUrl}/preparado-magistral-calidad`;
+    return this.http.put<any>(url, data);
+  }
+
   getHojaProduccion(idProductoMaestro: string): Observable<any> {
     let url = `${this.baseUrl}/hoja-produccion-maestro/${idProductoMaestro}`;
+    return this.http.get<any>(url);
+  }
+
+  getHojaProduccionPreparadoMagistral(idPreparadoMagistral: string): Observable<any> {
+    let url = `${this.baseUrl}/hoja-produccion-preparado-magistral/${idPreparadoMagistral}`;
     return this.http.get<any>(url);
   }
 
@@ -104,6 +119,21 @@ export class ProductoService {
 
   updateEstadoProductoBulk(data: any): Observable<any> {
     let url = `${this.baseUrl}/estado-producto-bulk`;
+    return this.http.post<any>(url, data);
+  }
+
+  updateEstadoPreparadoMagistralBulk(data: any): Observable<any> {
+    let url = `${this.baseUrl}/estado-preparado-magistral-bulk`;
+    return this.http.post<any>(url, data);
+  }
+
+  updateEstadoPreparadoMagistralSingle(data: any): Observable<any> {
+    let url = `${this.baseUrl}/estado-preparado-magistral-single`;
+    return this.http.post<any>(url, data);
+  }
+
+  updateEstadoPreparadoMagistralMasivo(data: any): Observable<any> {
+    let url = `${this.baseUrl}/estado-preparado-magistral-masivo`;
     return this.http.post<any>(url, data);
   }
 }

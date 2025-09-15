@@ -8,6 +8,7 @@ import { FormsModule } from '@angular/forms';
 import JsBarcode from 'jsbarcode';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
+import { forkJoin } from 'rxjs';
 
 @Component({
   selector: 'app-bandeja-envasado',
@@ -105,9 +106,10 @@ export class BandejaEnvasadoComponent implements OnInit {
           this.productosTable = [];
           this.refreshProductos();
         } else {
-          // Si no hay idResultado ni mensaje, es una lista válida de productos
-          // Como puede retornar un array, lo asignamos directamente
-          this.productosTable = Array.isArray(response) ? response : [response];
+          // La respuesta es un array de productos que pueden ser normales o preparados magistrales
+          // Mapear los campos según el tipo de item
+          const productosFormateados = Array.isArray(response) ? response.map(item => this.formatearItem(item)) : [this.formatearItem(response)];
+          this.productosTable = productosFormateados;
           this.collectionSize = this.productosTable.length;
           this.refreshProductos();
         }
@@ -126,6 +128,26 @@ export class BandejaEnvasadoComponent implements OnInit {
     );
   }
 
+  // Método helper para formatear los items según su tipo
+  formatearItem(item: any): any {
+    if (item.tipoItem === 'PREPARADO_MAGISTRAL') {
+      return {
+        ...item,
+        idProducto: item.id, // Mapear 'id' a 'idProducto' para compatibilidad
+        presentacionTotal: item.presentacion, // Para compatibilidad con el template
+        // Mantener todos los otros campos del preparado magistral
+      };
+    } else {
+      // Es un producto normal, mantener estructura original
+      return {
+        ...item,
+        // Asegurar que tenga los campos necesarios
+        idProducto: item.id || item.idProducto,
+        presentacionTotal: item.presentacion || item.presentacionTotal,
+      };
+    }
+  }
+
   openModalNota(item: any, content: TemplateRef<any>) {
     this.modalService.open(content, { size: 'lg' });
     this.observacionNota = item.observacion;
@@ -138,6 +160,8 @@ export class BandejaEnvasadoComponent implements OnInit {
   }
 
   @ViewChild('procedimiento', { static: true }) procedimiento: TemplateRef<any> | null = null;
+  @ViewChild('codigoBarrasIndividual', { static: true }) codigoBarrasIndividual: TemplateRef<any> | null = null;
+  @ViewChild('codigoBarrasMasivo', { static: true }) codigoBarrasMasivo: TemplateRef<any> | null = null;
   getHojaProduccion(idProducto: string): void {
     this.productoService.getHojaProduccion(idProducto).subscribe(
       (hojaProduccion) => {
@@ -445,47 +469,205 @@ export class BandejaEnvasadoComponent implements OnInit {
     }
   }
 
-  enviarEtiquetadoMasivo() {
-    let lstProductos = '';
-    for (let i = 0; i < this.lstProductosSeleccionados.length; i++) {
-      lstProductos +=
-        this.lstProductosSeleccionados[i].idProducto + '<br>';
-    }
+  enviarEtiquetado(item: any) {
+    const tipoTexto = item.tipoItem === 'PREPARADO_MAGISTRAL' ? 'preparado magistral' : 'producto';
+    const presentacionTexto = item.tipoItem === 'PREPARADO_MAGISTRAL' 
+      ? `${item.presentacion} ${item.tipoPresentacion}` 
+      : `${item.presentacion || item.presentacionTotal} ${item.tipoPresentacion}`;
 
     Swal.fire({
       title: '¿Estás seguro?',
-      html: `<p>¿Deseas enviar los productos seleccionados a etiquetado?</p>
-          <p>Productos seleccionados:</p>
-          <div style="max-height: 200px; overflow-y: auto;">${lstProductos}</div>`,
+      html: `<p>¿Deseas enviar <strong>${item.cantidad} ${item.nombre} - ${presentacionTexto}</strong> (${tipoTexto}) a etiquetado?</p>`,
       icon: 'question',
       showCancelButton: true,
       confirmButtonText: 'Sí, enviar',
       cancelButtonText: 'Cancelar',
     }).then((result) => {
       if (result.isConfirmed) {
-        this.productoService
-          .updateEstadoProductoPedidoMasivo({
-            idProductos: this.lstProductosSeleccionados,
+        
+        if (item.tipoItem === 'PREPARADO_MAGISTRAL') {
+          // Lógica para preparados magistrales
+          const requestData = {
+            idPreparadoMagistral: item.id,
+            idPedido: item.idPedido,
             idEstadoProducto: 6, // En etiquetado
             idEstadoPedido: 7, // En etiquetado
             idEstadoPedidoCliente: 3, // En producción
-            idCliente:
-              this.dataService.getLoggedUser().cliente.idCliente,
-            accionRealizada: 'Productos enviados a etiquetado',
+            idCliente: this.dataService.getLoggedUser().cliente.idCliente,
+            accionRealizada: 'Preparado magistral enviado a etiquetado',
             observacion: '',
-          })
-          .subscribe(
-            (response) => {
+          };
+
+          this.productoService
+            .updateEstadoPreparadoMagistralSingle(requestData)
+            .subscribe(
+              (response) => {
+                Swal.fire({
+                  icon: 'success',
+                  title: '¡Listo!',
+                  text: 'Preparado magistral enviado a etiquetado correctamente.',
+                  showConfirmButton: true,
+                }).then(() => {
+                  // No actualizar lista aquí, solo mostrar modal de código de barras
+                  // La limpieza se hará cuando se cierre el modal del código de barras
+                  this.lstProductosSeleccionados = [];
+                  
+                  // Mostrar modal de código de barras
+                  if (this.codigoBarrasIndividual) {
+                    this.openModalCodigoBarrasIndividual(this.codigoBarrasIndividual, item);
+                  }
+                });
+              },
+              (error) => {
+                console.error('Error al enviar preparado magistral a etiquetado', error);
+                Swal.fire({
+                  icon: 'error',
+                  title: 'Oops!',
+                  text: 'No se pudo enviar el preparado magistral a etiquetado, inténtelo de nuevo.',
+                  showConfirmButton: true,
+                });
+              }
+            );
+        } else {
+          // Lógica para productos normales (mantener como estaba)
+          this.productoService
+            .updateEstadoProducto({
+              idProducto: item.idProducto,
+              idPedido: item.idPedido,
+              idEstadoProducto: 6, // En etiquetado
+              idEstadoPedido: 7, // En etiquetado
+              idEstadoPedidoCliente: 3, // En producción
+              idCliente: this.dataService.getLoggedUser().cliente.idCliente,
+              accionRealizada: 'Producto enviado a etiquetado',
+              observacion: '',
+            })
+            .subscribe(
+              (response) => {
+                Swal.fire({
+                  icon: 'success',
+                  title: '¡Listo!',
+                  text: 'Producto enviado a etiquetado correctamente.',
+                  showConfirmButton: true,
+                }).then(() => {
+                  // No actualizar lista aquí, solo mostrar modal de código de barras
+                  // La limpieza se hará cuando se cierre el modal del código de barras
+                  this.lstProductosSeleccionados = [];
+                  
+                  // Mostrar modal de código de barras
+                  if (this.codigoBarrasIndividual) {
+                    this.openModalCodigoBarrasIndividual(this.codigoBarrasIndividual, item);
+                  }
+                });
+              },
+              (error) => {
+                console.error('Error al enviar producto a etiquetado', error);
+                Swal.fire({
+                  icon: 'error',
+                  title: 'Oops!',
+                  text: 'No se pudo enviar el producto a etiquetado, inténtelo de nuevo.',
+                  showConfirmButton: true,
+                });
+              }
+            );
+        }
+      }
+    });
+  }
+
+  enviarEtiquetadoMasivo() {
+    // Separar productos de preparados magistrales basado en los items completos de la lista
+    const productosSeleccionados: any[] = [];
+    const preparadosSeleccionados: any[] = [];
+    
+    // Obtener los items completos basándose en la selección
+    this.lstProductosSeleccionados.forEach(seleccionado => {
+      const itemCompleto = this.productos.find((item: any) => 
+        item.idProducto === seleccionado.idProducto && item.idPedido === seleccionado.idPedido
+      );
+      
+      if (itemCompleto) {
+        if (itemCompleto.tipoItem === 'PREPARADO_MAGISTRAL') {
+          preparadosSeleccionados.push({
+            idPreparadoMagistral: itemCompleto.id,
+            idPedido: itemCompleto.idPedido
+          });
+        } else {
+          productosSeleccionados.push({
+            idProducto: itemCompleto.idProducto,
+            idPedido: itemCompleto.idPedido
+          });
+        }
+      }
+    });
+
+    let lstItems = '';
+    this.lstProductosSeleccionados.forEach(item => {
+      const itemCompleto = this.productos.find((p: any) => 
+        p.idProducto === item.idProducto && p.idPedido === item.idPedido
+      );
+      if (itemCompleto) {
+        const tipoTexto = itemCompleto.tipoItem === 'PREPARADO_MAGISTRAL' ? '(PM)' : '(P)';
+        lstItems += `${itemCompleto.nombre} ${tipoTexto}<br>`;
+      }
+    });
+
+    Swal.fire({
+      title: '¿Estás seguro?',
+      html: `<p>¿Deseas enviar los items seleccionados a etiquetado?</p>
+          <p>Items seleccionados:</p>
+          <div style="max-height: 200px; overflow-y: auto;">${lstItems}</div>`,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: 'Sí, enviar',
+      cancelButtonText: 'Cancelar',
+    }).then((result) => {
+      if (result.isConfirmed) {
+        const requests: any[] = [];
+        
+        // Agregar request para productos si hay alguno
+        if (productosSeleccionados.length > 0) {
+          requests.push(
+            this.productoService.updateEstadoProductoPedidoMasivo({
+              idProductos: productosSeleccionados,
+              idEstadoProducto: 6, // En etiquetado
+              idEstadoPedido: 7, // En etiquetado
+              idEstadoPedidoCliente: 3, // En producción
+              idCliente: this.dataService.getLoggedUser().cliente.idCliente,
+              accionRealizada: 'Productos enviados a etiquetado',
+              observacion: '',
+            })
+          );
+        }
+        
+        // Agregar request para preparados magistrales si hay alguno
+        if (preparadosSeleccionados.length > 0) {
+          requests.push(
+            this.productoService.updateEstadoPreparadoMagistralBulk({
+              idPreparadosMagistrales: preparadosSeleccionados,
+              idEstadoProducto: 6, // En etiquetado
+              idEstadoPedido: 7, // En etiquetado
+              idEstadoPedidoCliente: 3, // En producción
+              idCliente: this.dataService.getLoggedUser().cliente.idCliente,
+              accionRealizada: 'Preparados magistrales enviados a etiquetado',
+              observacion: '',
+            })
+          );
+        }
+        
+        // Ejecutar todas las requests en paralelo
+        if (requests.length > 0) {
+          forkJoin(requests).subscribe(
+            (responses) => {
               Swal.fire({
                 icon: 'success',
                 title: '¡Listo!',
-                text: 'Productos enviados a etiquetado correctamente.',
+                text: 'Items enviados a etiquetado correctamente.',
                 showConfirmButton: true,
               }).then(() => {
                 // No actualizar lista aquí, solo mostrar modal de códigos de barras
                 // La limpieza se hará cuando se cierre el modal de códigos de barras
                 
-                // Mostrar modal de códigos de barras para productos masivos
+                // Mostrar modal de códigos de barras para items masivos
                 if (this.lstProductosSeleccionados.length > 0 && this.codigoBarrasMasivo) {
                   const modalRef = this.modalService.open(this.codigoBarrasMasivo, { size: 'xl' });
                   
@@ -505,77 +687,17 @@ export class BandejaEnvasadoComponent implements OnInit {
               });
             },
             (error) => {
-              console.error(
-                'Error al enviar productos a etiquetado',
-                error
-              );
+              console.error('Error al enviar items a etiquetado', error);
               Swal.fire({
                 icon: 'error',
                 title: 'Oops!',
-                text: 'No se pudo enviar los productos a etiquetado, inténtelo de nuevo.',
+                text: 'No se pudo enviar los items a etiquetado, inténtelo de nuevo.',
                 showConfirmButton: true,
               });
             }
           );
+        }
       }
     });
-  }
-
-  @ViewChild('codigoBarrasIndividual', { static: true }) codigoBarrasIndividual: TemplateRef<any> | null = null;
-  @ViewChild('codigoBarrasMasivo', { static: true }) codigoBarrasMasivo: TemplateRef<any> | null = null;
-
-  enviarEtiquetado(item: any) {
-
-    Swal.fire({
-      title: '¿Estás seguro?',
-      html: `<p>¿Deseas enviar <strong>${item.cantidad} ${item.nombre} - ${item.presentacion} ${item.tipoPresentacion}</strong> a etiquetado?</p>`,
-      icon: 'question',
-      showCancelButton: true,
-      confirmButtonText: 'Sí, enviar',
-      cancelButtonText: 'Cancelar',
-    }).then((result) => {
-      if (result.isConfirmed) {
-        this.productoService
-          .updateEstadoProducto({
-            idProducto: item.idProducto,
-            idPedido: item.idPedido,
-            idEstadoProducto: 6, // En etiquetado
-            idEstadoPedido: 7, // En etiquetado
-            idEstadoPedidoCliente: 3, // En producción
-            idCliente: this.dataService.getLoggedUser().cliente.idCliente,
-            accionRealizada: 'Producto enviado a etiquetado',
-            observacion: '',
-          })
-          .subscribe(
-            (response) => {
-              Swal.fire({
-                icon: 'success',
-                title: '¡Listo!',
-                text: 'Producto enviado a etiquetado correctamente.',
-                showConfirmButton: true,
-              }).then(() => {
-                // No actualizar lista aquí, solo mostrar modal de código de barras
-                // La limpieza se hará cuando se cierre el modal del código de barras
-                this.lstProductosSeleccionados = [];
-                
-                // Mostrar modal de código de barras
-                if (this.codigoBarrasIndividual) {
-                  this.openModalCodigoBarrasIndividual(this.codigoBarrasIndividual, item);
-                }
-              });
-            },
-            (error) => {
-              console.error('Error al enviar producto a etiquetado', error);
-              Swal.fire({
-                icon: 'error',
-                title: 'Oops!',
-                text: 'No se pudo enviar el producto a etiquetado, inténtelo de nuevo.',
-                showConfirmButton: true,
-              });
-            }
-          );
-      }
-    });
-    
   }
 }

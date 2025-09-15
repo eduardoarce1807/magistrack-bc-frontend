@@ -79,31 +79,31 @@
 							<input
 								class="form-check-input"
 								type="checkbox"
-								[checked]="isSeleccionado(item.idProductoMaestro, item.phCalidadPromedio, item.phDefinidoMin, item.phDefinidoMax)"
+								[checked]="isSeleccionado(item, item.phCalidadPromedio, item.phDefinidoMin, item.phDefinidoMax)"
 								(change)="
 									toggleSeleccionIndividual(
-										item.idProductoMaestro,
+										item,
 										$event
 									)
 								"
 								[disabled]="
 									(tipoEnvio === 1 && (
 										item.phCalidadPromedio === null ||
-										item.phCalidadPromedio === '' ||
+										item.phCalidadPromedio === 0 ||
 										item.phCalidadPromedio < item.phDefinidoMin ||
 										item.phCalidadPromedio > item.phDefinidoMax
 									)) ||
 									(tipoEnvio === 0 && !(
 										item.phCalidadPromedio === null ||
-										item.phCalidadPromedio === '' ||
+										item.phCalidadPromedio === 0 ||
 										item.phCalidadPromedio < item.phDefinidoMin ||
 										item.phCalidadPromedio > item.phDefinidoMax
 									))
 								"
 							/>
 						</td>
-						<td style="min-width: 200px;">{{item.nombreProducto}}</td>
-						<td style="min-width: 120px;">{{item.presentacionTotal}} {{item.tipoPresentacion}}</td>
+						<td style="min-width: 200px;">{{getItemNombre(item)}}</td>
+						<td style="min-width: 120px;">{{getItemPresentacion(item)}}</td>
 						<td style="min-width: 100px;">{{item.estadoProducto}}</td>
 						<td style="min-width: 100px;">
 	                        <span>{{item.personalizado ? 'Sí' : 'No'}}</span>
@@ -143,7 +143,7 @@
 								class="btn btn-info me-2" 
 								[disabled]="
 									item.phCalidadPromedio === null ||
-									item.phCalidadPromedio === '' ||
+									item.phCalidadPromedio === 0 ||
 									item.phCalidadPromedio < item.phDefinidoMin ||
 									item.phCalidadPromedio > item.phDefinidoMax
 								"
@@ -166,7 +166,7 @@
 								(click)="regresarAProduccion(item)" 
 								[disabled]="
 									!(item.phCalidadPromedio === null ||
-									item.phCalidadPromedio === '' ||
+									item.phCalidadPromedio === 0 ||
 									item.phCalidadPromedio < item.phDefinidoMin ||
 									item.phCalidadPromedio > item.phDefinidoMax)
 								"
@@ -245,9 +245,20 @@
 	</div>
 	<div class="modal-body">
 		<form>
-			<span class="mb-2"><span style="font-weight: bold;">Nombre Producto:</span> {{procedimientoData.productoMaestro.nombre}}</span>
-			<br>
-			<span class="mb-2"><span style="font-weight: bold;">Descripción:</span> {{procedimientoData.productoMaestro.descripcion}}</span>
+			<!-- Información del producto/preparado magistral -->
+			<ng-container *ngIf="procedimientoData.productoMaestro">
+				<!-- Es un producto normal -->
+				<span class="mb-2"><span style="font-weight: bold;">Nombre Producto:</span> {{procedimientoData.productoMaestro.nombre}}</span>
+				<br>
+				<span class="mb-2"><span style="font-weight: bold;">Descripción:</span> {{procedimientoData.productoMaestro.descripcion}}</span>
+			</ng-container>
+			
+			<ng-container *ngIf="procedimientoData.preparadoMagistral">
+				<!-- Es un preparado magistral -->
+				<span class="mb-2"><span style="font-weight: bold;">Nombre Preparado:</span> {{procedimientoData.preparadoMagistral.nombre}}</span>
+				<br>
+				<span class="mb-2"><span style="font-weight: bold;">Descripción:</span> {{procedimientoData.preparadoMagistral.descripcion}}</span>
+			</ng-container>
 			<hr>
 
 			<!-- Sección de Cálculo de Ingredientes -->
@@ -265,7 +276,7 @@
 					<tbody>
 						<tr *ngFor="let ingrediente of procedimientoData.ingredientes">
 							<td>{{ ingrediente.materiaPrima.nombre }}</td>
-							<td>{{ (ingrediente.cantidad / 100) * (productoMaestroCalculo ? productoMaestroCalculo.presentacionTotal : 0) }}</td>
+							<td>{{ (ingrediente.cantidad / 100) * getPresentacionTotal() }}</td>
 							<td>{{ ingrediente.cantidad }} %</td>
 						</tr>
 					</tbody>
