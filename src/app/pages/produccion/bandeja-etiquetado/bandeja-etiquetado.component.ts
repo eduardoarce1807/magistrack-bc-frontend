@@ -8,6 +8,7 @@ import { ProductoService } from '../../../services/producto.service';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
+import { forkJoin } from 'rxjs';
 
 @Component({
   selector: 'app-bandeja-etiquetado',
@@ -60,7 +61,8 @@ export class BandejaEtiquetadoComponent implements OnInit {
     this.pedidoService.getProductosEtiquetado().subscribe(
       (productos) => {
         console.log('Productos obtenidos:', productos);
-        this.productosTable = productos;
+        // Formatear items para uniformidad entre productos y preparados magistrales
+        this.productosTable = productos.map((item: any) => this.formatearItem(item));
         this.collectionSize = this.productosTable.length;
         this.refreshProductos();
       },
@@ -74,6 +76,20 @@ export class BandejaEtiquetadoComponent implements OnInit {
         });
       }
     );
+  }
+
+  // Helper para formatear items y unificar la estructura
+  private formatearItem(item: any): any {
+    const itemFormateado = { ...item };
+    
+    // Para preparados magistrales, mapear 'id' a 'idProducto' para compatibilidad
+    if (item.tipoItem === 'PREPARADO_MAGISTRAL') {
+      itemFormateado.idProducto = item.id;
+      // Mantener también el id original para las operaciones de actualización
+      itemFormateado.idPreparadoMagistral = item.id;
+    }
+    
+    return itemFormateado;
   }
 
   buscarPorIdProducto(): void {
@@ -104,8 +120,9 @@ export class BandejaEtiquetadoComponent implements OnInit {
           this.refreshProductos();
         } else {
           // Si no hay idResultado ni mensaje, es una lista válida de productos
-          // Como puede retornar un array, lo asignamos directamente
-          this.productosTable = Array.isArray(response) ? response : [response];
+          // Como puede retornar un array, lo asignamos directamente y formateamos
+          const productosRaw = Array.isArray(response) ? response : [response];
+          this.productosTable = productosRaw.map((item: any) => this.formatearItem(item));
           this.collectionSize = this.productosTable.length;
           this.refreshProductos();
         }
@@ -399,157 +416,298 @@ export class BandejaEtiquetadoComponent implements OnInit {
   }
 
   enviarDespachoMasivo() {
-    let lstProductos = '';
-    for (let i = 0; i < this.lstProductosSeleccionados.length; i++) {
-      lstProductos +=
-        this.lstProductosSeleccionados[i].idProducto + '<br>';
-    }
+    // Separar productos de preparados magistrales basado en los items completos de la lista
+    const productosSeleccionados: any[] = [];
+    const preparadosSeleccionados: any[] = [];
+    
+    // Obtener los items completos basándose en la selección
+    this.lstProductosSeleccionados.forEach(seleccionado => {
+      const itemCompleto = this.productos.find((item: any) => 
+        item.idProducto === seleccionado.idProducto && item.idPedido === seleccionado.idPedido
+      );
+      
+      if (itemCompleto) {
+        if (itemCompleto.tipoItem === 'PREPARADO_MAGISTRAL') {
+          preparadosSeleccionados.push({
+            idPreparadoMagistral: itemCompleto.id,
+            idPedido: itemCompleto.idPedido
+          });
+        } else {
+          productosSeleccionados.push({
+            idProducto: itemCompleto.idProducto,
+            idPedido: itemCompleto.idPedido
+          });
+        }
+      }
+    });
+
+    let lstItems = '';
+    this.lstProductosSeleccionados.forEach(item => {
+      const itemCompleto = this.productos.find((p: any) => 
+        p.idProducto === item.idProducto && p.idPedido === item.idPedido
+      );
+      if (itemCompleto) {
+        const tipoTexto = itemCompleto.tipoItem === 'PREPARADO_MAGISTRAL' ? '(PM)' : '(P)';
+        lstItems += `${itemCompleto.nombre} ${tipoTexto}<br>`;
+      }
+    });
 
     Swal.fire({
       title: '¿Estás seguro?',
-      html: `<p>¿Deseas enviar los productos seleccionados a despacho?</p>
-          <p>Productos seleccionados:</p>
-          <div style="max-height: 200px; overflow-y: auto;">${lstProductos}</div>`,
+      html: `<p>¿Deseas enviar los items seleccionados a despacho?</p>
+          <p>Items seleccionados:</p>
+          <div style="max-height: 200px; overflow-y: auto;">${lstItems}</div>`,
       icon: 'question',
       showCancelButton: true,
       confirmButtonText: 'Sí, enviar',
       cancelButtonText: 'Cancelar',
     }).then((result) => {
       if (result.isConfirmed) {
-        this.productoService
-          .updateEstadoProductoPedidoMasivo({
-            idProductos: this.lstProductosSeleccionados,
-            idEstadoProducto: 7, // En despacho
-            idEstadoPedido: 8, // En despacho
-            idEstadoPedidoCliente: 4, // En despacho
-            idCliente:
-              this.dataService.getLoggedUser().cliente.idCliente,
-            accionRealizada: 'Productos enviados a despacho',
-            observacion: '',
-          })
-          .subscribe(
-            (response) => {
+        const requests: any[] = [];
+        
+        // Agregar request para productos si hay alguno
+        if (productosSeleccionados.length > 0) {
+          requests.push(
+            this.productoService.updateEstadoProductoPedidoMasivo({
+              idProductos: productosSeleccionados,
+              idEstadoProducto: 7, // En despacho
+              idEstadoPedido: 8, // En despacho
+              idEstadoPedidoCliente: 4, // En despacho
+              idCliente: this.dataService.getLoggedUser().cliente.idCliente,
+              accionRealizada: 'Productos enviados a despacho',
+              observacion: '',
+            })
+          );
+        }
+        
+        // Agregar request para preparados magistrales si hay alguno
+        if (preparadosSeleccionados.length > 0) {
+          requests.push(
+            this.productoService.updateEstadoPreparadoMagistralBulk({
+              idPreparadosMagistrales: preparadosSeleccionados,
+              idEstadoProducto: 7, // En despacho
+              idEstadoPedido: 8, // En despacho
+              idEstadoPedidoCliente: 4, // En despacho
+              idCliente: this.dataService.getLoggedUser().cliente.idCliente,
+              accionRealizada: 'Preparados magistrales enviados a despacho',
+              observacion: '',
+            })
+          );
+        }
+        
+        // Ejecutar todas las requests en paralelo
+        if (requests.length > 0) {
+          forkJoin(requests).subscribe(
+            (responses: any) => {
               Swal.fire({
                 icon: 'success',
                 title: '¡Listo!',
-                text: 'Productos enviados a despacho correctamente.',
+                text: 'Items enviados a despacho correctamente.',
                 showConfirmButton: true,
               }).then(() => {
                 this.actualizarListaProductos();
                 this.lstProductosSeleccionados = [];
               });
             },
-            (error) => {
-              console.error(
-                'Error al enviar productos a despacho',
-                error
-              );
+            (error: any) => {
+              console.error('Error al enviar items a despacho', error);
               Swal.fire({
                 icon: 'error',
                 title: 'Oops!',
-                text: 'No se pudo enviar los productos a despacho, inténtelo de nuevo.',
+                text: 'No se pudo enviar los items a despacho, inténtelo de nuevo.',
                 showConfirmButton: true,
               });
             }
           );
+        }
       }
     });
   }
 
   enviarDespacho(item: any) {
-
     this.modalService.dismissAll(); // Cierra cualquier modal abierto antes de enviar
+
+    const tipoTexto = item.tipoItem === 'PREPARADO_MAGISTRAL' ? 'preparado magistral' : 'producto';
+    const presentacionTexto = item.tipoItem === 'PREPARADO_MAGISTRAL' 
+      ? `${item.presentacion} ${item.tipoPresentacion}` 
+      : `${item.presentacion || item.presentacionTotal} ${item.tipoPresentacion}`;
 
     Swal.fire({
       title: '¿Estás seguro?',
-      html: `<p>¿Deseas enviar el producto <strong>${item.idProducto}</strong> a despacho?</p>`,
+      html: `<p>¿Deseas enviar <strong>${item.cantidad} ${item.nombre} - ${presentacionTexto}</strong> (${tipoTexto}) a despacho?</p>`,
       icon: 'question',
       showCancelButton: true,
       confirmButtonText: 'Sí, enviar',
       cancelButtonText: 'Cancelar',
     }).then((result) => {
       if (result.isConfirmed) {
-        this.productoService
-          .updateEstadoProducto({
-            idProducto: item.idProducto,
+        
+        if (item.tipoItem === 'PREPARADO_MAGISTRAL') {
+          // Lógica para preparados magistrales
+          const requestData = {
+            idPreparadoMagistral: item.id,
             idPedido: item.idPedido,
             idEstadoProducto: 7, // En despacho
             idEstadoPedido: 8, // En despacho
             idEstadoPedidoCliente: 4, // En despacho
             idCliente: this.dataService.getLoggedUser().cliente.idCliente,
-            accionRealizada: 'Producto enviado a despacho',
+            accionRealizada: 'Preparado magistral enviado a despacho',
             observacion: '',
-          })
-          .subscribe(
-            (response) => {
-              Swal.fire({
-                icon: 'success',
-                title: '¡Listo!',
-                text: 'Producto enviado a despacho correctamente.',
-                showConfirmButton: true,
-              }).then(() => {
-                this.actualizarListaProductos();
-                this.lstProductosSeleccionados = [];
-              });
-            },
-            (error) => {
-              console.error('Error al enviar producto a despacho', error);
-              Swal.fire({
-                icon: 'error',
-                title: 'Oops!',
-                text: 'No se pudo enviar el producto a despacho, inténtelo de nuevo.',
-                showConfirmButton: true,
-              });
-            }
-          );
+          };
+
+          this.productoService
+            .updateEstadoPreparadoMagistralSingle(requestData)
+            .subscribe(
+              (response) => {
+                Swal.fire({
+                  icon: 'success',
+                  title: '¡Listo!',
+                  text: 'Preparado magistral enviado a despacho correctamente.',
+                  showConfirmButton: true,
+                }).then(() => {
+                  this.actualizarListaProductos();
+                  this.lstProductosSeleccionados = [];
+                });
+              },
+              (error) => {
+                console.error('Error al enviar preparado magistral a despacho', error);
+                Swal.fire({
+                  icon: 'error',
+                  title: 'Oops!',
+                  text: 'No se pudo enviar el preparado magistral a despacho, inténtelo de nuevo.',
+                  showConfirmButton: true,
+                });
+              }
+            );
+        } else {
+          // Lógica para productos normales (mantener como estaba)
+          this.productoService
+            .updateEstadoProducto({
+              idProducto: item.idProducto,
+              idPedido: item.idPedido,
+              idEstadoProducto: 7, // En despacho
+              idEstadoPedido: 8, // En despacho
+              idEstadoPedidoCliente: 4, // En despacho
+              idCliente: this.dataService.getLoggedUser().cliente.idCliente,
+              accionRealizada: 'Producto enviado a despacho',
+              observacion: '',
+            })
+            .subscribe(
+              (response) => {
+                Swal.fire({
+                  icon: 'success',
+                  title: '¡Listo!',
+                  text: 'Producto enviado a despacho correctamente.',
+                  showConfirmButton: true,
+                }).then(() => {
+                  this.actualizarListaProductos();
+                  this.lstProductosSeleccionados = [];
+                });
+              },
+              (error) => {
+                console.error('Error al enviar producto a despacho', error);
+                Swal.fire({
+                  icon: 'error',
+                  title: 'Oops!',
+                  text: 'No se pudo enviar el producto a despacho, inténtelo de nuevo.',
+                  showConfirmButton: true,
+                });
+              }
+            );
+        }
       }
     });
-    
   }
 
   enviarDespachoDirecto(item: any) {
+    const tipoTexto = item.tipoItem === 'PREPARADO_MAGISTRAL' ? 'preparado magistral' : 'producto';
+    const presentacionTexto = item.tipoItem === 'PREPARADO_MAGISTRAL' 
+      ? `${item.presentacion} ${item.tipoPresentacion}` 
+      : `${item.presentacion || item.presentacionTotal} ${item.tipoPresentacion}`;
+
     Swal.fire({
       title: '¿Estás seguro?',
-      html: `<p>¿Deseas enviar <strong>${item.cantidad} ${item.nombre} - ${item.presentacion} ${item.tipoPresentacion}</strong> a DESPACHO?</p>`,
+      html: `<p>¿Deseas enviar <strong>${item.cantidad} ${item.nombre} - ${presentacionTexto}</strong> (${tipoTexto}) a DESPACHO?</p>`,
       icon: 'question',
       showCancelButton: true,
       confirmButtonText: 'Sí, enviar',
       cancelButtonText: 'Cancelar',
     }).then((result) => {
       if (result.isConfirmed) {
-        this.productoService
-          .updateEstadoProducto({
-            idProducto: item.idProducto,
+        
+        if (item.tipoItem === 'PREPARADO_MAGISTRAL') {
+          // Lógica para preparados magistrales
+          const requestData = {
+            idPreparadoMagistral: item.id,
             idPedido: item.idPedido,
             idEstadoProducto: 7, // En despacho
             idEstadoPedido: 8, // En despacho
             idEstadoPedidoCliente: 4, // En despacho
             idCliente: this.dataService.getLoggedUser().cliente.idCliente,
-            accionRealizada: 'Producto enviado a despacho',
+            accionRealizada: 'Preparado magistral enviado a despacho',
             observacion: '',
-          })
-          .subscribe(
-            (response) => {
-              Swal.fire({
-                icon: 'success',
-                title: '¡Listo!',
-                text: 'Producto enviado a despacho correctamente.',
-                showConfirmButton: true,
-              }).then(() => {
-                // Limpiar input y tabla
-                this.limpiarBusqueda();
-              });
-            },
-            (error) => {
-              console.error('Error al enviar producto a despacho', error);
-              Swal.fire({
-                icon: 'error',
-                title: 'Oops!',
-                text: 'No se pudo enviar el producto a despacho, inténtelo de nuevo.',
-                showConfirmButton: true,
-              });
-            }
-          );
+          };
+
+          this.productoService
+            .updateEstadoPreparadoMagistralSingle(requestData)
+            .subscribe(
+              (response) => {
+                Swal.fire({
+                  icon: 'success',
+                  title: '¡Listo!',
+                  text: 'Preparado magistral enviado a despacho correctamente.',
+                  showConfirmButton: true,
+                }).then(() => {
+                  // Limpiar input y tabla
+                  this.limpiarBusqueda();
+                });
+              },
+              (error) => {
+                console.error('Error al enviar preparado magistral a despacho', error);
+                Swal.fire({
+                  icon: 'error',
+                  title: 'Oops!',
+                  text: 'No se pudo enviar el preparado magistral a despacho, inténtelo de nuevo.',
+                  showConfirmButton: true,
+                });
+              }
+            );
+        } else {
+          // Lógica para productos normales (mantener como estaba)
+          this.productoService
+            .updateEstadoProducto({
+              idProducto: item.idProducto,
+              idPedido: item.idPedido,
+              idEstadoProducto: 7, // En despacho
+              idEstadoPedido: 8, // En despacho
+              idEstadoPedidoCliente: 4, // En despacho
+              idCliente: this.dataService.getLoggedUser().cliente.idCliente,
+              accionRealizada: 'Producto enviado a despacho',
+              observacion: '',
+            })
+            .subscribe(
+              (response) => {
+                Swal.fire({
+                  icon: 'success',
+                  title: '¡Listo!',
+                  text: 'Producto enviado a despacho correctamente.',
+                  showConfirmButton: true,
+                }).then(() => {
+                  // Limpiar input y tabla
+                  this.limpiarBusqueda();
+                });
+              },
+              (error) => {
+                console.error('Error al enviar producto a despacho', error);
+                Swal.fire({
+                  icon: 'error',
+                  title: 'Oops!',
+                  text: 'No se pudo enviar el producto a despacho, inténtelo de nuevo.',
+                  showConfirmButton: true,
+                });
+              }
+            );
+        }
       }
     });
   }

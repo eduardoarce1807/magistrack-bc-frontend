@@ -43,6 +43,7 @@ export class RegistroDespachoComponent implements OnInit {
 	codigoProductoValidar = '';
 
 	idPedido: string | null = null;
+	tipoPedidoActual: string = ''; // Para almacenar el tipo de pedido actual
 
 	private routeSubscription: Subscription | null = null;
 
@@ -58,9 +59,79 @@ export class RegistroDespachoComponent implements OnInit {
 		this.routeSubscription = this.route.paramMap.subscribe((params) => {
 			this.idPedido = params.get('idPedido');
 			if (this.idPedido) {
-				this.getProductosAll(this.idPedido);
+				this.cargarDatosPedido(this.idPedido);
 			}
 		});
+	}
+
+	// Método para cargar datos según el tipo de pedido (dual-mode support)
+	cargarDatosPedido(idPedido: string): void {
+		this.pedidoService.getPedidoById(idPedido).subscribe({
+			next: (pedido) => {
+				console.log('Datos del pedido obtenidos:', pedido);
+				this.tipoPedidoActual = pedido.tipoPedido; // Almacenar el tipo de pedido
+				// Verificar el tipo de pedido para determinar qué endpoint usar
+				if (pedido.tipoPedido === 'PREPARADO_MAGISTRAL') {
+					// Para preparados magistrales
+					this.getPreparadosMagistralesDespacho(idPedido);
+				} else {
+					// Para productos regulares (tipoPedido === 'PRODUCTO' o cualquier otro valor)
+					this.getProductosAll(idPedido);
+				}
+			},
+			error: (error) => {
+				console.error('Error al obtener datos del pedido:', error);
+				Swal.fire({
+					icon: 'error',
+					title: 'Error',
+					text: 'No se pudieron cargar los datos del pedido.',
+					showConfirmButton: true,
+				});
+			}
+		});
+	}
+
+	getPreparadosMagistralesDespacho(idPedido: string): void {
+		this.pedidoService.getPreparadosMagistralesByIdPedido(idPedido).subscribe(
+			(preparados) => {
+				console.log('Preparados magistrales obtenidos:', preparados);
+				// Formatear items para compatibilidad con la interfaz existente
+				this.productosTable = preparados.map(item => this.formatearItem(item));
+				this.collectionSize = this.productosTable.length;
+				this.refreshProductos();
+			},
+			(error) => {
+				console.error('Error al obtener preparados magistrales', error);
+				Swal.fire({
+					icon: 'error',
+					title: 'Oops!',
+					text: 'No se pudieron cargar los preparados magistrales, inténtelo de nuevo.',
+					showConfirmButton: true,
+				});
+			}
+		);
+	}
+
+	// Helper para formatear items y asegurar compatibilidad entre respuestas
+	formatearItem(item: any): any {
+		return {
+			...item,
+			// Mapear campos de preparados magistrales a estructura esperada por la interfaz
+			idProducto: item.idPreparadoMagistral, // Usar idPreparadoMagistral como idProducto
+			nombreProducto: item.nombre, // Usar el campo nombre directamente
+			descripcion: item.descripcion,
+			presentacion: item.presentacion,
+			tipoPresentacion: item.tipoPresentacion,
+			precio: item.precio,
+			cantidad: item.cantidad,
+			subtotal: item.subtotal,
+			idEstadoProducto: item.idEstadoProducto,
+			estadoProducto: item.estadoProducto,
+			idEstadoPedido: item.idEstadoPedido,
+			estadoPedido: item.estadoPedido,
+			observacion: item.observacion,
+			tipoItem: 'PREPARADO_MAGISTRAL' // Identificador para preparados magistrales
+		};
 	}
 
 	getProductosAll(idPedido: string): void {
@@ -168,6 +239,24 @@ export class RegistroDespachoComponent implements OnInit {
 
   }
 
+  resetearValidaciones() {
+    // Resetear todas las validaciones individuales
+    this.lstProductosSeleccionados.forEach(item => {
+      item.isValidado = false;
+    });
+    
+    // Resetear el estado de validación completa
+    this.isAllProductosSeleccionadosValidated = false;
+    
+    // Limpiar los datos del producto validado
+    this.idProductoValidado = '';
+    this.nombreProductoValidado = '';
+    this.descripcionProductoValidado = '';
+    this.presentacionProductoValidado = '';
+    
+    console.log('Validaciones reseteadas');
+  }
+
 	validarProducto() {
 		if (!this.codigoProductoValidar) {
 			Swal.fire({
@@ -179,6 +268,18 @@ export class RegistroDespachoComponent implements OnInit {
 			return;
 		}
 		this.codigoProductoValidar = this.codigoProductoValidar.trim();
+
+		// Verificar si es un pedido de preparados magistrales o productos regulares
+		if (this.tipoPedidoActual === 'PREPARADO_MAGISTRAL') {
+			// Validar preparado magistral
+			this.validarPreparadoMagistral();
+		} else {
+			// Validar producto regular
+			this.validarProductoRegular();
+		}
+	}
+
+	validarProductoRegular() {
 		this.productoService
 			.getProductoById(this.codigoProductoValidar)
 			.subscribe(
@@ -225,6 +326,53 @@ export class RegistroDespachoComponent implements OnInit {
 			);
 	}
 
+	validarPreparadoMagistral() {
+		// Llamar al endpoint para obtener el preparado magistral
+		this.pedidoService.getPreparadoMagistralById(this.codigoProductoValidar)
+			.subscribe(
+				(preparado) => {
+					if (preparado) {
+						this.idProductoValidado = preparado.idPreparadoMagistral;
+						this.nombreProductoValidado = preparado.nombre;
+						this.descripcionProductoValidado = preparado.descripcion;
+						this.presentacionProductoValidado = 
+							preparado.presentacion + ' ' + preparado.tipoPresentacion.descripcion;
+
+						const preparadoSeleccionado = this.lstProductosSeleccionados.find(
+							(item) => item.idProducto === this.idProductoValidado
+						);
+						if (!preparadoSeleccionado) {
+							Swal.fire({
+								icon: 'warning',
+								title: '¡Atención!',
+								text: `El código ingresado no corresponde a ningún preparado magistral seleccionado. Por favor, verifique el código.`,
+								showConfirmButton: true,
+							});
+							return;
+						}
+						this.codigoProductoValidar = '';
+						this.openModal(this.datosProductoValidar);
+					} else {
+						Swal.fire({
+							icon: 'error',
+							title: 'Preparado magistral no encontrado',
+							text: 'No se encontró ningún preparado magistral con ese código.',
+							showConfirmButton: true,
+						});
+					}
+				},
+				(error) => {
+					console.error('Error al buscar el preparado magistral', error);
+					Swal.fire({
+						icon: 'error',
+						title: 'Oops!',
+						text: 'No se pudo buscar el preparado magistral, inténtelo de nuevo.',
+						showConfirmButton: true,
+					});
+				}
+			);
+	}
+
 	refreshProductos(): void {
 		this.productos = this.productosTable
 			.map((producto, i) => ({ id: i + 1, ...producto }))
@@ -249,7 +397,7 @@ export class RegistroDespachoComponent implements OnInit {
 						text: 'Observación guardada correctamente.',
 						showConfirmButton: true,
 					});
-					this.getProductosAll(this.idPedido!);
+					this.cargarDatosPedido(this.idPedido!);
 					this.modalService.dismissAll();
 					this.observacionNota = '';
 					this.idPedidoNota = null;
@@ -388,9 +536,13 @@ export class RegistroDespachoComponent implements OnInit {
 
     this.modalService.dismissAll(); // Cierra cualquier modal abierto antes de validar
 
+		const tituloConfirmacion = this.tipoPedidoActual === 'PREPARADO_MAGISTRAL' 
+			? '¿Deseas validar los siguientes preparados magistrales en despacho?'
+			: '¿Deseas validar los siguientes productos en despacho?';
+
 		Swal.fire({
 			title: '¿Estás seguro?',
-			html: `<p>¿Deseas validar los siguientes productos en despacho?</p>
+			html: `<p>${tituloConfirmacion}</p>
           <p>Productos seleccionados:</p>
           <div style="max-height: 200px; overflow-y: auto;">${lstProductos}</div>`,
 			icon: 'question',
@@ -399,96 +551,202 @@ export class RegistroDespachoComponent implements OnInit {
 			cancelButtonText: 'Cancelar',
 		}).then((result) => {
 			if (result.isConfirmed) {
-				this.productoService
-					.updateEstadoProductoPedidoMasivo({
-						idProductos: this.lstProductosSeleccionados,
-						idEstadoProducto: 8, // Validado
-						idEstadoPedido: 9, // Validado
-						idEstadoPedidoCliente: 4, // En despacho
-						idCliente:
-							this.dataService.getLoggedUser().cliente.idCliente,
-						accionRealizada: 'Productos validados en despacho',
-						observacion: '',
-					})
-					.subscribe(
-						(response) => {
-							Swal.fire({
-								icon: 'success',
-								title: '¡Listo!',
-								text: 'Productos validados correctamente.',
-								showConfirmButton: true,
-							}).then(() => {
-								this.getProductosAll(this.idPedido!);
-								this.lstProductosSeleccionados = [];
-							});
-						},
-						(error) => {
-							console.error(
-								'Error al validar productos en despacho',
-								error
-							);
-							Swal.fire({
-								icon: 'error',
-								title: 'Oops!',
-								text: 'No se pudo validar los productos en despacho, inténtelo de nuevo.',
-								showConfirmButton: true,
-							});
-						}
-					);
+				if (this.tipoPedidoActual === 'PREPARADO_MAGISTRAL') {
+					this.validarPreparadosMagistralesMasivo();
+				} else {
+					this.validarProductosRegularesMasivo();
+				}
 			}
 		});
+	}
+
+	validarProductosRegularesMasivo() {
+		this.productoService
+			.updateEstadoProductoPedidoMasivo({
+				idProductos: this.lstProductosSeleccionados,
+				idEstadoProducto: 8, // Validado
+				idEstadoPedido: 9, // Validado
+				idEstadoPedidoCliente: 4, // En despacho
+				idCliente:
+					this.dataService.getLoggedUser().cliente.idCliente,
+				accionRealizada: 'Productos validados en despacho',
+				observacion: '',
+			})
+			.subscribe(
+				(response) => {
+					Swal.fire({
+						icon: 'success',
+						title: '¡Listo!',
+						text: 'Productos validados correctamente.',
+						showConfirmButton: true,
+					}).then(() => {
+						this.cargarDatosPedido(this.idPedido!);
+						this.lstProductosSeleccionados = [];
+						this.resetearValidaciones(); // Resetear validaciones después del éxito
+						this.modalService.dismissAll(); // Cerrar el modal
+					});
+				},
+				(error) => {
+					console.error(
+						'Error al validar productos en despacho',
+						error
+					);
+					Swal.fire({
+						icon: 'error',
+						title: 'Oops!',
+						text: 'No se pudo validar los productos en despacho, inténtelo de nuevo.',
+						showConfirmButton: true,
+					});
+				}
+			);
+	}
+
+	validarPreparadosMagistralesMasivo() {
+		// Formatear los datos para el endpoint de preparados magistrales
+		const idPreparadosMagistrales = this.lstProductosSeleccionados.map(item => ({
+			idPedido: item.idPedido,
+			idPreparadoMagistral: item.idProducto // El idProducto contiene el idPreparadoMagistral
+		}));
+
+		this.productoService
+			.updateEstadoPreparadoMagistralMasivo({
+				idPreparadosMagistrales: idPreparadosMagistrales,
+				idEstadoProducto: 8, // Validado
+				idEstadoPedido: 9, // Validado
+				idEstadoPedidoCliente: 4, // En despacho
+				idCliente:
+					this.dataService.getLoggedUser().cliente.idCliente,
+				accionRealizada: 'Preparados magistrales validados en despacho',
+				observacion: '',
+			})
+			.subscribe(
+				(response) => {
+					Swal.fire({
+						icon: 'success',
+						title: '¡Listo!',
+						text: 'Preparados magistrales validados correctamente.',
+						showConfirmButton: true,
+					}).then(() => {
+						this.cargarDatosPedido(this.idPedido!);
+						this.lstProductosSeleccionados = [];
+					});
+				},
+				(error) => {
+					console.error(
+						'Error al validar preparados magistrales en despacho',
+						error
+					);
+					Swal.fire({
+						icon: 'error',
+						title: 'Oops!',
+						text: 'No se pudo validar los preparados magistrales en despacho, inténtelo de nuevo.',
+						showConfirmButton: true,
+					});
+				}
+			);
 	}
 
 	enviarDespacho(item: any) {
 		this.modalService.dismissAll(); // Cierra cualquier modal abierto antes de enviar
 
+		const esPreparadoMagistral = item.tipoItem === 'PREPARADO_MAGISTRAL';
+		const tipoElemento = esPreparadoMagistral ? 'preparado magistral' : 'producto';
+
 		Swal.fire({
 			title: '¿Estás seguro?',
-			html: `<p>¿Deseas enviar el producto <strong>${item.idProducto}</strong> a despacho?</p>`,
+			html: `<p>¿Deseas enviar el ${tipoElemento} <strong>${item.idProducto}</strong> a despacho?</p>`,
 			icon: 'question',
 			showCancelButton: true,
 			confirmButtonText: 'Sí, enviar',
 			cancelButtonText: 'Cancelar',
 		}).then((result) => {
 			if (result.isConfirmed) {
-				this.productoService
-					.updateEstadoProducto({
-						idProducto: item.idProducto,
-						idPedido: item.idPedido,
-						idEstadoProducto: 7, // En despacho
-						idEstadoPedido: 8, // En despacho
-						idEstadoPedidoCliente: 4, // En despacho
-						idCliente:
-							this.dataService.getLoggedUser().cliente.idCliente,
-						accionRealizada: 'Producto enviado a despacho',
-						observacion: '',
-					})
-					.subscribe(
-						(response) => {
-							Swal.fire({
-								icon: 'success',
-								title: '¡Listo!',
-								text: 'Producto enviado a despacho correctamente.',
-								showConfirmButton: true,
-							}).then(() => {
-								this.getProductosAll(this.idPedido!);
-								this.lstProductosSeleccionados = [];
-							});
-						},
-						(error) => {
-							console.error(
-								'Error al enviar producto a despacho',
-								error
-							);
-							Swal.fire({
-								icon: 'error',
-								title: 'Oops!',
-								text: 'No se pudo enviar el producto a despacho, inténtelo de nuevo.',
-								showConfirmButton: true,
-							});
-						}
-					);
+				if (esPreparadoMagistral) {
+					this.enviarPreparadoMagistralDespacho(item);
+				} else {
+					this.enviarProductoRegularDespacho(item);
+				}
 			}
 		});
+	}
+
+	enviarProductoRegularDespacho(item: any) {
+		this.productoService
+			.updateEstadoProducto({
+				idProducto: item.idProducto,
+				idPedido: item.idPedido,
+				idEstadoProducto: 7, // En despacho
+				idEstadoPedido: 8, // En despacho
+				idEstadoPedidoCliente: 4, // En despacho
+				idCliente:
+					this.dataService.getLoggedUser().cliente.idCliente,
+				accionRealizada: 'Producto enviado a despacho',
+				observacion: '',
+			})
+			.subscribe(
+				(response) => {
+					Swal.fire({
+						icon: 'success',
+						title: '¡Listo!',
+						text: 'Producto enviado a despacho correctamente.',
+						showConfirmButton: true,
+					}).then(() => {
+						this.cargarDatosPedido(this.idPedido!);
+						this.lstProductosSeleccionados = [];
+					});
+				},
+				(error) => {
+					console.error(
+						'Error al enviar producto a despacho',
+						error
+					);
+					Swal.fire({
+						icon: 'error',
+						title: 'Oops!',
+						text: 'No se pudo enviar el producto a despacho, inténtelo de nuevo.',
+						showConfirmButton: true,
+					});
+				}
+			);
+	}
+
+	enviarPreparadoMagistralDespacho(item: any) {
+		this.productoService
+			.updateEstadoPreparadoMagistralSingle({
+				idPedido: item.idPedido,
+				idPreparadoMagistral: item.idProducto, // El idProducto contiene el idPreparadoMagistral
+				idEstadoProducto: 7, // En despacho
+				idEstadoPedido: 8, // En despacho
+				idEstadoPedidoCliente: 4, // En despacho
+				idCliente:
+					this.dataService.getLoggedUser().cliente.idCliente,
+				accionRealizada: 'Preparado magistral enviado a despacho',
+				observacion: '',
+			})
+			.subscribe(
+				(response) => {
+					Swal.fire({
+						icon: 'success',
+						title: '¡Listo!',
+						text: 'Preparado magistral enviado a despacho correctamente.',
+						showConfirmButton: true,
+					}).then(() => {
+						this.cargarDatosPedido(this.idPedido!);
+						this.lstProductosSeleccionados = [];
+					});
+				},
+				(error) => {
+					console.error(
+						'Error al enviar preparado magistral a despacho',
+						error
+					);
+					Swal.fire({
+						icon: 'error',
+						title: 'Oops!',
+						text: 'No se pudo enviar el preparado magistral a despacho, inténtelo de nuevo.',
+						showConfirmButton: true,
+					});
+				}
+			);
 	}
 }
