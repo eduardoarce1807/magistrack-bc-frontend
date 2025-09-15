@@ -177,7 +177,7 @@ export class SidebarComponent {
 					{
 						key: '7_13',
 						label: 'Ingreso por Categoría',
-						command: () => this.irA('pages/reportes/reporte-valorizacion')
+						command: () => this.irA('pages/reportes/reporte-categoria-mp')
 					}
 					]: []),
 				]

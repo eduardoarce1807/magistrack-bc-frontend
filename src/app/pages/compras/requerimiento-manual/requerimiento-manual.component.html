@@ -25,7 +25,7 @@
 
 			<div class="row">
 				<div class="col-md-7 col-sm-12">
-					<label class="mt-1">Motivo o Glosa del Requerimiento</label>
+					<label class="mt-1" [ngClass]="(!requerimientosave.glosa && form.invalid_glosa)?'text-danger':null" >Motivo o Glosa del Requerimiento <i class="pi pi-info-circle" style="color: red;font-size: 0.7rem"></i></label>
 
 					<textarea
 						class="w-full"
@@ -35,28 +35,35 @@
 
 						placeholder="Ej:Solicitud urgente de insumos en producción"
 						[autoResize]="true"
-						[(ngModel)]="requerimientosave.glosa">
+						[(ngModel)]="requerimientosave.glosa"
+						[class.ng-invalid]="!requerimientosave.glosa && form.invalid_glosa"
+						[class.ng-dirty]="!requerimientosave.glosa && form.invalid_glosa">
 					</textarea>
 				</div>
 				<div class="col-md-5 col-sm-12 d-flex flex-column mt-1" >
 
-					<label class="mt-1">Responsable</label>
+					<label class="mt-1" [ngClass]="(!requerimientosave.responsable && form.invalid_responsable)?'text-danger':null">Responsable <i class="pi pi-info-circle" style="color: red;font-size: 0.7rem"></i></label>
 
 					<input
 						class="w-full"
 						type="text"
 						pInputText
 
-						[(ngModel)]="requerimientosave.responsable" />
+						[(ngModel)]="requerimientosave.responsable"
 
-					<label class="mt-1">Área Solicitante</label>
+						[class.ng-invalid]="!requerimientosave.responsable && form.invalid_responsable"
+						[class.ng-dirty]="!requerimientosave.responsable && form.invalid_responsable"/>
+
+					<label class="mt-1" [ngClass]="(!requerimientosave.areasolicitante && form.invalid_area)?'text-danger':null">Área Solicitante <i class="pi pi-info-circle" style="color: red;font-size: 0.7rem"></i></label>
 
 					<input
 						class="w-full"
 						type="text"
 						pInputText
 
-						[(ngModel)]="requerimientosave.areasolicitante" />
+						[(ngModel)]="requerimientosave.areasolicitante"
+						[class.ng-invalid]="!requerimientosave.areasolicitante && form.invalid_area"
+						[class.ng-dirty]="!requerimientosave.areasolicitante && form.invalid_area"/>
 				</div>
 			</div>
 
@@ -364,7 +371,9 @@
 							</td>
 							<td colspan="2">
 								<!--					<img src="https://primefaces.org/cdn/primeng/images/demo/flag/flag_placeholder.png" [class]="'flag flag-' + customer.country.code" style="width: 20px" />-->
-								<span class="ml-1 vertical-align-middle text-danger fw-bold">{{ customer.desmateriaprima }}</span>
+								<span class="ml-1 vertical-align-middle
+								fw-bold d-flex align-items-center"
+								[ngClass]="customer.abreviado=='g'?'text-danger':'text-success'"><img [src]="customer.abreviado=='g'?'assets/img/crema-verde.gif':'assets/img/crema.gif'" width="30">{{ customer.desmateriaprima }}</span>
 
 							</td>
 							<td class="d-flex align-items-center text-end">

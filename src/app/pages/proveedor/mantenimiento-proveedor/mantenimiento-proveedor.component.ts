@@ -30,6 +30,7 @@ import {ProveedorService} from "../../../services/compras/proveedor.service";
 import {CargaComponent} from "../../../components/carga/carga.component";
 import {UppercaseDirective} from "../../../directives/uppercase.directive";
 import {BancoService} from "../../../services/banco.service";
+import {MessageModule} from "primeng/message";
 
 @Component({
   selector: 'app-mantenimiento-proveedor',
@@ -38,7 +39,7 @@ import {BancoService} from "../../../services/banco.service";
 		CommonModule, DecimalPipe, FormsModule, AsyncPipe, NgbHighlight, NgbPaginationModule, DatePipe, CurrencyPipe, TagModule, ButtonModule,
 		CheckboxModule, TableModule, SliderModule, DropdownModule, IconFieldModule, InputIconModule,
 		SplitButtonModule, MultiSelectModule, InputTextModule, DialogModule, ToastModule,
-		CalendarModule, InputTextareaModule, FileUploadModule, BadgeModule, CargaComponent, UppercaseDirective
+		CalendarModule, InputTextareaModule, FileUploadModule, BadgeModule, CargaComponent, UppercaseDirective,MessageModule
 	],
   templateUrl: './mantenimiento-proveedor.component.html',
   styleUrl: './mantenimiento-proveedor.component.scss',
@@ -65,6 +66,13 @@ export class MantenimientoProveedorComponent {
 	files:File[] = [];
 	op:number=1
 	totalSize : number = 0;
+	form:any={
+		invalid_representante:false,
+		invalid_nombre:false,
+		invalid_referencia:false,
+		invalid_correo:false,
+		invalid_celular:false
+	}
 
 	totalSizePercent : number = 0;
 	constructor(private config: PrimeNGConfig,private messageService: MessageService,
@@ -257,6 +265,27 @@ export class MantenimientoProveedorComponent {
 		this.op=1
 	}
 	guardarproveedor(){
+
+		let invalido = false;
+
+		if (!this.fila_select.descripcion) {
+			this.form.invalid_nombre = true;
+			invalido = true;
+		}
+
+		if (!this.fila_select.representante) {
+			this.form.invalid_representante = true;
+			invalido = true;
+		}
+
+		if (!this.fila_select.celular) {
+			this.form.invalid_celular = true;
+			invalido = true;
+		}
+
+		if (invalido) {
+			return;
+		}
 		this.spinner=true
 		this.verdetalle=false
 		this.proveedorService.registrarProveedor(this.fila_select,this.op).subscribe({
@@ -264,6 +293,9 @@ export class MantenimientoProveedorComponent {
 				this.verdetalle=false
 				this.spinner=false
 				this.cargarproveedores()
+				this.form.invalid_representante=false
+				this.form.invalid_nombre=false
+				this.form.invalid_celular=false
 				this.messageService.add({ severity: 'success', summary: 'Aviso de usuario', detail: 'Se registrò con Éxito el proveedor' });
 			},error:(err)=>{
 				this.verdetalle=true

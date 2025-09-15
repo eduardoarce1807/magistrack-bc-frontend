@@ -90,6 +90,11 @@ export class RequerimientoManualComponent {
 	requerimientosave:RequeremientossaveModel=new RequeremientossaveModel()
 	listaProveedores:proveedorModel[]=[]
 	totalSizePercent : number = 0;
+	form:any={
+		invalid_responsable:false,
+		invalid_area:false,
+		invalid_glosa:false
+	}
 	constructor(private config: PrimeNGConfig,private messageService: MessageService,
 				private materiaprimaService:MateriaPrimaService,private requerimietoService:RequerimientosService,
 				private proveedorService:ProveedorService,private emailService:EmailService,public router: Router) {
@@ -264,7 +269,26 @@ export class RequerimientoManualComponent {
 	}
 
 	guardarRequermiento(){
+		let invalido = false;
 
+		if (!this.requerimientosave.responsable) {
+			this.form.invalid_responsable = true;
+			invalido = true;
+		}
+
+		if (!this.requerimientosave.glosa) {
+			this.form.invalid_glosa = true;
+			invalido = true;
+		}
+
+		if (!this.requerimientosave.areasolicitante) {
+			this.form.invalid_area = true;
+			invalido = true;
+		}
+
+		if (invalido) {
+			return;
+		}
 		let op :number=1
 		this.requerimientosave.estadorequerimiento='PENDIENTE'
 		this.requerimientosave.iterequerimiento=this.listaMateriaPrimaSelected
