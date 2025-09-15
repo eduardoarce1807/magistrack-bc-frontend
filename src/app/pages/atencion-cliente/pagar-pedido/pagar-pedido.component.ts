@@ -344,7 +344,8 @@ export class PagarPedidoComponent implements OnInit, AfterViewInit {
   }
 
   onPagarManual(): void {
-    if (this.pagoManual.idTipoPago === 0 || !this.pagoManual.numeroOperacion || !this.pagoManual.fechaPago) {
+    // Validación personalizada que considera el método de pago
+    if (this.pagoManual.idTipoPago === 0 || !this.pagoManual.fechaPago) {
       Swal.fire({
         icon: 'warning',
         title: 'Campos incompletos',
@@ -356,6 +357,35 @@ export class PagarPedidoComponent implements OnInit, AfterViewInit {
       });
       return;
     }
+
+    // Si NO es efectivo (idTipoPago != 4), el número de operación es obligatorio
+    if (this.pagoManual.idTipoPago !== 4 && !this.pagoManual.numeroOperacion) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Número de operación requerido',
+        text: 'El número de operación es obligatorio para este método de pago.',
+        confirmButtonText: 'Aceptar',
+        customClass: {
+          confirmButton: 'btn btn-primary',
+        },
+      });
+      return;
+    }
+
+    // Si es transferencia bancaria (idTipoPago == 3), el banco es obligatorio
+    if (this.pagoManual.idTipoPago === 3 && !this.pagoManual.idBanco) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Banco requerido',
+        text: 'Debe seleccionar un banco para transferencias bancarias.',
+        confirmButtonText: 'Aceptar',
+        customClass: {
+          confirmButton: 'btn btn-primary',
+        },
+      });
+      return;
+    }
+
     this.pagoManual.idPedido = this.idPedido || '';
     this.pagoManual.idCliente = this.dataService.getLoggedUser().cliente.idCliente || this.pedido.cliente.idCliente;
     this.pagoManual.idBanco = this.pagoManual.idTipoPago == 3 ? this.pagoManual.idBanco : null;
@@ -411,6 +441,29 @@ export class PagarPedidoComponent implements OnInit, AfterViewInit {
       };
       reader.readAsDataURL(file); // genera base64 completo con encabezado
     }
+  }
+
+  esFormularioValido(form: any): boolean {
+    // Validar campos básicos obligatorios
+    if (!this.pagoManual.idTipoPago || this.pagoManual.idTipoPago === 0) {
+      return false;
+    }
+
+    if (!this.pagoManual.fechaPago) {
+      return false;
+    }
+
+    // Si es transferencia bancaria (idTipoPago == 3), el banco es obligatorio
+    if (this.pagoManual.idTipoPago === 3 && !this.pagoManual.idBanco) {
+      return false;
+    }
+
+    // Si NO es efectivo (idTipoPago != 4), el número de operación es obligatorio
+    if (this.pagoManual.idTipoPago !== 4 && !this.pagoManual.numeroOperacion) {
+      return false;
+    }
+
+    return true;
   }
 
 }
