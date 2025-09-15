@@ -48,10 +48,10 @@
 							<input
 								class="form-check-input"
 							type="checkbox"
-							[checked]="isSeleccionado(item.idProductoMaestro)"
+							[checked]="isSeleccionado(getItemId(item))"
 							(change)="
 								toggleSeleccionIndividual(
-									item.idProductoMaestro,
+									getItemId(item),
 									$event
 								)
 							"
@@ -59,8 +59,8 @@
 						/>
 					</td>
 
-					<td>{{ item.nombreProducto }}</td>
-					<td>{{ item.presentacionTotal }} {{item.tipoPresentacion}}</td>
+					<td>{{ getItemNombre(item) }}</td>
+					<td>{{ getItemPresentacion(item) }}</td>
 					<td>{{ item.estadoProducto }}</td>
 					<td>
 						<span>{{ item.personalizado ? "Sí" : "No" }}</span>
@@ -166,9 +166,19 @@
 	</div>
 	<div class="modal-body">
 		<form>
-			<span class="mb-2"><span style="font-weight: bold;">Nombre Producto:</span> {{procedimientoData.productoMaestro.nombre}}</span>
-			<br>
-			<span class="mb-2"><span style="font-weight: bold;">Descripción:</span> {{procedimientoData.productoMaestro.descripcion}}</span>
+			<!-- Información del item (producto o preparado magistral) -->
+			<div *ngIf="procedimientoData?.productoMaestro; else preparadoMagistralInfo">
+				<!-- Información para productos normales -->
+				<span class="mb-2"><span style="font-weight: bold;">Nombre Producto:</span> {{procedimientoData.productoMaestro.nombre}}</span>
+				<br>
+				<span class="mb-2"><span style="font-weight: bold;">Descripción:</span> {{procedimientoData.productoMaestro.descripcion}}</span>
+			</div>
+			<ng-template #preparadoMagistralInfo>
+				<!-- Información para preparados magistrales -->
+				<span class="mb-2"><span style="font-weight: bold;">Nombre Preparado:</span> {{procedimientoData.preparadoMagistral?.nombre}}</span>
+				<br>
+				<span class="mb-2"><span style="font-weight: bold;">Descripción:</span> {{procedimientoData.preparadoMagistral?.descripcion}}</span>
+			</ng-template>
 			<hr>
 
 			<!-- Sección de Cálculo de Ingredientes -->
@@ -186,7 +196,7 @@
 					<tbody>
 						<tr *ngFor="let ingrediente of procedimientoData.ingredientes">
 							<td>{{ ingrediente.materiaPrima.nombre }}</td>
-							<td>{{ (ingrediente.cantidad / 100) * (productoMaestroCalculo ? productoMaestroCalculo.presentacionTotal : 0) }}</td>
+							<td>{{ (ingrediente.cantidad / 100) * getPresentacionTotal() }}</td>
 							<td>{{ ingrediente.cantidad }} %</td>
 						</tr>
 					</tbody>
@@ -282,7 +292,7 @@
 	</div>
 	<div class="modal-body">
 		<div class="text-center">
-			<p><strong>Producto:</strong> {{ itemCodigoBarras?.nombreProducto || 'N/A' }}</p>
+			<p><strong>{{ getItemTipo(itemCodigoBarras) }}:</strong> {{ getItemNombre(itemCodigoBarras) || 'N/A' }}</p>
 			<p><strong>ID Bulk:</strong> {{ itemCodigoBarras?.idBulk || 'N/A' }}</p>
 			<hr>
 			<div id="barcodeIndividualDiv" class="d-flex justify-content-center">

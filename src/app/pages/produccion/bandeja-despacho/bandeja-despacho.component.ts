@@ -20,19 +20,26 @@ import { ProductoService } from '../../../services/producto.service';
 import { PedidoAuditoriaService } from '../../../services/pedido-auditoria.service';
 import { Router } from '@angular/router';
 import { DocumentoService } from '../../../services/documento.service';
+import { CommonModule } from '@angular/common';
 
 interface ClienteSeleccionado {
 	metodoEntrega: string;
-	direccion: string;
-	distrito: string;
-	provincia: string;
-	departamento: string;
+	direccion: string | null;
+	distrito: string | null;
+	provincia: string | null;
+	departamento: string | null;
+	tipoPedido: string | null;
+	tieneDelivery: boolean;
+	nombres: string;
+	apellidos: string;
+	correo: string;
+	telefono: string;
 }
 
 @Component({
 	selector: 'app-bandeja-despacho',
 	standalone: true,
-	imports: [FormsModule, NgbTypeaheadModule, NgbPaginationModule, NgbTooltipModule],
+	imports: [FormsModule, NgbTypeaheadModule, NgbPaginationModule, NgbTooltipModule, CommonModule],
 	templateUrl: './bandeja-despacho.component.html',
 	styleUrl: './bandeja-despacho.component.scss',
 })
@@ -96,22 +103,59 @@ export class BandejaDespachoComponent implements OnInit {
 
 	clienteSeleccionado: ClienteSeleccionado = {
 		metodoEntrega: '',
-		direccion: '',
-		distrito: '',
-		provincia: '',
-		departamento: '',
+		direccion: null,
+		distrito: null,
+		provincia: null,
+		departamento: null,
+		tipoPedido: null,
+		tieneDelivery: false,
+		nombres: '',
+		apellidos: '',
+		correo: '',
+		telefono: '',
 	};
 	openModalDatosCliente(content: TemplateRef<any>, item: any) {
-		this.pedidoService.getPedidoById(item.idPedido).subscribe((pedido) => {
-			console.log('Pedido obtenido:', pedido);
-			this.clienteSeleccionado.metodoEntrega =
-				pedido.metodoEntrega.descripcion;
-			this.clienteSeleccionado.direccion = pedido.direccion.direccion;
-			this.clienteSeleccionado.distrito = pedido.direccion.distrito.nombre;
-			this.clienteSeleccionado.provincia = pedido.direccion.provincia.nombre;
-			this.clienteSeleccionado.departamento =
-				pedido.direccion.departamento.nombre;
-			this.modalService.open(content, { backdrop: 'static' });
+		this.pedidoService.getPedidoById(item.idPedido).subscribe({
+			next: (pedido) => {
+				console.log('Pedido obtenido:', pedido);
+				
+				// Datos del cliente
+				this.clienteSeleccionado.nombres = pedido.cliente?.nombres || 'No especificado';
+				this.clienteSeleccionado.apellidos = pedido.cliente?.apellidos || 'No especificado';
+				this.clienteSeleccionado.correo = pedido.cliente?.correo || 'No especificado';
+				this.clienteSeleccionado.telefono = pedido.cliente?.telefono || 'No especificado';
+				
+				// Datos básicos que siempre deberían estar
+				this.clienteSeleccionado.metodoEntrega = pedido.metodoEntrega?.descripcion || 'No especificado';
+				this.clienteSeleccionado.tipoPedido = pedido.tipoPedido || 'PRODUCTO';
+				
+				// Verificar si hay dirección y datos relacionados
+				if (pedido.direccion) {
+					this.clienteSeleccionado.direccion = pedido.direccion.direccion || 'No especificada';
+					this.clienteSeleccionado.distrito = pedido.direccion.distrito?.nombre || 'No especificado';
+					this.clienteSeleccionado.provincia = pedido.direccion.provincia?.nombre || 'No especificado';
+					this.clienteSeleccionado.departamento = pedido.direccion.departamento?.nombre || 'No especificado';
+					this.clienteSeleccionado.tieneDelivery = true;
+				} else {
+					// Si no hay dirección (ej: recojo en tienda, entrega directa)
+					this.clienteSeleccionado.direccion = null;
+					this.clienteSeleccionado.distrito = null;
+					this.clienteSeleccionado.provincia = null;
+					this.clienteSeleccionado.departamento = null;
+					this.clienteSeleccionado.tieneDelivery = false;
+				}
+				
+				this.modalService.open(content, { backdrop: 'static' });
+			},
+			error: (error) => {
+				console.error('Error al obtener datos del pedido:', error);
+				Swal.fire({
+					icon: 'error',
+					title: 'Error',
+					text: 'No se pudieron obtener los datos del pedido.',
+					showConfirmButton: true,
+				});
+			}
 		});
 	}
 
@@ -497,48 +541,80 @@ export class BandejaDespachoComponent implements OnInit {
 		// Activar estado de carga
 		this.loadingPDF[idPedido] = true;
 		
-		// Obtener datos del pedido y productos en paralelo
-		Promise.all([
-			this.pedidoService.getPedidoById(idPedido).toPromise(),
-			this.pedidoService.getProductosByPedidoId(idPedido).toPromise()
-		]).then(([pedido, productos]) => {
-			console.log('Datos del pedido:', pedido);
-			console.log('Productos del pedido:', productos);
-			
-			// Verificar que los datos existan
-			if (!pedido || !productos) {
-				throw new Error('No se pudieron obtener los datos completos del pedido');
-			}
-			
-			// Generar el HTML del PDF
-			const htmlContent = this.generarHTMLHojaPedido(pedido, productos);
-			
-			// Crear una ventana para imprimir
-			const printWindow = window.open('', '_blank', 'width=800,height=600');
-			if (printWindow) {
-				printWindow.document.write(htmlContent);
-				printWindow.document.close();
-				printWindow.focus();
-				setTimeout(() => {
-					printWindow.print();
-					printWindow.close();
-					// Desactivar estado de carga después de que se abre la ventana de impresión
-					this.loadingPDF[idPedido] = false;
-				}, 500);
-			} else {
-				// Si no se pudo abrir la ventana, desactivar estado de carga
+		// Primero obtener los datos del pedido para verificar el tipoPedido
+		this.pedidoService.getPedidoById(idPedido).subscribe({
+			next: (pedido) => {
+				console.log('Datos del pedido:', pedido);
+				
+				// Verificar que los datos del pedido existan
+				if (!pedido) {
+					throw new Error('No se pudieron obtener los datos del pedido');
+				}
+				
+				// Determinar qué request hacer según el tipoPedido
+				let productosRequest;
+				if (pedido.tipoPedido === 'PREPARADO_MAGISTRAL') {
+					// Para preparados magistrales
+					productosRequest = this.pedidoService.getPreparadosMagistralesByIdPedido(idPedido);
+				} else {
+					// Para productos regulares (tipoPedido === 'PRODUCTO' o cualquier otro valor)
+					productosRequest = this.pedidoService.getProductosByPedidoId(idPedido);
+				}
+				
+				// Ejecutar el request correspondiente
+				productosRequest.subscribe({
+					next: (items) => {
+						console.log('Items del pedido:', items);
+						
+						// Verificar que los items existan
+						if (!items) {
+							throw new Error('No se pudieron obtener los items del pedido');
+						}
+						
+						// Generar el HTML del PDF
+						const htmlContent = this.generarHTMLHojaPedido(pedido, items);
+						
+						// Crear una ventana para imprimir
+						const printWindow = window.open('', '_blank', 'width=800,height=600');
+						if (printWindow) {
+							printWindow.document.write(htmlContent);
+							printWindow.document.close();
+							printWindow.focus();
+							setTimeout(() => {
+								printWindow.print();
+								printWindow.close();
+								// Desactivar estado de carga después de que se abre la ventana de impresión
+								this.loadingPDF[idPedido] = false;
+							}, 500);
+						} else {
+							// Si no se pudo abrir la ventana, desactivar estado de carga
+							this.loadingPDF[idPedido] = false;
+						}
+					},
+					error: (error) => {
+						console.error('Error al obtener items del pedido:', error);
+						// Desactivar estado de carga en caso de error
+						this.loadingPDF[idPedido] = false;
+						Swal.fire({
+							icon: 'error',
+							title: 'Error',
+							text: 'No se pudieron obtener los items del pedido para generar la hoja.',
+							showConfirmButton: true,
+						});
+					}
+				});
+			},
+			error: (error) => {
+				console.error('Error al obtener datos del pedido:', error);
+				// Desactivar estado de carga en caso de error
 				this.loadingPDF[idPedido] = false;
+				Swal.fire({
+					icon: 'error',
+					title: 'Error',
+					text: 'No se pudieron obtener los datos del pedido para generar la hoja.',
+					showConfirmButton: true,
+				});
 			}
-		}).catch((error) => {
-			console.error('Error al obtener datos del pedido:', error);
-			// Desactivar estado de carga en caso de error
-			this.loadingPDF[idPedido] = false;
-			Swal.fire({
-				icon: 'error',
-				title: 'Error',
-				text: 'No se pudieron obtener los datos del pedido para generar la hoja.',
-				showConfirmButton: true,
-			});
 		});
 	}
 
@@ -548,20 +624,36 @@ export class BandejaDespachoComponent implements OnInit {
 		this.documentoSeleccionado.celular = input.value;
 	}
 
-	private generarHTMLHojaPedido(pedido: any, productos: any[]): string {
+	private generarHTMLHojaPedido(pedido: any, items: any[]): string {
 		const fechaPedido = new Date(pedido.fechaPedido).toLocaleDateString('es-PE');
+		const esPreparadoMagistral = pedido.tipoPedido === 'PREPARADO_MAGISTRAL';
 		
-		let productosHTML = '';
-		productos.forEach(producto => {
-			const precioTotal = producto.precio * producto.cantidad;
-			productosHTML += `
-				<tr>
-					<td style="padding: 8px; border: 1px solid #ddd;">${producto.nombre} x ${producto.cantidad}</td>
-					<td style="padding: 8px; border: 1px solid #ddd;">${producto.presentacion} ${producto.tipoPresentacion}</td>
-					<td style="padding: 8px; border: 1px solid #ddd; text-align: right;">S/ ${precioTotal.toFixed(2)}</td>
-				</tr>
-			`;
+		let itemsHTML = '';
+		items.forEach(item => {
+			if (esPreparadoMagistral) {
+				// Para preparados magistrales
+				const precioTotal = item.precio * item.cantidad;
+				itemsHTML += `
+					<tr>
+						<td style="padding: 8px; border: 1px solid #ddd;">${item.nombre} x ${item.cantidad}</td>
+						<td style="padding: 8px; border: 1px solid #ddd;">${item.presentacion} ${item.tipoPresentacion}</td>
+						<td style="padding: 8px; border: 1px solid #ddd; text-align: right;">S/ ${precioTotal.toFixed(2)}</td>
+					</tr>
+				`;
+			} else {
+				// Para productos regulares
+				const precioTotal = item.precio * item.cantidad;
+				itemsHTML += `
+					<tr>
+						<td style="padding: 8px; border: 1px solid #ddd;">${item.nombre} x ${item.cantidad}</td>
+						<td style="padding: 8px; border: 1px solid #ddd;">${item.presentacion} ${item.tipoPresentacion}</td>
+						<td style="padding: 8px; border: 1px solid #ddd; text-align: right;">S/ ${precioTotal.toFixed(2)}</td>
+					</tr>
+				`;
+			}
 		});
+
+		const tipoItemTexto = esPreparadoMagistral ? 'PREPARADOS MAGISTRALES' : 'PRODUCTOS';
 
 		return `
 			<html>
@@ -608,6 +700,14 @@ export class BandejaDespachoComponent implements OnInit {
 							text-align: right;
 							margin-top: 10px;
 						}
+						.tipo-pedido {
+							background-color: ${esPreparadoMagistral ? '#e3f2fd' : '#f3e5f5'};
+							padding: 5px 10px;
+							border-radius: 5px;
+							display: inline-block;
+							font-weight: bold;
+							color: ${esPreparadoMagistral ? '#1976d2' : '#7b1fa2'};
+						}
 						@media print {
 							body { margin: 0; }
 						}
@@ -617,6 +717,7 @@ export class BandejaDespachoComponent implements OnInit {
 					<div class="header">
 						<h1>HOJA DE PEDIDO</h1>
 						<h2>${pedido.idPedido}</h2>
+						<div class="tipo-pedido">${pedido.tipoPedido || 'PRODUCTO'}</div>
 					</div>
 
 					<div class="section">
@@ -665,17 +766,17 @@ export class BandejaDespachoComponent implements OnInit {
 					</div>
 
 					<div class="section">
-						<div class="section-title">DETALLES DEL PEDIDO</div>
+						<div class="section-title">DETALLES DEL PEDIDO - ${tipoItemTexto}</div>
 						<table>
 							<thead>
 								<tr>
-									<th>Producto</th>
+									<th>${esPreparadoMagistral ? 'Preparado Magistral' : 'Producto'}</th>
 									<th>Presentación</th>
 									<th>Precio</th>
 								</tr>
 							</thead>
 							<tbody>
-								${productosHTML}
+								${itemsHTML}
 							</tbody>
 						</table>
 					</div>

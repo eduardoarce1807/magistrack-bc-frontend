@@ -191,26 +191,84 @@
 	<div class="modal-body">
 		<div style="width: 100%">
             <form>
-                <div class="mb-3">
-                    <label class="form-label">Método de Entrega</label>
-					<input type="text" class="form-control" [value]="clienteSeleccionado.metodoEntrega" readonly />
+                <!-- Información del Cliente -->
+                <div class="mb-4">
+                    <h6 class="text-primary mb-3">
+                        <i class="bi bi-person me-2"></i>Información del Cliente
+                    </h6>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Nombres</label>
+                            <input type="text" class="form-control" [value]="clienteSeleccionado.nombres" readonly />
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Apellidos</label>
+                            <input type="text" class="form-control" [value]="clienteSeleccionado.apellidos" readonly />
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Correo Electrónico</label>
+                            <input type="text" class="form-control" [value]="clienteSeleccionado.correo" readonly />
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Teléfono</label>
+                            <input type="text" class="form-control" [value]="clienteSeleccionado.telefono" readonly />
+                        </div>
+                    </div>
                 </div>
-                <div class="mb-3">
-                    <label class="form-label">Dirección</label>
-                    <input type="text" class="form-control" [value]="clienteSeleccionado.direccion" readonly />
+
+                <!-- Información del Pedido -->
+                <div class="mb-4">
+                    <h6 class="text-success mb-3">
+                        <i class="bi bi-box me-2"></i>Información del Pedido
+                    </h6>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Tipo de Pedido</label>
+                            <input type="text" class="form-control" [value]="clienteSeleccionado.tipoPedido || 'PRODUCTO'" readonly />
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Método de Entrega</label>
+                            <input type="text" class="form-control" [value]="clienteSeleccionado.metodoEntrega" readonly />
+                        </div>
+                    </div>
                 </div>
-                <div class="mb-3">
-                    <label class="form-label">Distrito</label>
-                    <input type="text" class="form-control" [value]="clienteSeleccionado.distrito" readonly />
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">Provincia</label>
-                    <input type="text" class="form-control" [value]="clienteSeleccionado.provincia" readonly />
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">Departamento</label>
-                    <input type="text" class="form-control" [value]="clienteSeleccionado.departamento" readonly />
-                </div>
+                
+                <!-- Sección de dirección - solo se muestra si tiene delivery -->
+                <ng-container *ngIf="clienteSeleccionado.tieneDelivery">
+                    <div class="mb-4">
+                        <h6 class="text-warning mb-3">
+                            <i class="bi bi-geo-alt me-2"></i>Dirección de Entrega
+                        </h6>
+                        <div class="mb-3">
+                            <label class="form-label">Dirección</label>
+                            <input type="text" class="form-control" [value]="clienteSeleccionado.direccion || 'No especificada'" readonly />
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Distrito</label>
+                                <input type="text" class="form-control" [value]="clienteSeleccionado.distrito || 'No especificado'" readonly />
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Provincia</label>
+                                <input type="text" class="form-control" [value]="clienteSeleccionado.provincia || 'No especificado'" readonly />
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Departamento</label>
+                                <input type="text" class="form-control" [value]="clienteSeleccionado.departamento || 'No especificado'" readonly />
+                            </div>
+                        </div>
+                    </div>
+                </ng-container>
+                
+                <!-- Mensaje cuando no hay dirección -->
+                <ng-container *ngIf="!clienteSeleccionado.tieneDelivery">
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle me-2"></i>
+                        <strong>Información:</strong> Este pedido no requiere dirección de entrega ({{ clienteSeleccionado.metodoEntrega }}).
+                    </div>
+                </ng-container>
             </form>
 		</div>
 	</div>

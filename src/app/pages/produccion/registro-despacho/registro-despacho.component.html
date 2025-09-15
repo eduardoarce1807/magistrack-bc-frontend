@@ -180,7 +180,7 @@
 			type="button"
 			class="btn-close"
 			aria-label="Close"
-			(click)="codigoProductoValidar = ''; modal.dismiss('Cross click')"
+			(click)="resetearValidaciones(); codigoProductoValidar = ''; modal.dismiss('Cross click')"
 		></button>
 	</div>
 	<div class="modal-body">
@@ -225,6 +225,9 @@
 		</div>
 	</div>
 	<div class="modal-footer">
+		<button type="button" class="btn btn-secondary" (click)="resetearValidaciones(); codigoProductoValidar = ''; modal.dismiss('Cross click')">
+			Cancelar
+		</button>
 		<button type="button" class="btn btn-success" [disabled]="!isAllProductosSeleccionadosValidated" (click)="validarProductosMasivo()">
 			Confirmar Validación
 		</button>

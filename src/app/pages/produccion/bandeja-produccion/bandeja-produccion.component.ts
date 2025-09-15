@@ -21,6 +21,56 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import JsBarcode from 'jsbarcode';
 
+// Interfaces para los nuevos tipos de datos
+interface ProductoBandeja {
+	idProductoMaestro: number;
+	nombreProducto: string;
+	descripcionProducto: string;
+	presentacionTotal: number;
+	tipoPresentacion: string;
+	personalizado: boolean;
+	tienePrecioPersonalizado: boolean;
+	idEstadoProducto: number;
+	estadoProducto: string;
+	phDefinidoMin: number;
+	phDefinidoMax: number;
+	phCalidadPromedio: number | null;
+	carOrganolepticasCalidad: string | null;
+	viscosidadCalidad: string | null;
+	idBulk: string | null;
+	totalPresentacionBulk: number | null;
+	fechaCreacionBulk: string | null;
+	tipo: 'producto'; // Para identificar el tipo
+}
+
+interface PreparadoMagistralBandeja {
+	idPreparadoMagistral: string;
+	nombre: string;
+	descripcion: string;
+	totalPresentacion: number;
+	tipoPresentacion: string;
+	personalizado: boolean;
+	precioPersonalizado: boolean;
+	idEstadoProducto: number;
+	estadoProducto: string;
+	phDefinidoMin: number;
+	phDefinidoMax: number;
+	phCalidadPromedio: number | null;
+	carOrganolepticasCalidad: string | null;
+	viscosidadCalidad: string | null;
+	idBulk: string | null;
+	totalPresentacionBulk: number | null;
+	fechaCreacionBulk: string | null;
+	tipo: 'preparado'; // Para identificar el tipo
+}
+
+type ItemBandeja = ProductoBandeja | PreparadoMagistralBandeja;
+
+interface BandejaProduccionResponse {
+	productos: ProductoBandeja[];
+	preparadosMagistrales: PreparadoMagistralBandeja[];
+}
+
 // Define ProcedimientoProducto type with all required properties for the form
 type ProcedimientoProducto = {
 	producto?: string;
@@ -47,12 +97,12 @@ type ProcedimientoProducto = {
 	styleUrl: './bandeja-produccion.component.scss',
 })
 export class BandejaProduccionComponent implements OnInit {
-	productos: any[] = [];
-	productosTable: any[] = [];
+	productos: ItemBandeja[] = [];
+	productosTable: ItemBandeja[] = [];
 	page = 1;
 	pageSize = 5;
 	collectionSize = this.productos.length;
-	lstProductosSeleccionados: any[] = [];
+	lstProductosSeleccionados: ItemBandeja[] = [];
 
 	private modalService = inject(NgbModal);
 	closeResult = '';
@@ -104,6 +154,50 @@ export class BandejaProduccionComponent implements OnInit {
 
 	ngOnInit(): void {
 		this.getProductosAll();
+	}
+
+	// Funciones de utilidad para type guards
+	isProducto(item: ItemBandeja): item is ProductoBandeja {
+		return item.tipo === 'producto';
+	}
+
+	isPreparado(item: ItemBandeja): item is PreparadoMagistralBandeja {
+		return item.tipo === 'preparado';
+	}
+
+	// Función para obtener el ID único del item
+	getItemId(item: ItemBandeja): string {
+		return this.isProducto(item) ? item.idProductoMaestro.toString() : item.idPreparadoMagistral;
+	}
+
+		// Función helper para obtener la presentación de un item
+	getItemPresentacion(item: ItemBandeja): string {
+		if (this.isProducto(item)) {
+			return `${item.presentacionTotal} ${item.tipoPresentacion || ''}`.trim();
+		} else {
+			return `${item.totalPresentacion} ${item.tipoPresentacion || ''}`.trim();
+		}
+	}
+
+	// Función helper para obtener el nombre de un item
+	getItemNombre(item: ItemBandeja): string {
+		return this.isProducto(item) ? item.nombreProducto : item.nombre;
+	}
+
+	// Función helper para obtener el tipo de item como string para mostrar en UI
+	getItemTipo(item: ItemBandeja): string {
+		return this.isProducto(item) ? 'Producto' : 'Preparado Magistral';
+	}
+
+	// Función helper para obtener la presentación total para el modal
+	getPresentacionTotal(): number {
+		if (!this.productoMaestroCalculo) return 0;
+		
+		if (this.isProducto(this.productoMaestroCalculo)) {
+			return this.productoMaestroCalculo.presentacionTotal || 0;
+		} else {
+			return this.productoMaestroCalculo.totalPresentacion || 0;
+		}
 	}
 
 	// Métodos para impresión de código de barras
@@ -219,49 +313,51 @@ export class BandejaProduccionComponent implements OnInit {
 		}
 	}
 
-	mostrarOpcionesCodigoBarrasMasivo(idsProductoMaestro: string[]): void {
-		// Buscar los productos actualizados con sus nuevos estados y fechaCreacionBulk más reciente
-		const productosRecibidos = this.productosTable.filter(p => 
-			idsProductoMaestro.includes(p.idProductoMaestro) && 
-			p.idEstadoProducto === 3 && 
-			p.fechaCreacionBulk
+	mostrarOpcionesCodigoBarrasMasivo(idsItem: string[]): void {
+		// Buscar los items actualizados con sus nuevos estados y fechaCreacionBulk más reciente
+		const itemsRecibidos = this.productosTable.filter(item => 
+			idsItem.includes(this.getItemId(item)) && 
+			item.idEstadoProducto === 3 && 
+			item.fechaCreacionBulk
 		);
 		
-		// Para cada idProductoMaestro, obtener solo el más reciente según fechaCreacionBulk
-		const productosUnicos: any[] = [];
-		idsProductoMaestro.forEach(idProductoMaestro => {
-			const productosDelMismo = productosRecibidos.filter(p => p.idProductoMaestro === idProductoMaestro);
-			if (productosDelMismo.length > 0) {
+		// Para cada idItem, obtener solo el más reciente según fechaCreacionBulk
+		const itemsUnicos: ItemBandeja[] = [];
+		idsItem.forEach(idItem => {
+			const itemsDelMismo = itemsRecibidos.filter(item => this.getItemId(item) === idItem);
+			if (itemsDelMismo.length > 0) {
 				// Ordenar por fechaCreacionBulk descendente y tomar el más reciente
-				const productoMasReciente = productosDelMismo.sort((a, b) => 
-					new Date(b.fechaCreacionBulk).getTime() - new Date(a.fechaCreacionBulk).getTime()
-				)[0];
-				productosUnicos.push(productoMasReciente);
+				const itemMasReciente = itemsDelMismo.sort((a, b) => {
+					const fechaA = a.fechaCreacionBulk ? new Date(a.fechaCreacionBulk).getTime() : 0;
+					const fechaB = b.fechaCreacionBulk ? new Date(b.fechaCreacionBulk).getTime() : 0;
+					return fechaB - fechaA;
+				})[0];
+				itemsUnicos.push(itemMasReciente);
 			}
 		});
 		
-		const productosConBulk = productosUnicos.filter(p => p.idBulk);
+		const itemsConBulk = itemsUnicos.filter(item => item.idBulk);
 		
-		if (productosConBulk.length === 0) {
+		if (itemsConBulk.length === 0) {
 			Swal.fire({
 				icon: 'info',
 				title: 'Información',
-				text: 'Los productos recibidos no tienen códigos bulk asignados para imprimir.',
+				text: 'Los items recibidos no tienen códigos bulk asignados para imprimir.',
 				showConfirmButton: true,
 			});
 			return;
 		}
 
-		// Si hay productos con bulk, preguntar si quiere imprimir códigos de barras
-		let productosHtml = '';
-		productosConBulk.forEach(p => {
-			productosHtml += `<li>${p.nombreProducto} (Bulk: ${p.idBulk})</li>`;
+		// Si hay items con bulk, preguntar si quiere imprimir códigos de barras
+		let itemsHtml = '';
+		itemsConBulk.forEach(item => {
+			itemsHtml += `<li>${this.getItemNombre(item)} (Bulk: ${item.idBulk})</li>`;
 		});
 
 		Swal.fire({
 			title: '¿Imprimir Códigos de Barras?',
-			html: `<p>Los siguientes productos han sido recibidos en producción y tienen códigos bulk disponibles:</p>
-				   <ul style="text-align: left; margin: 10px 0;">${productosHtml}</ul>
+			html: `<p>Los siguientes items han sido recibidos en producción y tienen códigos bulk disponibles:</p>
+				   <ul style="text-align: left; margin: 10px 0;">${itemsHtml}</ul>
 				   <p>¿Deseas imprimir todos los códigos de barras en una sola hoja?</p>`,
 			icon: 'question',
 			showCancelButton: true,
@@ -270,8 +366,8 @@ export class BandejaProduccionComponent implements OnInit {
 			allowOutsideClick: false
 		}).then((result) => {
 			if (result.isConfirmed) {
-				// Abrir el modal masivo con todos los productos
-				this.openModalCodigoBarraMasivo(productosConBulk);
+				// Abrir el modal masivo con todos los items
+				this.openModalCodigoBarraMasivo(itemsConBulk);
 			}
 		});
 	}
@@ -320,9 +416,21 @@ export class BandejaProduccionComponent implements OnInit {
 
 	getProductosAll(): void {
 		this.productoService.getBandejaProduccion().subscribe(
-			(productos) => {
-				console.log('Productos obtenidos:', productos);
-				this.productosTable = productos;
+			(response: any) => {
+				console.log('Response obtenido:', response);
+				
+				// Verificar si la respuesta tiene la nueva estructura
+				if (response && response.productos && response.preparadosMagistrales) {
+					// Nueva estructura con productos y preparados magistrales separados
+					const productosConTipo: ProductoBandeja[] = response.productos.map((p: any) => ({ ...p, tipo: 'producto' as const }));
+					const preparadosConTipo: PreparadoMagistralBandeja[] = response.preparadosMagistrales.map((p: any) => ({ ...p, tipo: 'preparado' as const }));
+					
+					this.productosTable = [...productosConTipo, ...preparadosConTipo];
+				} else {
+					// Estructura antigua - tratar como productos
+					this.productosTable = response.map((p: any) => ({ ...p, tipo: 'producto' as const }));
+				}
+				
 				this.collectionSize = this.productosTable.length;
 				this.refreshProductos();
 			},
@@ -335,35 +443,68 @@ export class BandejaProduccionComponent implements OnInit {
 	@ViewChild('informacionCompleta', { static: true }) informacionCompleta: TemplateRef<any> | null = null;
 	productoMaestroCalculo: any = null;
 	
-	getInformacionCompleta(productoMaestro: any): void {
-		this.productoService.getHojaProduccion(productoMaestro.idProductoMaestro).subscribe(
-			(data) => {
-				console.log('Información completa obtenida:', data);
-				if(data && data.idResultado == 1) {
-					this.procedimientoData = data.value;
-					this.productoMaestroCalculo = productoMaestro;
-					if (this.informacionCompleta) {
-						this.openModalXL(this.informacionCompleta);
+	getInformacionCompleta(item: ItemBandeja): void {
+		if (this.isProducto(item)) {
+			// Lógica para productos normales
+			this.productoService.getHojaProduccion(item.idProductoMaestro.toString()).subscribe(
+				(data) => {
+					console.log('Información completa de producto obtenida:', data);
+					if(data && data.idResultado == 1) {
+						this.procedimientoData = data.value;
+						this.productoMaestroCalculo = item;
+						if (this.informacionCompleta) {
+							this.openModalXL(this.informacionCompleta);
+						}
+					} else {
+						Swal.fire({
+							icon: 'warning',
+							title: '¡Oops!',
+							text: data.resultado,
+							showConfirmButton: true,
+						});
 					}
-				}else{
+				},
+				(error) => {
+					console.error('Error al obtener la información del producto', error);
 					Swal.fire({
 						icon: 'warning',
-						title: '¡Oops!',
-						text: data.resultado,
+						title: 'Oops!',
+						text: 'Este producto no tiene información de producción disponible.',
 						showConfirmButton: true,
 					});
 				}
-			},
-			(error) => {
-				console.error('Error al obtener la información del producto', error);
-				Swal.fire({
-					icon: 'warning',
-					title: 'Oops!',
-					text: 'Este producto no tiene información de producción disponible.',
-					showConfirmButton: true,
-				});
-			}
-		);
+			);
+		} else {
+			// Lógica para preparados magistrales
+			this.productoService.getHojaProduccionPreparadoMagistral(item.idPreparadoMagistral).subscribe(
+				(data) => {
+					console.log('Información completa de preparado magistral obtenida:', data);
+					if(data && data.idResultado == 1) {
+						this.procedimientoData = data.value;
+						this.productoMaestroCalculo = item;
+						if (this.informacionCompleta) {
+							this.openModalXL(this.informacionCompleta);
+						}
+					} else {
+						Swal.fire({
+							icon: 'warning',
+							title: '¡Oops!',
+							text: data.resultado,
+							showConfirmButton: true,
+						});
+					}
+				},
+				(error) => {
+					console.error('Error al obtener la información del preparado magistral', error);
+					Swal.fire({
+						icon: 'warning',
+						title: 'Oops!',
+						text: 'Este preparado magistral no tiene información de producción disponible.',
+						showConfirmButton: true,
+					});
+				}
+			);
+		}
 	}
 
 	refreshProductos(): void {
@@ -393,107 +534,204 @@ export class BandejaProduccionComponent implements OnInit {
 	}
 
 
-	recibirProducto(item: any) {
+	recibirProducto(item: ItemBandeja) {
 		console.log(item);
+		const itemNombre = this.getItemNombre(item);
 		Swal.fire({
 			icon: 'question',
 			title: '¿Estás seguro?',
-			text: `¿Deseas recibir el producto "${item.nombreProducto}" en producción?`,
+			text: `¿Deseas recibir el item "${itemNombre}" en producción?`,
 			showConfirmButton: true,
 			showCancelButton: true,
 			cancelButtonText: 'Cancelar',
 			confirmButtonText: 'Sí, recibir',
 		}).then((result) => {
 			if (result.isConfirmed) {
-				this.productoService
-					.updateEstadoProductoMaestro({
-						idProductoMaestro: item.idProductoMaestro,
-						idEstadoProductoActual: 2, // En cola
-						idEstadoProductoNuevo: 3, // En producción
-						idEstadoPedidoNuevo: 4, // En producción
-						idEstadoPedidoClienteNuevo: 3, // En producción
-						idCliente: this.dataService.getLoggedUser().cliente.idCliente,
-						accionRealizada: 'Producto recibido en producción',
-						observacion: ''
-					})
-					.subscribe(
-						(response) => {
-							// After the product state is updated successfully, get production sheet and update kardex
-							this.procesarHojaProduccionYKardex(item);
-							
-							Swal.fire({
-								icon: 'success',
-								title: '¡Listo!',
-								text: 'Producto recibido en producción correctamente.',
-								showConfirmButton: true,
-							}).then(() => {
-								this.getProductosAll();
-								this.lstProductosSeleccionados = [];
-								// Después de actualizar la lista, abrir automáticamente el modal de código de barras
-								setTimeout(() => {
-									// Buscar el producto con la fechaCreacionBulk más reciente
-									const productosConBulk = this.productosTable.filter(p => 
-										p.idProductoMaestro === item.idProductoMaestro && 
-										p.idEstadoProducto === 3 && 
-										p.fechaCreacionBulk
-									);
-										
-									if (productosConBulk.length > 0) {
-										// Ordenar por fechaCreacionBulk descendente y tomar el más reciente
-										const productoMasReciente = productosConBulk.sort((a, b) => 
-											new Date(b.fechaCreacionBulk).getTime() - new Date(a.fechaCreacionBulk).getTime()
-										)[0];
-											
-										this.openModalCodigoBarraIndividual(productoMasReciente);
-									} else {
-										// Si no se encuentra producto con fechaCreacionBulk, buscar por idProductoMaestro como fallback
-										const productoActualizado = this.productosTable.find(p => 
-											p.idProductoMaestro === item.idProductoMaestro && p.idEstadoProducto === 3
+				if (this.isProducto(item)) {
+					// Lógica para productos regulares
+					this.productoService
+						.updateEstadoProductoMaestro({
+							idProductoMaestro: item.idProductoMaestro,
+							idEstadoProductoActual: 2, // En cola
+							idEstadoProductoNuevo: 3, // En producción
+							idEstadoPedidoNuevo: 4, // En producción
+							idEstadoPedidoClienteNuevo: 3, // En producción
+							idCliente: this.dataService.getLoggedUser().cliente.idCliente,
+							accionRealizada: 'Producto recibido en producción',
+							observacion: ''
+						})
+						.subscribe(
+							(response) => {
+								// After the product state is updated successfully, get production sheet and update kardex
+								this.procesarHojaProduccionYKardex(item);
+								
+								Swal.fire({
+									icon: 'success',
+									title: '¡Listo!',
+									text: 'Producto recibido en producción correctamente.',
+									showConfirmButton: true,
+								}).then(() => {
+									this.getProductosAll();
+									this.lstProductosSeleccionados = [];
+									// Después de actualizar la lista, abrir automáticamente el modal de código de barras
+									setTimeout(() => {
+										// Buscar el producto con la fechaCreacionBulk más reciente
+										const productosConBulk = this.productosTable.filter(p => 
+											this.isProducto(p) && (p as ProductoBandeja).idProductoMaestro === item.idProductoMaestro && 
+											p.idEstadoProducto === 3 && 
+											p.fechaCreacionBulk
 										);
-										if (productoActualizado) {
-											this.openModalCodigoBarraIndividual(productoActualizado);
+											
+										if (productosConBulk.length > 0) {
+											// Ordenar por fechaCreacionBulk descendente y tomar el más reciente
+											const productoMasReciente = productosConBulk.sort((a, b) => {
+												const fechaA = a.fechaCreacionBulk ? new Date(a.fechaCreacionBulk).getTime() : 0;
+												const fechaB = b.fechaCreacionBulk ? new Date(b.fechaCreacionBulk).getTime() : 0;
+												return fechaB - fechaA;
+											})[0];
+												
+											this.openModalCodigoBarraIndividual(productoMasReciente);
+										} else {
+											// Si no se encuentra producto con fechaCreacionBulk, buscar por idProductoMaestro como fallback
+											const productoActualizado = this.productosTable.find(p => 
+												this.isProducto(p) && (p as ProductoBandeja).idProductoMaestro === item.idProductoMaestro && p.idEstadoProducto === 3
+											);
+											if (productoActualizado) {
+												this.openModalCodigoBarraIndividual(productoActualizado);
+											}
 										}
-									}
-								}, 500); // Delay para asegurar que la lista se haya actualizado
-							});
-						},
-						(error) => {
-							console.error('Error al recibir producto en producción', error);
-							Swal.fire({
-								icon: 'error',
-								title: 'Oops!',
-								text: 'No se pudo recibir el producto en producción, inténtelo de nuevo.',
-								showConfirmButton: true,
-							});
-						}
-					);
+									}, 500); // Delay para asegurar que la lista se haya actualizado
+								});
+							},
+							(error) => {
+								console.error('Error al recibir producto en producción', error);
+								Swal.fire({
+									icon: 'error',
+									title: 'Oops!',
+									text: 'No se pudo recibir el producto en producción, inténtelo de nuevo.',
+									showConfirmButton: true,
+								});
+							}
+						);
+				} else {
+					// Lógica para preparados magistrales
+					this.productoService
+						.updateEstadoPreparadoMagistral({
+							idPreparadoMagistral: item.idPreparadoMagistral,
+							idEstadoProductoActual: 2, // En cola
+							idEstadoProductoNuevo: 3, // En producción
+							idEstadoPedidoNuevo: 4, // En producción
+							idEstadoPedidoClienteNuevo: 3, // En producción
+							idCliente: this.dataService.getLoggedUser().cliente.idCliente,
+							accionRealizada: 'Preparado magistral recibido en producción',
+							observacion: ''
+						})
+						.subscribe(
+							(response) => {
+								// After the preparado magistral state is updated successfully, get production sheet and update kardex
+								this.procesarHojaProduccionYKardex(item);
+								
+								Swal.fire({
+									icon: 'success',
+									title: '¡Listo!',
+									text: 'Preparado magistral recibido en producción correctamente.',
+									showConfirmButton: true,
+								}).then(() => {
+									this.getProductosAll();
+									this.lstProductosSeleccionados = [];
+									// Después de actualizar la lista, abrir automáticamente el modal de código de barras
+									setTimeout(() => {
+										// Buscar el preparado magistral con la fechaCreacionBulk más reciente
+										const preparadosConBulk = this.productosTable.filter(p => 
+											this.isPreparado(p) && (p as PreparadoMagistralBandeja).idPreparadoMagistral === item.idPreparadoMagistral && 
+											p.idEstadoProducto === 3 && 
+											p.fechaCreacionBulk
+										);
+											
+										if (preparadosConBulk.length > 0) {
+											// Ordenar por fechaCreacionBulk descendente y tomar el más reciente
+											const preparadoMasReciente = preparadosConBulk.sort((a, b) => {
+												const fechaA = a.fechaCreacionBulk ? new Date(a.fechaCreacionBulk).getTime() : 0;
+												const fechaB = b.fechaCreacionBulk ? new Date(b.fechaCreacionBulk).getTime() : 0;
+												return fechaB - fechaA;
+											})[0];
+												
+											this.openModalCodigoBarraIndividual(preparadoMasReciente);
+										} else {
+											// Si no se encuentra preparado con fechaCreacionBulk, buscar por idPreparadoMagistral como fallback
+											const preparadoActualizado = this.productosTable.find(p => 
+												this.isPreparado(p) && (p as PreparadoMagistralBandeja).idPreparadoMagistral === item.idPreparadoMagistral && p.idEstadoProducto === 3
+											);
+											if (preparadoActualizado) {
+												this.openModalCodigoBarraIndividual(preparadoActualizado);
+											}
+										}
+									}, 500); // Delay para asegurar que la lista se haya actualizado
+								});
+							},
+							(error) => {
+								console.error('Error al recibir preparado magistral en producción', error);
+								Swal.fire({
+									icon: 'error',
+									title: 'Oops!',
+									text: 'No se pudo recibir el preparado magistral en producción, inténtelo de nuevo.',
+									showConfirmButton: true,
+								});
+							}
+						);
+				}
 			}
 		});
 	}
 
-	procesarHojaProduccionYKardex(item: any) {
-		// Get production sheet for the product
-		this.productoService.getHojaProduccion(item.idProductoMaestro).subscribe(
-			(hojaProduccionResponse) => {
-				console.log('Hoja de producción obtenida:', hojaProduccionResponse);
-				
-				if (hojaProduccionResponse && hojaProduccionResponse.idResultado === 1 && hojaProduccionResponse.value) {
-					const hojaProduccion = hojaProduccionResponse.value;
+	procesarHojaProduccionYKardex(item: ItemBandeja) {
+		if (this.isProducto(item)) {
+			// Lógica existente para productos
+			this.productoService.getHojaProduccion(item.idProductoMaestro.toString()).subscribe(
+				(hojaProduccionResponse) => {
+					console.log('Hoja de producción obtenida:', hojaProduccionResponse);
 					
-					// Process each ingredient and create kardex entries
-					if (hojaProduccion.ingredientes && hojaProduccion.ingredientes.length > 0) {
-						hojaProduccion.ingredientes.forEach((ingrediente: any) => {
-							this.crearEntradaKardex(item, ingrediente);
-						});
+					if (hojaProduccionResponse && hojaProduccionResponse.idResultado === 1 && hojaProduccionResponse.value) {
+						const hojaProduccion = hojaProduccionResponse.value;
+						
+						// Process each ingredient and create kardex entries
+						if (hojaProduccion.ingredientes && hojaProduccion.ingredientes.length > 0) {
+							hojaProduccion.ingredientes.forEach((ingrediente: any) => {
+								this.crearEntradaKardex(item, ingrediente);
+							});
+						}
+					} else {
+						console.error('Error: No se pudo obtener la hoja de producción', hojaProduccionResponse);
 					}
-				} else {
-					console.error('Error: No se pudo obtener la hoja de producción', hojaProduccionResponse);
+				},
+				(error) => {
+					console.error('Error al obtener la hoja de producción:', error);
 				}
-			},
-			(error) => {
-				console.error('Error al obtener la hoja de producción:', error);
-			}
-		);
+			);
+		} else if (this.isPreparado(item)) {
+			// Lógica para preparados magistrales
+			this.productoService.getHojaProduccionPreparadoMagistral(item.idPreparadoMagistral).subscribe(
+				(hojaProduccionResponse) => {
+					console.log('Hoja de producción para preparado magistral obtenida:', hojaProduccionResponse);
+					
+					if (hojaProduccionResponse && hojaProduccionResponse.idResultado === 1 && hojaProduccionResponse.value) {
+						const hojaProduccion = hojaProduccionResponse.value;
+						
+						// Process each ingredient and create kardex entries
+						if (hojaProduccion.ingredientes && hojaProduccion.ingredientes.length > 0) {
+							hojaProduccion.ingredientes.forEach((ingrediente: any) => {
+								this.crearEntradaKardex(item, ingrediente);
+							});
+						}
+					} else {
+						console.error('Error: No se pudo obtener la hoja de producción del preparado magistral', hojaProduccionResponse);
+					}
+				},
+				(error) => {
+					console.error('Error al obtener la hoja de producción del preparado magistral:', error);
+				}
+			);
+		}
 	}
 
 	crearEntradaKardex(item: any, ingrediente: any) {
@@ -569,80 +807,124 @@ export class BandejaProduccionComponent implements OnInit {
 			);
 	}
 
-	enviarCalidad(item: any) {
+	enviarCalidad(item: ItemBandeja) {
+		const itemNombre = this.getItemNombre(item);
+		const itemTipo = this.getItemTipo(item);
 		Swal.fire({
 			icon: 'question',
 			title: '¿Estás seguro?',
-			text: `¿Deseas enviar el producto "${item.nombreProducto}" a calidad?`,
+			text: `¿Deseas enviar el ${itemTipo.toLowerCase()} "${itemNombre}" a calidad?`,
 			showConfirmButton: true,
 			showCancelButton: true,
 			cancelButtonText: 'Cancelar',
 			confirmButtonText: 'Sí, enviar',
 		}).then((result) => {
 			if (result.isConfirmed) {
-				this.productoService
-					.updateEstadoProductoMaestro({
-						idProductoMaestro: item.idProductoMaestro,
-						idEstadoProductoActual: 3, // En producción
-						idEstadoProductoNuevo: 4, // En calidad
-						idEstadoPedidoNuevo: 5, // En calidad
-						idEstadoPedidoClienteNuevo: 3, // En producción
-						idCliente: this.dataService.getLoggedUser().cliente.idCliente,
-						accionRealizada: 'Producto enviado a calidad',
-						observacion: ''
-					})
-					.subscribe(
-						(response) => {
-							// Llamada adicional al endpoint de estado-producto-bulk
-							if (item.idBulk) {
-								const bulkData = {
-									idBulk: item.idBulk,
-									idProductoMaestro: item.idProductoMaestro,
-									idEstadoProductoActual: 3, // En producción
-									idEstadoProductoNuevo: 4, // En calidad
-									idEstadoPedido: 5, // En calidad
-									idEstadoPedidoCliente: 3, // En producción
-									idCliente: this.dataService.getLoggedUser().cliente.idCliente,
-									accionRealizada: 'Producto enviado a calidad',
-									observacion: ''
-								};
+				if (this.isProducto(item)) {
+					// Lógica para productos regulares
+					this.productoService
+						.updateEstadoProductoMaestro({
+							idProductoMaestro: item.idProductoMaestro,
+							idEstadoProductoActual: 3, // En producción
+							idEstadoProductoNuevo: 4, // En calidad
+							idEstadoPedidoNuevo: 5, // En calidad
+							idEstadoPedidoClienteNuevo: 3, // En producción
+							idCliente: this.dataService.getLoggedUser().cliente.idCliente,
+							accionRealizada: 'Producto enviado a calidad',
+							observacion: ''
+						})
+						.subscribe(
+							(response) => {
+								// Llamada adicional al endpoint de estado-producto-bulk
+								if (item.idBulk) {
+									const bulkData = {
+										idBulk: item.idBulk,
+										idProductoMaestro: item.idProductoMaestro,
+										idEstadoProductoActual: 3, // En producción
+										idEstadoProductoNuevo: 4, // En calidad
+										idEstadoPedido: 5, // En calidad
+										idEstadoPedidoCliente: 3, // En producción
+										idCliente: this.dataService.getLoggedUser().cliente.idCliente,
+										accionRealizada: 'Producto enviado a calidad',
+										observacion: ''
+									};
 
-								this.productoService.updateEstadoProductoBulk(bulkData).subscribe(
-									(bulkResponse) => {
-										console.log('Estado bulk actualizado correctamente:', bulkResponse);
-									},
-									(bulkError) => {
-										console.error('Error al actualizar estado bulk:', bulkError);
-										// No mostramos error al usuario ya que la operación principal fue exitosa
-									}
-								);
+									this.productoService.updateEstadoProductoBulk(bulkData).subscribe(
+										(bulkResponse) => {
+											console.log('Estado bulk actualizado correctamente:', bulkResponse);
+										},
+										(bulkError) => {
+											console.error('Error al actualizar estado bulk:', bulkError);
+											// No mostramos error al usuario ya que la operación principal fue exitosa
+										}
+									);
+								}
+
+								Swal.fire({
+									icon: 'success',
+									title: '¡Listo!',
+									text: 'Producto enviado a calidad correctamente.',
+									showConfirmButton: true,
+								}).then(() => {
+									this.getProductosAll();
+									this.lstProductosSeleccionados = [];
+								});
+							},
+							(error) => {
+								console.error('Error al enviar producto a calidad', error);
+								Swal.fire({
+									icon: 'error',
+									title: 'Oops!',
+									text: 'No se pudo enviar el producto a calidad, inténtelo de nuevo.',
+									showConfirmButton: true,
+								});
 							}
-
-							Swal.fire({
-								icon: 'success',
-								title: '¡Listo!',
-								text: 'Producto enviado a calidad correctamente.',
-								showConfirmButton: true,
-							}).then(() => {
-								this.getProductosAll();
-								this.lstProductosSeleccionados = [];
-							});
-						},
-						(error) => {
-							console.error('Error al enviar producto a calidad', error);
-							Swal.fire({
-								icon: 'error',
-								title: 'Oops!',
-								text: 'No se pudo enviar el producto a calidad, inténtelo de nuevo.',
-								showConfirmButton: true,
-							});
-						}
-					);
+						);
+				} else {
+					// Lógica para preparados magistrales
+					this.productoService
+						.updateEstadoPreparadoMagistral({
+							idPreparadoMagistral: item.idPreparadoMagistral,
+							idEstadoProductoActual: 3, // En producción
+							idEstadoProductoNuevo: 4, // En calidad
+							idEstadoPedidoNuevo: 5, // En calidad
+							idEstadoPedidoClienteNuevo: 3, // En producción
+							idCliente: this.dataService.getLoggedUser().cliente.idCliente,
+							accionRealizada: 'Preparado magistral enviado a calidad',
+							observacion: ''
+						})
+						.subscribe(
+							(response) => {
+								Swal.fire({
+									icon: 'success',
+									title: '¡Listo!',
+									text: 'Preparado magistral enviado a calidad correctamente.',
+									showConfirmButton: true,
+								}).then(() => {
+									this.getProductosAll();
+									this.lstProductosSeleccionados = [];
+								});
+							},
+							(error) => {
+								console.error('Error al enviar preparado magistral a calidad', error);
+								Swal.fire({
+									icon: 'error',
+									title: 'Oops!',
+									text: 'No se pudo enviar el preparado magistral a calidad, inténtelo de nuevo.',
+									showConfirmButton: true,
+								});
+							}
+						);
+				}
 			}
 		});
 	}
 
 	isCheckboxDisabled(): boolean {
+		// TODO: Implementar con nueva estructura de datos
+		// La propiedad estadoPedido ya no existe en las nuevas interfaces
+		return false;
+		/*
 		if (!Array.isArray(this.productos)) return false;
 		return (
 			(this.tipoEnvio === 0 &&
@@ -652,35 +934,38 @@ export class BandejaProduccionComponent implements OnInit {
 			(this.tipoEnvio === 1 &&
 				this.productos.some((p) => p && p.estadoPedido === 'En cola'))
 		);
+		*/
 	}
 
 	// Check si un idProductoMaestro está seleccionado
-	isSeleccionado(idProductoMaestro: string): boolean {
+	isSeleccionado(idItem: string): boolean {
 		return this.lstProductosSeleccionados.some(
-			(item) => item.idProductoMaestro === idProductoMaestro
+			(item) => this.getItemId(item) === idItem
 		);
 	}
 
 	// Cambiar selección individual
 	toggleSeleccionIndividual(
-		idProductoMaestro: string,
+		idItem: string,
 		event: Event
 	) {
 		let checked = (event.target as HTMLInputElement)?.checked;
 		if (checked) {
 			if (
 				!this.lstProductosSeleccionados.some(
-					(item) => item.idProductoMaestro === idProductoMaestro
+					(item) => this.getItemId(item) === idItem
 				)
 			) {
-				this.lstProductosSeleccionados.push({
-					idProductoMaestro: idProductoMaestro,
-				});
+				// Buscar el elemento completo en productosTable
+				const itemCompleto = this.productosTable.find(p => this.getItemId(p) === idItem);
+				if (itemCompleto) {
+					this.lstProductosSeleccionados.push(itemCompleto);
+				}
 			}
 		} else {
 			this.lstProductosSeleccionados =
 				this.lstProductosSeleccionados.filter(
-					(item) => item.idProductoMaestro !== idProductoMaestro
+					(item) => this.getItemId(item) !== idItem
 				);
 		}
 		console.log('Productos seleccionados:', this.lstProductosSeleccionados);
@@ -697,7 +982,7 @@ export class BandejaProduccionComponent implements OnInit {
 		if (productosPagina.length === 0) return false;
 		return productosPagina.every((p) =>
 			this.lstProductosSeleccionados.some(
-				(item) => item.idProductoMaestro === p.idProductoMaestro
+				(item) => this.getItemId(item) === this.getItemId(p)
 			)
 		);
 	}
@@ -709,24 +994,26 @@ export class BandejaProduccionComponent implements OnInit {
 		let estadoFiltrar = this.tipoEnvio === 0 ? 2 : 3;
 		const idsPagina = this.productos
 			.filter((p) => p.idEstadoProducto === estadoFiltrar)
-			.map((p) => p.idProductoMaestro);
+			.map((p) => this.getItemId(p));
 		if (checked) {
-			idsPagina.forEach((idProductoMaestro) => {
+			idsPagina.forEach((idItem) => {
 				if (
 					!this.lstProductosSeleccionados.some(
-						(item) => item.idProductoMaestro === idProductoMaestro
+						(item) => this.getItemId(item) === idItem
 					)
 				) {
-					this.lstProductosSeleccionados.push({
-						idProductoMaestro,
-					});
+					// Buscar el elemento completo en productosTable
+					const itemCompleto = this.productosTable.find(p => this.getItemId(p) === idItem);
+					if (itemCompleto) {
+						this.lstProductosSeleccionados.push(itemCompleto);
+					}
 				}
 			});
 		} else {
 			this.lstProductosSeleccionados =
 				this.lstProductosSeleccionados.filter(
 					(item) =>
-						!idsPagina.includes(item.idProductoMaestro)
+						!idsPagina.includes(this.getItemId(item))
 				);
 		}
 		console.log('Productos seleccionados:', this.lstProductosSeleccionados);
@@ -753,9 +1040,10 @@ export class BandejaProduccionComponent implements OnInit {
 	recibirProduccionMasivo() {
 		let lstProductos = '';
 		for (let i = 0; i < this.lstProductosSeleccionados.length; i++) {
-			const idProductoMaestro = this.lstProductosSeleccionados[i].idProductoMaestro;
-			const producto = this.productosTable.find(p => p.idProductoMaestro === idProductoMaestro);
-			const nombreProducto = producto ? producto.nombreProducto : idProductoMaestro;
+			const item = this.lstProductosSeleccionados[i];
+			const idItem = this.getItemId(item);
+			const producto = this.productosTable.find(p => this.getItemId(p) === idItem);
+			const nombreProducto = producto ? this.getItemNombre(producto) : idItem;
 			lstProductos += nombreProducto + '<br>';
 		}
 
@@ -777,8 +1065,8 @@ export class BandejaProduccionComponent implements OnInit {
 
 	procesarProductosIndividualesRecibir() {
 		const productosSeleccionados = this.lstProductosSeleccionados.map(item => {
-			return this.productosTable.find(p => p.idProductoMaestro === item.idProductoMaestro);
-		}).filter(producto => producto !== undefined);
+			return this.productosTable.find(p => this.getItemId(p) === this.getItemId(item));
+		}).filter(producto => producto !== undefined) as ItemBandeja[];
 
 		let procesadosExitosos = 0;
 		let errores = 0;
@@ -793,37 +1081,70 @@ export class BandejaProduccionComponent implements OnInit {
 			}
 
 			const item = productosSeleccionados[index];
-			console.log(`Procesando producto ${index + 1}/${totalProductos}: ${item.nombreProducto}`);
+			console.log(`Procesando producto ${index + 1}/${totalProductos}: ${this.getItemNombre(item)}`);
 			
-			this.productoService
-				.updateEstadoProductoMaestro({
-					idProductoMaestro: item.idProductoMaestro,
-					idEstadoProductoActual: 2, // En cola
-					idEstadoProductoNuevo: 3, // En producción
-					idEstadoPedidoNuevo: 4, // En producción
-					idEstadoPedidoClienteNuevo: 3, // En producción
-					idCliente: this.dataService.getLoggedUser().cliente.idCliente,
-					accionRealizada: 'Producto recibido en producción',
-					observacion: ''
-				})
-				.subscribe(
-					(response) => {
-						// Procesar hoja de producción y kardex para cada producto
-						this.procesarHojaProduccionYKardex(item);
-						procesadosExitosos++;
-						console.log(`Producto ${index + 1}/${totalProductos} procesado exitosamente: ${item.nombreProducto}`);
-						
-						// IMPORTANTE: Solo continuar con el siguiente después de que este request haya terminado completamente
-						procesarProductoSecuencial(index + 1);
-					},
-					(error) => {
-						console.error(`Error al recibir producto ${item.nombreProducto}:`, error);
-						errores++;
-						
-						// IMPORTANTE: Continuar con el siguiente producto incluso si este falló, pero solo después del error
-						procesarProductoSecuencial(index + 1);
-					}
-				);
+			if (this.isProducto(item)) {
+				this.productoService
+					.updateEstadoProductoMaestro({
+						idProductoMaestro: item.idProductoMaestro,
+						idEstadoProductoActual: 2, // En cola
+						idEstadoProductoNuevo: 3, // En producción
+						idEstadoPedidoNuevo: 4, // En producción
+						idEstadoPedidoClienteNuevo: 3, // En producción
+						idCliente: this.dataService.getLoggedUser().cliente.idCliente,
+						accionRealizada: 'Producto recibido en producción',
+						observacion: ''
+					})
+					.subscribe(
+						(response) => {
+							// Procesar hoja de producción y kardex para cada producto
+							this.procesarHojaProduccionYKardex(item);
+							procesadosExitosos++;
+							console.log(`Producto ${index + 1}/${totalProductos} procesado exitosamente: ${this.getItemNombre(item)}`);
+							
+							// IMPORTANTE: Solo continuar con el siguiente después de que este request haya terminado completamente
+							procesarProductoSecuencial(index + 1);
+						},
+						(error) => {
+							console.error(`Error al recibir producto ${this.getItemNombre(item)}:`, error);
+							errores++;
+							
+							// IMPORTANTE: Continuar con el siguiente producto incluso si este falló, pero solo después del error
+							procesarProductoSecuencial(index + 1);
+						}
+					);
+			} else if (this.isPreparado(item)) {
+				// Lógica para preparados magistrales
+				this.productoService
+					.updateEstadoPreparadoMagistral({
+						idPreparadoMagistral: item.idPreparadoMagistral,
+						idEstadoProductoActual: 2, // En cola
+						idEstadoProductoNuevo: 3, // En producción
+						idEstadoPedidoNuevo: 4, // En producción
+						idEstadoPedidoClienteNuevo: 3, // En producción
+						idCliente: this.dataService.getLoggedUser().cliente.idCliente,
+						accionRealizada: 'Preparado magistral recibido en producción',
+						observacion: ''
+					})
+					.subscribe(
+						(response) => {
+							// Procesar hoja de producción y kardex para cada preparado magistral
+							this.procesarHojaProduccionYKardex(item);
+							procesadosExitosos++;
+							console.log(`Preparado magistral ${index + 1}/${totalProductos} procesado exitosamente: ${this.getItemNombre(item)}`);
+							
+							// IMPORTANTE: Solo continuar con el siguiente después de que este request haya terminado completamente
+							procesarProductoSecuencial(index + 1);
+						},
+						(error) => {
+							console.error(`Error al recibir preparado magistral ${this.getItemNombre(item)}:`, error);
+							errores++;
+							
+							// IMPORTANTE: Continuar con el siguiente producto incluso si este falló, pero solo después del error
+							procesarProductoSecuencial(index + 1);
+						}
+					);
+			}
 		};
 
 		// Iniciar el procesamiento secuencial
@@ -833,9 +1154,10 @@ export class BandejaProduccionComponent implements OnInit {
 	enviarCalidadMasivo() {
 		let lstProductos = '';
 		for (let i = 0; i < this.lstProductosSeleccionados.length; i++) {
-			const idProductoMaestro = this.lstProductosSeleccionados[i].idProductoMaestro;
-			const producto = this.productosTable.find(p => p.idProductoMaestro === idProductoMaestro);
-			const nombreProducto = producto ? producto.nombreProducto : idProductoMaestro;
+			const item = this.lstProductosSeleccionados[i];
+			const idItem = this.getItemId(item);
+			const producto = this.productosTable.find(p => this.getItemId(p) === idItem);
+			const nombreProducto = producto ? this.getItemNombre(producto) : idItem;
 			lstProductos += nombreProducto + '<br>';
 		}
 
@@ -857,8 +1179,8 @@ export class BandejaProduccionComponent implements OnInit {
 
 	procesarProductosIndividualesEnviarCalidad() {
 		const productosSeleccionados = this.lstProductosSeleccionados.map(item => {
-			return this.productosTable.find(p => p.idProductoMaestro === item.idProductoMaestro);
-		}).filter(producto => producto !== undefined);
+			return this.productosTable.find(p => this.getItemId(p) === this.getItemId(item));
+		}).filter(producto => producto !== undefined) as ItemBandeja[];
 
 		let procesadosExitosos = 0;
 		let errores = 0;
@@ -873,67 +1195,97 @@ export class BandejaProduccionComponent implements OnInit {
 			}
 
 			const item = productosSeleccionados[index];
-			console.log(`Procesando producto ${index + 1}/${totalProductos}: ${item.nombreProducto}`);
+			console.log(`Procesando producto ${index + 1}/${totalProductos}: ${this.getItemNombre(item)}`);
 			
-			this.productoService
-				.updateEstadoProductoMaestro({
-					idProductoMaestro: item.idProductoMaestro,
-					idEstadoProductoActual: 3, // En producción
-					idEstadoProductoNuevo: 4, // En calidad
-					idEstadoPedidoNuevo: 5, // En calidad
-					idEstadoPedidoClienteNuevo: 3, // En producción
-					idCliente: this.dataService.getLoggedUser().cliente.idCliente,
-					accionRealizada: 'Producto enviado a calidad',
-					observacion: ''
-				})
-				.subscribe(
-					(response) => {
-						// Llamada adicional al endpoint de estado-producto-bulk si tiene idBulk
-						if (item.idBulk) {
-							const bulkData = {
-								idBulk: item.idBulk,
-								idProductoMaestro: item.idProductoMaestro,
-								idEstadoProductoActual: 3, // En producción
-								idEstadoProductoNuevo: 4, // En calidad
-								idEstadoPedido: 5, // En calidad
-								idEstadoPedidoCliente: 3, // En producción
-								idCliente: this.dataService.getLoggedUser().cliente.idCliente,
-								accionRealizada: 'Producto enviado a calidad',
-								observacion: ''
-							};
+			if (this.isProducto(item)) {
+				this.productoService
+					.updateEstadoProductoMaestro({
+						idProductoMaestro: item.idProductoMaestro,
+						idEstadoProductoActual: 3, // En producción
+						idEstadoProductoNuevo: 4, // En calidad
+						idEstadoPedidoNuevo: 5, // En calidad
+						idEstadoPedidoClienteNuevo: 3, // En producción
+						idCliente: this.dataService.getLoggedUser().cliente.idCliente,
+						accionRealizada: 'Producto enviado a calidad',
+						observacion: ''
+					})
+					.subscribe(
+						(response) => {
+							// Llamada adicional al endpoint de estado-producto-bulk si tiene idBulk
+							if (item.idBulk) {
+								const bulkData = {
+									idBulk: item.idBulk,
+									idProductoMaestro: item.idProductoMaestro,
+									idEstadoProductoActual: 3, // En producción
+									idEstadoProductoNuevo: 4, // En calidad
+									idEstadoPedido: 5, // En calidad
+									idEstadoPedidoCliente: 3, // En producción
+									idCliente: this.dataService.getLoggedUser().cliente.idCliente,
+									accionRealizada: 'Producto enviado a calidad',
+									observacion: ''
+								};
 
-							this.productoService.updateEstadoProductoBulk(bulkData).subscribe(
-								(bulkResponse) => {
-									console.log(`Estado bulk actualizado correctamente para ${item.nombreProducto}:`, bulkResponse);
-									// IMPORTANTE: Solo continuar después de que el bulk request también termine
-									procesadosExitosos++;
-									console.log(`Producto ${index + 1}/${totalProductos} enviado a calidad exitosamente: ${item.nombreProducto}`);
-									procesarProductoSecuencial(index + 1);
-								},
-								(bulkError) => {
-									console.error(`Error al actualizar estado bulk para ${item.nombreProducto}:`, bulkError);
-									// Aunque falle el bulk, consideramos el producto como procesado exitoso
-									procesadosExitosos++;
-									console.log(`Producto ${index + 1}/${totalProductos} enviado a calidad exitosamente: ${item.nombreProducto} (con error en bulk)`);
-									procesarProductoSecuencial(index + 1);
-								}
-							);
-						} else {
-							// Si no tiene idBulk, continuar inmediatamente
-							procesadosExitosos++;
-							console.log(`Producto ${index + 1}/${totalProductos} enviado a calidad exitosamente: ${item.nombreProducto}`);
-							// IMPORTANTE: Solo continuar después de que este request haya terminado completamente
+								this.productoService.updateEstadoProductoBulk(bulkData).subscribe(
+									(bulkResponse) => {
+										console.log(`Estado bulk actualizado correctamente para ${this.getItemNombre(item)}:`, bulkResponse);
+										// IMPORTANTE: Solo continuar después de que el bulk request también termine
+										procesadosExitosos++;
+										console.log(`Producto ${index + 1}/${totalProductos} enviado a calidad exitosamente: ${this.getItemNombre(item)}`);
+										procesarProductoSecuencial(index + 1);
+									},
+									(bulkError) => {
+										console.error(`Error al actualizar estado bulk para ${this.getItemNombre(item)}:`, bulkError);
+										// Aunque falle el bulk, consideramos el producto como procesado exitoso
+										procesadosExitosos++;
+										console.log(`Producto ${index + 1}/${totalProductos} enviado a calidad exitosamente: ${this.getItemNombre(item)} (con error en bulk)`);
+										procesarProductoSecuencial(index + 1);
+									}
+								);
+							} else {
+								// Si no tiene idBulk, continuar inmediatamente
+								procesadosExitosos++;
+								console.log(`Producto ${index + 1}/${totalProductos} enviado a calidad exitosamente: ${this.getItemNombre(item)}`);
+								// IMPORTANTE: Solo continuar después de que este request haya terminado completamente
+								procesarProductoSecuencial(index + 1);
+							}
+						},
+						(error) => {
+							console.error(`Error al enviar producto ${this.getItemNombre(item)} a calidad:`, error);
+							errores++;
+							
+							// IMPORTANTE: Continuar con el siguiente producto incluso si este falló, pero solo después del error
 							procesarProductoSecuencial(index + 1);
 						}
-					},
-					(error) => {
-						console.error(`Error al enviar producto ${item.nombreProducto} a calidad:`, error);
-						errores++;
-						
-						// IMPORTANTE: Continuar con el siguiente producto incluso si este falló, pero solo después del error
-						procesarProductoSecuencial(index + 1);
-					}
-				);
+					);
+			} else if (this.isPreparado(item)) {
+				// Lógica para preparados magistrales
+				this.productoService
+					.updateEstadoPreparadoMagistral({
+						idPreparadoMagistral: item.idPreparadoMagistral,
+						idEstadoProductoActual: 3, // En producción
+						idEstadoProductoNuevo: 4, // En calidad
+						idEstadoPedidoNuevo: 5, // En calidad
+						idEstadoPedidoClienteNuevo: 3, // En producción
+						idCliente: this.dataService.getLoggedUser().cliente.idCliente,
+						accionRealizada: 'Preparado magistral enviado a calidad',
+						observacion: ''
+					})
+					.subscribe(
+						(response) => {
+							procesadosExitosos++;
+							console.log(`Preparado magistral ${index + 1}/${totalProductos} enviado a calidad exitosamente: ${this.getItemNombre(item)}`);
+							// IMPORTANTE: Solo continuar después de que este request haya terminado completamente
+							procesarProductoSecuencial(index + 1);
+						},
+						(error) => {
+							console.error(`Error al enviar preparado magistral ${this.getItemNombre(item)} a calidad:`, error);
+							errores++;
+							
+							// IMPORTANTE: Continuar con el siguiente producto incluso si este falló, pero solo después del error
+							procesarProductoSecuencial(index + 1);
+						}
+					);
+			}
 		};
 
 		// Iniciar el procesamiento secuencial
@@ -950,7 +1302,7 @@ export class BandejaProduccionComponent implements OnInit {
 				showConfirmButton: true,
 			}).then(() => {
 				// Guardar los IDs de los productos procesados antes de limpiar la selección
-				const productosRecibidos = this.lstProductosSeleccionados.map(item => item.idProductoMaestro);
+				const productosRecibidos = this.lstProductosSeleccionados.map(item => this.getItemId(item));
 				this.getProductosAll();
 				this.lstProductosSeleccionados = [];
 				
