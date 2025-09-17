@@ -552,7 +552,7 @@ export class RegistroPedidoComponent implements OnInit, OnDestroy {
             this.idDireccionSeleccionada = pedido.direccion ? pedido.direccion.idDireccion : 0; // Asignar la dirección del pedido
             this.onMetodoEntregaChange(true);
           }else{
-            this.idMetodoEntregaSeleccionado = pedido.metodoEntrega.idMetodoEntrega || 0;
+            this.idMetodoEntregaSeleccionado = pedido.metodoEntrega ? pedido.metodoEntrega.idMetodoEntrega || 0 : 0;
             this.disabledPagar = true; // Deshabilitar el botón de pagar si no hay método de entrega o dirección
           }
 
