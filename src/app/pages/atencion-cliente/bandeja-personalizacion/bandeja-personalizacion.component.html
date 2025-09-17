@@ -24,7 +24,7 @@
 					<td>{{item.pedido.idPedido}}</td>
 					<td>{{item.producto.idProducto}}</td>
 					<td>{{item.detallesPersonalizacion}}</td>
-                    <td>{{item.precioPersonalizado.toFixed(2)}}</td>
+                    <td>{{item.precioPersonalizado ? item.precioPersonalizado.toFixed(2) : '-'}}</td>
 					<td>
 						<button [disabled]="item.pedido.estadoPedido.idEstadoPedido == 2" style="padding: 2px 5px;" class="btn btn-primary me-2" (click)="router.navigate(['/pages/atencion-cliente/calculadora-maestra', item.pedido.idPedido, item.producto.idProducto])">
 							<i style="font-size: 22px;" class="bi bi-calculator-fill"></i>

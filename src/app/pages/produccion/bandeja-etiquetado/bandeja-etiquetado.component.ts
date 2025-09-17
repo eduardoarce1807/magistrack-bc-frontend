@@ -676,7 +676,7 @@ export class BandejaEtiquetadoComponent implements OnInit {
           // Lógica para productos normales (mantener como estaba)
           this.productoService
             .updateEstadoProducto({
-              idProducto: item.idProducto,
+              idProducto: item.id,
               idPedido: item.idPedido,
               idEstadoProducto: 7, // En despacho
               idEstadoPedido: 8, // En despacho
