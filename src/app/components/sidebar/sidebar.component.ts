@@ -45,6 +45,13 @@ export class SidebarComponent {
 					command: () => this.irA('pages/atencion-cliente/bandeja-pedidos')
 				}
 			] : []),
+			...(atencionClienteAccessRoles.includes(user.rol.idRol) ? [
+				{
+					key: '0_2_1',
+					label: 'Bandeja de Pedidos Histórico',
+					command: () => this.irA('pages/atencion-cliente/bandeja-pedidos-historico')
+				}
+			] : []),
 			...([2,3,4].includes(user.rol.idRol) ? [
 				{
 					key: '0_10',

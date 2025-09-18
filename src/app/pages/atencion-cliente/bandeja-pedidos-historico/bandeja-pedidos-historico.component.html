@@ -1,0 +1,264 @@
+<div class="container-fluid p-4">
+  <div class="row">
+    <div class="col-12">
+      <h2 class="mb-4">
+        <i class="fas fa-history"></i>
+        Bandeja de Pedidos Histórico
+      </h2>
+    </div>
+  </div>
+
+  <!-- Sección de Filtros -->
+  <p-card header="Filtros de Búsqueda" class="mb-4">
+    <div class="row g-3">
+      <!-- Rango de Fechas -->
+      <div class="col-md-3">
+        <label class="form-label fw-bold">Fecha Inicio</label>
+        <p-calendar 
+          [(ngModel)]="fechaInicio" 
+          [showIcon]="true" 
+          dateFormat="dd/mm/yy"
+          placeholder="Seleccionar fecha"
+          styleClass="w-100">
+        </p-calendar>
+      </div>
+      
+      <div class="col-md-3">
+        <label class="form-label fw-bold">Fecha Fin</label>
+        <p-calendar 
+          [(ngModel)]="fechaFin" 
+          [showIcon]="true" 
+          dateFormat="dd/mm/yy"
+          placeholder="Seleccionar fecha"
+          styleClass="w-100">
+        </p-calendar>
+      </div>
+
+      <!-- Clientes -->
+      <div class="col-md-3">
+        <label class="form-label fw-bold">Clientes</label>
+        <p-multiSelect 
+          [options]="clientes"
+          [(ngModel)]="clientesSeleccionados"
+          optionLabel="label"
+          optionValue="value"
+          placeholder="Seleccionar clientes"
+          [showToggleAll]="true"
+          [filter]="true"
+          filterPlaceHolder="Buscar cliente..."
+          styleClass="w-100">
+        </p-multiSelect>
+      </div>
+
+      <!-- Canal de Venta -->
+      <div class="col-md-3">
+        <label class="form-label fw-bold">Canal de Venta</label>
+        <p-multiSelect 
+          [options]="canalesVenta"
+          [(ngModel)]="canalesVentaSeleccionados"
+          optionLabel="label"
+          optionValue="value"
+          placeholder="Seleccionar canales"
+          [showToggleAll]="true"
+          styleClass="w-100">
+        </p-multiSelect>
+      </div>
+
+      <!-- Método de Pago -->
+      <div class="col-md-6">
+        <label class="form-label fw-bold">Método de Pago</label>
+        <p-multiSelect 
+          [options]="metodosPago"
+          [(ngModel)]="metodosPagoSeleccionados"
+          optionLabel="label"
+          optionValue="value"
+          placeholder="Seleccionar métodos de pago"
+          [showToggleAll]="true"
+          styleClass="w-100">
+        </p-multiSelect>
+      </div>
+
+      <!-- Estado de Pedido -->
+      <div class="col-md-6">
+        <label class="form-label fw-bold">Estado de Pedido</label>
+        <p-multiSelect 
+          [options]="estadosPedido"
+          [(ngModel)]="estadosPedidoSeleccionados"
+          optionLabel="label"
+          optionValue="value"
+          placeholder="Seleccionar estados"
+          [showToggleAll]="true"
+          styleClass="w-100">
+        </p-multiSelect>
+      </div>
+
+      <!-- Botones -->
+      <div class="col-md-12 d-flex align-items-end gap-2">
+        <p-button 
+          label="Aplicar Filtros" 
+          icon="pi pi-search"
+          [loading]="loadingTable"
+          (onClick)="aplicarFiltros()"
+          styleClass="p-button-primary">
+        </p-button>
+        <p-button 
+          label="Limpiar" 
+          icon="pi pi-times"
+          (onClick)="limpiarFiltros()"
+          styleClass="p-button-secondary">
+        </p-button>
+        <p-button 
+          icon="pi pi-refresh" 
+          pTooltip="Actualizar"
+          tooltipPosition="top"
+          (onClick)="aplicarFiltros()"
+          styleClass="p-button-outlined">
+        </p-button>
+      </div>
+    </div>
+  </p-card>
+
+  <!-- Tabla de Pedidos Histórico -->
+  <p-card header="Resultados de Búsqueda">
+    <div class="table-wrapper">
+      <p-table 
+        #dt
+        [value]="pedidosHistorico" 
+        [paginator]="true" 
+        [rows]="rows"
+        [first]="first"
+        [loading]="loadingTable"
+        [globalFilterFields]="['idPedido', 'cliente', 'estado', 'metodoPago']"
+        [showCurrentPageReport]="true"
+        currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} registros"
+        responsiveLayout="scroll"
+        styleClass="p-datatable-striped"
+        [tableStyle]="{'min-width': '1400px', 'width': '100%'}">
+        
+        <!-- Header con búsqueda global -->
+        <ng-template pTemplate="caption">
+          <div class="d-flex justify-content-between align-items-center">
+            <h5 class="m-0">Pedidos Histórico</h5>
+            <span class="p-input-icon-left">
+              <i class="pi pi-search"></i>
+              <input 
+                pInputText 
+                type="text" 
+                #searchInput
+              (input)="dt.filterGlobal(searchInput.value, 'contains')" 
+              placeholder="Buscar en tabla..." />
+          </span>
+        </div>
+      </ng-template>
+
+      <!-- Columnas -->
+      <ng-template pTemplate="header">
+        <tr>
+          <th pSortableColumn="idPedido">
+            ID Pedido <p-sortIcon field="idPedido"></p-sortIcon>
+          </th>
+          <th pSortableColumn="fechaPedido">
+            Fecha Pedido <p-sortIcon field="fechaPedido"></p-sortIcon>
+          </th>
+          <th pSortableColumn="cliente">
+            Cliente <p-sortIcon field="cliente"></p-sortIcon>
+          </th>
+          <th pSortableColumn="monto">
+            Monto (S/) <p-sortIcon field="monto"></p-sortIcon>
+          </th>
+          <th pSortableColumn="estado">
+            Estado <p-sortIcon field="estado"></p-sortIcon>
+          </th>
+          <th pSortableColumn="fechaEstimadaEntrega">
+            FEE <p-sortIcon field="fechaEstimadaEntrega"></p-sortIcon>
+          </th>
+          <th pSortableColumn="metodoPago">
+            Método de Pago <p-sortIcon field="metodoPago"></p-sortIcon>
+          </th>
+          <th style="width: 180px;">Acciones</th>
+        </tr>
+      </ng-template>
+
+      <!-- Filas de datos -->
+      <ng-template pTemplate="body" let-pedido let-dt="dt">
+        <tr>
+          <td>
+            <span class="fw-bold text-primary">{{pedido.idPedido}}</span>
+          </td>
+          <td>
+            {{pedido.fechaPedido | date:'dd/MM/yyyy'}}
+          </td>
+          <td>
+            {{pedido.cliente}}
+          </td>
+          <td class="text-end">
+            <span class="fw-bold">S/ {{pedido.monto | number:'1.2-2'}}</span>
+          </td>
+          <td>
+            <span 
+              class="badge"
+              [style.background-color]="pedido.estadoDetalle?.color || '#6c757d'"
+              [style.color]="'white'">
+              {{pedido.estado}}
+            </span>
+          </td>
+          <td>
+            {{pedido.fechaEstimadaEntrega | date:'dd/MM/yyyy'}}
+          </td>
+          <td>
+            <span *ngIf="pedido.metodoPago; else sinMetodoPago">{{pedido.metodoPago}}</span>
+            <ng-template #sinMetodoPago>
+              <span class="text-muted fst-italic">Sin método de pago</span>
+            </ng-template>
+          </td>
+          <td>
+            <!-- Botones de acción -->
+            <div class="d-flex gap-1">
+              <!-- Ver Pedido -->
+              <p-button 
+                icon="pi pi-eye" 
+                pTooltip="Ver Pedido"
+                tooltipPosition="top"
+                styleClass="p-button-rounded p-button-text p-button-sm p-button-info"
+                (onClick)="verPedido(pedido.idPedido)">
+              </p-button>
+
+              <!-- Trazabilidad -->
+              <p-button 
+                icon="pi pi-history" 
+                pTooltip="Trazabilidad de Pedido"
+                tooltipPosition="top"
+                styleClass="p-button-rounded p-button-text p-button-sm p-button-warning"
+                (onClick)="verTrazabilidad(pedido.idPedido)">
+              </p-button>
+
+              <!-- Imprimir PDF -->
+              <p-button 
+                icon="pi pi-file-pdf" 
+                pTooltip="Imprimir Hoja de Pedido (PDF)"
+                tooltipPosition="top"
+                styleClass="p-button-rounded p-button-text p-button-sm p-button-danger"
+                [loading]="loadingPDF[pedido.idPedido]"
+                (onClick)="imprimirHojaPedido(pedido.idPedido)">
+              </p-button>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+
+      <!-- Template para cuando no hay datos -->
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="8" class="text-center p-4">
+            <div class="d-flex flex-column align-items-center">
+              <i class="pi pi-info-circle text-muted mb-2" style="font-size: 2rem;"></i>
+              <p class="mb-2 text-muted">No se encontraron pedidos con los filtros aplicados</p>
+              <small class="text-muted">Intente ajustar los filtros de búsqueda</small>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+    </div>
+  </p-card>
+</div>

@@ -2,7 +2,15 @@
 	<div class="card shadow-lg p-4 rounded-4">
 		<h2 class="mb-4 text-center">Trazabilidad del Pedido</h2>
 
-		<button style="position: absolute;" class="btn btn-link text-decoration-none p-0" (click)="goBandejaPedidos()">
+		<!-- ID del Pedido -->
+		<div class="text-center mb-4">
+			<h4 class="text-primary fw-bold">
+				<i class="bi bi-receipt"></i>
+				Pedido: <span class="badge bg-primary fs-6">{{idPedido}}</span>
+			</h4>
+		</div>
+
+		<button style="position: absolute; top: 20px; left: 20px;" class="btn btn-link text-decoration-none p-0" (click)="goBandejaPedidos()">
 			<i class="bi bi-arrow-left"></i> Regresar a bandeja de pedidos
 		</button>
 
