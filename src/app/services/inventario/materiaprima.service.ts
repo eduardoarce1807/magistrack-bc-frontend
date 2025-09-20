@@ -29,4 +29,7 @@ export class MateriaprimaService {
 	getTipoMateriaprima(): Observable<Response_Generico<TipomateriaModel[]>> {
 		return this.http.get<Response_Generico<TipomateriaModel[]>>(`${this.baseUrl}/lista-tipomateria`);
 	}
+	registrarFabricante(fabricante:FabricanteModel,op:number): Observable<Response_Generico<any>> {
+		return this.http.post<Response_Generico<any>>(`${this.baseUrl}/registrar-fabricante/${op}`, fabricante);
+	}
 }

@@ -36,10 +36,14 @@ import {FuncionesService} from "../../../services/funciones.service";
 import {ExcelService} from "../../../services/excel.service";
 import {CheckboxModule} from "primeng/checkbox";
 import localeEsPe from '@angular/common/locales/es-PE';
+import {AutoCompleteModule} from "primeng/autocomplete";
 
 // registrar locale antes de bootstrapApplication
 registerLocaleData(localeEsPe, 'es-PE');
-
+interface AutoCompleteCompleteEvent {
+	originalEvent: Event;
+	query: string;
+}
 @Component({
   selector: 'app-inventario-matprima',
   standalone: true,
@@ -66,7 +70,8 @@ registerLocaleData(localeEsPe, 'es-PE');
 		CalendarModule,
 		ButtonModule,
 		CheckboxModule,
-		CommonModule
+		CommonModule,
+		AutoCompleteModule
 	],
   templateUrl: './inventario-matprima.component.html',
   styleUrl: './inventario-matprima.component.scss',
@@ -82,6 +87,7 @@ export class InventarioMatprimaComponent {
 	selectedProveedor:soloproveedorModel[]=[]
 	cargamaterias:boolean=false
 	listaMaterias: MateriaprimaModel[] = [];
+	clonedProducts: { [s: string]: FabricanteModel } = {};
 	listaRequerimientospaginado: RequeremientossaveModel[] = [];
 	items: MenuItem[]=[];
 	verdetalle:boolean=false
@@ -89,8 +95,10 @@ export class InventarioMatprimaComponent {
 	loading: boolean = false;
 	verordencompra:boolean=false
 	visiblecorreo:boolean=false
+	loadingfab:boolean=false
 	fila_select:MateriaprimaModel = new MateriaprimaModel()
 	listaFabricante:FabricanteModel[]=[]
+	listaFabricantesugerencias:FabricanteModel[]=[]
 	listaTipomateria:TipomateriaModel[]=[]
 	verobservaciones:boolean=false
 	verdardebaja:boolean=false
@@ -98,6 +106,9 @@ export class InventarioMatprimaComponent {
 	verreducir:boolean=false
 	verrequerimiento:boolean=false
 	check_imagen:number=1
+	visible:boolean=false
+	nuevofabricante:string=''
+	idfabricante:number=1
 	observaciones:ObsevacionesReqModel=new ObsevacionesReqModel()
 	filteredData:MateriaprimaModel[]=[]
 	ordencompra:string=''
@@ -120,6 +131,7 @@ export class InventarioMatprimaComponent {
 	enviaremail: emailordenModel = new emailordenModel()
 	valorparamae:paramaeModel=new paramaeModel()
 	fechavencimiento:any=new Date()
+	fabricanteselected:FabricanteModel=new FabricanteModel()
 	constructor(private config: PrimeNGConfig,private messageService: MessageService,
 				private materiaService: MateriaprimaService,private kardexService:KardexService,
 				private route:Router,private requerimietoService:RequerimientosService,private proveedorService:ProveedorService,
@@ -366,6 +378,7 @@ export class InventarioMatprimaComponent {
 			this.verdetalle=false
 			this.fila_select.detalleproveedor=[]
 			this.fila_select.detalleproveedor=this.selectedProveedor
+		this.fila_select.id_fabricante=this.fabricanteselected.id_fabricante
 		// console.log(this.fila_select,this.op,'antes de enviar')
 		this.materiaService.registrarMateriaprima(this.fila_select,this.op).subscribe({
 			next:(data)=>{
@@ -373,6 +386,10 @@ export class InventarioMatprimaComponent {
 
 				if(data.mensaje=='EXITO'){
 					this.cargarmateriaprima()
+					this.fabricanteselected	={
+						id_fabricante:1,
+						fabricante:'NO TIENE'
+					}
 					this.messageService.add({ severity: 'success', summary: 'Aviso de usuario', detail: 'Se registrò con Éxito la nueva materia prima' });
 					this.verdetalle=false
 				}else{
@@ -610,9 +627,15 @@ export class InventarioMatprimaComponent {
 		this.materiaService.getFabricanteMateriaprima().subscribe({
 			next:(data)=>{
 				this.listaFabricante=data.data
+				this.fabricanteselected	={
+					id_fabricante:1,
+					fabricante:'NO TIENE'
+				}
 				this.loading=false
+				this.loadingfab=false
 			},error:(err)=>{
 				this.loading=false
+				this.loadingfab=false
 			}
 		})
 	}
@@ -721,5 +744,42 @@ export class InventarioMatprimaComponent {
 	}
 	cambioprov(proveedor:soloproveedorModel){
 		console.log(this.selectedProveedor,proveedor,'proveedor')
+	}
+	search(event: AutoCompleteCompleteEvent) {
+		const query = event.query.toUpperCase();
+		this.listaFabricantesugerencias = this.listaFabricante.filter(p =>
+			p.fabricante?.toUpperCase().includes(query)
+		);
+	}
+	guardarfabricante(op:number){
+		this.loadingfab=true
+		let fabricante:FabricanteModel=new FabricanteModel()
+		fabricante.fabricante=this.nuevofabricante
+		fabricante.id_fabricante=this.idfabricante
+		this.materiaService.registrarFabricante(fabricante,op).subscribe({
+			next:(data)=>{
+				this.cargarfabricante()
+				this.nuevofabricante=''
+
+				this.messageService.add({ severity: 'success', summary: 'ÉXITO', detail: 'Se creó el Fabricante correctamente' });
+			},error:(err)=>{
+				this.loadingfab=false
+				this.messageService.add({ severity: 'error', summary: 'ERROR', detail: 'Surgió un problema al guardar' });
+			}
+		})
+	}
+	onRowEditInit(fabricante: FabricanteModel) {
+		this.clonedProducts[fabricante.id_fabricante as number] = { ...fabricante };
+	}
+
+	onRowEditSave(fabricante: FabricanteModel) {
+		this.nuevofabricante=fabricante.fabricante
+		this.idfabricante=fabricante.id_fabricante
+		this.guardarfabricante(2)
+	}
+
+	onRowEditCancel(fabricante: FabricanteModel, index: number) {
+		this.listaFabricante[index] = this.clonedProducts[fabricante.id_fabricante as number];
+		// delete this.clonedProducts[FabricanteModel.id as number];
 	}
 }

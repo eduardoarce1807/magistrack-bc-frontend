@@ -20,7 +20,7 @@
 	>
 		<ng-template pTemplate="caption">
 			<div class="flex justify-between items-center">
-				<h4 class="text-danger fw-bold flex items-center"><img src="assets/img/crema.gif" width="50">Listado de Materias Primas
+				<h4 class="text-danger fw-bold flex items-center"><img src="assets/img/crema.gif" width="50">Listado de Materias Primas y Envases
 					</h4>
 				<div>
 					<p-iconField iconPosition="left">
@@ -253,13 +253,25 @@
 					inputId="integeronly"
 					[(ngModel)]="fila_select.stock_referencia" />
 				<label class="p-text-secondary fw-bold">Fabricante</label>
-				<p-dropdown
-					[options]="listaFabricante"
-					[(ngModel)]="fila_select.id_fabricante"
-					optionLabel="fabricante"
-					optionValue="id_fabricante"
-					appendTo="body"
-					placeholder="Seleccionar Fabricante" />
+				<p-autoComplete [(ngModel)]="fabricanteselected" [forceSelection]="true" [dropdown]="true" appendTo="body" class="w-full"
+
+								[suggestions]="listaFabricantesugerencias" (completeMethod)="search($event)"
+								optionLabel="fabricante">
+					<ng-template let-item #item>
+						<div class="flex items-center gap-2">
+							<div >{{ item.fabricante }}</div>
+						</div>
+					</ng-template>
+				</p-autoComplete>
+				<p-button icon="pi pi-plus" styleClass="mt-2" [rounded]="true" severity="success" label="Nuevo Fabricante"
+				(click)="visible=true"/>
+<!--				<p-dropdown-->
+<!--					[options]="listaFabricante"-->
+<!--					[(ngModel)]="fila_select.id_fabricante"-->
+<!--					optionLabel="fabricante"-->
+<!--					optionValue="id_fabricante"-->
+<!--					appendTo="body"-->
+<!--					placeholder="Seleccionar Fabricante" />-->
 			</div>
 		</div>
 		<div class="row">
@@ -910,3 +922,89 @@
 	</p-dialog>
 }
 <p-menu #menu [model]="items" [popup]="true" />
+<p-dialog
+	header="Lista de Fabricantes"
+	[(visible)]="visible"
+	[modal]="true"
+	[breakpoints]="{ '1199px': '50vw', '575px': '60vw' }"
+	[style]="{ width: '40vw' }"
+	[draggable]="false"
+	[resizable]="false">
+	<div class="row">
+		<div class="col-md-6 col-sm-6">
+			<div class="d-flex align-items-center flex-column mt-1">
+				<label class="font-semibold w-6rem">Nuevo Fabricante:</label>
+				<input pInputText class="w-full my-2" autocomplete="off" [(ngModel)]="nuevofabricante"/>
+			</div>
+		</div>
+		<div class="col-md-6 col-sm-6 d-flex justify-content-center align-items-center">
+			<p-button label="Guardar" icon="pi pi-send" (onClick)="guardarfabricante(1)" />
+		</div>
+	</div>
+	<p-table [value]="listaFabricante"
+			 styleClass="p-datatable-striped p-datatable-sm"
+			 [scrollable]="true"
+			 scrollHeight="300px"
+			 [loading]="loadingfab"
+			 dataKey="id_fabricante" editMode="row"
+			 [tableStyle]="{ 'min-width': '10rem' }">
+		<ng-template pTemplate="header">
+			<tr>
+				<th>Código</th>
+				<th>Fabricante</th>
+				<th></th>
+			</tr>
+		</ng-template>
+		<ng-template pTemplate="body" let-fabricante let-editing="editing">
+			<tr [pEditableRow]="fabricante">
+				<td>{{ fabricante.id_fabricante }}</td>
+				<td>
+					<p-cellEditor>
+						<ng-template pTemplate="input">
+							<input
+								pInputText
+								type="text"
+								[(ngModel)]="fabricante.fabricante" />
+						</ng-template>
+						<ng-template pTemplate="output">
+							{{fabricante.fabricante}}
+						</ng-template>
+					</p-cellEditor>
+				</td>
+				<td>
+					<div class="flex align-items-center justify-content-center gap-2">
+						<button
+							*ngIf="!editing"
+							pButton
+							pRipple
+							type="button"
+							pInitEditableRow
+							icon="pi pi-pencil"
+							(click)="onRowEditInit(fabricante)"
+							class="p-button-rounded p-button-text">
+						</button>
+						<button
+							*ngIf="editing"
+							pButton
+							pRipple
+							type="button"
+							pSaveEditableRow
+							icon="pi pi-check"
+							(click)="onRowEditSave(fabricante)"
+							class="p-button-rounded p-button-text p-button-success mr-2">
+						</button>
+						<button
+							*ngIf="editing"
+							pButton pRipple
+							type="button"
+							pCancelEditableRow
+							icon="pi pi-times"
+							(click)="onRowEditCancel(fabricante,1)"
+							class="p-button-rounded p-button-text p-button-danger">
+						</button>
+					</div>
+				</td>
+			</tr>
+		</ng-template>
+	</p-table>
+</p-dialog>
