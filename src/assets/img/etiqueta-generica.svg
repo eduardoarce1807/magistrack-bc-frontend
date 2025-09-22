@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="500" height="500" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="500" height="500" fill="#f8f9fa" stroke="#dee2e6" stroke-width="2"/>
+  
+  <!-- Header section -->
+  <rect x="20" y="20" width="460" height="80" fill="#007bff" rx="10"/>
+  <text x="250" y="50" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="16" font-weight="bold">LABORATORIO DERMATOLÓGICO</text>
+  <text x="250" y="75" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="14">PRODUCTO MEDICINAL</text>
+  
+  <!-- Product name section -->
+  <rect x="20" y="120" width="460" height="60" fill="#e9ecef" stroke="#ced4da" stroke-width="1" rx="5"/>
+  <text x="250" y="140" text-anchor="middle" fill="#495057" font-family="Arial, sans-serif" font-size="18" font-weight="bold">CREMA DERMATOLÓGICA</text>
+  <text x="250" y="165" text-anchor="middle" fill="#6c757d" font-family="Arial, sans-serif" font-size="14">USO TÓPICO - 50g</text>
+  
+  <!-- Ingredients section -->
+  <text x="30" y="210" fill="#212529" font-family="Arial, sans-serif" font-size="12" font-weight="bold">PRINCIPIOS ACTIVOS:</text>
+  <text x="30" y="230" fill="#495057" font-family="Arial, sans-serif" font-size="10">• Extracto de aloe vera 5%</text>
+  <text x="30" y="245" fill="#495057" font-family="Arial, sans-serif" font-size="10">• Vitamina E 2%</text>
+  <text x="30" y="260" fill="#495057" font-family="Arial, sans-serif" font-size="10">• Aceite de jojoba 3%</text>
+  
+  <!-- Instructions -->
+  <text x="30" y="290" fill="#212529" font-family="Arial, sans-serif" font-size="12" font-weight="bold">MODO DE USO:</text>
+  <text x="30" y="310" fill="#495057" font-family="Arial, sans-serif" font-size="10">Aplicar sobre la piel limpia y seca,</text>
+  <text x="30" y="325" fill="#495057" font-family="Arial, sans-serif" font-size="10">2-3 veces al día o según indicación médica.</text>
+  
+  <!-- Warnings -->
+  <rect x="20" y="350" width="460" height="50" fill="#fff3cd" stroke="#ffeaa7" stroke-width="1" rx="5"/>
+  <text x="30" y="370" fill="#856404" font-family="Arial, sans-serif" font-size="11" font-weight="bold">PRECAUCIONES:</text>
+  <text x="30" y="385" fill="#856404" font-family="Arial, sans-serif" font-size="9">Solo para uso externo. Evitar contacto con ojos.</text>
+  <text x="30" y="395" fill="#856404" font-family="Arial, sans-serif" font-size="9">Suspender uso si hay irritación.</text>
+  
+  <!-- Bottom info -->
+  <text x="30" y="430" fill="#6c757d" font-family="Arial, sans-serif" font-size="10">Lote: ABC123</text>
+  <text x="30" y="445" fill="#6c757d" font-family="Arial, sans-serif" font-size="10">Fecha de vencimiento: 12/2026</text>
+  <text x="30" y="460" fill="#6c757d" font-family="Arial, sans-serif" font-size="10">Registro Sanitario: INVIMA 2023M-001234-R1</text>
+  
+  <!-- Barcode placeholder -->
+  <rect x="350" y="420" width="120" height="60" fill="white" stroke="#000" stroke-width="1"/>
+  <g transform="translate(355, 425)">
+    <!-- Simple barcode lines -->
+    <rect x="0" y="0" width="2" height="50" fill="black"/>
+    <rect x="4" y="0" width="1" height="50" fill="black"/>
+    <rect x="7" y="0" width="3" height="50" fill="black"/>
+    <rect x="12" y="0" width="1" height="50" fill="black"/>
+    <rect x="15" y="0" width="2" height="50" fill="black"/>
+    <rect x="19" y="0" width="1" height="50" fill="black"/>
+    <rect x="22" y="0" width="4" height="50" fill="black"/>
+    <rect x="28" y="0" width="1" height="50" fill="black"/>
+    <rect x="31" y="0" width="2" height="50" fill="black"/>
+    <rect x="35" y="0" width="1" height="50" fill="black"/>
+    <rect x="38" y="0" width="3" height="50" fill="black"/>
+    <rect x="43" y="0" width="1" height="50" fill="black"/>
+    <rect x="46" y="0" width="2" height="50" fill="black"/>
+    <rect x="50" y="0" width="1" height="50" fill="black"/>
+    <rect x="53" y="0" width="4" height="50" fill="black"/>
+    <rect x="59" y="0" width="1" height="50" fill="black"/>
+    <rect x="62" y="0" width="2" height="50" fill="black"/>
+    <rect x="66" y="0" width="1" height="50" fill="black"/>
+    <rect x="69" y="0" width="3" height="50" fill="black"/>
+    <rect x="74" y="0" width="1" height="50" fill="black"/>
+    <rect x="77" y="0" width="2" height="50" fill="black"/>
+    <rect x="81" y="0" width="1" height="50" fill="black"/>
+    <rect x="84" y="0" width="4" height="50" fill="black"/>
+    <rect x="90" y="0" width="1" height="50" fill="black"/>
+    <rect x="93" y="0" width="2" height="50" fill="black"/>
+    <rect x="97" y="0" width="1" height="50" fill="black"/>
+    <rect x="100" y="0" width="3" height="50" fill="black"/>
+    <rect x="105" y="0" width="1" height="50" fill="black"/>
+    <rect x="108" y="0" width="2" height="50" fill="black"/>
+  </g>
+</svg>

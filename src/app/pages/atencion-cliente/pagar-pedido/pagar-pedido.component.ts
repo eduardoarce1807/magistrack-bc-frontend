@@ -392,7 +392,31 @@ export class PagarPedidoComponent implements OnInit, AfterViewInit {
 
     //console.log('Pago manual:', this.pagoManual);
 
-    this.pagoPedidoService.savePago(this.pagoManual).subscribe(
+    // Crear FormData para enviar con multipart/form-data
+    const formData = new FormData();
+    formData.append('idPedido', this.pagoManual.idPedido);
+    formData.append('idCliente', this.pagoManual.idCliente.toString());
+    formData.append('idTipoPago', this.pagoManual.idTipoPago.toString());
+    
+    if (this.pagoManual.idBanco) {
+      formData.append('idBanco', this.pagoManual.idBanco.toString());
+    }
+    
+    if (this.pagoManual.numeroOperacion) {
+      formData.append('numeroOperacion', this.pagoManual.numeroOperacion);
+    }
+    
+    // Convertir fecha a formato LocalDate (solo fecha, sin tiempo)
+    const fechaLocalDate = this.pagoManual.fechaPago.split('T')[0];
+    formData.append('fechaPago', fechaLocalDate);
+    
+    // Agregar archivo si existe
+    const archivoInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+    if (archivoInput?.files?.[0]) {
+      formData.append('archivo', archivoInput.files[0]);
+    }
+
+    this.pagoPedidoService.savePagoConArchivo(formData).subscribe(
       (response) => {
         if (response) {
           this.modalService.dismissAll();

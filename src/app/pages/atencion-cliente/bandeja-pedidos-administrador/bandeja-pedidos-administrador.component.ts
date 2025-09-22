@@ -8,12 +8,14 @@ import {
 	NgbTypeaheadModule,
 	NgbPaginationModule,
 	NgbTooltipModule,
+	NgbModal,
 } from '@ng-bootstrap/ng-bootstrap';
 import { PedidoAuditoriaService } from '../../../services/pedido-auditoria.service';
 import { DataService } from '../../../services/data.service';
 import { ProductoService } from '../../../services/producto.service';
 import { ToastService } from '../../../services/toast.service';
 import { ToastsContainer } from '../../../shared/components/toasts-container/toasts-container.component';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 
 @Component({
 	selector: 'app-bandeja-pedidos-administrador',
@@ -34,12 +36,19 @@ export class BandejaPedidosAdministradorComponent implements OnInit {
 
 	lstPedidosSeleccionados: string[] = [];
 
+	// Propiedades para el modal de comprobante de pago
+	pedidoSeleccionado: any = null;
+	urlComprobanteValida: boolean = false;
+	urlComprobanteSanitizada: SafeResourceUrl | null = null;
+
 	constructor(
 		private pedidoService: PedidoService,
 		private pedidoAuditoriaService: PedidoAuditoriaService,
 		public router: Router,
 		private dataService: DataService,
-		private productoService: ProductoService
+		private productoService: ProductoService,
+		private modalService: NgbModal,
+		private sanitizer: DomSanitizer
 	) {}
 
 	ngOnInit(): void {
@@ -307,5 +316,91 @@ export class BandejaPedidosAdministradorComponent implements OnInit {
 				});
 			}
 		});
+	}
+
+	// Métodos para manejo del comprobante de pago
+	tieneComprobantePago(item: any): boolean {
+		return !!(
+			item &&
+			item.pagoPedido &&
+			item.pagoPedido.urlArchivo &&
+			item.pagoPedido.urlArchivo.trim() !== ''
+		);
+	}
+
+	verComprobantePago(item: any, content: TemplateRef<any>) {
+		if (!this.tieneComprobantePago(item)) {
+			Swal.fire({
+				icon: 'warning',
+				title: 'Sin comprobante',
+				text: 'Este pedido no tiene un comprobante de pago disponible.',
+				showConfirmButton: true,
+			});
+			return;
+		}
+
+		this.pedidoSeleccionado = item;
+		this.urlComprobanteValida = false;
+		this.urlComprobanteSanitizada = null;
+
+		// Validar y procesar la URL
+		const urlArchivo = item.pagoPedido.urlArchivo;
+		
+		try {
+			// Verificar si es una URL válida
+			const url = new URL(urlArchivo);
+			
+			// Verificar si es de Google Drive y convertir a URL de vista previa
+			if (this.esUrlDrive(urlArchivo)) {
+				const urlVistaPrevia = this.convertirAUrlVistaPreviaDrive(urlArchivo);
+				if (urlVistaPrevia) {
+					this.urlComprobanteSanitizada = this.sanitizer.bypassSecurityTrustResourceUrl(urlVistaPrevia);
+					this.urlComprobanteValida = true;
+				}
+			} else {
+				// Para otras URLs, intentar mostrar directamente
+				this.urlComprobanteSanitizada = this.sanitizer.bypassSecurityTrustResourceUrl(urlArchivo);
+				this.urlComprobanteValida = true;
+			}
+		} catch (error) {
+			console.error('URL inválida:', error);
+			this.urlComprobanteValida = false;
+		}
+
+		// Abrir modal
+		this.modalService.open(content, { size: 'xl', centered: true });
+	}
+
+	private esUrlDrive(url: string): boolean {
+		return url.includes('drive.google.com') || url.includes('docs.google.com');
+	}
+
+	private convertirAUrlVistaPreviaDrive(url: string): string | null {
+		try {
+			// Extraer el ID del archivo de diferentes formatos de URL de Drive
+			let fileId: string | null = null;
+			
+			// Formato: https://drive.google.com/file/d/FILE_ID/view
+			const matchView = url.match(/\/file\/d\/([a-zA-Z0-9-_]+)/);
+			if (matchView) {
+				fileId = matchView[1];
+			}
+			
+			// Formato: https://drive.google.com/open?id=FILE_ID
+			const matchOpen = url.match(/[?&]id=([a-zA-Z0-9-_]+)/);
+			if (matchOpen) {
+				fileId = matchOpen[1];
+			}
+			
+			// Si se encontró el ID, crear URL de vista previa
+			if (fileId) {
+				return `https://drive.google.com/file/d/${fileId}/preview`;
+			}
+			
+			return null;
+		} catch (error) {
+			console.error('Error al convertir URL de Drive:', error);
+			return null;
+		}
 	}
 }

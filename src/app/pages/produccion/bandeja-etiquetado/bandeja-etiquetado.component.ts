@@ -40,6 +40,9 @@ export class BandejaEtiquetadoComponent implements OnInit {
   idProductoNota: string | null = null;
   observacionNota: string = '';
 
+  // Variables para el modal de etiqueta
+  productoEtiqueta: any = null;
+
   tipoEnvio = 0;
 
   codigoProductoValidar = '';
@@ -146,6 +149,122 @@ export class BandejaEtiquetadoComponent implements OnInit {
     this.observacionNota = item.observacion;
     this.idPedidoNota = item.idPedido;
     this.idProductoNota = item.idProducto;
+  }
+
+  openModalEtiqueta(item: any, content: TemplateRef<any>) {
+    this.productoEtiqueta = item;
+    this.modalService.open(content, { size: 'lg', centered: true });
+  }
+
+  imprimirEtiqueta() {
+    // Crear una ventana de impresión específica para la etiqueta
+    const ventanaImpresion = window.open('', '_blank', 'width=600,height=700,scrollbars=yes,resizable=yes');
+    
+    if (ventanaImpresion) {
+      // Generar el HTML para la impresión
+      const htmlImpresion = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>Etiqueta - ${this.productoEtiqueta?.nombre || 'Producto'}</title>
+          <style>
+            @media print {
+              @page {
+                size: A5;
+                margin: 10mm;
+              }
+              body {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+              }
+            }
+            body {
+              font-family: Arial, sans-serif;
+              margin: 0;
+              padding: 20px;
+              background: white;
+            }
+            .etiqueta-container {
+              max-width: 500px;
+              margin: 0 auto;
+              text-align: center;
+            }
+            .info-producto {
+              margin-bottom: 20px;
+              padding: 15px;
+              border: 1px solid #ddd;
+              border-radius: 8px;
+              background-color: #f8f9fa;
+            }
+            .info-producto h3 {
+              margin: 0 0 10px 0;
+              color: #007bff;
+            }
+            .info-producto p {
+              margin: 5px 0;
+              font-size: 14px;
+            }
+            .etiqueta-imagen {
+              max-width: 100%;
+              height: auto;
+              border: 1px solid #ddd;
+              border-radius: 8px;
+            }
+            .footer-impresion {
+              margin-top: 20px;
+              font-size: 12px;
+              color: #666;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="etiqueta-container">
+            <div class="info-producto">
+              <h3>Información del Producto</h3>
+              <p><strong>Código:</strong> ${this.productoEtiqueta?.id || 'N/A'}</p>
+              <p><strong>Nombre:</strong> ${this.productoEtiqueta?.nombre || 'N/A'}</p>
+              <p><strong>Presentación:</strong> ${this.productoEtiqueta?.presentacion || ''} ${this.productoEtiqueta?.tipoPresentacion || ''}</p>
+              <p><strong>Cantidad:</strong> ${this.productoEtiqueta?.cantidad || 'N/A'}</p>
+            </div>
+            
+            <div>
+              <img src="${window.location.origin}/assets/img/etiqueta-generica.svg" 
+                   alt="Etiqueta del producto" 
+                   class="etiqueta-imagen" />
+            </div>
+            
+            <div class="footer-impresion">
+              <p>Etiqueta impresa el ${new Date().toLocaleDateString('es-ES', { 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+              })}</p>
+            </div>
+          </div>
+        </body>
+        </html>
+      `;
+      
+      // Escribir el contenido en la ventana
+      ventanaImpresion.document.write(htmlImpresion);
+      ventanaImpresion.document.close();
+      
+      // Esperar a que cargue y luego imprimir
+      ventanaImpresion.onload = function() {
+        setTimeout(() => {
+          ventanaImpresion.print();
+          // Opcional: cerrar la ventana después de imprimir
+          setTimeout(() => {
+            ventanaImpresion.close();
+          }, 1000);
+        }, 500);
+      };
+    } else {
+      // Fallback si no se puede abrir la ventana
+      alert('No se pudo abrir la ventana de impresión. Por favor, verifique que su navegador permita ventanas emergentes.');
+    }
   }
 
   openModal(content: TemplateRef<any>) {
