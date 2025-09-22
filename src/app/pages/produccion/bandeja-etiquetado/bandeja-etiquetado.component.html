@@ -109,12 +109,20 @@
 							<i class="bi bi-send"></i>
 						</button>
 						<button
-							class="btn btn-secondary"
+							class="btn btn-secondary me-2"
 							(click)="openModalNota(item, nota)"
 							ngbTooltip="Agregar observaciones al producto"
 							placement="top"
 						>
 							<i class="bi bi-stickies"></i>
+						</button>
+						<button
+							class="btn btn-primary"
+							(click)="openModalEtiqueta(item, etiquetaModal)"
+							ngbTooltip="Ver etiqueta"
+							placement="top"
+						>
+							<i class="bi bi-tag"></i>
 						</button>
 					</td>
 				</tr>
@@ -437,6 +445,54 @@
 			placement="top"
 		>
 			Guardar
+		</button>
+	</div>
+</ng-template>
+
+<ng-template #etiquetaModal let-modal>
+	<div class="modal-header">
+		<h4 class="modal-title" id="modal-basic-title">Etiqueta del Producto</h4>
+		<button
+			type="button"
+			class="btn-close"
+			aria-label="Close"
+			(click)="modal.dismiss('Cross click')"
+		></button>
+	</div>
+	<div class="modal-body text-center">
+		<div class="mb-3">
+			<p><strong>Código:</strong> {{ productoEtiqueta?.id }}</p>
+			<p><strong>Nombre:</strong> {{ productoEtiqueta?.nombre }}</p>
+			<p><strong>Presentación:</strong> {{ productoEtiqueta?.presentacion }} {{ productoEtiqueta?.tipoPresentacion }}</p>
+		</div>
+		<div class="d-flex justify-content-center">
+			<img 
+				src="assets/img/etiqueta-generica.svg" 
+				alt="Etiqueta del producto" 
+				class="img-fluid"
+				style="max-width: 500px; max-height: 500px; border: 1px solid #ddd; border-radius: 8px;"
+			/>
+		</div>
+		<div class="mt-3">
+			<small class="text-muted">Imagen de referencia - Etiqueta genérica para productos dermatológicos</small>
+		</div>
+	</div>
+	<div class="modal-footer">
+		<button
+			type="button"
+			class="btn btn-primary me-2"
+			(click)="imprimirEtiqueta()"
+			ngbTooltip="Imprimir etiqueta"
+			placement="top"
+		>
+			<i class="bi bi-printer"></i> Imprimir
+		</button>
+		<button
+			type="button"
+			class="btn btn-secondary"
+			(click)="modal.close()"
+		>
+			Cerrar
 		</button>
 	</div>
 </ng-template>

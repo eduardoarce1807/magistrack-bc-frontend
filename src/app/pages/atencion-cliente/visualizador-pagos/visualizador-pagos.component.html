@@ -54,12 +54,18 @@
 					<td>{{item.banco ? item.banco.nombre : '-'}}</td>
                     <td>
 						@if(item.urlArchivo){
-							<a [href]="item.urlArchivo" target="_blank" class="btn btn-info">
+							<a ngbTooltip="Ver archivo adjunto" [href]="item.urlArchivo" target="_blank" class="btn btn-info btn-sm me-1">
 								<i class="bi bi-file-earmark-text"></i>
 							</a>
-						}@else {
-							<span class="text-muted">-</span>
 						}
+						<button 
+							class="btn btn-warning btn-sm" 
+							(click)="abrirModalAdjunto(item, modalAdjunto)"
+							ngbTooltip="{{ item.urlArchivo ? 'Editar archivo adjunto' : 'Agregar archivo adjunto' }}"
+							placement="top"
+						>
+							<i class="bi {{ item.urlArchivo ? 'bi-pencil' : 'bi-plus-circle' }}"></i>
+						</button>
 					</td>
 				</tr>
 				}
@@ -89,3 +95,87 @@
 		</div> -->
 	</div>
 </div>
+
+<!-- Modal para adjuntar archivo -->
+<ng-template #modalAdjunto let-modal>
+	<div class="modal-header">
+		<h4 class="modal-title" id="modal-basic-title">
+			{{ pagoSeleccionado?.urlArchivo ? 'Editar' : 'Agregar' }} Archivo Adjunto
+		</h4>
+		<button
+			type="button"
+			class="btn-close"
+			aria-label="Close"
+			(click)="modal.dismiss('Cross click')"
+		></button>
+	</div>
+	<div class="modal-body">
+		@if (pagoSeleccionado) {
+			<div class="mb-3">
+				<p><strong>Pedido:</strong> {{ pagoSeleccionado.pedido.idPedido }}</p>
+				<p><strong>Cliente:</strong> {{ pagoSeleccionado.pedido.cliente.nombres }} {{ pagoSeleccionado.pedido.cliente.apellidos }}</p>
+				<p><strong>Monto:</strong> S/ {{ pagoSeleccionado.pedido.montoTotal?.toFixed(2) }}</p>
+			</div>
+			
+			@if (pagoSeleccionado.urlArchivo) {
+				<div class="alert alert-info">
+					<p class="mb-2"><strong>Archivo actual:</strong></p>
+					<a [href]="pagoSeleccionado.urlArchivo" target="_blank" class="btn btn-outline-primary btn-sm">
+						<i class="bi bi-file-earmark-text"></i> Ver archivo actual
+					</a>
+				</div>
+			}
+			
+			<div class="mb-3">
+				<label for="archivoAdjunto" class="form-label">
+					{{ pagoSeleccionado.urlArchivo ? 'Reemplazar archivo' : 'Seleccionar archivo' }}
+					<span class="text-danger">*</span>
+				</label>
+				<input
+					type="file"
+					id="archivoAdjunto"
+					class="form-control"
+					accept=".jpg,.jpeg,.png,.pdf"
+					(change)="onArchivoAdjuntoSeleccionado($event)"
+				/>
+				<div class="form-text">
+					Formatos permitidos: JPG, PNG, PDF. Tamaño máximo: 4MB
+				</div>
+			</div>
+			
+			@if (archivoSeleccionado) {
+				<div class="alert alert-success">
+					<p class="mb-1"><strong>Archivo seleccionado:</strong></p>
+					<p class="mb-1">{{ archivoSeleccionado.name }}</p>
+					<p class="mb-0">Tamaño: {{ formatearTamanoArchivo(archivoSeleccionado.size) }}</p>
+				</div>
+			}
+			
+			@if (errorArchivo) {
+				<div class="alert alert-danger">
+					{{ errorArchivo }}
+				</div>
+			}
+		}
+	</div>
+	<div class="modal-footer">
+		<button
+			type="button"
+			class="btn btn-secondary"
+			(click)="modal.close()"
+		>
+			Cancelar
+		</button>
+		<button
+			type="button"
+			class="btn btn-primary"
+			(click)="subirArchivoAdjunto()"
+			[disabled]="!archivoSeleccionado || subiendoArchivo"
+		>
+			@if (subiendoArchivo) {
+				<span class="spinner-border spinner-border-sm me-2" role="status"></span>
+			}
+			{{ pagoSeleccionado?.urlArchivo ? 'Actualizar' : 'Subir' }} Archivo
+		</button>
+	</div>
+</ng-template>

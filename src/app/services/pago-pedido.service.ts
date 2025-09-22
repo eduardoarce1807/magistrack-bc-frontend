@@ -17,6 +17,16 @@ export class PagoPedidoService {
       return this.http.post<any>(url, pago);
     }
 
+    savePagoConArchivo(pago: any): Observable<any> {
+      let url = `${this.baseUrl}/con-archivo`;
+      return this.http.post<any>(url, pago);
+    }
+
+    saveAdjuntoPago(pago: any): Observable<any> {
+      let url = `${this.baseUrl}/adjuntar-archivo`;
+      return this.http.post<any>(url, pago);
+    }
+
     listarPagos(): Observable<any[]> {
       let url = `${this.baseUrl}`;
       return this.http.get<any[]>(url);
