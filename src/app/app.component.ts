@@ -22,7 +22,14 @@ export class AppComponent implements OnInit {
     private primengConfig: PrimeNGConfig
   ) {
     setInterval(() => {
-      if (!this.auth.isAuthenticated()) {
+      // Lista de rutas públicas que no requieren autenticación
+      const publicRoutes = ['/auth/login', '/registro-publico'];
+      const currentUrl = this.router.url;
+      
+      // Solo verificar autenticación si no estamos en una ruta pública
+      const isPublicRoute = publicRoutes.some(route => currentUrl.includes(route));
+      
+      if (!isPublicRoute && !this.auth.isAuthenticated()) {
         dataService.clearLoggedUser();
         this.router.navigate(['/auth/login']);
       }

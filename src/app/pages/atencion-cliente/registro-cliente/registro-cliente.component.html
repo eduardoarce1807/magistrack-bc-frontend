@@ -1,8 +1,18 @@
 <div class="container-fluid mt-5" style="padding: 0px 60px;">
   <div class="card shadow-lg p-4 rounded-4">
-    @if(isEditing){
+    @if(isEditing && !isProfileMode){
       <button style="position: absolute;" class="btn btn-link text-decoration-none p-0" (click)="router.navigate(['/pages/atencion-cliente/mantenimiento-clientes'])">
         <i class="bi bi-arrow-left"></i> Mantenimiento Clientes
+      </button>
+    }
+    @if(isPublicAccess){
+      <button style="position: absolute;" class="btn btn-link text-decoration-none p-0" (click)="router.navigate(['/auth/login'])">
+        <i class="bi bi-arrow-left"></i> Volver al Login
+      </button>
+    }
+    @if(isProfileMode){
+      <button style="position: absolute;" class="btn btn-link text-decoration-none p-0" (click)="router.navigate(['/pages/home'])">
+        <i class="bi bi-arrow-left"></i> Volver al Inicio
       </button>
     }
     
@@ -26,18 +36,20 @@
           </div>
         </div>
         <!-- Rol -->
-        <div class="col-md-3">
-          <label for="rol" class="form-label fw-bold">Rol*</label>
-          <select formControlName="rol" class="form-select" required>
-            <option value="" disabled selected>Seleccione rol</option>
-            <option *ngFor="let rol of roles" [value]="rol.idRol">{{ rol.nombre }}</option>
-          </select>
-          <div *ngIf="clienteForm.get('rol')?.invalid && clienteForm.get('rol')?.touched" class="text-danger small">
-            El rol es obligatorio.
+        @if(!isPublicAccess && !isProfileMode){
+          <div class="col-md-3">
+            <label for="rol" class="form-label fw-bold">Rol*</label>
+            <select formControlName="rol" class="form-select" required>
+              <option value="" disabled selected>Seleccione rol</option>
+              <option *ngFor="let rol of roles" [value]="rol.idRol">{{ rol.nombre }}</option>
+            </select>
+            <div *ngIf="clienteForm.get('rol')?.invalid && clienteForm.get('rol')?.touched" class="text-danger small">
+              El rol es obligatorio.
+            </div>
           </div>
-        </div>
+        }
         <!-- Tipo de Documento -->
-        <div class="col-md-3">
+        <div [class]="(isPublicAccess || isProfileMode) ? 'col-md-6' : 'col-md-3'">
           <label for="tipoDocumento" class="form-label fw-bold">Tipo de Documento*</label>
           <select formControlName="tipoDocumento" class="form-select" required>
             <option value="" disabled selected>Seleccione tipo de documento</option>

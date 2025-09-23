@@ -9,6 +9,7 @@ import Swal from 'sweetalert2';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { EmailService } from '../../../services/email.service';
+import { AuthService } from '../../../services/auth.service';
 
 @Component({
   selector: 'app-registro-cliente',
@@ -26,6 +27,8 @@ export class RegistroClienteComponent implements OnInit {
   isEditing: boolean = false;
   passwordTouched: boolean = false;
   isSubmitting: boolean = false;
+  isPublicAccess: boolean = false;
+  isProfileMode: boolean = false;
 
   private routeSubscription: Subscription | null = null;
   showPassword: any;
@@ -40,7 +43,8 @@ export class RegistroClienteComponent implements OnInit {
     private rolService: RolService,
     private route: ActivatedRoute,
     public router: Router,
-    private emailService: EmailService
+    private emailService: EmailService,
+    private authService: AuthService
   ) {
     const passwordPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{6,}$/;
 
@@ -75,8 +79,8 @@ export class RegistroClienteComponent implements OnInit {
   }
 
   correosIgualesValidator(form: FormGroup) {
-    // Skip validation during editing mode
-    if (this.isEditing === true) {
+    // Skip validation during editing mode or profile mode
+    if (this.isEditing === true || this.isProfileMode === true) {
       return null;
     }
     
@@ -126,6 +130,24 @@ export class RegistroClienteComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    // Detectar si se está accediendo públicamente
+    this.isPublicAccess = this.router.url.includes('/registro-publico');
+    
+    // Detectar si se está accediendo en modo perfil
+    this.isProfileMode = this.router.url.includes('/pages/perfil');
+    
+    if (this.isPublicAccess) {
+      this.titleText = 'Crear cuenta';
+      // Establecer rol por defecto como 2 y deshabilitar el campo
+      this.clienteForm.get('rol')?.setValue('2');
+      this.clienteForm.get('rol')?.disable();
+    }
+    
+    if (this.isProfileMode) {
+      this.titleText = 'Mi Perfil';
+      this.isEditing = true;
+      this.cargarDatosUsuarioActual();
+    }
 
     this.routeSubscription = this.route.paramMap.subscribe(params => {
       const idCliente = Number(params.get('idCliente'));
@@ -143,7 +165,13 @@ export class RegistroClienteComponent implements OnInit {
             this.clienteForm.get('usuario')?.disable();
             this.clienteForm.get('referidoPor')?.disable();
             this.clienteForm.get('confirmCorreo')?.disable();
-            this.clienteForm.get('correo')?.disable();
+            
+            // Solo deshabilitar el correo si tiene valor, si está vacío permitir editarlo
+            if (cliente.correo && cliente.correo.trim() !== '') {
+              this.clienteForm.get('correo')?.disable();
+            } else {
+              this.clienteForm.get('correo')?.enable();
+            }
             
             // Remove confirmCorreo validation requirement when editing
             this.clienteForm.get('confirmCorreo')?.clearValidators();
@@ -214,6 +242,55 @@ export class RegistroClienteComponent implements OnInit {
     );
   }
 
+  cargarDatosUsuarioActual(): void {
+    const usuarioActual = this.authService.getUsuario();
+    if (usuarioActual && usuarioActual.cliente.idCliente) {
+      this.clienteService.getClienteCompleto(usuarioActual.cliente.idCliente).subscribe(
+        (cliente) => {
+          // Map idRol to rol field for form compatibility
+          if (cliente.idRol) {
+            cliente.rol = cliente.idRol;
+          }
+          
+          this.clienteForm.patchValue(cliente);
+          
+          // En modo perfil, deshabilitar campos específicos
+          this.clienteForm.get('usuario')?.disable();
+          this.clienteForm.get('rol')?.disable();
+          this.clienteForm.get('referidoPor')?.disable();
+          this.clienteForm.get('confirmCorreo')?.disable();
+          
+          // Solo deshabilitar el correo si tiene valor, si está vacío permitir editarlo
+          if (cliente.correo && cliente.correo.trim() !== '') {
+            this.clienteForm.get('correo')?.disable();
+          } else {
+            this.clienteForm.get('correo')?.enable();
+          }
+          
+          // Remove confirmCorreo validation requirement when in profile mode
+          this.clienteForm.get('confirmCorreo')?.clearValidators();
+          this.clienteForm.get('confirmCorreo')?.updateValueAndValidity();
+          
+          // Check if password meets current requirements and show warning if not
+          const passwordControl = this.clienteForm.get('password');
+          if (passwordControl?.invalid) {
+            // Mark as touched to show validation message immediately
+            passwordControl.markAsTouched();
+            this.passwordTouched = true;
+          }
+          
+          // Track when password field is touched during editing
+          this.clienteForm.get('password')?.valueChanges.subscribe(() => {
+            this.passwordTouched = true;
+          });
+        },
+        (error) => {
+          console.error('Error al cargar datos del usuario', error);
+        }
+      );
+    }
+  }
+
   validarCodigoReferido(): void {
     const codigoReferido = this.clienteForm.get('referidoPor')?.value;
     if (codigoReferido) {
@@ -246,7 +323,7 @@ export class RegistroClienteComponent implements OnInit {
     const clienteData = {
       usuario: this.clienteForm.get('usuario')?.value,
       password: formValues.password,
-      idRol: +formValues.rol,
+      idRol: this.isPublicAccess ? 2 : +formValues.rol, // Usar rol 2 si es acceso público, sino usar el valor del formulario
       nombres: formValues.nombres,
       apellidos: formValues.apellidos,
       tipoDocumento: +formValues.tipoDocumento,
@@ -270,7 +347,7 @@ export class RegistroClienteComponent implements OnInit {
 
     console.log('Datos del cliente:', clienteData);
 
-    if(!this.isEditing) {
+    if(!this.isEditing && !this.isProfileMode) {
       this.clienteService.createClienteUsuario(clienteData).subscribe(
         (data) => {
           this.isSubmitting = false;
@@ -299,7 +376,11 @@ export class RegistroClienteComponent implements OnInit {
               allowOutsideClick: false,
             }).then(() => {
               this.clienteForm.reset();
-              this.router.navigate(['/pages/atencion-cliente/mantenimiento-clientes']);
+              if (this.isPublicAccess) {
+                this.router.navigate(['/auth/login']);
+              } else {
+                this.router.navigate(['/pages/atencion-cliente/mantenimiento-clientes']);
+              }
             });
           }else{
             Swal.fire({
@@ -321,7 +402,7 @@ export class RegistroClienteComponent implements OnInit {
           });
         }
       );
-    }else{
+    } else {
       this.clienteService.updateClienteUsuario(clienteData).subscribe(
         (data) => {
           this.isSubmitting = false;
@@ -334,9 +415,21 @@ export class RegistroClienteComponent implements OnInit {
               allowEscapeKey: false,
               allowOutsideClick: false,
             }).then(() => {
-              this.router.navigate(['/pages/atencion-cliente/mantenimiento-clientes']);
-            }
-            );
+              if (this.isProfileMode) {
+                // Mostrar mensaje adicional si completó el perfil desde login
+                Swal.fire({
+                  icon: 'success',
+                  title: '¡Perfil completado!',
+                  text: 'Ahora puedes usar la aplicación normalmente.',
+                  timer: 2000,
+                  showConfirmButton: false
+                }).then(() => {
+                  this.router.navigate(['/pages/home']);
+                });
+              } else {
+                this.router.navigate(['/pages/atencion-cliente/mantenimiento-clientes']);
+              }
+            });
           }else{
             Swal.fire({
               icon: 'error',
