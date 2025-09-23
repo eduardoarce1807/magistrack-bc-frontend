@@ -57,6 +57,11 @@ export class SidebarComponent {
 					key: '0_10',
 					label: 'Solicitud Preparado Magistral',
 					command: () => this.irA('pages/atencion-cliente/solicitud-preparado-magistral')
+				},
+				{
+					key: '0_11',
+					label: 'Mi Perfil',
+					command: () => this.irA('pages/perfil')
 				}
 			] : []),
 			...(atencionClienteAccessRoles.includes(user.rol.idRol) ? [
