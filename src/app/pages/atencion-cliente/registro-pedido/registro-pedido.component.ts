@@ -1154,11 +1154,33 @@ export class RegistroPedidoComponent implements OnInit, OnDestroy {
         preparado.subtotal = preparado.precio * preparado.cantidad;
       }
 
-      // TODO: Implementar endpoint para actualizar cantidad de preparado magistral
-      // Por ahora, solo actualizamos localmente y recargamos
-      this.showSuccess(this.successTpl);
-      this.cargarProductosByIdPedido(this.idPedido!);
-      this.isLoading = false;
+      // Implementar endpoint para actualizar cantidad de preparado magistral
+      const cantidadRequest = {
+        idPedido: this.idPedido!,
+        idPreparadoMagistral: preparado.idPreparadoMagistral,
+        cantidad: cantidadNumber
+      };
+
+      this.pedidoService.updateCantidadPreparadoMagistral(cantidadRequest).subscribe(
+        (response: any) => {
+          if (response) {
+            console.log('Cantidad de preparado magistral actualizada:', response);
+            this.showSuccess(this.successTpl);
+            this.cargarProductosByIdPedido(this.idPedido!);
+            this.isLoading = false;
+          }
+        },
+        (error: any) => {
+          console.error('Error al actualizar cantidad de preparado magistral', error);
+          this.isLoading = false;
+          Swal.fire({
+            icon: 'error',
+            title: 'Oops!',
+            text: 'No se pudo actualizar la cantidad del preparado magistral, inténtelo de nuevo.',
+            showConfirmButton: true
+          });
+        }
+      );
     }, 1000);
   }
 
