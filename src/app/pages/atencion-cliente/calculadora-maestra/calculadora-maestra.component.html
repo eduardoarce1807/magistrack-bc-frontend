@@ -1,5 +1,10 @@
 <div class="container mt-5">
 	<div class="card shadow-lg p-4 rounded-4 mb-4">
+
+        <button *ngIf="modoPreparadoMagistral" style="position: absolute;" class="btn btn-link text-decoration-none p-0" (click)="router.navigate(['/pages/gestion-producto/bandeja-solicitudes-preparados-magistrales'])">
+			<i class="bi bi-arrow-left"></i> Bandeja de Solicitudes de Preparados Mag.
+		</button>
+
 		<h2 class="mb-4 text-center">Calculadora Maestra</h2>
 
         <div class="d-flex justify-content-start mb-3" *ngIf="!isStandaloneMode && !modoPreparadoMagistral">

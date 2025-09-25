@@ -12,6 +12,7 @@ import { PreparadoMagistralService } from '../../../services/preparado-magistral
 import { PedidoService } from '../../../services/pedido.service';
 import { CanalVentaService } from '../../../services/canal-venta.service';
 import { MetodoEntregaService } from '../../../services/metodo-entrega.service';
+import { SolicitudPreparadoMagistralService } from '../../../services/solicitud-preparado-magistral.service';
 import Swal from 'sweetalert2';
 
 export interface PreparadoMagistral {
@@ -78,6 +79,11 @@ export class RegistroPreparadoMagistralComponent implements OnInit {
   preparado: PreparadoMagistral = {} as PreparadoMagistral;
   pedidoData: PedidoData = {} as PedidoData;
   
+  // Modo de operación
+  modoCrear: boolean = true; // true = crear nuevo, false = actualizar existente
+  idPreparadoMagistralActualizar: string = '';
+  idPedidoActualizar: string = '';
+  
   // Data de servicios
   tiposPresentacion: any[] = [];
   materiasPrimas: any[] = [];
@@ -101,6 +107,7 @@ export class RegistroPreparadoMagistralComponent implements OnInit {
     private pedidoService: PedidoService,
     private canalVentaService: CanalVentaService,
     private metodoEntregaService: MetodoEntregaService,
+    private solicitudService: SolicitudPreparadoMagistralService,
     private cdr: ChangeDetectorRef
   ) {
     this.initializeModels();
@@ -138,10 +145,10 @@ export class RegistroPreparadoMagistralComponent implements OnInit {
 
     this.pedidoData = {
       idCliente: 0,
-      idCanalVenta: 0,
-      idMetodoEntrega: 0,
+      idCanalVenta: 1,
+      idMetodoEntrega: 3,
       observaciones: '',
-      fechaEstimadaEntrega: '',
+      fechaEstimadaEntrega: this.getFechaEntregaDefecto(),
       idPreparadoMagistral: '',
       cantidad: 1,
       observacionPreparado: ''
@@ -151,15 +158,29 @@ export class RegistroPreparadoMagistralComponent implements OnInit {
   obtenerDatosCalculadora(): void {
     // Obtener datos de query parameters primero
     this.route.queryParams.subscribe(queryParams => {
-      this.preparado.idSolicitudPreparadoMagistral = parseInt(queryParams['idSolicitud']) || 0;
-      this.pedidoData.idCliente = parseInt(queryParams['idCliente']) || 0;
-      this.preparado.idTipoPresentacion = parseInt(queryParams['idTipoPresentacion']) || 1;
+      // Detectar modo de operación
+      this.modoCrear = queryParams['modo'] !== 'actualizar';
       
-      // Solo obtener los datos, la carga se hará después de cargar materias primas
-      if (this.preparado.idSolicitudPreparadoMagistral > 0) {
-        const calculadoraData = localStorage.getItem(`calculadora_datos_${this.preparado.idSolicitudPreparadoMagistral}`);
-        if (calculadoraData) {
-          this.datosCalculadora = JSON.parse(calculadoraData);
+      if (this.modoCrear) {
+        // Modo crear: datos desde calculadora
+        this.preparado.idSolicitudPreparadoMagistral = parseInt(queryParams['idSolicitud']) || 0;
+        this.pedidoData.idCliente = parseInt(queryParams['idCliente']) || 0;
+        this.preparado.idTipoPresentacion = parseInt(queryParams['idTipoPresentacion']) || 1;
+        
+        // Solo obtener los datos, la carga se hará después de cargar materias primas
+        if (this.preparado.idSolicitudPreparadoMagistral > 0) {
+          const calculadoraData = localStorage.getItem(`calculadora_datos_${this.preparado.idSolicitudPreparadoMagistral}`);
+          if (calculadoraData) {
+            this.datosCalculadora = JSON.parse(calculadoraData);
+          }
+        }
+      } else {
+        // Modo actualizar: datos desde API
+        this.idPedidoActualizar = queryParams['idPedido'] || '';
+        this.idPreparadoMagistralActualizar = queryParams['idPreparadoMagistral'] || '';
+        
+        if (this.idPedidoActualizar) {
+          this.cargarDatosPreparadoMagistral();
         }
       }
     });
@@ -197,6 +218,91 @@ export class RegistroPreparadoMagistralComponent implements OnInit {
     }
   }
 
+  cargarDatosPreparadoMagistral(): void {
+    if (!this.idPedidoActualizar) return;
+
+    // Paso 1: Obtener el idPreparadoMagistral desde el pedido
+    this.pedidoService.getPreparadosMagistralesByIdPedido(this.idPedidoActualizar).subscribe(
+      (response) => {
+        if (response && response.length > 0) {
+          const preparadoEnPedido = response[0]; // Tomar el primer preparado magistral
+          this.idPreparadoMagistralActualizar = preparadoEnPedido.idPreparadoMagistral;
+          
+          console.log('ID del preparado magistral obtenido:', this.idPreparadoMagistralActualizar);
+          
+          // Paso 2: Obtener los datos completos del preparado magistral
+          this.cargarDatosCompletos();
+        }
+      },
+      (error) => {
+        console.error('Error al obtener idPreparadoMagistral desde pedido', error);
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'No se pudo obtener la información del preparado magistral desde el pedido',
+          showConfirmButton: true
+        });
+      }
+    );
+  }
+
+  cargarDatosCompletos(): void {
+    if (!this.idPreparadoMagistralActualizar) return;
+
+    this.preparadoService.getPreparadoMagistralById(this.idPreparadoMagistralActualizar).subscribe(
+      (response) => {
+        console.log('Datos completos recibidos del preparado magistral:', response);
+        
+        // Mapear los datos del response al modelo del preparado
+        this.preparado = {
+          idSolicitudPreparadoMagistral: response.solicitudPreparadoMagistral?.id || 0,
+          nombre: response.nombre || '',
+          descripcion: response.descripcion || '',
+          precio: response.precio || 0,
+          presentacion: response.presentacion || 0,
+          idTipoPresentacion: response.tipoPresentacion?.idTipoPresentacion || 0,
+          phDefinidoMin: response.phDefinidoMin || null,
+          phDefinidoMax: response.phDefinidoMax || null,
+          materiasPrimas: this.mapearMateriasPrimas(response.materiasPrimas || []),
+          procedimientos: response.procedimientos || [{ orden: 1, descripcion: '' }],
+          elementosSeguridadPersonal: response.elementosSeguridadPersonal || '',
+          utillaje: response.utillaje || '',
+          controlCalidad: response.controlCalidad || '',
+          tipoEnvase: response.tipoEnvase || '',
+          colorEtiqueta: response.colorEtiqueta || '',
+          indicacionesPosologia: response.indicacionesPosologia || '',
+          conservacion: response.conservacion || '',
+          reaccionesAdversas: response.reaccionesAdversas || '',
+          precaucionesContraindicaciones: response.precaucionesContraindicaciones || '',
+          observaciones: response.observaciones || '',
+          bibliografia: response.bibliografia || ''
+        };
+        
+        console.log('Datos del preparado magistral mapeados:', this.preparado);
+      },
+      (error) => {
+        console.error('Error al cargar datos completos del preparado magistral', error);
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'No se pudieron cargar los datos completos del preparado magistral',
+          showConfirmButton: true
+        });
+      }
+    );
+  }
+
+  mapearMateriasPrimas(materiasPrimasResponse: any[]): MateriaPrimaUsada[] {
+    if (!materiasPrimasResponse || materiasPrimasResponse.length === 0) {
+      return [{ idMateriaPrima: 0, cantidad: 0 }];
+    }
+
+    return materiasPrimasResponse.map(mp => ({
+      idMateriaPrima: mp.materiaPrima.idMateriaPrima,
+      cantidad: mp.cantidad
+    }));
+  }
+
   // Métodos trackBy para optimizar rendering
   trackByIndex(index: number, item: any): number {
     return index;
@@ -221,10 +327,14 @@ export class RegistroPreparadoMagistralComponent implements OnInit {
 
   cargarDatos(): void {
     this.cargarTiposPresentacion();
-    this.cargarCanalesVenta();
-    this.cargarMetodosEntrega();
     
-    // Cargar materias primas primero y luego cargar datos de calculadora
+    // Solo cargar datos del pedido si estamos en modo crear
+    if (this.modoCrear) {
+      this.cargarCanalesVenta();
+      this.cargarMetodosEntrega();
+    }
+    
+    // Cargar materias primas primero y luego cargar datos según el modo
     this.cargarMateriasPrimas();
   }
 
@@ -367,10 +477,22 @@ export class RegistroPreparadoMagistralComponent implements OnInit {
   }
 
   get pedidoValido(): boolean {
+    // Solo validar datos del pedido en modo crear
+    if (!this.modoCrear) return true;
+    
     return !!(this.pedidoData.idCanalVenta &&
              this.pedidoData.idMetodoEntrega &&
              this.pedidoData.cantidad > 0 &&
              this.pedidoData.fechaEstimadaEntrega);
+  }
+
+  // Getter para determinar si se pueden mostrar ciertos tabs según el modo
+  get mostrarTabPedido(): boolean {
+    return false; // Ya no se usa el tab de pedido
+  }
+
+  get mostrarTabDatosAdicionales(): boolean {
+    return !this.modoCrear; // Solo mostrar en modo actualizar
   }
 
   // Navegación entre pasos
@@ -378,7 +500,7 @@ export class RegistroPreparadoMagistralComponent implements OnInit {
     this.currentStep = event.index;
   }
 
-  // Guardar preparado magistral
+  // Guardar preparado magistral (modo crear: ejecuta todo el flujo)
   guardarPreparado(nextCallback: any): void {
     if (!this.datosBasicosValidos) {
       Swal.fire({
@@ -390,10 +512,33 @@ export class RegistroPreparadoMagistralComponent implements OnInit {
       return;
     }
 
+    if (this.modoCrear) {
+      this.ejecutarFlujoCompleto(nextCallback);
+    } else {
+      this.actualizarPreparadoMagistral(nextCallback);
+    }
+  }
+
+  // Nuevo flujo completo para modo crear
+  ejecutarFlujoCompleto(nextCallback: any): void {
     this.isSubmitting = true;
 
+    // Setear campos vacíos antes de enviar
+    this.preparado.elementosSeguridadPersonal = '';
+    this.preparado.utillaje = '';
+    this.preparado.controlCalidad = '';
+    this.preparado.tipoEnvase = '';
+    this.preparado.colorEtiqueta = '';
+    this.preparado.indicacionesPosologia = '';
+    this.preparado.conservacion = '';
+    this.preparado.reaccionesAdversas = '';
+    this.preparado.precaucionesContraindicaciones = '';
+    this.preparado.observaciones = '';
+    this.preparado.bibliografia = '';
+
     Swal.fire({
-      title: 'Guardando preparado magistral...',
+      title: 'Procesando solicitud...',
+      text: 'Guardando preparado magistral y creando pedido',
       allowEscapeKey: false,
       allowOutsideClick: false,
       didOpen: () => {
@@ -401,18 +546,95 @@ export class RegistroPreparadoMagistralComponent implements OnInit {
       }
     });
 
+    // Paso 1: Crear preparado magistral
     this.preparadoService.crearPreparadoMagistral(this.preparado).subscribe(
+      (responsePreparado) => {
+        this.idPreparadoMagistralCreado = responsePreparado.idPreparadoMagistral;
+        this.pedidoData.idPreparadoMagistral = responsePreparado.idPreparadoMagistral;
+        
+        // Paso 2: Crear pedido
+        this.pedidoService.crearPedidoPreparadoMagistral(this.pedidoData).subscribe(
+          (responsePedido: any) => {
+            const idPedido = responsePedido.value; // El nuevo atributo response.value
+            
+            // Paso 3: Asignar pedido a solicitud
+            this.solicitudService.asignarPedido(this.preparado.idSolicitudPreparadoMagistral, idPedido).subscribe(
+              (responseAsignacion) => {
+                this.isSubmitting = false;
+                this.preparadoCreado = true;
+                
+                Swal.close();
+                Swal.fire({
+                  icon: 'success',
+                  title: '¡Proceso completado!',
+                  text: 'Se ha creado el preparado magistral y el pedido correctamente',
+                  showConfirmButton: true
+                }).then(() => {
+                  nextCallback.emit();
+                });
+              },
+              (errorAsignacion) => {
+                this.isSubmitting = false;
+                Swal.close();
+                console.error('Error al asignar pedido a solicitud', errorAsignacion);
+                Swal.fire({
+                  icon: 'error',
+                  title: 'Error en asignación',
+                  text: 'Se creó el preparado y pedido, pero hubo un error al asignar el pedido a la solicitud',
+                  showConfirmButton: true
+                });
+              }
+            );
+          },
+          (errorPedido) => {
+            this.isSubmitting = false;
+            Swal.close();
+            console.error('Error al crear pedido', errorPedido);
+            Swal.fire({
+              icon: 'error',
+              title: 'Error al crear pedido',
+              text: errorPedido.error?.mensaje || 'Ocurrió un error al crear el pedido',
+              showConfirmButton: true
+            });
+          }
+        );
+      },
+      (errorPreparado) => {
+        this.isSubmitting = false;
+        Swal.close();
+        console.error('Error al guardar preparado magistral', errorPreparado);
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: errorPreparado.error?.mensaje || 'Ocurrió un error al guardar el preparado magistral',
+          showConfirmButton: true
+        });
+      }
+    );
+  }
+
+  // Método para actualizar preparado magistral
+  actualizarPreparadoMagistral(nextCallback: any): void {
+    this.isSubmitting = true;
+
+    Swal.fire({
+      title: 'Actualizando preparado magistral...',
+      allowEscapeKey: false,
+      allowOutsideClick: false,
+      didOpen: () => {
+        Swal.showLoading();
+      }
+    });
+
+    this.preparadoService.actualizarPreparadoMagistral(this.idPreparadoMagistralActualizar, this.preparado).subscribe(
       (response) => {
         this.isSubmitting = false;
-        this.preparadoCreado = true;
-        this.idPreparadoMagistralCreado = response.idPreparadoMagistral;
-        this.pedidoData.idPreparadoMagistral = response.idPreparadoMagistral;
         
         Swal.close();
         Swal.fire({
           icon: 'success',
-          title: '¡Éxito!',
-          text: response.mensaje,
+          title: '¡Actualizado!',
+          text: 'El preparado magistral se ha actualizado correctamente',
           showConfirmButton: true
         }).then(() => {
           nextCallback.emit();
@@ -421,80 +643,30 @@ export class RegistroPreparadoMagistralComponent implements OnInit {
       (error) => {
         this.isSubmitting = false;
         Swal.close();
-        console.error('Error al guardar preparado magistral', error);
+        console.error('Error al actualizar preparado magistral', error);
         Swal.fire({
           icon: 'error',
           title: 'Error',
-          text: error.error?.mensaje || 'Ocurrió un error al guardar el preparado magistral',
+          text: error.error?.mensaje || 'Ocurrió un error al actualizar el preparado magistral',
           showConfirmButton: true
         });
       }
     );
   }
 
-  // Crear pedido
-  crearPedido(): void {
-    if (!this.pedidoValido) {
-      Swal.fire({
-        icon: 'warning',
-        title: 'Datos del pedido incompletos',
-        text: 'Por favor complete todos los campos del pedido',
-        showConfirmButton: true
-      });
-      return;
-    }
-
-    this.isSubmitting = true;
-
-    Swal.fire({
-      title: 'Creando pedido...',
-      allowEscapeKey: false,
-      allowOutsideClick: false,
-      didOpen: () => {
-        Swal.showLoading();
-      }
-    });
-
-    this.pedidoService.crearPedidoPreparadoMagistral(this.pedidoData).subscribe(
-      (response) => {
-        this.isSubmitting = false;
-        Swal.close();
-        
-        Swal.fire({
-          icon: 'success',
-          title: '¡Pedido creado!',
-          text: response.mensaje,
-          showConfirmButton: true
-        }).then(() => {
-          this.limpiarDatos();
-          this.router.navigate(['/pages/gestion-producto/bandeja-solicitudes-preparados-magistrales']);
-        });
-      },
-      (error) => {
-        this.isSubmitting = false;
-        Swal.close();
-        console.error('Error al crear pedido', error);
-        Swal.fire({
-          icon: 'error',
-          title: 'Error',
-          text: error.error?.mensaje || 'Ocurrió un error al crear el pedido',
-          showConfirmButton: true
-        });
-      }
-    );
-  }
+  // Método crearPedido eliminado - ya no se usa directamente
 
   // Navegación
   volverCalculadora(): void {
     if (this.hayDatosEnFormulario()) {
       Swal.fire({
         title: '¿Está seguro?',
-        text: 'Hay datos sin guardar en el formulario. ¿Desea continuar?',
+        text: 'Hay datos sin guardar en el formulario. ¿Desea volver a la calculadora?',
         icon: 'warning',
         showCancelButton: true,
         confirmButtonColor: '#3085d6',
         cancelButtonColor: '#d33',
-        confirmButtonText: 'Sí, continuar',
+        confirmButtonText: 'Sí, volver',
         cancelButtonText: 'Cancelar'
       }).then((result) => {
         if (result.isConfirmed) {
@@ -571,5 +743,12 @@ export class RegistroPreparadoMagistralComponent implements OnInit {
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
     return tomorrow.toISOString().split('T')[0];
+  }
+
+  // Fecha por defecto para entrega (7 días después de hoy)
+  getFechaEntregaDefecto(): string {
+    const fechaEntrega = new Date();
+    fechaEntrega.setDate(fechaEntrega.getDate() + 7);
+    return fechaEntrega.toISOString().split('T')[0];
   }
 }

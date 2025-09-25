@@ -377,24 +377,48 @@ export class CalculadoraMaestraComponent implements OnInit {
     }
   }
 
-  guardarDatos(): void {
-    if (this.idSolicitudPreparadoMagistral > 0) {
-      const datosParaGuardar = {
-        nombrePersonalizado: this.nombrePersonalizado,
-        descripcionPersonalizada: this.descripcionPersonalizada,
-        detallePersonalizacion: this.detallePersonalizacion,
-        componentes: this.componentes,
-        precioVentaFinal: this.precioVentaFinal,
-        precioVentaFinalRedondeado: this.precioVentaFinalRedondeado,
-        base: this.base,
-        presentacion: this.presentacion,
-        envase: this.envase,
-        maquila: this.maquila,
-        gananciaBC: this.gananciaBC,
-        totalCosto: this.totalCosto,
-        precioNeto: this.precioNeto
-      };
-      localStorage.setItem(`calculadora_datos_${this.idSolicitudPreparadoMagistral}`, JSON.stringify(datosParaGuardar));
+  guardarDatos(confirmar: boolean = true): void {
+    if (confirmar) {
+      Swal.fire({
+        title: '¿Guardar progreso?',
+        text: 'Se guardará el progreso actual de la calculadora maestra',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Sí, guardar',
+        cancelButtonText: 'Cancelar'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          if (this.idSolicitudPreparadoMagistral > 0) {
+            const datosParaGuardar = {
+              nombrePersonalizado: this.nombrePersonalizado,
+              descripcionPersonalizada: this.descripcionPersonalizada,
+              detallePersonalizacion: this.detallePersonalizacion,
+              componentes: this.componentes,
+              precioVentaFinal: this.precioVentaFinal,
+              precioVentaFinalRedondeado: this.precioVentaFinalRedondeado,
+              base: this.base,
+              presentacion: this.presentacion,
+              envase: this.envase,
+              maquila: this.maquila,
+              gananciaBC: this.gananciaBC,
+              totalCosto: this.totalCosto,
+              precioNeto: this.precioNeto
+            };
+            localStorage.setItem(`calculadora_datos_${this.idSolicitudPreparadoMagistral}`, JSON.stringify(datosParaGuardar));
+            
+            Swal.fire({
+              icon: 'success',
+              title: '¡Progreso guardado!',
+              text: 'Los datos se han guardado correctamente',
+              confirmButtonText: 'Aceptar',
+              timer: 2000,
+              timerProgressBar: true
+            });
+          }
+        }
+      });
     }
   }
 
@@ -410,7 +434,7 @@ export class CalculadoraMaestraComponent implements OnInit {
     }
 
     // Guardar datos actuales
-    this.guardarDatos();
+    this.guardarDatos(false);
 
     // Navegar al registro de preparado magistral
     this.router.navigate(['/pages/gestion-producto/registro-preparado-magistral'], {

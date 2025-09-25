@@ -12,4 +12,12 @@ export class PreparadoMagistralService {
   crearPreparadoMagistral(data: any): Observable<any> {
     return this.http.post<any>(this.baseUrl, data);
   }
+
+  actualizarPreparadoMagistral(idPreparadoMagistral: string, data: any): Observable<any> {
+    return this.http.put<any>(`${this.baseUrl}/${idPreparadoMagistral}`, data);
+  }
+
+  getPreparadoMagistralById(idPreparadoMagistral: string): Observable<any> {
+    return this.http.get<any>(`${this.baseUrl}/${idPreparadoMagistral}`);
+  }
 }

@@ -24,7 +24,7 @@
       [tableStyle]="{'min-width': '50rem'}"
       [rowsPerPageOptions]="[5, 25, 50]"
       dataKey="id"
-      [globalFilterFields]="['id', 'clienteNombre', 'descripcion', 'fechaCreacion']"
+      [globalFilterFields]="['id', 'idPedido', 'clienteNombre', 'descripcion', 'fechaCreacion']"
     >
       <ng-template pTemplate="caption">
         <div class="flex justify-between items-center">
@@ -49,6 +49,9 @@
           <th pSortableColumn="id">
             ID <p-sortIcon field="id"></p-sortIcon>
           </th>
+          <th pSortableColumn="idPedido">
+            ID Pedido <p-sortIcon field="idPedido"></p-sortIcon>
+          </th>
           <th pSortableColumn="clienteNombre">
             Cliente <p-sortIcon field="clienteNombre"></p-sortIcon>
           </th>
@@ -68,6 +71,7 @@
       <ng-template pTemplate="body" let-solicitud>
         <tr>
           <td>{{ solicitud.id }}</td>
+          <td>{{ solicitud.idPedido }}</td>
           <td>{{ solicitud.clienteNombre }}</td>
           <td>
             <div class="text-truncate" style="max-width: 300px;" [title]="solicitud.descripcion">
@@ -85,18 +89,27 @@
               type="button" 
               class="btn btn-primary btn-sm me-2"
               (click)="verArchivo(solicitud.urlAdjunto)"
-              [title]="'Ver archivo adjunto'">
+              ngbTooltip="Ver archivo adjunto"
+              placement="top">
               <i class="bi bi-file-earmark-text"></i>
-              Ver Archivo
             </button>
             <button 
               type="button" 
-              class="btn btn-success btn-sm"
+              class="btn btn-success btn-sm me-2"
               (click)="atenderSolicitud(solicitud)"
               [disabled]="solicitud.atendido"
-              [title]="solicitud.atendido ? 'Solicitud ya atendida' : 'Atender solicitud'">
+              [ngbTooltip]="solicitud.atendido ? 'Solicitud ya atendida' : 'Atender solicitud'"
+              placement="top">
               <i class="bi bi-check-circle"></i>
-              {{ solicitud.atendido ? 'Atendida' : 'Atender' }}
+            </button>
+            <button 
+              type="button" 
+              class="btn btn-warning btn-sm"
+              (click)="actualizarPreparadoMagistral(solicitud)"
+              [disabled]="!solicitud.atendido || !solicitud.idPedido"
+              [ngbTooltip]="!solicitud.atendido || !solicitud.idPedido ? 'Debe estar atendida con pedido asociado' : 'Actualizar preparado magistral'"
+              placement="top">
+              <i class="bi bi-pencil-square"></i>
             </button>
           </td>
         </tr>
