@@ -9,11 +9,13 @@ import { InputTextModule } from 'primeng/inputtext';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
 import { FormsModule } from '@angular/forms';
+import { NgbTooltipModule } from '@ng-bootstrap/ng-bootstrap';
 import Swal from 'sweetalert2';
 
 interface SolicitudPreparadoMagistral {
   id: number;
   idCliente: string;
+  idPedido: string;
   descripcion: string;
   urlAdjunto: string;
   fechaCreacion: string;
@@ -31,7 +33,8 @@ interface SolicitudPreparadoMagistral {
     InputTextModule,
     IconFieldModule,
     InputIconModule,
-    FormsModule
+    FormsModule,
+    NgbTooltipModule
   ],
   templateUrl: './bandeja-solicitudes-preparados-magistrales.component.html',
   styleUrls: ['./bandeja-solicitudes-preparados-magistrales.component.scss']
@@ -127,6 +130,27 @@ export class BandejaSolicitudesPreparadosMagistralesComponent implements OnInit 
         idCliente: solicitud.idCliente,
         descripcion: solicitud.descripcion,
         modo: 'preparado-magistral'
+      }
+    });
+  }
+
+  actualizarPreparadoMagistral(solicitud: SolicitudPreparadoMagistral): void {
+    if (!solicitud.atendido || !solicitud.idPedido) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'No se puede actualizar',
+        text: 'Esta solicitud debe estar atendida y tener un pedido asociado para poder actualizarla',
+        showConfirmButton: true
+      });
+      return;
+    }
+
+    // Navegar al registro de preparado magistral en modo actualización
+    this.router.navigate(['/pages/gestion-producto/registro-preparado-magistral'], {
+      queryParams: {
+        modo: 'actualizar',
+        idPedido: solicitud.idPedido,
+        idSolicitud: solicitud.id
       }
     });
   }

@@ -3,11 +3,11 @@
     
     <!-- Botón de navegación -->
     <button style="position: absolute;" class="btn btn-link text-decoration-none p-0" 
-            (click)="volverCalculadora()">
-      <i class="bi bi-arrow-left"></i> Calculadora Maestra
+            (click)="modoCrear ? volverCalculadora() : router.navigate(['/pages/gestion-producto/bandeja-solicitudes-preparados-magistrales'])">
+      <i class="bi bi-arrow-left"></i> {{ modoCrear ? 'Calculadora Maestra' : 'Bandeja Solicitudes' }}
     </button>
 
-    <h2 class="mb-4 text-center">Registro de Preparado Magistral</h2>
+    <h2 class="mb-4 text-center">{{ modoCrear ? 'Registro' : 'Actualización' }} de Preparado Magistral</h2>
 
     <p-stepper 
         [linear]="true" 
@@ -149,6 +149,14 @@
                 </div>
                 <div class="flex pt-4 justify-content-end">
                     <p-button 
+                        *ngIf="modoCrear"
+                        label="Guardar y Crear Pedido" 
+                        icon="pi pi-arrow-right" 
+                        iconPos="right" 
+                        (onClick)="guardarPreparado(nextCallback)"
+                        [disabled]="!datosBasicosValidos || isSubmitting" />
+                    <p-button
+                        *ngIf="!modoCrear"
                         label="Continuar" 
                         icon="pi pi-arrow-right" 
                         iconPos="right" 
@@ -158,8 +166,8 @@
             </ng-template>
         </p-stepperPanel>
 
-        <!-- Paso 2: Datos adicionales -->
-        <p-stepperPanel header="Datos adicionales">
+        <!-- Paso 2: Datos adicionales (solo en modo actualizar) -->
+        <p-stepperPanel header="Datos adicionales" *ngIf="!modoCrear">
             <ng-template pTemplate="content" let-prevCallback="prevCallback" let-nextCallback="nextCallback">
                 <div class="flex flex-column h-12rem">
                     <div class="flex font-medium">
@@ -259,7 +267,7 @@
                 <div class="flex pt-4 justify-content-between">
                     <p-button label="Atrás" icon="pi pi-arrow-left" (onClick)="prevCallback.emit()" />
                     <p-button 
-                        label="Guardar Preparado" 
+                        label="Actualizar Preparado" 
                         icon="pi pi-arrow-right" 
                         iconPos="right" 
                         (onClick)="guardarPreparado(nextCallback)"
@@ -268,91 +276,22 @@
             </ng-template>
         </p-stepperPanel>
 
-        <!-- Paso 3: Datos del pedido -->
-        <p-stepperPanel header="Crear pedido">
-            <ng-template pTemplate="content" let-prevCallback="prevCallback" let-nextCallback="nextCallback">
-                <div class="flex flex-column h-12rem">
-                    <div class="surface-ground flex-auto flex justify-content-center align-items-center font-medium">
-                        <div class="col-md-8">
-                            <h5 class="mb-4">Datos para la creación del pedido</h5>
-                            
-                            <div class="row mb-3">
-                                <div class="col-md-6">
-                                    <label for="canalVenta" class="form-label">Canal de Venta *</label>
-                                    <select name="canalVenta" id="canalVenta" [(ngModel)]="pedidoData.idCanalVenta" 
-                                            class="form-select" required [compareWith]="compareFn">
-                                        <option [ngValue]="0">Seleccione canal de venta</option>
-                                        <option *ngFor="let canal of canalesVenta; trackBy: trackByCanalVenta" [ngValue]="canal.idCanalVenta">
-                                            {{ canal.descripcion }}
-                                        </option>
-                                    </select>
-                                </div>
-                                <div class="col-md-6">
-                                    <label for="metodoEntrega" class="form-label">Método de Entrega *</label>
-                                    <select name="metodoEntrega" id="metodoEntrega" [(ngModel)]="pedidoData.idMetodoEntrega" 
-                                            class="form-select" required [compareWith]="compareFn">
-                                        <option [ngValue]="0">Seleccione método de entrega</option>
-                                        <option *ngFor="let metodo of metodosEntrega; trackBy: trackByMetodoEntrega" [ngValue]="metodo.idMetodoEntrega">
-                                            {{ metodo.descripcion }}
-                                        </option>
-                                    </select>
-                                </div>
-                            </div>
-                            
-                            <div class="row mb-3">
-                                <div class="col-md-6">
-                                    <label for="cantidad" class="form-label">Cantidad *</label>
-                                    <input type="number" id="cantidad" [(ngModel)]="pedidoData.cantidad" 
-                                           class="form-control" [min]="1" placeholder="Cantidad de unidades" required />
-                                </div>
-                                <div class="col-md-6">
-                                    <label for="fechaEntrega" class="form-label">Fecha Estimada de Entrega *</label>
-                                    <input type="date" id="fechaEntrega" [(ngModel)]="pedidoData.fechaEstimadaEntrega" 
-                                           class="form-control" [min]="fechaMinimaEntrega" required />
-                                </div>
-                            </div>
-                            
-                            <div class="mb-3">
-                                <label for="observacionesPedido" class="form-label">Observaciones del Pedido</label>
-                                <textarea id="observacionesPedido" [(ngModel)]="pedidoData.observaciones" 
-                                          class="form-control" rows="3" 
-                                          placeholder="Observaciones para el pedido"></textarea>
-                            </div>
-                            
-                            <div class="mb-3">
-                                <label for="observacionPreparado" class="form-label">Observaciones del Preparado</label>
-                                <textarea id="observacionPreparado" [(ngModel)]="pedidoData.observacionPreparado" 
-                                          class="form-control" rows="3" 
-                                          placeholder="Observaciones específicas para la preparación"></textarea>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="flex pt-4 justify-content-between">
-                    <p-button label="Atrás" icon="pi pi-arrow-left" (onClick)="prevCallback.emit()" 
-                              [disabled]="!preparadoCreado" />
-                    <p-button 
-                        label="Crear Pedido" 
-                        icon="pi pi-check" 
-                        iconPos="right" 
-                        (onClick)="crearPedido()"
-                        [disabled]="!pedidoValido || isSubmitting" />
-                </div>
-            </ng-template>
-        </p-stepperPanel>
+        <!-- Paso 3: Datos del pedido eliminado - ya no se usa -->
 
-        <!-- Paso 4: Resumen -->
+        <!-- Paso de Resumen (4 en modo crear, 3 en modo actualizar) -->
         <p-stepperPanel header="Resumen">
             <ng-template pTemplate="content">
                 <div class="flex flex-column h-12rem">
                     <div class="text-center">
                         <i class="bi bi-check-circle-fill text-success" style="font-size: 4rem;"></i>
                         <h3 class="text-success mt-3">¡Proceso completado exitosamente!</h3>
-                        <p class="mt-3">El preparado magistral y pedido han sido creados correctamente.</p>
+                        <p class="mt-3" *ngIf="modoCrear">El preparado magistral y pedido han sido creados correctamente.</p>
+                        <p class="mt-3" *ngIf="!modoCrear">El preparado magistral ha sido actualizado correctamente.</p>
                         
                         <div class="mt-4">
-                            <p><strong>ID Preparado Magistral:</strong> {{ idPreparadoMagistralCreado }}</p>
-                            <p><strong>Precio:</strong> S/ {{ preparado.precio.toFixed(2) }}</p>
+                            <p *ngIf="modoCrear"><strong>ID Preparado Magistral:</strong> {{ idPreparadoMagistralCreado }}</p>
+                            <p *ngIf="!modoCrear"><strong>ID Preparado Magistral:</strong> {{ idPreparadoMagistralActualizar }}</p>
+                            <p><strong>Precio:</strong> S/ {{ preparado.precio ? preparado.precio.toFixed(2) : '0.00' }}</p>
                             <p><strong>Presentación:</strong> {{ preparado.presentacion }} {{ obtenerTipoPresentacion(preparado.idTipoPresentacion) }}</p>
                         </div>
                     </div>

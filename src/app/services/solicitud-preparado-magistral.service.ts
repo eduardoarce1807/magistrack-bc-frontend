@@ -21,4 +21,8 @@ export class SolicitudPreparadoMagistralService {
   getSolicitudes(): Observable<any[]> {
     return this.http.get<any[]>(this.baseUrl);
   }
+
+  asignarPedido(idSolicitud: number, idPedido: string): Observable<any> {
+    return this.http.put<any>(`${this.baseUrl}/${idSolicitud}/asignar-pedido?idPedido=${idPedido}`, {});
+  }
 }

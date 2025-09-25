@@ -193,7 +193,7 @@
 					<th scope="col">Cantidad</th>
 					<th scope="col">Precio Unitario</th>
 					<th scope="col">Subtotal</th>
-					<th scope="col">pH Definido</th>
+					<!-- <th scope="col">pH Definido</th> -->
 					<th scope="col">Opciones</th>
 				</tr>
 			</thead>
@@ -233,13 +233,13 @@
 					<td>
 						S/ {{preparado.subtotal.toFixed(2)}}
 					</td>
-					<td>
+					<!-- <td>
 						@if (preparado.phDefinidoMin && preparado.phDefinidoMax) {
 							{{preparado.phDefinidoMin}} - {{preparado.phDefinidoMax}}
 						} @else {
 							-
 						}
-					</td>
+					</td> -->
 					<td style="min-width: 90px">
 						<!-- @if (pedido.estadoPedido.idEstadoPedido == 1) {
 							<button class="btn btn-danger btn-sm me-2" (click)="eliminarPreparado(preparado)">
