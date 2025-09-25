@@ -223,4 +223,9 @@ export class PedidoService {
 		return this.http.get<any>(url);
 	}
 
+	updateCantidadPreparadoMagistral(data: any): Observable<any> {
+		let url = `${this.baseUrl}/preparado-magistral/cantidad`;
+		return this.http.put<any>(url, data);
+	}
+
 }
