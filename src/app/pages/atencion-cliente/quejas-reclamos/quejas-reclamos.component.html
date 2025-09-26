@@ -1,0 +1,219 @@
+<div class="container-fluid mt-5" style="padding: 0px 60px;">
+  <div class="card shadow-lg p-4 rounded-4">
+    <h2 class="mb-4 text-center">Registro de {{ tipoDocumentoActual }}</h2>
+    
+    <div class="row mb-3">
+      <div class="col-md-6">
+        <div class="alert alert-info">
+          <strong>Correlativo:</strong> {{ correlativoActual }}
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="alert alert-secondary">
+          <strong>Tipo:</strong> {{ tipoDocumentoActual }}
+        </div>
+      </div>
+    </div>
+
+    <form [formGroup]="quejaReclamoForm" (ngSubmit)="onSubmit()">
+      <!-- Tipo de Queja/Reclamo -->
+      <div class="row mb-3">
+        <div class="col-md-6">
+          <label for="tipoQuejaReclamo" class="form-label">Tipo de Solicitud <span class="text-danger">*</span></label>
+          <select 
+            id="tipoQuejaReclamo" 
+            class="form-select" 
+            formControlName="tipoQuejaReclamo"
+            (change)="onTipoQuejaReclamoChange()"
+            [class.is-invalid]="isFieldInvalid('tipoQuejaReclamo')">
+            <option value="QJ">Queja</option>
+            <option value="REC">Reclamo</option>
+          </select>
+          <div class="invalid-feedback" *ngIf="isFieldInvalid('tipoQuejaReclamo')">
+            {{ getFieldError('tipoQuejaReclamo') }}
+          </div>
+        </div>
+      </div>
+
+      <!-- Datos Personales -->
+      <h4 class="mb-3">Datos Personales</h4>
+      
+      <div class="row mb-3">
+        <div class="col-md-4">
+          <label for="tipoDocumentoPersona" class="form-label">Tipo de Documento <span class="text-danger">*</span></label>
+          <select 
+            id="tipoDocumentoPersona" 
+            class="form-select" 
+            formControlName="tipoDocumentoPersona"
+            [class.is-invalid]="isFieldInvalid('tipoDocumentoPersona')">
+            <option value="">Seleccione...</option>
+            <option *ngFor="let tipo of tiposDocumento" [value]="tipo.nombre">
+              {{ tipo.nombre }}
+            </option>
+          </select>
+          <div class="invalid-feedback" *ngIf="isFieldInvalid('tipoDocumentoPersona')">
+            {{ getFieldError('tipoDocumentoPersona') }}
+          </div>
+        </div>
+        
+        <div class="col-md-4">
+          <label for="numeroDocumento" class="form-label">Número de Documento <span class="text-danger">*</span></label>
+          <input 
+            type="text" 
+            id="numeroDocumento" 
+            class="form-control" 
+            formControlName="numeroDocumento"
+            [class.is-invalid]="isFieldInvalid('numeroDocumento')"
+            placeholder="Ingrese número de documento">
+          <div class="invalid-feedback" *ngIf="isFieldInvalid('numeroDocumento')">
+            {{ getFieldError('numeroDocumento') }}
+          </div>
+        </div>
+      </div>
+
+      <div class="row mb-3">
+        <div class="col-md-6">
+          <label for="nombres" class="form-label">Nombres <span class="text-danger">*</span></label>
+          <input 
+            type="text" 
+            id="nombres" 
+            class="form-control" 
+            formControlName="nombres"
+            [class.is-invalid]="isFieldInvalid('nombres')"
+            placeholder="Ingrese nombres">
+          <div class="invalid-feedback" *ngIf="isFieldInvalid('nombres')">
+            {{ getFieldError('nombres') }}
+          </div>
+        </div>
+        
+        <div class="col-md-6">
+          <label for="apellidos" class="form-label">Apellidos <span class="text-danger">*</span></label>
+          <input 
+            type="text" 
+            id="apellidos" 
+            class="form-control" 
+            formControlName="apellidos"
+            [class.is-invalid]="isFieldInvalid('apellidos')"
+            placeholder="Ingrese apellidos">
+          <div class="invalid-feedback" *ngIf="isFieldInvalid('apellidos')">
+            {{ getFieldError('apellidos') }}
+          </div>
+        </div>
+      </div>
+
+      <!-- Datos de Contacto -->
+      <h4 class="mb-3">Datos de Contacto</h4>
+      
+      <div class="row mb-3">
+        <div class="col-md-4">
+          <label for="tipoDireccion" class="form-label">Tipo de Dirección <span class="text-danger">*</span></label>
+          <select 
+            id="tipoDireccion" 
+            class="form-select" 
+            formControlName="tipoDireccion"
+            [class.is-invalid]="isFieldInvalid('tipoDireccion')">
+            <option value="Domicilio">Domicilio</option>
+            <option value="Trabajo">Trabajo</option>
+            <option value="Otro">Otro</option>
+          </select>
+          <div class="invalid-feedback" *ngIf="isFieldInvalid('tipoDireccion')">
+            {{ getFieldError('tipoDireccion') }}
+          </div>
+        </div>
+        
+        <div class="col-md-8">
+          <label for="direccionDomicilio" class="form-label">Dirección <span class="text-danger">*</span></label>
+          <input 
+            type="text" 
+            id="direccionDomicilio" 
+            class="form-control" 
+            formControlName="direccionDomicilio"
+            [class.is-invalid]="isFieldInvalid('direccionDomicilio')"
+            placeholder="Ingrese dirección completa">
+          <div class="invalid-feedback" *ngIf="isFieldInvalid('direccionDomicilio')">
+            {{ getFieldError('direccionDomicilio') }}
+          </div>
+        </div>
+      </div>
+
+      <div class="row mb-3">
+        <div class="col-md-6">
+          <label for="correoElectronico" class="form-label">Correo Electrónico <span class="text-danger">*</span></label>
+          <input 
+            type="email" 
+            id="correoElectronico" 
+            class="form-control" 
+            formControlName="correoElectronico"
+            [class.is-invalid]="isFieldInvalid('correoElectronico')"
+            placeholder="ejemplo@correo.com">
+          <div class="invalid-feedback" *ngIf="isFieldInvalid('correoElectronico')">
+            {{ getFieldError('correoElectronico') }}
+          </div>
+        </div>
+        
+        <div class="col-md-6">
+          <label for="numeroTelefono" class="form-label">Número de Teléfono <span class="text-danger">*</span></label>
+          <input 
+            type="tel" 
+            id="numeroTelefono" 
+            class="form-control" 
+            formControlName="numeroTelefono"
+            [class.is-invalid]="isFieldInvalid('numeroTelefono')"
+            placeholder="Ingrese número de teléfono">
+          <div class="invalid-feedback" *ngIf="isFieldInvalid('numeroTelefono')">
+            {{ getFieldError('numeroTelefono') }}
+          </div>
+        </div>
+      </div>
+
+      <!-- Detalle de la Queja/Reclamo -->
+      <h4 class="mb-3">Detalle de la {{ tipoDocumentoActual }}</h4>
+      
+      <div class="row mb-4">
+        <div class="col-12">
+          <label for="detalleQuejaReclamo" class="form-label">Descripción Detallada <span class="text-danger">*</span></label>
+          <textarea 
+            id="detalleQuejaReclamo" 
+            class="form-control" 
+            formControlName="detalleQuejaReclamo"
+            [class.is-invalid]="isFieldInvalid('detalleQuejaReclamo')"
+            rows="5"
+            placeholder="Describa detalladamente su queja o reclamo..."
+            maxlength="1000"></textarea>
+          <div class="invalid-feedback" *ngIf="isFieldInvalid('detalleQuejaReclamo')">
+            {{ getFieldError('detalleQuejaReclamo') }}
+          </div>
+          <small class="form-text text-muted">Máximo 1000 caracteres</small>
+        </div>
+      </div>
+
+      <!-- Botones -->
+      <div class="d-flex justify-content-center gap-3">
+        <button 
+          type="button" 
+          class="btn btn-secondary" 
+          (click)="goBack()"
+          [disabled]="isLoading">
+          <i class="bi bi-arrow-left"></i> Volver
+        </button>
+        
+        <button 
+          type="button" 
+          class="btn btn-warning" 
+          (click)="resetForm()"
+          [disabled]="isLoading">
+          <i class="bi bi-arrow-clockwise"></i> Limpiar
+        </button>
+        
+        <button 
+          type="submit" 
+          class="btn btn-primary" 
+          [disabled]="isLoading || quejaReclamoForm.invalid">
+          <span *ngIf="isLoading" class="spinner-border spinner-border-sm me-2" role="status"></span>
+          <i class="bi bi-send" *ngIf="!isLoading"></i>
+          {{ isLoading ? 'Procesando...' : 'Enviar ' + tipoDocumentoActual }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
