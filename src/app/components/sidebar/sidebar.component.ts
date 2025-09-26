@@ -60,6 +60,11 @@ export class SidebarComponent {
 				},
 				{
 					key: '0_11',
+					label: 'Quejas y Reclamos',
+					command: () => this.irA('pages/atencion-cliente/quejas-reclamos')
+				},
+				{
+					key: '0_12',
 					label: 'Mi Perfil',
 					command: () => this.irA('pages/perfil')
 				}

@@ -22,5 +22,6 @@ export const atencionClienteRoutes: Routes = [
   { path: 'calculadora-productos', loadComponent: () => import('./calculadora-productos/calculadora-productos.component').then(m => m.CalculadoraProductosComponent), canActivate: [AuthGuard], data: { roles: [1, 5] } },
   { path: 'calculadora-capsulas', loadComponent: () => import('./calculadora-capsulas/calculadora-capsulas.component').then(m => m.CalculadoraCapsulaComponent), canActivate: [AuthGuard], data: { roles: [1, 5] } },
   { path: 'solicitud-preparado-magistral', loadComponent: () => import('./solicitud-preparado-magistral/solicitud-preparado-magistral.component').then(m => m.SolicitudPreparadoMagistralComponent), canActivate: [AuthGuard], data: { roles: [2, 3, 4] } },
+  { path: 'quejas-reclamos', loadComponent: () => import('./quejas-reclamos/quejas-reclamos.component').then(m => m.QuejasReclamosComponent), canActivate: [AuthGuard], data: { roles: [2, 3, 4] } },
   //   { path: 'panel-formulador', loadComponent: () => import('./panel-formulador/panel-formulador.component').then(m => m.PanelFormuladorComponent) }
 ];
