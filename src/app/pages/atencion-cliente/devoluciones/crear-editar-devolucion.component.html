@@ -1,0 +1,327 @@
+<div class="container-fluid devolucion-container">
+  <!-- Header -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="d-flex justify-content-between align-items-center">
+        <h4 class="mb-0 text-devolucion-primary">
+          <i class="bi bi-arrow-return-left me-2 devolucion-icon"></i>
+          {{ esEdicion ? 'Editar Devolución' : 'Nueva Devolución' }}
+          <span class="badge bg-secondary ms-2" *ngIf="esEdicion && devolucionActual">
+            {{ devolucionActual.idDevolucion }}
+          </span>
+        </h4>
+        <button 
+          class="btn btn-outline-secondary"
+          (click)="volverAListado()">
+          <i class="bi bi-arrow-left me-2"></i>
+          Volver al listado
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading general -->
+  <div *ngIf="cargando || cargandoCatalogos" class="text-center p-5">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Cargando...</span>
+    </div>
+    <p class="mt-2 mb-0">Cargando información...</p>
+  </div>
+
+  <!-- Formulario -->
+  <div *ngIf="!cargando && !cargandoCatalogos">
+    <form [formGroup]="devolucionForm" (ngSubmit)="guardar()" class="devolucion-form">
+      
+      <!-- Información del pedido -->
+      <div class="card mb-4">
+        <div class="card-header">
+          <h6 class="mb-0">
+            <i class="bi bi-box me-2"></i>
+            Información del Pedido
+          </h6>
+        </div>
+        <div class="card-body">
+          <div class="row g-3">
+            <div class="col-md-4">
+              <label class="form-label">ID Pedido <span class="text-danger">*</span></label>
+              <div class="input-group">
+                <input 
+                  type="text" 
+                  class="form-control"
+                  formControlName="idPedido"
+                  placeholder="Ingrese ID del pedido"
+                  [class.is-invalid]="tieneError('idPedido')"
+                  (blur)="buscarPedido()"
+                  [readonly]="esEdicion">
+                <button 
+                  class="btn btn-outline-secondary"
+                  type="button"
+                  (click)="buscarPedido()"
+                  [disabled]="buscandoPedido || esEdicion">
+                  <i class="bi bi-search" *ngIf="!buscandoPedido"></i>
+                  <span class="spinner-border spinner-border-sm" *ngIf="buscandoPedido"></span>
+                </button>
+              </div>
+              <div class="invalid-feedback" *ngIf="tieneError('idPedido')">
+                {{ obtenerMensajeError('idPedido') }}
+              </div>
+            </div>
+            
+            <!-- Información del pedido encontrado -->
+            <div class="col-md-8" *ngIf="infoPedido">
+              <div class="alert alert-info">
+                <h6 class="alert-heading mb-2">
+                  <i class="bi bi-info-circle me-2"></i>
+                  Información del Pedido
+                </h6>
+                <div class="row">
+                  <div class="col-sm-6">
+                    <strong>Cliente:</strong> {{ infoPedido.cliente?.nombres }} {{ infoPedido.cliente?.apellidos }}<br>
+                    <strong>Documento:</strong> {{ infoPedido.cliente?.numeroDocumento }}<br>
+                    <strong>Teléfono:</strong> {{ infoPedido.cliente?.telefono }}<br>
+                    <strong>Email:</strong> {{ infoPedido.cliente?.correo }}
+                  </div>
+                  <div class="col-sm-6">
+                    <strong>Fecha:</strong> {{ formatearFechaDisplay(infoPedido.fechaPedido) }}<br>
+                    <strong>Total:</strong> {{ formatearMonto(infoPedido.montoTotal) }}<br>
+                    <strong>Estado:</strong> {{ infoPedido.estadoPedido?.descripcion }}<br>
+                    <strong>Canal:</strong> {{ infoPedido.canalVenta?.descripcion }}
+                  </div>
+                </div>
+                <div class="mt-2" *ngIf="infoPedido.direccion">
+                  <strong>Dirección de entrega:</strong><br>
+                  <small class="text-muted">
+                    {{ infoPedido.direccion.direccion }}, 
+                    {{ infoPedido.direccion.distrito?.nombre }}, 
+                    {{ infoPedido.direccion.provincia?.nombre }}, 
+                    {{ infoPedido.direccion.departamento?.nombre }}
+                    <span *ngIf="infoPedido.direccion.referencia"> - {{ infoPedido.direccion.referencia }}</span>
+                  </small>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Datos de la devolución -->
+      <div class="card mb-4">
+        <div class="card-header">
+          <h6 class="mb-0">
+            <i class="bi bi-clipboard-data me-2"></i>
+            Datos de la Devolución
+          </h6>
+        </div>
+        <div class="card-body">
+          <div class="row g-3">
+            <!-- Motivo -->
+            <div class="col-md-4">
+              <label class="form-label">Motivo de Devolución <span class="text-danger">*</span></label>
+              <select 
+                class="form-select"
+                formControlName="idMotivoDevolucion"
+                [class.is-invalid]="tieneError('idMotivoDevolucion')">
+                <option value="">Seleccione un motivo</option>
+                <option 
+                  *ngFor="let motivo of catalogos?.motivos" 
+                  [value]="motivo.idMotivoDevolucion">
+                  {{ motivo.descripcion }}
+                </option>
+              </select>
+              <div class="invalid-feedback" *ngIf="tieneError('idMotivoDevolucion')">
+                {{ obtenerMensajeError('idMotivoDevolucion') }}
+              </div>
+            </div>
+            
+            <!-- Acción -->
+            <div class="col-md-4">
+              <label class="form-label">Acción Tomada <span class="text-danger">*</span></label>
+              <select 
+                class="form-select"
+                formControlName="idAccionDevolucion"
+                [class.is-invalid]="tieneError('idAccionDevolucion')">
+                <option value="">Seleccione una acción</option>
+                <option 
+                  *ngFor="let accion of catalogos?.acciones" 
+                  [value]="accion.idAccionDevolucion">
+                  {{ accion.descripcion }}
+                </option>
+              </select>
+              <div class="invalid-feedback" *ngIf="tieneError('idAccionDevolucion')">
+                {{ obtenerMensajeError('idAccionDevolucion') }}
+              </div>
+            </div>
+            
+            <!-- Estado (solo en edición) -->
+            <div class="col-md-4" *ngIf="esEdicion">
+              <label class="form-label">Estado</label>
+              <select 
+                class="form-select"
+                formControlName="idEstadoDevolucion">
+                <option 
+                  *ngFor="let estado of catalogos?.estados" 
+                  [value]="estado.idEstadoDevolucion">
+                  {{ estado.descripcion }}
+                </option>
+              </select>
+            </div>
+            
+            <!-- Fecha de devolución -->
+            <div class="col-md-4">
+              <label class="form-label">Fecha de Devolución</label>
+              <input 
+                type="datetime-local" 
+                class="form-control"
+                formControlName="fechaDevolucion">
+              <small class="form-text text-muted">Opcional - Fecha en que se realizó la devolución</small>
+            </div>
+            
+            <!-- Monto -->
+            <div class="col-md-4">
+              <label class="form-label">Monto de Devolución</label>
+              <div class="input-group">
+                <span class="input-group-text">S/</span>
+                <input 
+                  type="number" 
+                  class="form-control"
+                  formControlName="montoDevolucion"
+                  min="0"
+                  step="0.01"
+                  placeholder="0.00"
+                  [class.is-invalid]="tieneError('montoDevolucion')">
+              </div>
+              <div class="invalid-feedback" *ngIf="tieneError('montoDevolucion')">
+                {{ obtenerMensajeError('montoDevolucion') }}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Descripción y Manifiesto -->
+      <div class="card mb-4">
+        <div class="card-header">
+          <h6 class="mb-0">
+            <i class="bi bi-chat-text me-2"></i>
+            Descripción y Manifiesto
+          </h6>
+        </div>
+        <div class="card-body">
+          <div class="row g-3">
+            <!-- Descripción -->
+            <div class="col-md-6">
+              <label class="form-label">Descripción</label>
+              <textarea 
+                class="form-control"
+                formControlName="descripcion"
+                rows="4"
+                placeholder="Descripción breve del problema o motivo de la devolución..."></textarea>
+            </div>
+            
+            <!-- Manifiesto -->
+            <div class="col-md-6">
+              <label class="form-label">Manifiesto Descriptivo</label>
+              <textarea 
+                class="form-control"
+                formControlName="manifiesto"
+                rows="4"
+                placeholder="Manifiesto detallado de la devolución, acciones tomadas, etc..."></textarea>
+            </div>
+            
+            <!-- Observaciones -->
+            <div class="col-12">
+              <label class="form-label">Observaciones</label>
+              <textarea 
+                class="form-control"
+                formControlName="observaciones"
+                rows="3"
+                placeholder="Observaciones adicionales..."></textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Archivo adjunto -->
+      <div class="card mb-4">
+        <div class="card-header">
+          <h6 class="mb-0">
+            <i class="bi bi-paperclip me-2"></i>
+            Archivo Adjunto
+          </h6>
+        </div>
+        <div class="card-body">
+          <div class="row g-3">
+            <!-- Archivo actual (si existe) -->
+            <div class="col-12" *ngIf="archivoActual && !eliminarArchivoExistente">
+              <div class="alert alert-info">
+                <i class="bi bi-file-earmark me-2"></i>
+                <strong>Archivo actual:</strong>
+                <a [href]="archivoActual" target="_blank" class="ms-2">Ver archivo</a>
+                <button 
+                  type="button"
+                  class="btn btn-sm btn-outline-danger ms-3"
+                  (click)="eliminarArchivo()">
+                  <i class="bi bi-trash me-1"></i>
+                  Eliminar
+                </button>
+              </div>
+            </div>
+            
+            <!-- Selector de archivo -->
+            <div class="col-12">
+              <input 
+                type="file" 
+                class="form-control"
+                id="archivo"
+                accept=".jpg,.jpeg,.png,.gif,.pdf,.doc,.docx"
+                (change)="onArchivoSeleccionado($event)">
+              <small class="form-text text-muted">
+                Tipos permitidos: JPG, PNG, GIF, PDF, DOC, DOCX. Tamaño máximo: 5MB.
+              </small>
+            </div>
+            
+            <!-- Archivo seleccionado -->
+            <div class="col-12" *ngIf="archivoSeleccionado">
+              <div class="alert alert-success">
+                <i class="bi bi-check-circle me-2"></i>
+                <strong>Archivo seleccionado:</strong> {{ archivoSeleccionado.name }}
+                ({{ (archivoSeleccionado.size / 1024 / 1024).toFixed(2) }} MB)
+                <button 
+                  type="button"
+                  class="btn btn-sm btn-outline-danger ms-3"
+                  (click)="eliminarArchivo()">
+                  <i class="bi bi-x me-1"></i>
+                  Quitar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Botones de acción -->
+      <div class="card">
+        <div class="card-body">
+          <div class="d-flex justify-content-end gap-2">
+            <button 
+              type="button"
+              class="btn btn-outline-secondary"
+              (click)="volverAListado()"
+              [disabled]="guardando">
+              <i class="bi bi-x-circle me-2"></i>
+              Cancelar
+            </button>
+            <button 
+              type="submit"
+              class="btn btn-primary"
+              [disabled]="devolucionForm.invalid || guardando">
+              <span class="spinner-border spinner-border-sm me-2" *ngIf="guardando"></span>
+              <i class="bi bi-check-circle me-2" *ngIf="!guardando"></i>
+              {{ guardando ? 'Guardando...' : (esEdicion ? 'Actualizar' : 'Crear') }} Devolución
+            </button>
+          </div>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>

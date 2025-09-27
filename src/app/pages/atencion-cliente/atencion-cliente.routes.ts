@@ -23,5 +23,12 @@ export const atencionClienteRoutes: Routes = [
   { path: 'calculadora-capsulas', loadComponent: () => import('./calculadora-capsulas/calculadora-capsulas.component').then(m => m.CalculadoraCapsulaComponent), canActivate: [AuthGuard], data: { roles: [1, 5] } },
   { path: 'solicitud-preparado-magistral', loadComponent: () => import('./solicitud-preparado-magistral/solicitud-preparado-magistral.component').then(m => m.SolicitudPreparadoMagistralComponent), canActivate: [AuthGuard], data: { roles: [2, 3, 4] } },
   { path: 'quejas-reclamos', loadComponent: () => import('./quejas-reclamos/quejas-reclamos.component').then(m => m.QuejasReclamosComponent), canActivate: [AuthGuard], data: { roles: [2, 3, 4] } },
+  
+  // Rutas del módulo de devoluciones (solo rol 1)
+  { path: 'devoluciones', loadComponent: () => import('./devoluciones/bandeja-devoluciones.component').then(m => m.BandejaDevolucionesComponent), canActivate: [AuthGuard], data: { roles: [1] } },
+  { path: 'devoluciones/crear', loadComponent: () => import('./devoluciones/crear-editar-devolucion.component').then(m => m.CrearEditarDevolucionComponent), canActivate: [AuthGuard], data: { roles: [1] } },
+  { path: 'devoluciones/editar/:id', loadComponent: () => import('./devoluciones/crear-editar-devolucion.component').then(m => m.CrearEditarDevolucionComponent), canActivate: [AuthGuard], data: { roles: [1] } },
+  { path: 'devoluciones/detalle/:id', loadComponent: () => import('./devoluciones/detalle-devolucion.component').then(m => m.DetalleDevolucionComponent), canActivate: [AuthGuard], data: { roles: [1] } },
+  
   //   { path: 'panel-formulador', loadComponent: () => import('./panel-formulador/panel-formulador.component').then(m => m.PanelFormuladorComponent) }
 ];
