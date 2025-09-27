@@ -54,17 +54,17 @@ export class SidebarComponent {
 			] : []),
 			...([2,3,4].includes(user.rol.idRol) ? [
 				{
-					key: '0_10',
+					key: '0_11',
 					label: 'Solicitud Preparado Magistral',
 					command: () => this.irA('pages/atencion-cliente/solicitud-preparado-magistral')
 				},
 				{
-					key: '0_11',
+					key: '0_12',
 					label: 'Quejas y Reclamos',
 					command: () => this.irA('pages/atencion-cliente/quejas-reclamos')
 				},
 				{
-					key: '0_12',
+					key: '0_13',
 					label: 'Mi Perfil',
 					command: () => this.irA('pages/perfil')
 				}
@@ -104,6 +104,11 @@ export class SidebarComponent {
 					key: '0_9',
 					label: 'Catálogo de Precios',
 					command: () => this.irA('pages/gestion-producto/catalogo-precios')
+				},
+				{
+					key: '0_10',
+					label: 'Gestión de Devoluciones',
+					command: () => this.irA('pages/atencion-cliente/devoluciones')
 				},
 			] : [])
 		];

@@ -1,0 +1,323 @@
+<div class="container-fluid devolucion-container">
+  <!-- Header -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="d-flex justify-content-between align-items-center">
+        <h4 class="mb-0 text-devolucion-primary">
+          <i class="bi bi-eye me-2 devolucion-icon"></i>
+          Detalle de Devolución
+          <span class="badge bg-primary ms-2" *ngIf="devolucion">
+            {{ devolucion.idDevolucion }}
+          </span>
+        </h4>
+        <button 
+          class="btn btn-outline-secondary"
+          (click)="volverAListado()">
+          <i class="bi bi-arrow-left me-2"></i>
+          Volver al listado
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="cargando" class="text-center p-5">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Cargando...</span>
+    </div>
+    <p class="mt-2 mb-0">Cargando información...</p>
+  </div>
+
+  <!-- Contenido principal -->
+  <div *ngIf="!cargando && devolucion">
+    
+    <!-- Estado y acciones -->
+    <div class="row mb-4">
+      <div class="col-md-8">
+        <div class="card">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center">
+              <div>
+                <h5 class="mb-2">Estado Actual</h5>
+                <span 
+                  class="badge fs-6 px-3 py-2 estado-badge"
+                  [class.estado-registrada]="devolucion.estadoDevolucion === 'Registrada'"
+                  [class.estado-en-proceso]="devolucion.estadoDevolucion === 'En Proceso'"
+                  [class.estado-completada]="devolucion.estadoDevolucion === 'Completada'"
+                  [class.estado-cancelada]="devolucion.estadoDevolucion === 'Cancelada'"
+                  [style.background-color]="devolucion.colorEstado"
+                  [style.color]="'white'">
+                  <i [class]="obtenerIconoEstado(devolucion.estadoDevolucion)" class="me-2 devolucion-icon"></i>
+                  {{ devolucion.estadoDevolucion }}
+                </span>
+              </div>
+              <div class="d-flex gap-2">
+                <button 
+                  class="btn btn-outline-info"
+                  (click)="mostrarCambioEstado()"
+                  *ngIf="puedeCambiarEstado() && !mostrarFormularioCambioEstado">
+                  <i class="bi bi-arrow-repeat me-2"></i>
+                  Cambiar Estado
+                </button>
+                <button 
+                  class="btn btn-outline-warning"
+                  (click)="editarDevolucion()"
+                  *ngIf="puedeEditar()">
+                  <i class="bi bi-pencil me-2"></i>
+                  Editar
+                </button>
+                <button 
+                  class="btn btn-outline-danger"
+                  (click)="eliminarDevolucion()"
+                  *ngIf="puedeEliminar()">
+                  <i class="bi bi-trash me-2"></i>
+                  Eliminar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Información rápida -->
+      <div class="col-md-4">
+        <div class="card bg-light">
+          <div class="card-body">
+            <h6 class="card-title">Información Rápida</h6>
+            <small class="text-muted">
+              <strong>Registrada:</strong> {{ formatearFechaDisplay(devolucion.fechaRegistro) }}<br>
+              <strong>Usuario:</strong> {{ devolucion.usuarioRegistro }}<br>
+              <strong>Última actualización:</strong> {{ formatearFechaDisplay(devolucion.fechaActualizacion) }}
+              <span *ngIf="devolucion.usuarioGestion"><br><strong>Por:</strong> {{ devolucion.usuarioGestion }}</span>
+            </small>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Formulario de cambio de estado -->
+    <div class="row mb-4" *ngIf="mostrarFormularioCambioEstado">
+      <div class="col-12">
+        <div class="card border-warning">
+          <div class="card-header bg-warning text-dark">
+            <h6 class="mb-0">
+              <i class="bi bi-arrow-repeat me-2"></i>
+              Cambiar Estado de Devolución
+            </h6>
+          </div>
+          <div class="card-body">
+            <div class="row g-3">
+              <div class="col-md-4">
+                <label class="form-label">Nuevo Estado:</label>
+                <select 
+                  class="form-select"
+                  [(ngModel)]="nuevoEstadoId">
+                  <option 
+                    *ngFor="let estado of catalogos?.estados" 
+                    [value]="estado.idEstadoDevolucion">
+                    {{ estado.descripcion }}
+                  </option>
+                </select>
+              </div>
+              <div class="col-md-8">
+                <label class="form-label">Observaciones:</label>
+                <textarea 
+                  class="form-control"
+                  [(ngModel)]="observacionesCambio"
+                  rows="2"
+                  placeholder="Observaciones del cambio de estado (opcional)..."></textarea>
+              </div>
+              <div class="col-12">
+                <div class="d-flex gap-2">
+                  <button 
+                    class="btn btn-success"
+                    (click)="confirmarCambioEstado()"
+                    [disabled]="cambiandoEstado || nuevoEstadoId === devolucion.idEstadoDevolucion">
+                    <span class="spinner-border spinner-border-sm me-2" *ngIf="cambiandoEstado"></span>
+                    <i class="bi bi-check me-2" *ngIf="!cambiandoEstado"></i>
+                    {{ cambiandoEstado ? 'Cambiando...' : 'Confirmar Cambio' }}
+                  </button>
+                  <button 
+                    class="btn btn-outline-secondary"
+                    (click)="cancelarCambioEstado()"
+                    [disabled]="cambiandoEstado">
+                    <i class="bi bi-x me-2"></i>
+                    Cancelar
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Información del pedido -->
+    <div class="row mb-4">
+      <div class="col-12">
+        <div class="card">
+          <div class="card-header">
+            <h6 class="mb-0">
+              <i class="bi bi-box me-2"></i>
+              Información del Pedido
+            </h6>
+          </div>
+          <div class="card-body">
+            <div class="row">
+              <div class="col-md-6">
+                <table class="table table-borderless table-sm">
+                  <tr>
+                    <td class="fw-bold" style="width: 140px;">ID Pedido:</td>
+                    <td>
+                      <span class="badge bg-secondary">{{ devolucion.idPedido }}</span>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="fw-bold">Fecha Pedido:</td>
+                    <td>{{ formatearFechaDisplay(devolucion.fechaPedido) }}</td>
+                  </tr>
+                  <tr>
+                    <td class="fw-bold">Monto Pedido:</td>
+                    <td class="text-success fw-bold">{{ formatearMonto(devolucion.montoPedido) }}</td>
+                  </tr>
+                </table>
+              </div>
+              <div class="col-md-6">
+                <h6 class="mb-2">Datos del Cliente</h6>
+                <address class="mb-0">
+                  <strong>{{ devolucion.nombreCliente }}</strong><br>
+                  <span class="text-muted">{{ devolucion.numeroDocumentoCliente }}</span><br>
+                  <i class="bi bi-telephone me-1"></i> {{ devolucion.telefonoCliente }}<br>
+                  <i class="bi bi-envelope me-1"></i> {{ devolucion.correoCliente }}<br>
+                  <i class="bi bi-geo-alt me-1"></i> {{ devolucion.direccionCliente }}
+                </address>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Datos de la devolución -->
+    <div class="row mb-4">
+      <div class="col-md-8">
+        <div class="card">
+          <div class="card-header">
+            <h6 class="mb-0">
+              <i class="bi bi-clipboard-data me-2"></i>
+              Datos de la Devolución
+            </h6>
+          </div>
+          <div class="card-body">
+            <div class="row mb-3">
+              <div class="col-md-6">
+                <strong>Motivo:</strong><br>
+                <span class="badge bg-light text-dark border">{{ devolucion.motivoDevolucion }}</span>
+              </div>
+              <div class="col-md-6">
+                <strong>Acción Tomada:</strong><br>
+                <span class="badge bg-info text-white">{{ devolucion.accionDevolucion }}</span>
+              </div>
+            </div>
+            
+            <div class="row mb-3">
+              <div class="col-md-6">
+                <strong>Fecha de Devolución:</strong><br>
+                <span class="text-muted">{{ formatearFechaDisplay(devolucion.fechaDevolucion) }}</span>
+              </div>
+              <div class="col-md-6">
+                <strong>Monto de Devolución:</strong><br>
+                <span class="text-primary fw-bold fs-5">{{ formatearMonto(devolucion.montoDevolucion) }}</span>
+              </div>
+            </div>
+            
+            <div class="mb-3" *ngIf="devolucion.descripcion">
+              <strong>Descripción:</strong>
+              <p class="mt-1 mb-0 text-muted">{{ devolucion.descripcion }}</p>
+            </div>
+            
+            <div class="mb-3" *ngIf="devolucion.manifiesto">
+              <strong>Manifiesto:</strong>
+              <p class="mt-1 mb-0 text-muted">{{ devolucion.manifiesto }}</p>
+            </div>
+            
+            <div *ngIf="devolucion.observaciones">
+              <strong>Observaciones:</strong>
+              <p class="mt-1 mb-0 text-muted">{{ devolucion.observaciones }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Archivo adjunto -->
+      <div class="col-md-4">
+        <div class="card">
+          <div class="card-header">
+            <h6 class="mb-0">
+              <i class="bi bi-paperclip me-2"></i>
+              Archivo Adjunto
+            </h6>
+          </div>
+          <div class="card-body text-center">
+            <div *ngIf="devolucion.urlAdjunto; else sinArchivo">
+              <i class="bi bi-file-earmark display-4 text-primary mb-3"></i>
+              <br>
+              <button 
+                class="btn btn-outline-primary"
+                (click)="abrirArchivo()">
+                <i class="bi bi-eye me-2"></i>
+                Ver Archivo
+              </button>
+            </div>
+            <ng-template #sinArchivo>
+              <i class="bi bi-file-earmark-x display-4 text-muted mb-3"></i>
+              <br>
+              <small class="text-muted">No hay archivo adjunto</small>
+            </ng-template>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Historial de estados (si hubiera) -->
+    <div class="row">
+      <div class="col-12">
+        <div class="card">
+          <div class="card-header">
+            <h6 class="mb-0">
+              <i class="bi bi-clock-history me-2"></i>
+              Información de Registro
+            </h6>
+          </div>
+          <div class="card-body">
+            <div class="row">
+              <div class="col-md-6">
+                <div class="d-flex align-items-center mb-2">
+                  <i class="bi bi-plus-circle text-success me-2"></i>
+                  <div>
+                    <strong>Registrada</strong><br>
+                    <small class="text-muted">
+                      {{ formatearFechaDisplay(devolucion.fechaRegistro) }} por {{ devolucion.usuarioRegistro }}
+                    </small>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-6" *ngIf="devolucion.usuarioGestion">
+                <div class="d-flex align-items-center mb-2">
+                  <i class="bi bi-pencil text-warning me-2"></i>
+                  <div>
+                    <strong>Última Actualización</strong><br>
+                    <small class="text-muted">
+                      {{ formatearFechaDisplay(devolucion.fechaActualizacion) }} por {{ devolucion.usuarioGestion }}
+                    </small>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+  </div>
+</div>

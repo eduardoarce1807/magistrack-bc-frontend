@@ -1,0 +1,354 @@
+/* Estilos globales para el módulo de devoluciones */
+
+/* Variables CSS para el tema de devoluciones */
+:root {
+  --devolucion-primary: #0d6efd;
+  --devolucion-success: #198754;
+  --devolucion-warning: #ffc107;
+  --devolucion-danger: #dc3545;
+  --devolucion-info: #0dcaf0;
+  --devolucion-light: #f8f9fa;
+  --devolucion-dark: #212529;
+  --devolucion-muted: #6c757d;
+  
+  /* Estados específicos de devoluciones */
+  --estado-registrada: #28a745;
+  --estado-en-proceso: #ffc107;
+  --estado-completada: #007bff;
+  --estado-cancelada: #dc3545;
+  
+  /* Sombras y efectos */
+  --shadow-sm: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+  --shadow-md: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+  --shadow-lg: 0 1rem 3rem rgba(0, 0, 0, 0.175);
+  
+  /* Transiciones */
+  --transition-fast: 0.15s ease-in-out;
+  --transition-normal: 0.3s ease-in-out;
+  --transition-slow: 0.5s ease-in-out;
+}
+
+/* Contenedores de devoluciones */
+.devolucion-container {
+  .card {
+    transition: all var(--transition-normal);
+    
+    &:hover {
+      box-shadow: var(--shadow-md);
+      transform: translateY(-2px);
+    }
+  }
+  
+  .badge {
+    transition: all var(--transition-fast);
+    
+    &:hover {
+      transform: scale(1.05);
+    }
+  }
+  
+  .btn {
+    transition: all var(--transition-fast);
+    
+    &:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-sm);
+    }
+    
+    &:active:not(:disabled) {
+      transform: translateY(0);
+    }
+  }
+}
+
+/* Estados de devolución con animaciones */
+.estado-badge {
+  position: relative;
+  overflow: hidden;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    transition: left var(--transition-slow);
+  }
+  
+  &:hover::before {
+    left: 100%;
+  }
+  
+  &.estado-registrada {
+    background-color: var(--estado-registrada) !important;
+    color: #000000 !important;
+    font-weight: 600 !important;
+    border: 1px solid rgba(0, 0, 0, 0.2) !important;
+  }
+  
+  &.estado-en-proceso {
+    background-color: var(--estado-en-proceso) !important;
+    color: #000000 !important;
+    font-weight: 600 !important;
+    border: 1px solid rgba(0, 0, 0, 0.2) !important;
+  }
+  
+  &.estado-completada {
+    background-color: var(--estado-completada) !important;
+    color: #000000 !important;
+    font-weight: 600 !important;
+    border: 1px solid rgba(0, 0, 0, 0.2) !important;
+  }
+  
+  &.estado-cancelada {
+    background-color: var(--estado-cancelada) !important;
+    color: #000000 !important;
+    font-weight: 600 !important;
+    border: 1px solid rgba(0, 0, 0, 0.2) !important;
+  }
+}
+
+/* Animaciones de pulso removidas para mejor legibilidad */
+
+/* Loader personalizado para devoluciones */
+.devolucion-loader {
+  display: inline-block;
+  position: relative;
+  width: 80px;
+  height: 80px;
+  
+  div {
+    position: absolute;
+    top: 33px;
+    width: 13px;
+    height: 13px;
+    border-radius: 50%;
+    background: var(--devolucion-primary);
+    animation-timing-function: cubic-bezier(0, 1, 1, 0);
+    
+    &:nth-child(1) {
+      left: 8px;
+      animation: devolucion-loader1 0.6s infinite;
+    }
+    
+    &:nth-child(2) {
+      left: 8px;
+      animation: devolucion-loader2 0.6s infinite;
+    }
+    
+    &:nth-child(3) {
+      left: 32px;
+      animation: devolucion-loader2 0.6s infinite;
+    }
+    
+    &:nth-child(4) {
+      left: 56px;
+      animation: devolucion-loader3 0.6s infinite;
+    }
+  }
+}
+
+@keyframes devolucion-loader1 {
+  0% { transform: scale(0); }
+  100% { transform: scale(1); }
+}
+
+@keyframes devolucion-loader3 {
+  0% { transform: scale(1); }
+  100% { transform: scale(0); }
+}
+
+@keyframes devolucion-loader2 {
+  0% { transform: translate(0, 0); }
+  100% { transform: translate(24px, 0); }
+}
+
+/* Estilos para notificaciones de devolución */
+.devolucion-notification {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 9999;
+  max-width: 350px;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  color: white;
+  font-weight: 500;
+  box-shadow: var(--shadow-lg);
+  animation: slideInRight var(--transition-normal);
+  
+  &.success {
+    background: linear-gradient(135deg, var(--devolucion-success), #20c997);
+  }
+  
+  &.error {
+    background: linear-gradient(135deg, var(--devolucion-danger), #e74c3c);
+  }
+  
+  &.warning {
+    background: linear-gradient(135deg, var(--devolucion-warning), #f39c12);
+  }
+  
+  &.info {
+    background: linear-gradient(135deg, var(--devolucion-info), #3498db);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* Tabla de devoluciones con efectos */
+.devolucion-table {
+  tbody tr {
+    transition: all var(--transition-fast);
+    
+    &:hover {
+      background-color: rgba(13, 110, 253, 0.05) !important;
+      transform: scale(1.01);
+    }
+    
+    &.row-destacada {
+      background: linear-gradient(90deg, rgba(13, 110, 253, 0.1), rgba(13, 110, 253, 0.05));
+      border-left: 4px solid var(--devolucion-primary);
+    }
+  }
+  
+  .btn-group {
+    .btn {
+      margin: 0 2px;
+      
+      &:hover {
+        z-index: 2;
+      }
+    }
+  }
+}
+
+/* Formularios con efectos mejorados */
+.devolucion-form {
+  .form-control, .form-select {
+    transition: all var(--transition-fast);
+    
+    &:focus {
+      transform: scale(1.02);
+      box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+    }
+    
+    &.is-invalid {
+      animation: shake 0.5s ease-in-out;
+    }
+  }
+  
+  .was-validated .form-control:valid {
+    border-color: var(--devolucion-success);
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3e%3cpath fill='%23198754' d='m2.3 6.73.8-.8 1.6 1.6L7.4 4.8l.8.8L4.7 9z'/%3e%3c/svg%3e");
+  }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+  20%, 40%, 60%, 80% { transform: translateX(5px); }
+}
+
+/* Iconos con animaciones */
+.devolucion-icon {
+  transition: all var(--transition-fast);
+  
+  &:hover {
+    transform: rotate(360deg) scale(1.2);
+  }
+  
+  &.icon-spin {
+    animation: spin 1s linear infinite;
+  }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Mejoras para dispositivos móviles */
+@media (max-width: 768px) {
+  .devolucion-container {
+    .card:hover {
+      transform: none;
+    }
+    
+    .btn:hover:not(:disabled) {
+      transform: none;
+    }
+  }
+  
+  .devolucion-table tbody tr:hover {
+    transform: none;
+  }
+  
+  .devolucion-form {
+    .form-control:focus, .form-select:focus {
+      transform: none;
+    }
+  }
+  
+  .devolucion-notification {
+    position: relative;
+    top: auto;
+    right: auto;
+    margin: 1rem 0;
+    animation: none;
+  }
+}
+
+/* Utilidades específicas para devoluciones */
+.text-devolucion-primary { color: var(--devolucion-primary) !important; }
+.text-devolucion-success { color: var(--devolucion-success) !important; }
+.text-devolucion-warning { color: var(--devolucion-warning) !important; }
+.text-devolucion-danger { color: var(--devolucion-danger) !important; }
+.text-devolucion-info { color: var(--devolucion-info) !important; }
+.text-devolucion-muted { color: var(--devolucion-muted) !important; }
+
+.bg-devolucion-primary { background-color: var(--devolucion-primary) !important; }
+.bg-devolucion-success { background-color: var(--devolucion-success) !important; }
+.bg-devolucion-warning { background-color: var(--devolucion-warning) !important; }
+.bg-devolucion-danger { background-color: var(--devolucion-danger) !important; }
+.bg-devolucion-info { background-color: var(--devolucion-info) !important; }
+.bg-devolucion-light { background-color: var(--devolucion-light) !important; }
+
+/* Espaciado mejorado */
+.devolucion-spacing {
+  .mb-devolucion { margin-bottom: 1.5rem !important; }
+  .mt-devolucion { margin-top: 1.5rem !important; }
+  .p-devolucion { padding: 1.5rem !important; }
+}
+
+/* Print styles para informes */
+@media print {
+  .devolucion-container {
+    .btn, .dropdown, .pagination {
+      display: none !important;
+    }
+    
+    .card {
+      border: 1px solid #000 !important;
+      box-shadow: none !important;
+      page-break-inside: avoid;
+    }
+    
+    .badge {
+      border: 1px solid #000 !important;
+      background: white !important;
+      color: black !important;
+    }
+  }
+}
