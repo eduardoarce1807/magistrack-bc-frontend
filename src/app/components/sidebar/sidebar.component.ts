@@ -20,51 +20,22 @@ export class SidebarComponent {
 
 		const user = this.dataService.getLoggedUser();
 		const atencionClienteAccessRoles = [1, 5];
+		
+		// Atención al Cliente - Reclamos, Registro de Devoluciones, Consulta de pedidos, Encuestas
 		const atencionClienteItems = [
-			...(atencionClienteAccessRoles.includes(user.rol.idRol) ? [
-				{
-					key: '0_0',
-					label: 'Registro de Cliente',
-					command: () => this.irA('pages/atencion-cliente/registro-cliente')
-				},
-				{
-					key: '0_0',
-					label: 'Mantenimiento de Cliente',
-					command: () => this.irA('pages/atencion-cliente/mantenimiento-clientes')
-				},
-			] : []),
-			...([1,2,3,4,5].includes(user.rol.idRol) ? [
-				{
-					key: '0_1',
-					label: 'Registro de Pedido',
-					command: () => this.irA('pages/atencion-cliente/registro-pedido')
-				},
-				{
-					key: '0_2',
-					label: 'Bandeja de Pedidos',
-					command: () => this.irA('pages/atencion-cliente/bandeja-pedidos')
-				}
-			] : []),
-			...(atencionClienteAccessRoles.includes(user.rol.idRol) ? [
-				{
-					key: '0_2_1',
-					label: 'Bandeja de Pedidos Histórico',
-					command: () => this.irA('pages/atencion-cliente/bandeja-pedidos-historico')
-				}
-			] : []),
 			...([2,3,4].includes(user.rol.idRol) ? [
 				{
-					key: '0_11',
-					label: 'Solicitud Preparado Magistral',
-					command: () => this.irA('pages/atencion-cliente/solicitud-preparado-magistral')
-				},
-				{
-					key: '0_12',
+					key: '0_0',
 					label: 'Quejas y Reclamos',
 					command: () => this.irA('pages/atencion-cliente/quejas-reclamos')
 				},
 				{
-					key: '0_13',
+					key: '0_1',
+					label: 'Solicitud Preparado Magistral',
+					command: () => this.irA('pages/atencion-cliente/solicitud-preparado-magistral')
+				},
+				{
+					key: '0_2',
 					label: 'Mi Perfil',
 					command: () => this.irA('pages/perfil')
 				}
@@ -72,44 +43,121 @@ export class SidebarComponent {
 			...(atencionClienteAccessRoles.includes(user.rol.idRol) ? [
 				{
 					key: '0_3',
-					label: 'Bandeja de Personalización',
-					command: () => this.irA('pages/atencion-cliente/bandeja-personalizacion')
+					label: 'Gestión de Devoluciones',
+					command: () => this.irA('pages/atencion-cliente/devoluciones')
 				},
 				{
 					key: '0_4',
-					label: 'Venta rápida',
-					command: () => this.irA('venta-rapida/productos-venta-rapida')
+					label: 'Bandeja de Pedidos Histórico',
+					command: () => this.irA('pages/atencion-cliente/bandeja-pedidos-historico')
+				}
+			] : [])
+		];
+
+		// Ventas & Pedidos - Registro clientes, Mantenimiento, Catálogo precios, Cupones, Registro de pedidos, Bandeja
+		const ventasPedidosItems = [
+			...(atencionClienteAccessRoles.includes(user.rol.idRol) ? [
+				{
+					key: '1_0',
+					label: 'Registro de Cliente',
+					command: () => this.irA('pages/atencion-cliente/registro-cliente')
 				},
 				{
-					key: '0_5',
-					label: 'Visualizador de pagos',
-					command: () => this.irA('pages/atencion-cliente/visualizador-pagos')
+					key: '1_1',
+					label: 'Mantenimiento de Cliente',
+					command: () => this.irA('pages/atencion-cliente/mantenimiento-clientes')
 				},
 				{
-					key: '0_6',
-					label: 'Reporte de Ventas',
-					command: () => this.irA('pages/atencion-cliente/reporte-ventas')
-				},
-				{
-					key: '0_7',
-					label: 'Registro de Cupón',
-					command: () => this.irA('pages/gestion-producto/registro-cupon')
-				},
-				{
-					key: '0_8',
-					label: 'Listado de Cupones',
-					command: () => this.irA('pages/gestion-producto/listado-cupones')
-				},
-				{
-					key: '0_9',
+					key: '1_2',
 					label: 'Catálogo de Precios',
 					command: () => this.irA('pages/gestion-producto/catalogo-precios')
 				},
 				{
-					key: '0_10',
-					label: 'Gestión de Devoluciones',
-					command: () => this.irA('pages/atencion-cliente/devoluciones')
+					key: '1_3',
+					label: 'Registro de Cupón',
+					command: () => this.irA('pages/gestion-producto/registro-cupon')
 				},
+				{
+					key: '1_4',
+					label: 'Listado de Cupones',
+					command: () => this.irA('pages/gestion-producto/listado-cupones')
+				},
+				{
+					key: '1_5',
+					label: 'Venta rápida',
+					command: () => this.irA('venta-rapida/productos-venta-rapida')
+				}
+			] : []),
+			...([1,2,3,4,5].includes(user.rol.idRol) ? [
+				{
+					key: '1_6',
+					label: 'Registro de Pedido',
+					command: () => this.irA('pages/atencion-cliente/registro-pedido')
+				},
+				{
+					key: '1_7',
+					label: 'Bandeja de Pedidos',
+					command: () => this.irA('pages/atencion-cliente/bandeja-pedidos')
+				}
+			] : []),
+			...(atencionClienteAccessRoles.includes(user.rol.idRol) ? [
+				{
+					key: '1_8',
+					label: 'Bandeja de Personalización',
+					command: () => this.irA('pages/atencion-cliente/bandeja-personalizacion')
+				},
+				// Reportes de Ventas & Pedidos
+				{
+					key: '1_9',
+					label: 'Consulta de Ventas',
+					command: () => this.irA('pages/reportes/consulta-ventas')
+				},
+				{
+					key: '1_10',
+					label: 'Ventas por Producto',
+					command: () => this.irA('pages/reportes/ventas-productos')
+				},
+				{
+					key: '1_11',
+					label: 'Ventas por Cliente',
+					command: () => this.irA('pages/reportes/ventas-clientes')
+				},
+				{
+					key: '1_12',
+					label: 'Ventas por Tipo Cliente',
+					command: () => this.irA('pages/reportes/ventas-roles')
+				},
+				{
+					key: '1_13',
+					label: 'Ventas por Canal',
+					command: () => this.irA('pages/reportes/ventas-canales')
+				},
+				{
+					key: '1_14',
+					label: 'Top N',
+					command: () => this.irA('pages/reportes/top-n')
+				},
+				{
+					key: '1_15',
+					label: 'Reporte de Ventas',
+					command: () => this.irA('pages/atencion-cliente/reporte-ventas')
+				}
+			] : [])
+		];
+
+		// Logística - Despacho, Seguimiento entregas, Devoluciones físicas, Facturación/pagos
+		const logisticaItems = [
+			...([1, 5].includes(user.rol.idRol) ? [
+				{
+					key: '2_0',
+					label: 'Bandeja de despacho',
+					command: () => this.irA('pages/produccion/bandeja-despacho')
+				},
+				{
+					key: '2_1',
+					label: 'Visualizador de pagos',
+					command: () => this.irA('pages/atencion-cliente/visualizador-pagos')
+				}
 			] : [])
 		];
 
@@ -120,129 +168,63 @@ export class SidebarComponent {
 				icon: 'pi pi-users',
 				items: atencionClienteItems
 			}] : []),
-			...(atencionClienteAccessRoles.includes(user.rol.idRol) ? [{
-				key: '7',
-				label: 'Reportes',
-				icon: 'pi pi-chart-line',
-				items: [
-					{
-						key: '7_0',
-						label: 'Consulta de Ventas',
-						command: () => this.irA('pages/reportes/consulta-ventas')
-					},
-					// {
-					// 	key: '7_1',
-					// 	label: 'Reportes Gráficos',
-					// 	command: () => this.irA('pages/reportes/reportes-graficos')
-					// },
-					{
-						key: '7_2',
-						label: 'Ventas por Producto',
-						command: () => this.irA('pages/reportes/ventas-productos')
-					},
-					{
-						key: '7_3',
-						label: 'Ventas por Cliente',
-						command: () => this.irA('pages/reportes/ventas-clientes')
-					},
-					{
-						key: '7_4',
-						label: 'Ventas por Tipo Cliente',
-						command: () => this.irA('pages/reportes/ventas-roles')
-					},
-					{
-						key: '7_5',
-						label: 'Ventas por Canal',
-						command: () => this.irA('pages/reportes/ventas-canales')
-					},
-					{
-						key: '7_6',
-						label: 'Top N',
-						command: () => this.irA('pages/reportes/top-n')
-					},
-					{
-						key: '7_7',
-						label: 'Pedidos en Producción',
-						command: () => this.irA('pages/reportes/pedidos-produccion')
-					},
-					{
-						key: '7_8',
-						label: 'Cumplimiento FEE',
-						command: () => this.irA('pages/reportes/cumplimiento-fee')
-					},
-					...([1].includes(user.rol.idRol) ? [
-					{
-						key: '7_9',
-						label: 'Órdenes de Compra por Periodo',
-						command: () => this.irA('pages/reportes/orden-compra-periodo')
-					},
-					{
-						key: '7_10',
-						label: 'Compararivo de Precios',
-						command: () => this.irA('pages/reportes/comparativo-precio')
-					},
-					{
-						key: '7_10',
-						label: 'Stock actual vs Stock mín.',
-						command: () => this.irA('pages/reportes/comparativo-stock')
-					},
-					{
-						key: '7_11',
-						label: 'Entradas y Salidas por periodo',
-						command: () => this.irA('pages/reportes/entradas-salidas')
-					},
-					{
-						key: '7_12',
-						label: 'Valorización de entradas y salidas',
-						command: () => this.irA('pages/reportes/reporte-valorizacion')
-					},
-					{
-						key: '7_13',
-						label: 'Ingreso por Categoría',
-						command: () => this.irA('pages/reportes/reporte-categoria-mp')
-					}
-					]: []),
-				]
+			...(ventasPedidosItems.length > 0 ? [{
+				key: '1',
+				label: 'Ventas & Pedidos',
+				icon: 'pi pi-shopping-bag',
+				items: ventasPedidosItems
+			}] : []),
+			...(logisticaItems.length > 0 ? [{
+				key: '2',
+				label: 'Logística',
+				icon: 'pi pi-truck',
+				items: logisticaItems
 			}] : []),
 			...(user.rol.idRol === 1 || user.rol.idRol === 5 || user.rol.idRol === 6 || user.rol.idRol === 7 || user.rol.idRol === 8 || user.rol.idRol === 9 ? [
 				{
-					key: '1',
+					key: '3',
 					label: 'Producción',
 					icon: 'pi pi-cog',
 					items: [
 						...([1, 6].includes(user.rol.idRol) ? [
 							{
-								key: '1_0',
+								key: '3_0',
 								label: 'Bandeja de producción',
 								command: () => this.irA('pages/produccion/bandeja-produccion')
 							}
 						] : []),
 						...([1, 7].includes(user.rol.idRol) ? [
 							{
-								key: '1_1',
-							label: 'Bandeja de calidad',
-							command: () => this.irA('pages/produccion/bandeja-calidad')
+								key: '3_1',
+								label: 'Bandeja de calidad',
+								command: () => this.irA('pages/produccion/bandeja-calidad')
 							}
 						] : []),
 						...([1, 8].includes(user.rol.idRol) ? [
 							{
-								key: '1_2',
+								key: '3_2',
 								label: 'Bandeja de envasado',
 								command: () => this.irA('pages/produccion/bandeja-envasado')
 							}
 						] : []),
 						...([1, 9].includes(user.rol.idRol) ? [
 							{
-								key: '1_3',
+								key: '3_3',
 								label: 'Bandeja de etiquetado',
 								command: () => this.irA('pages/produccion/bandeja-etiquetado')
 							}
 						] : []),
-						...([1, 5].includes(user.rol.idRol) ? [
+						// Reportes de Producción
+						...(atencionClienteAccessRoles.includes(user.rol.idRol) ? [
 							{
-								key: '1_4',
-								label: 'Bandeja de despacho',
-								command: () => this.irA('pages/produccion/bandeja-despacho')
+								key: '3_4',
+								label: 'Pedidos en Producción',
+								command: () => this.irA('pages/reportes/pedidos-produccion')
+							},
+							{
+								key: '3_5',
+								label: 'Cumplimiento FEE',
+								command: () => this.irA('pages/reportes/cumplimiento-fee')
 							}
 						] : [])
 					]
@@ -250,35 +232,25 @@ export class SidebarComponent {
 			] : []),
 			...(user.rol.idRol === 1 ? [
 				{
-					key: '3',
+					key: '4',
 					label: 'Compras',
 					icon: 'pi pi-shopping-cart',
 					items: [
 						{
-							key: '3_0',
+							key: '4_0',
 							label: 'Historial de Requerimientos',
 							command: () => this.irA('pages/compras/bandeja-requerimientos')
 						},
 						{
-							key: '3_1',
+							key: '4_1',
 							label: 'Solicitud de Requerimiento',
 							command: () => this.irA('pages/compras/requerimiento-manual')
 						},
-						// {
-						// 	key: '3_2',
-						// 	label: 'Seleccionar Proveedor x Cotización',
-						// 	command: () => this.irA('pages/compras/seleccionar-proveedor')
-						// },
 						{
-							key: '3_3',
+							key: '4_2',
 							label: 'Ordenes de Compras',
 							command: () => this.irA('pages/compras/ordencompra')
-						},
-						// {
-						// 	key: '4_3',
-						// 	label: 'Orden Compra Proveedor',
-						// 	command: () => this.irA('pages/proveedor/ordencompra-proveedor')
-						// }
+						}
 					]
 				},
 				{
@@ -346,7 +318,7 @@ export class SidebarComponent {
 							key: '6_7',
 							label: 'Solicitudes Preparados Magistrales',
 							command: () => this.irA('pages/gestion-producto/bandeja-solicitudes-preparados-magistrales')
-						},
+						}
 					]
 				}
 			] : [])
