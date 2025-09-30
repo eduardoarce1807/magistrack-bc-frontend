@@ -19,7 +19,13 @@ export class SidebarComponent {
 	constructor(private router: Router, public dataService: DataService) {
 
 		const user = this.dataService.getLoggedUser();
-		const atencionClienteAccessRoles = [1, 5];
+		
+		// Definición de roles para acceso - incluye nuevos roles 11-15
+		const atencionClienteAccessRoles = [1, 5]; // Excluye rol 11 - no tiene acceso a Ventas & Pedidos
+		const logisticaAccessRoles = [1, 5, 12]; // Incluye nuevo rol Logística (12)
+		const comprasAccessRoles = [1, 13]; // Incluye nuevo rol Compras (13)
+		const almacenAccessRoles = [1, 14]; // Incluye nuevo rol Almacén (14)
+		const investigacionAccessRoles = [1, 15]; // Incluye nuevo rol Investigación y Desarrollo (15)
 		
 		// Atención al Cliente - Reclamos, Registro de Devoluciones, Consulta de pedidos, Encuestas
 		const atencionClienteItems = [
@@ -40,7 +46,20 @@ export class SidebarComponent {
 					command: () => this.irA('pages/perfil')
 				}
 			] : []),
-			...(atencionClienteAccessRoles.includes(user.rol.idRol) ? [
+			// Rol 11 (Atención al Cliente) solo tiene acceso a quejas/reclamos y perfil
+			...(user.rol.idRol === 11 ? [
+				{
+					key: '0_0',
+					label: 'Quejas y Reclamos',
+					command: () => this.irA('pages/atencion-cliente/quejas-reclamos')
+				},
+				{
+					key: '0_2',
+					label: 'Mi Perfil',
+					command: () => this.irA('pages/perfil')
+				}
+			] : []),
+			...(atencionClienteAccessRoles.includes(user.rol.idRol) || user.rol.idRol === 11 ? [
 				{
 					key: '0_3',
 					label: 'Gestión de Devoluciones',
@@ -55,8 +74,9 @@ export class SidebarComponent {
 		];
 
 		// Ventas & Pedidos - Registro clientes, Mantenimiento, Catálogo precios, Cupones, Registro de pedidos, Bandeja
+		// Rol 11 (Atención al Cliente) NO tiene acceso a este módulo
 		const ventasPedidosItems = [
-			...(atencionClienteAccessRoles.includes(user.rol.idRol) ? [
+			...([1, 5].includes(user.rol.idRol) ? [
 				{
 					key: '1_0',
 					label: 'Registro de Cliente',
@@ -100,7 +120,7 @@ export class SidebarComponent {
 					command: () => this.irA('pages/atencion-cliente/bandeja-pedidos')
 				}
 			] : []),
-			...(atencionClienteAccessRoles.includes(user.rol.idRol) ? [
+			...([1, 5].includes(user.rol.idRol) ? [
 				{
 					key: '1_8',
 					label: 'Bandeja de Personalización',
@@ -146,13 +166,17 @@ export class SidebarComponent {
 		];
 
 		// Logística - Despacho, Seguimiento entregas, Devoluciones físicas, Facturación/pagos
+		// Rol Logística (12) solo tiene acceso a despacho
 		const logisticaItems = [
-			...([1, 5].includes(user.rol.idRol) ? [
+			...(logisticaAccessRoles.includes(user.rol.idRol) ? [
 				{
 					key: '2_0',
 					label: 'Bandeja de despacho',
 					command: () => this.irA('pages/produccion/bandeja-despacho')
-				},
+				}
+			] : []),
+			// Solo administrador y ventas pueden ver visualizador de pagos
+			...([1, 5].includes(user.rol.idRol) ? [
 				{
 					key: '2_1',
 					label: 'Visualizador de pagos',
@@ -230,7 +254,8 @@ export class SidebarComponent {
 					]
 				}
 			] : []),
-			...(user.rol.idRol === 1 ? [
+			// Compras - solo administrador y rol Compras (13)
+			...(comprasAccessRoles.includes(user.rol.idRol) ? [
 				{
 					key: '4',
 					label: 'Compras',
@@ -252,7 +277,10 @@ export class SidebarComponent {
 							command: () => this.irA('pages/compras/ordencompra')
 						}
 					]
-				},
+				}
+			] : []),
+			// Almacén - solo administrador y rol Almacén (14)
+			...(almacenAccessRoles.includes(user.rol.idRol) ? [
 				{
 					key: '5',
 					label: 'Almacén',
@@ -269,13 +297,16 @@ export class SidebarComponent {
 							command: () => this.irA('pages/inventario/kardex-producto/0')
 						}
 					]
-				},
+				}
+			] : []),
+			// Investigación y Desarrollo - solo administrador y rol I+D (15)
+			...(investigacionAccessRoles.includes(user.rol.idRol) ? [
 				{
 					key: '6',
 					label: 'Investigación y Desarrollo',
 					icon: 'pi pi-share-alt',
 					items: [
-						...(user.rol.idRol === 1
+						...(user.rol.idRol === 1 || user.rol.idRol === 15
 							? [
 								{
 									key: '6_0',
