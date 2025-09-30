@@ -40,7 +40,7 @@ export const pagesRoutes: Routes = [
 		loadChildren: () => import('./inventario/inventario.routes').then(m => m.inventarioRoutes),
 		canActivate: [AuthGuard, ProfileCompleteGuard]
 	},
-	{ path: 'perfil', loadComponent: () => import('./atencion-cliente/registro-cliente/registro-cliente.component').then(m => m.RegistroClienteComponent), canActivate: [AuthGuard], data: { roles: [2, 3, 4] } },
+	{ path: 'perfil', loadComponent: () => import('./atencion-cliente/registro-cliente/registro-cliente.component').then(m => m.RegistroClienteComponent), canActivate: [AuthGuard], data: { roles: [2, 3, 4, 11] } },
 	{ path: '**', redirectTo: 'auth/login' }
 
 ];
