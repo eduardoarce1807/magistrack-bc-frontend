@@ -6,6 +6,11 @@ import Swal from 'sweetalert2';
 
 declare const grecaptcha: any;
 
+// Definir función global para el callback
+(window as any).onRecaptchaCallback = (token: string) => {
+  (window as any).loginComponentInstance?.onRecaptchaSuccess(token);
+};
+
 @Component({
   selector: 'app-login',
   standalone: true,
@@ -17,13 +22,17 @@ export class LoginComponent implements OnInit, OnDestroy {
 
   loginForm: FormGroup;
   recaptchaToken: string = '';
-  private siteKey = '6Ld2ItorAAAAACmsXU_lGvFX6eJt05mYLd901s8B';
+  private siteKey = '6Lcm-torAAAAAHUxC-nR_ZsHmb053eoaVhM7szyP';
+  private recaptchaId: any;
 
   constructor(private fb: FormBuilder, private router: Router, private usuarioService: UsuarioService) {
     this.loginForm = this.fb.group({
       usuario: ['', [Validators.required]],
       password: ['', [Validators.required, Validators.minLength(6)]]
     });
+    
+    // Asignar instancia global para el callback
+    (window as any).loginComponentInstance = this;
   }
 
   ngOnInit(): void {
@@ -31,17 +40,24 @@ export class LoginComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    // Clear token on component destroy
     this.recaptchaToken = '';
+    (window as any).loginComponentInstance = null;
   }
 
   private initializeRecaptcha(): void {
-    // Wait for reCAPTCHA to load
+    // Esperar a que reCAPTCHA se cargue
     const checkRecaptcha = () => {
       if (typeof grecaptcha !== 'undefined') {
-        grecaptcha.ready(() => {
-          console.log('reCAPTCHA v3 loaded successfully');
-        });
+        try {
+          this.recaptchaId = grecaptcha.render(document.querySelector('.g-recaptcha'), {
+            sitekey: this.siteKey,
+            size: 'invisible',
+            callback: 'onRecaptchaCallback'
+          });
+          console.log('reCAPTCHA v2 invisible inicializado correctamente');
+        } catch (error) {
+          console.error('Error al inicializar reCAPTCHA:', error);
+        }
       } else {
         setTimeout(checkRecaptcha, 100);
       }
@@ -49,37 +65,28 @@ export class LoginComponent implements OnInit, OnDestroy {
     checkRecaptcha();
   }
 
-  private executeRecaptcha(): Promise<string> {
-    return new Promise((resolve, reject) => {
-      if (typeof grecaptcha !== 'undefined') {
-        grecaptcha.execute(this.siteKey, { action: 'login' }).then((token: string) => {
-          resolve(token);
-        }).catch((error: any) => {
-          reject(error);
-        });
-      } else {
-        reject('reCAPTCHA not loaded');
-      }
-    });
+  // Callback que se ejecuta cuando reCAPTCHA se completa exitosamente
+  onRecaptchaSuccess(token: string): void {
+    this.recaptchaToken = token;
+    console.log('reCAPTCHA completado exitosamente');
+    // Proceder con el login
+    this.submitLogin();
   }
 
   onSubmit(): void {
     if (this.loginForm.valid) {
-      // Execute reCAPTCHA v3 before submitting
-      this.executeRecaptcha()
-        .then((token: string) => {
-          this.recaptchaToken = token;
-          this.submitLogin();
-        })
-        .catch((error) => {
-          console.error('reCAPTCHA error:', error);
-          Swal.fire({
-            icon: 'error',
-            title: 'Error de verificación',
-            text: 'Error al verificar reCAPTCHA. Por favor, recarga la página.',
-            showConfirmButton: true
-          });
+      try {
+        // Ejecutar reCAPTCHA invisible
+        grecaptcha.execute(this.recaptchaId);
+      } catch (error) {
+        console.error('Error al ejecutar reCAPTCHA:', error);
+        Swal.fire({
+          icon: 'error',
+          title: 'Error de verificación',
+          text: 'Error al verificar reCAPTCHA. Por favor, recarga la página.',
+          showConfirmButton: true
         });
+      }
     }
   }
 
@@ -126,9 +133,21 @@ export class LoginComponent implements OnInit, OnDestroy {
       showConfirmButton: true
     }).then(() => {
       this.loginForm.get('password')?.reset();
-      // Clear the token for next attempt
-      this.recaptchaToken = '';
+      // Reset reCAPTCHA para permitir nuevo intento
+      this.resetRecaptcha();
     });
+  }
+
+  private resetRecaptcha(): void {
+    if (typeof grecaptcha !== 'undefined' && this.recaptchaId !== undefined) {
+      try {
+        grecaptcha.reset(this.recaptchaId);
+        this.recaptchaToken = '';
+        console.log('reCAPTCHA reseteado');
+      } catch (error) {
+        console.error('Error al resetear reCAPTCHA:', error);
+      }
+    }
   }
 
   goToRegister(): void {
