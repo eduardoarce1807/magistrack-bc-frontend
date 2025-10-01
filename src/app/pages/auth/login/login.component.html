@@ -40,10 +40,16 @@
 				</div>
 				}
 			</div>
+			<div class="g-recaptcha" 
+				 data-sitekey="6Lcm-torAAAAAHUxC-nR_ZsHmb053eoaVhM7szyP"
+				 data-callback="onRecaptchaCallback"
+				 data-size="invisible">
+			</div>
 			<button
 				type="submit"
 				class="btn btn-primary w-100"
 				[disabled]="loginForm.invalid"
+				id="submit-button"
 			>
 				Iniciar Sesión
 			</button>
