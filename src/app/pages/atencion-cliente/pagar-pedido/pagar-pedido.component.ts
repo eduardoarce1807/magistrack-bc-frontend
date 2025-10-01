@@ -162,7 +162,7 @@ export class PagarPedidoComponent implements OnInit, AfterViewInit {
   iniciarPagoIziPay(){
 
     const endpoint = 'https://static.micuentaweb.pe/'
-    const publicKey = '44817432:testpublickey_0zbgYcUgjHHC8b1T9d13huPOs2N9mXcBuLiE5XW4VK9iP'
+    const publicKey = '44817432:publickey_aFzmMC499lDdt1QSk3qOBG2C9qY03V9k6xZuHRnYvEDiw'
     let formToken = 'DEMO-TOKEN-TO-BE-REPLACED'
 
     const observable = this.http.post(
