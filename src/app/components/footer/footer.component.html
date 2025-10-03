@@ -1,0 +1,126 @@
+<footer class="footer-dermatologico">
+  <div class="footer-content">
+    <div class="container-fluid">
+      <div class="row align-items-start">
+        
+        <!-- Logo y Redes Sociales -->
+        <div class="col-lg-4 col-md-6 col-sm-12 text-center mb-2">
+          <div class="footer-logo-section">
+            <img src="assets/img/bella-curet-logotipo.png" alt="Bella Curet" class="footer-logo">
+            <p class="footer-tagline">Sistema de Gestión Dermatológica</p>
+            <div class="social-links">
+              <a 
+                href="#" 
+                (click)="openLink(socialLinks.facebook); $event.preventDefault()" 
+                class="social-link facebook"
+                title="Facebook"
+              >
+                <i class="bi bi-facebook"></i>
+              </a>
+              <a 
+                href="#" 
+                (click)="openLink(socialLinks.instagram); $event.preventDefault()" 
+                class="social-link instagram"
+                title="Instagram"
+              >
+                <i class="bi bi-instagram"></i>
+              </a>
+              <a 
+                href="#" 
+                (click)="openLink(socialLinks.tiktok); $event.preventDefault()" 
+                class="social-link tiktok"
+                title="TikTok"
+              >
+                <i class="bi bi-tiktok"></i>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Contacto -->
+        <div class="col-lg-4 col-md-6 col-sm-12 mb-2">
+          <div class="footer-section">
+            <h5 class="footer-title">
+              <i class="bi bi-envelope-heart me-2"></i>CONTÁCTANOS
+            </h5>
+            <div class="contact-info">
+              <div class="contact-item">
+                <i class="bi bi-geo-alt-fill contact-icon"></i>
+                <a 
+                  href="#" 
+                  (click)="openLink(contactInfo.addressLink); $event.preventDefault()" 
+                  class="contact-link"
+                  title="Ver en Google Maps"
+                >
+                  {{ contactInfo.address }}
+                </a>
+              </div>
+              <div class="contact-item">
+                <i class="bi bi-envelope-fill contact-icon"></i>
+                <a 
+                  href="#" 
+                  (click)="sendEmail(); $event.preventDefault()" 
+                  class="contact-link"
+                  title="Enviar correo"
+                >
+                  {{ contactInfo.email }}
+                </a>
+              </div>
+              <div class="contact-item">
+                <i class="bi bi-whatsapp contact-icon"></i>
+                <a 
+                  href="#" 
+                  (click)="openLink(contactInfo.whatsappLink); $event.preventDefault()" 
+                  class="contact-link whatsapp"
+                  title="Contactar por WhatsApp"
+                >
+                  {{ contactInfo.phone }}
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Información adicional -->
+        <div class="col-lg-4 col-md-12 col-sm-12 mb-2">
+          <div class="footer-section">
+            <h5 class="footer-title">
+              <i class="bi bi-heart-pulse me-2"></i>CUIDADO DERMATOLÓGICO
+            </h5>
+            <div class="footer-info">
+              <p class="info-text">
+                <i class="bi bi-shield-check me-2"></i>
+                Productos especializados en dermatología
+              </p>
+              <p class="info-text">
+                <i class="bi bi-award me-2"></i>
+                Calidad y confianza garantizada
+              </p>
+              <p class="info-text">
+                <i class="bi bi-people me-2"></i>
+                Atención personalizada
+              </p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+  
+  <!-- Copyright -->
+  <div class="footer-bottom">
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col-12 text-center">
+          <p class="copyright">
+            <i class="bi bi-c-circle me-1"></i>
+            {{ currentYear }} Bella Curet - Todos los derechos reservados
+            <span class="separator">•</span>
+            Sistema de Gestión Dermatológica
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</footer>

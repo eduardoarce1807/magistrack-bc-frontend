@@ -1,8 +1,12 @@
-<div
-	class="container d-flex flex-column align-items-center justify-content-center vh-100"
->
-	<div class="card shadow-lg p-5 rounded-4" style="width: 350px">
-		<h2 class="mb-4 text-center">Iniciar Sesión</h2>
+<div class="login-container">
+	<div class="login-background"></div>
+	<div class="login-content">
+		<div class="login-card">
+			<div class="logo-container mb-4">
+				<img src="assets/img/bella-curet-logotipo.png" alt="Bella Curet" class="logo">
+				<h2 class="welcome-text">Bienvenido de nuevo</h2>
+				<p class="subtitle">Ingresa a tu sistema de gestión dermatológica</p>
+			</div>
 		<form (ngSubmit)="onSubmit()" [formGroup]="loginForm" novalidate>
 			<div class="mb-3">
 				<label for="usuario" class="form-label"
@@ -25,14 +29,25 @@
 			</div>
 			<div class="mb-3">
 				<label for="password" class="form-label">Contraseña</label>
-				<input
-					type="password"
-					id="password"
-					formControlName="password"
-					class="form-control"
-					placeholder="Ingrese su contraseña"
-					required
-				/>
+				<div class="position-relative">
+					<input
+						[type]="showPassword ? 'text' : 'password'"
+						id="password"
+						formControlName="password"
+						class="form-control pe-5"
+						placeholder="Ingrese su contraseña"
+						required
+					/>
+					<button
+						type="button"
+						class="btn btn-link position-absolute top-50 end-0 translate-middle-y pe-3 text-muted"
+						style="border: none; background: none; z-index: 10;"
+						(click)="togglePasswordVisibility()"
+						tabindex="-1"
+					>
+						<i [class]="showPassword ? 'bi bi-eye-slash' : 'bi bi-eye'"></i>
+					</button>
+				</div>
 				@if (loginForm.get('password')?.invalid &&
 				loginForm.get('password')?.touched) {
 				<div class="text-danger small">
@@ -40,18 +55,13 @@
 				</div>
 				}
 			</div>
-			<div class="g-recaptcha" 
-				 data-sitekey="6Lcm-torAAAAAHUxC-nR_ZsHmb053eoaVhM7szyP"
-				 data-callback="onRecaptchaCallback"
-				 data-size="invisible">
-			</div>
 			<button
 				type="submit"
-				class="btn btn-primary w-100"
+				class="btn btn-rosa w-100 login-btn"
 				[disabled]="loginForm.invalid"
 				id="submit-button"
 			>
-				Iniciar Sesión
+				<i class="bi bi-box-arrow-in-right me-2"></i>Iniciar Sesión
 			</button>
 		</form>
 		<!-- <div class="text-center mt-3">
@@ -59,11 +69,17 @@
 				>¿Olvidaste tu contraseña?</a
 			>
 		</div> -->
-		<div class="text-center mt-2">
-			<p class="mb-1">¿No tienes una cuenta?</p>
-			<button type="button" class="btn btn-outline-primary" (click)="goToRegister()">
-				Crear cuenta
-			</button>
+			<div class="text-center mt-4">
+				<p class="mb-3 register-text">¿No tienes una cuenta?</p>
+				<button type="button" class="btn btn-outline-rosa" (click)="goToRegister()">
+					<i class="bi bi-person-plus me-2"></i>Crear cuenta
+				</button>
+			</div>
 		</div>
+	</div>
+	<div class="g-recaptcha" 
+		 data-sitekey="6Lcm-torAAAAAHUxC-nR_ZsHmb053eoaVhM7szyP"
+		 data-callback="onRecaptchaCallback"
+		 data-size="invisible">
 	</div>
 </div>
