@@ -2,19 +2,20 @@
 	<div class="card shadow-lg p-4 rounded-4">
 
 		<button 
-			style="position: absolute;" 
-			class="btn btn-link text-decoration-none p-0" 
+			class="btn-back-rosa position-absolute" 
 			(click)="router.navigate(['/pages/atencion-cliente/bandeja-pedidos-administrador'])"
 			ngbTooltip="Ir a bandeja de pedidos"
 			placement="top"
 		>
-			<i class="bi bi-arrow-left"></i> Bandeja Pedidos
+			<i class="bi bi-arrow-left"></i>
+			<span>Volver a Bandeja de Pedidos</span>
 		</button>
 
 		<h2 class="mb-4 text-center">Bandeja de Producción</h2>
 
-		<button style="position: absolute; right: 30px;" class="btn btn-link text-decoration-none p-0" (click)="router.navigate(['/pages/produccion/bandeja-calidad'])">
-			Bandeja Calidad <i class="bi bi-arrow-right"></i>
+		<button class="btn-forward-rosa position-absolute" (click)="router.navigate(['/pages/produccion/bandeja-calidad'])">
+			<span>Siguiente: Bandeja Calidad</span>
+			<i class="bi bi-arrow-right"></i>
 		</button>
 
 		<!-- Tabla de Pedidos -->

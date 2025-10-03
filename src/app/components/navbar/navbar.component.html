@@ -1,7 +1,15 @@
 
-<nav class="navbar navbar-expand-lg navbar-custom px-4 py-1">
-	<a class="navbar-brand tipo-letra d-flex align-items-center text-white" href="#">MAGISTRACK-BC</a>
-	<div class="ms-auto d-flex align-items-center">
+<nav class="navbar navbar-expand-lg navbar-custom px-4 py-1 d-flex justify-content-between align-items-center">
+	<!-- Izquierda: Texto MAGISTRACK-BC -->
+	<a class="navbar-brand tipo-letra d-flex align-items-center text-white" routerLink="/pages/home">MAGISTRACK-BC</a>
+	
+	<!-- Centro: Logo -->
+	<div class="d-flex justify-content-center align-items-center">
+		<img src="assets/img/bella-curet-logotipo.png" alt="Logo" style="height: 55px; max-height: 100%; object-fit: contain; background-color: white; padding: 4px; border-radius: 4px;" />
+	</div>
+	
+	<!-- Derecha: Info del usuario -->
+	<div class="d-flex align-items-center">
 		<span class="text-white me-2">{{ dataService.getLoggedUser().usuario }}</span>
 		<div ngbDropdown class="d-inline-block">
 			<img

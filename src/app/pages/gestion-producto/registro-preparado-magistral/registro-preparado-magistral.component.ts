@@ -435,20 +435,21 @@ export class RegistroPreparadoMagistralComponent implements OnInit {
 
   // Validaciones
   get materiasPrimasInvalidas(): boolean {
+    // Permitir materias primas vacías
     if (!this.preparado.materiasPrimas || this.preparado.materiasPrimas.length < 1) {
-      return true;
+      return false; // Cambiar a false para permitir array vacío
     }
 
-    // Todas las materias primas deben tener idMateriaPrima distinto de 0 y cantidad > 0
-    const algunaMateriaPrimaInvalida = this.preparado.materiasPrimas.some(
-      (mp: any) => !mp.idMateriaPrima || !mp.cantidad
-    );
-    if (algunaMateriaPrimaInvalida) {
-      return true;
+    // Si hay materias primas, verificar que sean válidas
+    const materiasConDatos = this.preparado.materiasPrimas.filter(mp => mp.idMateriaPrima && mp.cantidad);
+    
+    // Si no hay materias primas con datos, está bien (permitir vacío)
+    if (materiasConDatos.length === 0) {
+      return false;
     }
 
-    // La suma de las cantidades debe ser exactamente 100
-    const suma = this.preparado.materiasPrimas.reduce((acc, mp) => acc + (mp.cantidad || 0), 0);
+    // Si hay materias primas con datos, validar que la suma sea 100
+    const suma = materiasConDatos.reduce((acc, mp) => acc + (mp.cantidad || 0), 0);
     if (suma !== 100) {
       return true;
     }
@@ -461,19 +462,26 @@ export class RegistroPreparadoMagistralComponent implements OnInit {
   }
 
   get procedimientosValidos(): boolean {
-    return this.preparado.procedimientos.every(proc => 
-      proc.descripcion.trim() !== ''
-    );
+    // Permitir procedimientos vacíos o sin contenido
+    if (!this.preparado.procedimientos || this.preparado.procedimientos.length === 0) {
+      return true;
+    }
+    
+    // Si hay procedimientos, pueden estar vacíos también
+    return true;
   }
 
   get datosBasicosValidos(): boolean {
-    return !!(this.preparado.nombre && 
-             this.preparado.descripcion && 
-             this.preparado.phDefinidoMin !== null && 
-             this.preparado.phDefinidoMax !== null &&
-             this.preparado.phDefinidoMax > this.preparado.phDefinidoMin &&
-             this.materiasValidas &&
-             this.procedimientosValidos);
+    // Hacer la validación mucho más flexible - permitir continuar con campos vacíos
+    // Solo validar pH si ambos valores están definidos (que no sea inválido)
+    if (this.preparado.phDefinidoMin !== null && this.preparado.phDefinidoMax !== null) {
+      if (this.preparado.phDefinidoMax <= this.preparado.phDefinidoMin) {
+        return false; // Solo bloquear si pH max es menor o igual a pH min
+      }
+    }
+    
+    // Las materias primas pueden estar vacías o ser válidas, pero no inválidas
+    return this.materiasValidas && this.procedimientosValidos;
   }
 
   get pedidoValido(): boolean {
@@ -506,7 +514,7 @@ export class RegistroPreparadoMagistralComponent implements OnInit {
       Swal.fire({
         icon: 'warning',
         title: 'Datos incompletos',
-        text: 'Por favor complete todos los campos obligatorios',
+        text: 'Por favor verifique que los valores de pH sean correctos y las materias primas (si las hay) sumen 100%',
         showConfirmButton: true
       });
       return;
