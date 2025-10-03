@@ -1,10 +1,11 @@
-import {Component, ViewEncapsulation, OnInit} from '@angular/core';
+import {Component, ViewEncapsulation, OnInit, AfterViewInit, ChangeDetectorRef, ViewChild, ChangeDetectionStrategy} from '@angular/core';
 import {Router, NavigationEnd} from "@angular/router";
 import {DataService} from "../../services/data.service";
 import {ScrollPanelModule} from "primeng/scrollpanel";
 import {ButtonModule} from "primeng/button";
 import {PanelMenuModule} from "primeng/panelmenu";
 import {MenuItem} from "primeng/api";
+import {PanelMenu} from "primeng/panelmenu";
 import {filter} from 'rxjs/operators';
 
 @Component({
@@ -15,9 +16,13 @@ import {filter} from 'rxjs/operators';
   styleUrl: './sidebar.component.scss',
 	encapsulation: ViewEncapsulation.None,
 })
-export class SidebarComponent implements OnInit {
+export class SidebarComponent implements OnInit, AfterViewInit {
 	items: MenuItem[]=[];
-	constructor(private router: Router, public dataService: DataService) {
+	private currentActiveUrl: string = '';
+	
+	@ViewChild('panelMenu') panelMenuRef!: PanelMenu;
+	
+	constructor(private router: Router, public dataService: DataService, private cdr: ChangeDetectorRef) {
 
 		const user = this.dataService.getLoggedUser();
 		
@@ -118,7 +123,7 @@ export class SidebarComponent implements OnInit {
 				{
 					key: '1_5',
 					label: 'Venta rápida',
-					icon: 'pi pi-flash',
+					icon: 'pi pi-bolt',
 					command: () => this.irA('venta-rapida/productos-venta-rapida')
 				}
 			] : []),
@@ -279,7 +284,7 @@ export class SidebarComponent implements OnInit {
 							{
 								key: '3_5',
 								label: 'Cumplimiento FEE',
-								icon: 'pi pi-calendar-check',
+								icon: 'pi pi-calendar',
 								command: () => this.irA('pages/reportes/cumplimiento-fee')
 							}
 						] : [])
@@ -433,25 +438,62 @@ export class SidebarComponent implements OnInit {
 			filter(event => event instanceof NavigationEnd)
 		).subscribe((event) => {
 			const navigationEndEvent = event as NavigationEnd;
-			this.updateActiveMenuItems(navigationEndEvent.url);
+			setTimeout(() => {
+				this.updateActiveMenuItems(navigationEndEvent.url);
+			}, 100); // Pequeño delay para asegurar que la navegación se complete
 		});
 
-		// Marcar el item activo al inicializar
-		this.updateActiveMenuItems(this.router.url);
+		// Verificación adicional cada 500ms para detectar cambios dinámicos
+		setInterval(() => {
+			if (this.router.url && this.currentActiveUrl !== this.router.url) {
+				this.updateActiveMenuItems(this.router.url);
+			}
+		}, 500);
+	}
+	
+	ngAfterViewInit() {
+		// Inicialización del acordeón DESPUÉS de que la vista esté completamente renderizada
+		setTimeout(() => {
+			this.initializeAccordionState();
+		}, 100);
 	}
 
 	private updateActiveMenuItems(currentUrl: string) {
-		// Limpiar todos los states activos primero
-		this.clearActiveStates(this.items);
+		// Evitar procesamiento innecesario si la URL no ha cambiado
+		if (this.currentActiveUrl === currentUrl) {
+			return;
+		}
 		
-		// Marcar el item activo basado en la URL actual
-		this.setActiveMenuItem(this.items, currentUrl);
+		// Solo actualizar si no es la carga inicial
+		if (this.currentActiveUrl !== '') {
+			this.currentActiveUrl = currentUrl;
+			
+			// Limpiar todos los states activos primero
+			this.clearActiveStates(this.items);
+			
+			// Expandir el módulo correcto y marcar el item activo
+			this.expandModuleForActiveRoute(this.items, currentUrl);
+			
+			// Asegurar que el item activo esté marcado
+			this.setActiveMenuItem(this.items, currentUrl);
+		} else {
+			// Es la carga inicial, solo marcar la URL actual
+			this.currentActiveUrl = currentUrl;
+		}
 	}
 
 	private clearActiveStates(items: MenuItem[]) {
 		items.forEach(item => {
 			if (item.styleClass) {
-				item.styleClass = item.styleClass.replace(' p-highlight', '').replace(' p-focus', '');
+				item.styleClass = item.styleClass
+					.replace(/\s*p-highlight\s*/g, '')
+					.replace(/\s*p-focus\s*/g, '')
+					.replace(/\s*active-menu-item\s*/g, '')
+					.trim();
+				// Si queda vacía, ponerla como undefined
+				if (!item.styleClass) {
+					item.styleClass = undefined;
+				}
 			}
 			if (item.items) {
 				this.clearActiveStates(item.items);
@@ -464,9 +506,10 @@ export class SidebarComponent implements OnInit {
 			if (item.command) {
 				// Extraer la ruta del comando del item
 				const routeCommand = this.extractRouteFromCommand(item.command);
-				if (routeCommand && currentUrl.includes(routeCommand)) {
-					// Marcar como activo
-					item.styleClass = (item.styleClass || '') + ' p-highlight';
+				if (routeCommand && this.isRouteMatch(currentUrl, routeCommand)) {
+					// Marcar como activo con highlight y clase personalizada para negrita
+					const oldClass = item.styleClass || '';
+					item.styleClass = oldClass.trim() + ' p-highlight active-menu-item';
 					return true;
 				}
 			}
@@ -474,8 +517,11 @@ export class SidebarComponent implements OnInit {
 			if (item.items) {
 				const foundInSubItems = this.setActiveMenuItem(item.items, currentUrl);
 				if (foundInSubItems) {
-					// Si se encontró en subitems, expandir el padre
-					item.expanded = true;
+					// Si se encontró en subitems, asegurar que el padre esté expandido
+					if (!item.expanded) {
+						item.expanded = true;
+					}
+					return true;
 				}
 			}
 		}
@@ -487,5 +533,192 @@ export class SidebarComponent implements OnInit {
 		const commandStr = command.toString();
 		const match = commandStr.match(/this\.irA\(['"`]([^'"`]+)['"`]\)/);
 		return match ? match[1] : null;
+	}
+
+	private isRouteMatch(currentUrl: string, routeCommand: string): boolean {
+		// Normalizar URLs removiendo barras iniciales y finales
+		const normalizedCurrentUrl = currentUrl.replace(/^\/+|\/+$/g, '');
+		const normalizedRouteCommand = routeCommand.replace(/^\/+|\/+$/g, '');
+		
+		// Verificar coincidencia exacta o si la URL actual contiene la ruta del comando
+		return normalizedCurrentUrl === normalizedRouteCommand || 
+			   normalizedCurrentUrl.startsWith(normalizedRouteCommand + '/') ||
+			   normalizedCurrentUrl.includes(normalizedRouteCommand);
+	}
+
+	private forceVisualUpdate(): void {
+		// Forzar una actualización visual del menú aplicando las clases nuevamente
+		const currentUrl = this.router.url;
+		
+		// Verificar y re-aplicar estilos activos
+		this.verifyActiveStyles(this.items, currentUrl);
+		
+		// Verificar el estado de expansión
+		this.verifyExpansionState(currentUrl);
+		
+		// Forzar detección de cambios de Angular
+		this.cdr.detectChanges();
+		
+		// Forzar re-render del componente PrimeNG recreando el array de items
+		setTimeout(() => {
+			this.items = [...this.items];
+			this.cdr.detectChanges();
+		}, 50);
+	}
+
+	private verifyExpansionState(currentUrl: string): void {
+		this.items.forEach(item => {
+			if (item.items && !item.expanded) {
+				// Verificar si debería estar expandido
+				const shouldBeExpanded = this.hasActiveSubmenu(item.items, currentUrl);
+				if (shouldBeExpanded) {
+					item.expanded = true;
+					// Forzar detección de cambios
+					this.cdr.detectChanges();
+				}
+			}
+		});
+	}
+
+	private verifyActiveStyles(items: MenuItem[], currentUrl: string): void {
+		items.forEach(item => {
+			if (item.command) {
+				const routeCommand = this.extractRouteFromCommand(item.command);
+				if (routeCommand && this.isRouteMatch(currentUrl, routeCommand)) {
+					// Asegurar que las clases estén aplicadas
+					if (!item.styleClass?.includes('active-menu-item')) {
+						item.styleClass = (item.styleClass || '').trim() + ' p-highlight active-menu-item';
+					}
+				}
+			}
+			if (item.items) {
+				this.verifyActiveStyles(item.items, currentUrl);
+			}
+		});
+	}
+
+	private initializeAccordionState(): void {
+		// Obtener la URL actual
+		const currentUrl = this.router.url;
+		
+		// Contraer todos los módulos por defecto
+		this.items.forEach(item => {
+			item.expanded = false;
+		});
+		
+		// Limpiar todos los estados activos primero
+		this.clearActiveStates(this.items);
+		
+		// Buscar y expandir el módulo que contiene la ruta activa
+		// Este método YA marca el submenú activo internamente
+		const moduleExpanded = this.expandModuleForActiveRoute(this.items, currentUrl);
+		
+		// Si no se expandió ningún módulo, hacer un segundo intento más directo
+		if (!moduleExpanded) {
+			this.forceExpandCorrectModule(currentUrl);
+			// Marcar el elemento activo manualmente
+			this.setActiveMenuItem(this.items, currentUrl);
+		}
+		
+		// Forzar detección de cambios una sola vez al final
+		this.cdr.detectChanges();
+		
+		// Forzar detección de cambios DESPUÉS de toda la inicialización
+		setTimeout(() => {
+			this.cdr.detectChanges();
+		}, 100);
+	}
+
+
+
+	private forceExpandCorrectModule(currentUrl: string): void {
+		// Método más directo para expandir el módulo correcto
+		this.items.forEach(module => {
+			if (module.items) {
+				let shouldExpand = false;
+				
+				module.items.forEach(submenu => {
+					if (submenu.command) {
+						const routeCommand = this.extractRouteFromCommand(submenu.command);
+						if (routeCommand && this.isRouteMatch(currentUrl, routeCommand)) {
+							shouldExpand = true;
+						}
+					}
+				});
+				
+				if (shouldExpand) {
+					module.expanded = true;
+					// Forzar detección de cambios
+					this.cdr.detectChanges();
+				}
+			}
+		});
+	}
+
+	private expandModuleForActiveRoute(items: MenuItem[], currentUrl: string): boolean {
+		for (let item of items) {
+			if (item.items) {
+				// Verificar si algún submenú coincide con la ruta actual
+				const hasActiveSubmenu = this.hasActiveSubmenu(item.items, currentUrl);
+				if (hasActiveSubmenu) {
+					// Expandir este módulo
+					item.expanded = true;
+					// También marcar el submenú activo dentro de este módulo
+					this.markActiveSubmenu(item.items, currentUrl);
+					
+					// Forzar detección de cambios y expansión visual
+					this.cdr.detectChanges();
+					
+					// Forzar expansión usando el PanelMenu directamente
+					setTimeout(() => {
+						if (this.panelMenuRef) {
+							// Reasignar el modelo para forzar la actualización
+							const tempModel = [...this.items];
+							this.items = [];
+							this.cdr.detectChanges();
+							this.items = tempModel;
+							this.cdr.detectChanges();
+						}
+					}, 50);
+					
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	private hasActiveSubmenu(submenuItems: MenuItem[], currentUrl: string): boolean {
+		for (let submenu of submenuItems) {
+			if (submenu.command) {
+				const routeCommand = this.extractRouteFromCommand(submenu.command);
+				if (routeCommand && this.isRouteMatch(currentUrl, routeCommand)) {
+					return true;
+				}
+			}
+			// Verificar recursivamente si hay subniveles
+			if (submenu.items && this.hasActiveSubmenu(submenu.items, currentUrl)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private markActiveSubmenu(submenuItems: MenuItem[], currentUrl: string): boolean {
+		for (let submenu of submenuItems) {
+			if (submenu.command) {
+				const routeCommand = this.extractRouteFromCommand(submenu.command);
+				if (routeCommand && this.isRouteMatch(currentUrl, routeCommand)) {
+					// Marcar como activo con highlight y clase personalizada para negrita
+					submenu.styleClass = (submenu.styleClass || '').trim() + ' p-highlight active-menu-item';
+					return true;
+				}
+			}
+			// Verificar recursivamente si hay subniveles
+			if (submenu.items && this.markActiveSubmenu(submenu.items, currentUrl)) {
+				return true;
+			}
+		}
+		return false;
 	}
 }

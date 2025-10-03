@@ -22,6 +22,7 @@ export class LoginComponent implements OnInit, OnDestroy {
 
   loginForm: FormGroup;
   recaptchaToken: string = '';
+  showPassword: boolean = false;
   private siteKey = '6Lcm-torAAAAAHUxC-nR_ZsHmb053eoaVhM7szyP';
   private recaptchaId: any;
 
@@ -148,6 +149,10 @@ export class LoginComponent implements OnInit, OnDestroy {
         console.error('Error al resetear reCAPTCHA:', error);
       }
     }
+  }
+
+  togglePasswordVisibility(): void {
+    this.showPassword = !this.showPassword;
   }
 
   goToRegister(): void {

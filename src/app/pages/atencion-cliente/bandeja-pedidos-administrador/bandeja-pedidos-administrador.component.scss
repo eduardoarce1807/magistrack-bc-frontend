@@ -1,0 +1,125 @@
+// Estilos para tabla responsive con mejor UX
+.table-responsive {
+  // Scroll horizontal suave con mejor apariencia
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch; // Para mejor experiencia en iOS
+  
+  // Scrollbar personalizado para navegadores webkit
+  &::-webkit-scrollbar {
+    height: 8px;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background: #D4858C;
+    border-radius: 4px;
+    
+    &:hover {
+      background: #C07178;
+    }
+  }
+  
+  // Asegurar que la tabla mantenga su ancho mínimo
+  table {
+    min-width: 1000px; // Ancho mínimo para que las columnas se vean bien
+    white-space: nowrap; // Evitar que el texto se corte en celdas pequeñas
+  }
+  
+  // Columna de acciones con ancho fijo
+  td:last-child {
+    min-width: 260px;
+    white-space: nowrap;
+  }
+  
+  // Mejorar la apariencia de los botones en la tabla
+  .btn {
+    font-size: 0.875rem;
+    padding: 0.375rem 0.5rem;
+  }
+  
+  // Inputs de fecha más compactos
+  input[type="date"] {
+    min-width: 130px;
+    font-size: 0.875rem;
+  }
+  
+  // Checkboxes alineados
+  .form-check-input {
+    margin: 0 auto;
+    display: block;
+  }
+}
+
+// Estilos responsive para pantallas pequeñas
+@media (max-width: 768px) {
+  .table-responsive {
+    margin: 0 -15px; // Utilizar todo el ancho disponible en móviles
+    
+    table {
+      min-width: 900px; // Reducir un poco el ancho mínimo en móviles
+    }
+    
+    // Hacer los botones más pequeños en móviles
+    .btn {
+      font-size: 0.75rem;
+      padding: 0.25rem 0.4rem;
+      
+      i {
+        font-size: 0.875rem;
+      }
+    }
+    
+    // Hacer el input de fecha más pequeño
+    input[type="date"] {
+      min-width: 120px;
+      font-size: 0.75rem;
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .table-responsive {
+    table {
+      min-width: 800px; // Aún más compacto para pantallas muy pequeñas
+    }
+    
+    // Botones extra pequeños
+    .btn {
+      font-size: 0.7rem;
+      padding: 0.2rem 0.3rem;
+      margin-right: 0.25rem !important;
+      
+      i {
+        font-size: 0.8rem;
+      }
+    }
+    
+    // Texto más pequeño en celdas
+    td, th {
+      font-size: 0.875rem;
+      padding: 0.5rem 0.375rem;
+    }
+  }
+}
+
+// Indicador visual de que hay scroll disponible
+.table-responsive::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 20px;
+  background: linear-gradient(to left, rgba(255,255,255,0.8), transparent);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.table-responsive:hover::after {
+  opacity: 1;
+}

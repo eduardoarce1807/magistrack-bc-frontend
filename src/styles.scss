@@ -183,11 +183,11 @@ body .rosa-menu.p-panelmenu .p-panelmenu-header .p-submenu-icon {
   color: rgb(212, 133, 140) !important;
 }
 
-/* Estilos para íconos en submenús */
+/* Estilos para íconos en submenús - COLOR NEGRO */
 body .rosa-menu.p-panelmenu .p-panelmenu-content .p-menuitem-link .p-menuitem-icon,
 body .rosa-menu.p-panelmenu .p-submenu-list .p-menuitem-link .p-menuitem-icon,
 body .rosa-menu.p-panelmenu .p-menuitem-link .p-menuitem-icon {
-  color: rgb(212, 133, 140) !important;
+  color: #333333 !important;
   margin-right: 8px !important;
   font-size: 14px !important;
 }
@@ -197,27 +197,60 @@ body .p-panelmenu .p-panelmenu-header > a:not([style*="color"]) {
   color: rgb(212, 133, 140) !important;
 }
 
-/* Usar selectores de atributo para forzar */
-body .p-panelmenu [class*="p-menuitem"],
-body .p-panelmenu [class*="p-panelmenu"] {
+/* Usar selectores de atributo para forzar SOLO en headers principales */
+body .p-panelmenu .p-panelmenu-header [class*="p-menuitem"],
+body .p-panelmenu .p-panelmenu-header [class*="p-panelmenu"] {
   color: rgb(212, 133, 140) !important;
 }
 
-/* Estilos específicos para texto de submenús */
+/* Estilos específicos para texto de submenús - COLOR NEGRO */
 body .rosa-menu.p-panelmenu .p-panelmenu-content .p-menuitem-link .p-menuitem-text,
 body .rosa-menu.p-panelmenu .p-submenu-list .p-menuitem-link .p-menuitem-text,
 body .rosa-menu.p-panelmenu .p-menuitem-link .p-menuitem-text {
-  color: rgb(212, 133, 140) !important;
+  color: #333333 !important;
   text-transform: none !important;
   font-weight: 500 !important;
 }
 
-/* Estilos hover para submenús */
+/* Estilos hover para submenús - FONDO GRIS CLARO */
 body .rosa-menu.p-panelmenu .p-menuitem-link:hover,
 body .rosa-menu.p-panelmenu .p-menuitem-link:hover .p-menuitem-text,
 body .rosa-menu.p-panelmenu .p-menuitem-link:hover .p-menuitem-icon {
-  background-color: rgba(212, 133, 140, 0.1) !important;
-  color: rgb(212, 133, 140) !important;
+  background-color: rgba(0, 0, 0, 0.05) !important;
+  color: #000000 !important;
+}
+
+/* Forzar color negro en todos los elementos de submenús */
+body .rosa-menu.p-panelmenu .p-panelmenu-content .p-menuitem-link,
+body .rosa-menu.p-panelmenu .p-panelmenu-content .p-menuitem-link *,
+body .rosa-menu.p-panelmenu .p-submenu-list .p-menuitem-link,
+body .rosa-menu.p-panelmenu .p-submenu-list .p-menuitem-link * {
+  color: #333333 !important;
+}
+
+/* Estilo para el elemento activo del menú - FUENTE NEGRITA */
+body .rosa-menu.p-panelmenu .active-menu-item .p-menuitem-text,
+body .rosa-menu.p-panelmenu .active-menu-item.p-menuitem-link .p-menuitem-text,
+body .rosa-menu.p-panelmenu .p-menuitem-link.active-menu-item .p-menuitem-text,
+body .rosa-menu.p-panelmenu .p-panelmenu-content .active-menu-item .p-menuitem-text {
+  font-weight: bold !important;
+  color: #000000 !important;
+}
+
+/* Estilo para íconos del elemento activo */
+body .rosa-menu.p-panelmenu .active-menu-item .p-menuitem-icon,
+body .rosa-menu.p-panelmenu .active-menu-item.p-menuitem-link .p-menuitem-icon,
+body .rosa-menu.p-panelmenu .p-menuitem-link.active-menu-item .p-menuitem-icon,
+body .rosa-menu.p-panelmenu .p-panelmenu-content .active-menu-item .p-menuitem-icon {
+  color: #000000 !important;
+  font-weight: bold !important;
+}
+
+/* Forzar negrita para elementos con highlight activo */
+body .rosa-menu.p-panelmenu .p-highlight.active-menu-item,
+body .rosa-menu.p-panelmenu .p-highlight.active-menu-item * {
+  font-weight: bold !important;
+  color: #000000 !important;
 }
 
 /* ========================================= */
@@ -308,5 +341,11 @@ body .rosa-menu.p-panelmenu .p-menuitem-link:hover .p-menuitem-icon {
   right: 15px !important;
   z-index: 10 !important;
 }
+
+/* Estilos para asegurar que el footer esté siempre debajo del viewport */
+router-outlet + * {
+  min-height: calc(100vh - 200px); /* Dejar espacio para navbar y footer */
+}
+
 
 

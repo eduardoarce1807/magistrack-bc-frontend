@@ -3,11 +3,12 @@ import { Router, RouterOutlet } from '@angular/router';
 import { AuthService } from './services/auth.service';
 import { DataService } from './services/data.service';
 import { PrimeNGConfig } from 'primeng/api';
+import { WhatsappFloatComponent } from './components/whatsapp-float/whatsapp-float.component';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet],
+  imports: [RouterOutlet, WhatsappFloatComponent],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss'
 })

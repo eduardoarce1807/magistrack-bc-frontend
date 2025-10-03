@@ -1,36 +1,39 @@
-<div class="d-flex justify-content-center align-items-center">
-	<div class="boton-sidebar">
-		@if(!sidebarVisible){
+<div class="pages-container">
+	<div class="d-flex justify-content-center align-items-center">
+		<div class="boton-sidebar">
+			@if(!sidebarVisible){
 
-			<p-button
-				type="button"
-				severity="warning"
-				(click)="sidebarVisible = true"
-				icon="pi pi-bars"
-				[style]="{ height: '61.6px', width: '61.6px'}"/>
-		} @else {
+				<p-button
+					type="button"
+					severity="warning"
+					(click)="sidebarVisible = true"
+					icon="pi pi-bars"
+					[style]="{ height: '61.6px', width: '61.6px'}"/>
+			} @else {
 
-			<p-button
-				type="button"
-				severity="warning"
-				(click)="sidebarVisible = true"
-				icon="pi pi-chevron-left"
-				[style]="{ height: '61.6px', width: '61.6px'}"/>
-		}
-	</div>
-	<div class="w-full">
+				<p-button
+					type="button"
+					severity="warning"
+					(click)="sidebarVisible = true"
+					icon="pi pi-chevron-left"
+					[style]="{ height: '61.6px', width: '61.6px'}"/>
+			}
+		</div>
+		<div class="w-full">
 
-		<app-navbar></app-navbar>
+			<app-navbar></app-navbar>
+		</div>
 	</div>
-</div>
-<div class="row w-full completo">
-	<div class="col-xl-2 sidebar bg-gray-100 p-3 overflow-y-auto">
-		<app-sidebar></app-sidebar>
+	<div class="row w-full completo flex-grow-1">
+		<div class="col-xl-2 sidebar bg-gray-100 p-3 overflow-y-auto">
+			<app-sidebar></app-sidebar>
 
+		</div>
+		<div class="col-xl-10 col-sm-12 w-full ">
+			<router-outlet></router-outlet>
+		</div>
 	</div>
-	<div class="col-xl-10 col-sm-12 w-full ">
-		<router-outlet></router-outlet>
-	</div>
+	<app-footer></app-footer>
 </div>
 @if (sidebarVisible){
 		<p-sidebar [(visible)]="sidebarVisible" position="left">

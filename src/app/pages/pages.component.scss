@@ -1,3 +1,9 @@
+.pages-container {
+	min-height: 100vh;
+	display: flex;
+	flex-direction: column;
+}
+
 .sidebar {
 
 	@media (max-width: 1200px) {
@@ -15,7 +21,20 @@
 }
 .completo{
 	--bs-gutter-x:0;
-	height: calc(100vh - 61.4px);
+	min-height: calc(100vh - 61.4px);
+	flex: 1;
+	
+	// Asegurar que el contenido empuje el footer hacia abajo
+	.col-xl-10 {
+		min-height: calc(100vh - 61.4px);
+		display: flex;
+		flex-direction: column;
+		
+		router-outlet + * {
+			flex: 1;
+			min-height: calc(100vh - 200px); // Dejar espacio para navbar y footer
+		}
+	}
 }
 .fondo-img{
 	background:#ffffff;

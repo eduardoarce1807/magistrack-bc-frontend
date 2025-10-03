@@ -1,6 +1,6 @@
 <div class="card flex justify-center">
 	<p-button label="Menú" icon="pi pi-plus"  size="small" [text]="true" (onClick)="toggleAll()" />
-	<p-panelMenu [model]="items" styleClass="w-full custom-panel-menu rosa-menu" size="small"/>
+	<p-panelMenu #panelMenu [model]="items" styleClass="w-full custom-panel-menu rosa-menu" size="small"/>
 </div>
 <!--<p-scrollPanel [style]="{ width: '100%', height: '80vh' }">-->
 

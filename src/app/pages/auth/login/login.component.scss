@@ -1,0 +1,281 @@
+// Variables de colores dermatológicos
+$rosa-principal: #D4858C;
+$rosa-claro: #F2E5E6;
+$rosa-suave: #FDF8F9;
+$blanco-crema: #FEFCFC;
+$gris-suave: #F8F9FA;
+$sombra-suave: rgba(212, 133, 140, 0.15);
+
+.login-container {
+  min-height: 100vh;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.login-background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    135deg,
+    $rosa-suave 0%,
+    $blanco-crema 50%,
+    $rosa-claro 100%
+  );
+  
+  // Pattern dermatológico sutil
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: 
+      radial-gradient(circle at 25% 25%, rgba(212, 133, 140, 0.1) 0%, transparent 50%),
+      radial-gradient(circle at 75% 75%, rgba(212, 133, 140, 0.08) 0%, transparent 50%),
+      radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.3) 0%, transparent 30%);
+    background-size: 200px 200px, 150px 150px, 100px 100px;
+    animation: float 20s ease-in-out infinite;
+  }
+  
+  // Elementos decorativos flotantes
+  &::after {
+    content: '';
+    position: absolute;
+    width: 300px;
+    height: 300px;
+    background: radial-gradient(circle, rgba(212, 133, 140, 0.1), transparent 70%);
+    border-radius: 50%;
+    top: -100px;
+    right: -100px;
+    animation: pulse 4s ease-in-out infinite;
+  }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px) translateX(0px); }
+  25% { transform: translateY(-10px) translateX(5px); }
+  50% { transform: translateY(0px) translateX(-5px); }
+  75% { transform: translateY(10px) translateX(0px); }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.3; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(1.1); }
+}
+
+.login-content {
+  position: relative;
+  z-index: 10;
+  width: 100%;
+  max-width: 400px;
+  padding: 20px;
+}
+
+.login-card {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 24px;
+  padding: 40px 35px;
+  box-shadow: 
+    0 20px 40px rgba(212, 133, 140, 0.15),
+    0 10px 20px rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  transition: all 0.3s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 
+      0 25px 50px rgba(212, 133, 140, 0.2),
+      0 15px 30px rgba(0, 0, 0, 0.08);
+  }
+}
+
+.logo-container {
+  text-align: center;
+  margin-bottom: 35px;
+}
+
+.logo {
+  max-height: 80px;
+  width: auto;
+  margin-bottom: 20px;
+  filter: drop-shadow(0 4px 8px rgba(212, 133, 140, 0.2));
+  transition: transform 0.3s ease;
+  
+  &:hover {
+    transform: scale(1.05);
+  }
+}
+
+.welcome-text {
+  color: #2c3e50;
+  font-size: 28px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+}
+
+.subtitle {
+  color: #6c757d;
+  font-size: 14px;
+  margin-bottom: 0;
+  font-weight: 400;
+  opacity: 0.8;
+}
+
+// Estilos de formulario
+.form-label {
+  color: #495057;
+  font-weight: 500;
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+
+.form-control {
+  border: 2px solid #e9ecef;
+  border-radius: 12px;
+  padding: 12px 16px;
+  font-size: 15px;
+  transition: all 0.3s ease;
+  background-color: $gris-suave;
+  
+  &:focus {
+    border-color: $rosa-principal;
+    box-shadow: 0 0 0 0.2rem rgba(212, 133, 140, 0.25);
+    background-color: white;
+    transform: translateY(-1px);
+  }
+  
+  &::placeholder {
+    color: #adb5bd;
+    font-size: 14px;
+  }
+}
+
+// Botón principal rosa
+.btn-rosa {
+  background: linear-gradient(135deg, $rosa-principal 0%, #c67882 100%);
+  border: none;
+  color: white;
+  font-weight: 600;
+  font-size: 16px;
+  padding: 14px 24px;
+  border-radius: 12px;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(212, 133, 140, 0.3);
+  
+  &:hover:not(:disabled) {
+    background: linear-gradient(135deg, #c67882 0%, $rosa-principal 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(212, 133, 140, 0.4);
+    color: white;
+  }
+  
+  &:active {
+    transform: translateY(0px);
+  }
+  
+  &:disabled {
+    background: #e9ecef;
+    color: #6c757d;
+    box-shadow: none;
+    cursor: not-allowed;
+  }
+}
+
+// Botón outline rosa
+.btn-outline-rosa {
+  border: 2px solid $rosa-principal;
+  color: $rosa-principal;
+  background: transparent;
+  font-weight: 500;
+  padding: 10px 20px;
+  border-radius: 10px;
+  transition: all 0.3s ease;
+  
+  &:hover {
+    background: $rosa-principal;
+    color: white;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(212, 133, 140, 0.3);
+  }
+}
+
+// Icono de mostrar/ocultar contraseña
+.btn-link {
+  &:hover {
+    color: $rosa-principal !important;
+  }
+}
+
+// Texto de error
+.text-danger {
+  color: #dc3545 !important;
+  font-size: 13px;
+  margin-top: 5px;
+}
+
+// Texto de registro
+.register-text {
+  color: #6c757d;
+  font-size: 14px;
+  margin-bottom: 15px;
+}
+
+// Animaciones de entrada
+.login-card {
+  animation: slideUp 0.6s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+//  reCAPTCHA positioning
+.g-recaptcha {
+  position: fixed !important;
+  bottom: 20px !important;
+  right: 20px !important;
+  z-index: 1000 !important;
+  opacity: 0.8;
+  transition: opacity 0.3s ease;
+  
+  &:hover {
+    opacity: 1;
+  }
+}
+
+// Responsive
+@media (max-width: 480px) {
+  .login-card {
+    margin: 20px;
+    padding: 30px 25px;
+  }
+  
+  .welcome-text {
+    font-size: 24px;
+  }
+  
+  .logo {
+    max-height: 70px;
+  }
+  
+  .g-recaptcha {
+    bottom: 15px !important;
+    right: 15px !important;
+  }
+}
