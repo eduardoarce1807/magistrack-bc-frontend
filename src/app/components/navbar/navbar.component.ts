@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import {NgbDropdown, NgbDropdownMenu, NgbDropdownToggle} from "@ng-bootstrap/ng-bootstrap";
-import {Router} from "@angular/router";
+import {Router, RouterModule} from "@angular/router";
 import {DataService} from "../../services/data.service";
 import {PanelMenuModule} from "primeng/panelmenu";
 import {ButtonModule} from "primeng/button";
@@ -13,6 +13,7 @@ import {MenuItem} from "primeng/api";
         NgbDropdown,
         NgbDropdownMenu,
         NgbDropdownToggle,
+        RouterModule,
     ],
   templateUrl: './navbar.component.html',
   styleUrl: './navbar.component.scss'

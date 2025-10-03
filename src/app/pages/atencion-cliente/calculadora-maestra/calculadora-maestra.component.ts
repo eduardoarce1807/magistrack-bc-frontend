@@ -433,8 +433,26 @@ export class CalculadoraMaestraComponent implements OnInit {
       return;
     }
 
-    // Guardar datos actuales
-    this.guardarDatos(false);
+    // Guardar datos actuales automáticamente sin modal de confirmación
+    if (this.idSolicitudPreparadoMagistral > 0) {
+      const datosParaGuardar = {
+        nombrePersonalizado: this.nombrePersonalizado,
+        descripcionPersonalizada: this.descripcionPersonalizada,
+        detallePersonalizacion: this.detallePersonalizacion,
+        componentes: this.componentes,
+        precioVentaFinal: this.precioVentaFinal,
+        precioVentaFinalRedondeado: this.precioVentaFinalRedondeado,
+        base: this.base,
+        presentacion: this.presentacion,
+        envase: this.envase,
+        maquila: this.maquila,
+        gananciaBC: this.gananciaBC,
+        totalCosto: this.totalCosto,
+        precioNeto: this.precioNeto
+      };
+      localStorage.setItem(`calculadora_datos_${this.idSolicitudPreparadoMagistral}`, JSON.stringify(datosParaGuardar));
+      console.log('Datos guardados automáticamente al continuar con registro');
+    }
 
     // Navegar al registro de preparado magistral
     this.router.navigate(['/pages/gestion-producto/registro-preparado-magistral'], {

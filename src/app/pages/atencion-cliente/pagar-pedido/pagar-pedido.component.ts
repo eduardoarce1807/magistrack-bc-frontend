@@ -402,9 +402,7 @@ export class PagarPedidoComponent implements OnInit, AfterViewInit {
       formData.append('idBanco', this.pagoManual.idBanco.toString());
     }
     
-    if (this.pagoManual.numeroOperacion) {
-      formData.append('numeroOperacion', this.pagoManual.numeroOperacion);
-    }
+    formData.append('numeroOperacion', this.pagoManual.numeroOperacion!);
     
     // Convertir fecha a formato LocalDate (solo fecha, sin tiempo)
     const fechaLocalDate = this.pagoManual.fechaPago.split('T')[0];

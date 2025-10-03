@@ -1,25 +1,25 @@
 <div class="container-fluid mt-5" style="padding: 0px 60px">
 	<div class="card shadow-lg p-4 rounded-4">
 		<button 
-			style="position: absolute;" 
-			class="btn btn-link text-decoration-none p-0" 
+			class="btn-back-rosa position-absolute" 
 			(click)="router.navigate(['/pages/produccion/bandeja-calidad'])"
 			ngbTooltip="Ir a bandeja de calidad"
 			placement="top"
 		>
-			<i class="bi bi-arrow-left"></i> Bandeja Calidad
+			<i class="bi bi-arrow-left"></i>
+			<span>Volver a Bandeja Calidad</span>
 		</button>
 
 		<h2 class="mb-4 text-center">Bandeja de Envasado</h2>
 
 		<button 
-			style="position: absolute; right: 30px;" 
-			class="btn btn-link text-decoration-none p-0" 
+			class="btn-forward-rosa position-absolute" 
 			(click)="router.navigate(['/pages/produccion/bandeja-etiquetado'])"
 			ngbTooltip="Ir a bandeja de etiquetado"
 			placement="top"
 		>
-			Bandeja Etiquetado <i class="bi bi-arrow-right"></i>
+			<span>Siguiente: Bandeja Etiquetado</span>
+			<i class="bi bi-arrow-right"></i>
 		</button>
 
 		<!-- Búsqueda por ID Bulk -->

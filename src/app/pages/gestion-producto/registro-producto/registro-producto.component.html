@@ -2,9 +2,9 @@
   <div class="card shadow-lg p-4 rounded-4">
     
     <!-- Botón de navegación -->
-    <button style="position: absolute;" class="btn btn-link text-decoration-none p-0" 
-            (click)="navegarVolver()">
-      <i class="bi bi-arrow-left"></i>Mantenimiento Productos
+    <button class="btn-back-rosa position-absolute" (click)="navegarVolver()">
+      <i class="bi bi-arrow-left"></i>
+      <span>Volver a Mantenimiento Productos</span>
     </button>
 
     <h2 class="mb-4 text-center">{{ isEditing ? 'Actualizar Producto Maestro' : 'Registro de Producto' }}</h2>

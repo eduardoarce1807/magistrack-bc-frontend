@@ -2,11 +2,11 @@
   <div class="card shadow-lg p-4 rounded-4">
     
     <!-- Botón de navegación -->
-    <button style="position: absolute;" class="btn btn-link text-decoration-none p-0" 
+    <button class="btn-back-rosa position-absolute" 
             (click)="modoCrear ? volverCalculadora() : router.navigate(['/pages/gestion-producto/bandeja-solicitudes-preparados-magistrales'])">
-      <i class="bi bi-arrow-left"></i> {{ modoCrear ? 'Calculadora Maestra' : 'Bandeja Solicitudes' }}
+      <i class="bi bi-arrow-left"></i>
+      <span>{{ modoCrear ? 'Volver a Calculadora' : 'Volver a Bandeja' }}</span>
     </button>
-
     <h2 class="mb-4 text-center">{{ modoCrear ? 'Registro' : 'Actualización' }} de Preparado Magistral</h2>
 
     <p-stepper 
@@ -22,9 +22,9 @@
                         <div class="row w-50">
                             <!-- Nombre -->
                             <div class="mb-3">
-                                <label for="nombre" class="form-label">Nombre del Preparado *</label>
+                                <label for="nombre" class="form-label">Nombre del Preparado</label>
                                 <input type="text" id="nombre" [(ngModel)]="preparado.nombre" 
-                                       class="form-control" placeholder="Ingrese el nombre del preparado" required />
+                                       class="form-control" placeholder="Ingrese el nombre del preparado" />
                             </div>
                             
                             <!-- Descripción -->
@@ -38,14 +38,14 @@
                             <!-- pH definido min y max -->
                             <div class="row mb-3">
                                 <div class="col-md-6">
-                                    <label for="phMin" class="form-label">pH Mín. *</label>
+                                    <label for="phMin" class="form-label">pH Mín.</label>
                                     <input type="number" id="phMin" [(ngModel)]="preparado.phDefinidoMin" 
-                                           class="form-control" placeholder="pH mínimo" step="0.1" required />
+                                           class="form-control" placeholder="pH mínimo" step="0.1" />
                                 </div>
                                 <div class="col-md-6">
-                                    <label for="phMax" class="form-label">pH Máx. *</label>
+                                    <label for="phMax" class="form-label">pH Máx.</label>
                                     <input type="number" id="phMax" [(ngModel)]="preparado.phDefinidoMax" 
-                                           class="form-control" placeholder="pH máximo" step="0.1" required />
+                                           class="form-control" placeholder="pH máximo" step="0.1" />
                                 </div>
                             </div>
 
@@ -133,7 +133,7 @@
                                     <div class="input-group">
                                         <span class="input-group-text">{{ proc.orden }}.</span>
                                         <input type="text" [(ngModel)]="proc.descripcion" 
-                                               class="form-control" placeholder="Descripción del paso" required />
+                                               class="form-control" placeholder="Descripción del paso" />
                                     </div>
                                 </div>
                                 <div class="col-md-1">

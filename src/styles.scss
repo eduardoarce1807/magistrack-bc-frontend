@@ -47,6 +47,16 @@ $bootstrap-icons-font-dir: "bootstrap-icons/font/fonts";
   border-color: #C07178 !important;
 }
 
+/* Botones de texto de PrimeNG con color rosa */
+.p-button.p-button-text {
+  color: #D4858C !important;
+}
+
+.p-button.p-button-text:hover {
+  color: #C07178 !important;
+  background-color: rgba(212, 133, 140, 0.1) !important;
+}
+
 /* Personalizar cabeceras de tablas Bootstrap */
 .table-primary {
   background-color: #D4858C !important;
@@ -87,3 +97,216 @@ $bootstrap-icons-font-dir: "bootstrap-icons/font/fonts";
 .p-overlay {
   z-index: 99999 !important;
 }
+
+/* ========================================= */
+/* FORZAR COLOR ROSA EN PANEL MENU - GLOBAL */
+/* ========================================= */
+
+/* Forzar color rosa con máxima especificidad - TODOS LOS PANELMENU */
+body .p-panelmenu .p-panelmenu-header > a,
+body .p-panelmenu .p-panelmenu-header > a *,
+body .p-panelmenu .p-panelmenu-header .p-panelmenu-header-content,
+body .p-panelmenu .p-panelmenu-header .p-panelmenu-header-content *,
+body .p-panelmenu .p-panelmenu-header .p-panelmenu-header-action,
+body .p-panelmenu .p-panelmenu-header .p-panelmenu-header-action * {
+  color: rgb(212, 133, 140) !important;
+}
+
+/* Headers con background rosa */
+body .p-panelmenu .p-panelmenu-header > a {
+  background-color: rgba(212, 133, 140, 0.1) !important;
+  border-color: rgb(212, 133, 140) !important;
+}
+
+/* Headers expandidos */
+body .p-panelmenu .p-panelmenu-header.p-highlight > a {
+  background-color: rgba(212, 133, 140, 0.2) !important;
+  color: rgb(212, 133, 140) !important;
+}
+
+/* Hover states */
+body .p-panelmenu .p-panelmenu-header:not(.p-disabled) > a:hover,
+body .p-panelmenu .p-panelmenu-header.p-highlight:not(.p-disabled) > a:hover {
+  background-color: rgba(212, 133, 140, 0.25) !important;
+  color: rgb(212, 133, 140) !important;
+}
+
+/* Contenido de los submenús - FONDO BLANCO Y TEXTO NEGRO */
+body .p-panelmenu .p-panelmenu-content {
+  background-color: white !important;
+}
+
+body .p-panelmenu .p-panelmenu-content .p-menuitem .p-menuitem-link,
+body .p-panelmenu .p-panelmenu-content .p-menuitem .p-menuitem-link *,
+body .p-panelmenu .p-panelmenu-content .p-menuitem-text,
+body .p-panelmenu .p-panelmenu-content .p-menuitem-icon {
+  color: #333333 !important;
+}
+
+/* Hover en submenús - mantener negro pero con fondo gris claro */
+body .p-panelmenu .p-panelmenu-content .p-menuitem .p-menuitem-link:hover,
+body .p-panelmenu .p-panelmenu-content .p-menuitem .p-menuitem-link:hover * {
+  color: #333333 !important;
+  background-color: #f5f5f5 !important;
+}
+
+/* SUBMENU ACTIVO - RUTA ACTUAL CON FUENTE NEGRITA */
+body .p-panelmenu .p-panelmenu-content .p-menuitem.p-focus .p-menuitem-link,
+body .p-panelmenu .p-panelmenu-content .p-menuitem.p-highlight .p-menuitem-link,
+body .p-panelmenu .p-panelmenu-content .p-menuitem .p-menuitem-link.p-focus,
+body .p-panelmenu .p-panelmenu-content .p-menuitem .p-menuitem-link.p-highlight {
+  font-weight: bold !important;
+  background-color: rgba(212, 133, 140, 0.1) !important;
+  color: #333333 !important;
+}
+
+body .p-panelmenu .p-panelmenu-content .p-menuitem.p-focus .p-menuitem-text,
+body .p-panelmenu .p-panelmenu-content .p-menuitem.p-highlight .p-menuitem-text,
+body .p-panelmenu .p-panelmenu-content .p-menuitem .p-menuitem-text.p-focus,
+body .p-panelmenu .p-panelmenu-content .p-menuitem .p-menuitem-text.p-highlight {
+  font-weight: bold !important;
+  color: #333333 !important;
+}
+
+/* Asegurar que los iconos del submenu activo también se mantengan negros */
+body .p-panelmenu .p-panelmenu-content .p-menuitem.p-focus .p-menuitem-icon,
+body .p-panelmenu .p-panelmenu-content .p-menuitem.p-highlight .p-menuitem-icon {
+  color: #333333 !important;
+}
+
+/* Forzar sobre la clase específica rosa-menu */
+body .rosa-menu.p-panelmenu .p-panelmenu-header > a,
+body .rosa-menu.p-panelmenu .p-panelmenu-header > a *,
+body .rosa-menu.p-panelmenu .p-panelmenu-header .p-menuitem-text,
+body .rosa-menu.p-panelmenu .p-panelmenu-header .p-menuitem-icon,
+body .rosa-menu.p-panelmenu .p-panelmenu-header .p-submenu-icon {
+  color: rgb(212, 133, 140) !important;
+}
+
+/* Estilos para íconos en submenús */
+body .rosa-menu.p-panelmenu .p-panelmenu-content .p-menuitem-link .p-menuitem-icon,
+body .rosa-menu.p-panelmenu .p-submenu-list .p-menuitem-link .p-menuitem-icon,
+body .rosa-menu.p-panelmenu .p-menuitem-link .p-menuitem-icon {
+  color: rgb(212, 133, 140) !important;
+  margin-right: 8px !important;
+  font-size: 14px !important;
+}
+
+/* Anular cualquier color azul predeterminado */
+body .p-panelmenu .p-panelmenu-header > a:not([style*="color"]) {
+  color: rgb(212, 133, 140) !important;
+}
+
+/* Usar selectores de atributo para forzar */
+body .p-panelmenu [class*="p-menuitem"],
+body .p-panelmenu [class*="p-panelmenu"] {
+  color: rgb(212, 133, 140) !important;
+}
+
+/* Estilos específicos para texto de submenús */
+body .rosa-menu.p-panelmenu .p-panelmenu-content .p-menuitem-link .p-menuitem-text,
+body .rosa-menu.p-panelmenu .p-submenu-list .p-menuitem-link .p-menuitem-text,
+body .rosa-menu.p-panelmenu .p-menuitem-link .p-menuitem-text {
+  color: rgb(212, 133, 140) !important;
+  text-transform: none !important;
+  font-weight: 500 !important;
+}
+
+/* Estilos hover para submenús */
+body .rosa-menu.p-panelmenu .p-menuitem-link:hover,
+body .rosa-menu.p-panelmenu .p-menuitem-link:hover .p-menuitem-text,
+body .rosa-menu.p-panelmenu .p-menuitem-link:hover .p-menuitem-icon {
+  background-color: rgba(212, 133, 140, 0.1) !important;
+  color: rgb(212, 133, 140) !important;
+}
+
+/* ========================================= */
+/* BOTONES DE RETROCESO MEJORADOS - ROSA    */
+/* ========================================= */
+
+/* Botón de retroceso mejorado con color rosa */
+.btn-back-rosa {
+  background-color: rgba(212, 133, 140, 0.1) !important;
+  border: 2px solid rgb(212, 133, 140) !important;
+  color: rgb(212, 133, 140) !important;
+  padding: 8px 16px !important;
+  border-radius: 8px !important;
+  text-decoration: none !important;
+  font-weight: 500 !important;
+  font-size: 14px !important;
+  transition: all 0.3s ease !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+}
+
+.btn-back-rosa:hover {
+  background-color: rgb(212, 133, 140) !important;
+  color: white !important;
+  text-decoration: none !important;
+  transform: translateX(-2px) !important;
+  box-shadow: 0 2px 8px rgba(212, 133, 140, 0.3) !important;
+}
+
+.btn-back-rosa i {
+  font-size: 16px !important;
+  font-weight: bold !important;
+}
+
+/* Animación del icono en hover */
+.btn-back-rosa:hover i {
+  transform: translateX(-2px) !important;
+  transition: transform 0.3s ease !important;
+}
+
+/* Para botones con posición absoluta */
+.btn-back-rosa.position-absolute {
+  top: 15px !important;
+  left: 15px !important;
+  z-index: 10 !important;
+}
+
+/* BOTONES DE AVANCE MEJORADOS - ROSA (MISMO ESTILO QUE RETROCESO) */
+.btn-forward-rosa {
+  background-color: rgba(212, 133, 140, 0.1) !important;
+  border: 2px solid rgb(212, 133, 140) !important;
+  color: rgb(212, 133, 140) !important;
+  padding: 8px 16px !important;
+  border-radius: 8px !important;
+  text-decoration: none !important;
+  font-weight: 500 !important;
+  font-size: 14px !important;
+  transition: all 0.3s ease !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+}
+
+.btn-forward-rosa:hover {
+  background-color: rgb(212, 133, 140) !important;
+  border-color: rgb(212, 133, 140) !important;
+  color: white !important;
+  text-decoration: none !important;
+  transform: translateX(2px) !important;
+  box-shadow: 0 2px 8px rgba(212, 133, 140, 0.3) !important;
+}
+
+.btn-forward-rosa i {
+  font-size: 16px !important;
+  font-weight: bold !important;
+}
+
+/* Animación del icono en hover */
+.btn-forward-rosa:hover i {
+  transform: translateX(2px) !important;
+  transition: transform 0.3s ease !important;
+}
+
+/* Para botones de avance con posición absoluta */
+.btn-forward-rosa.position-absolute {
+  top: 15px !important;
+  right: 15px !important;
+  z-index: 10 !important;
+}
+
+

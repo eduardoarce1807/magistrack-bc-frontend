@@ -1,13 +1,15 @@
 <div class="container-fluid mt-5" style="padding: 0px 60px">
 	<div class="card shadow-lg p-4 rounded-4">
-		<button style="position: absolute;" class="btn btn-link text-decoration-none p-0" (click)="router.navigate(['/pages/produccion/bandeja-envasado'])">
-			<i class="bi bi-arrow-left"></i> Bandeja Envasado
+		<button class="btn-back-rosa position-absolute" (click)="router.navigate(['/pages/produccion/bandeja-envasado'])">
+			<i class="bi bi-arrow-left"></i>
+			<span>Volver a Bandeja Envasado</span>
 		</button>
 
 		<h2 class="mb-4 text-center">Bandeja de Etiquetado</h2>
 
-		<button style="position: absolute; right: 30px;" class="btn btn-link text-decoration-none p-0" (click)="router.navigate(['/pages/produccion/bandeja-despacho'])">
-			Bandeja Despacho <i class="bi bi-arrow-right"></i>
+		<button class="btn-forward-rosa position-absolute" (click)="router.navigate(['/pages/produccion/bandeja-despacho'])">
+			<span>Siguiente: Bandeja Despacho</span>
+			<i class="bi bi-arrow-right"></i>
 		</button>
 
 		<!-- Búsqueda por ID Producto -->
