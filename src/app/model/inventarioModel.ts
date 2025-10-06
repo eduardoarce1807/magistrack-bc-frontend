@@ -12,7 +12,7 @@ export class MateriaprimaModel {
 	id_unimed:		  number=0;
 	id_requerimiento_stock:		  string='';
 	estadorequerimiento:string=''
-	id_fabricante:number=1;
+	fabricante:string='';
 	id_tipomovimiento: string='';
 	ficha_tecnica:     string='';
 	fecha_vencimiento: string='';
