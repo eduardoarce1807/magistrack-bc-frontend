@@ -48,7 +48,7 @@
 							<input pInputText  #input (input)="dt.filterGlobal(input.value, 'contains')" placeholder="Keyword" />
 							<!--					<input pInputText type="text" [(ngModel)]="searchValue" (input)="dt.filterGlobal($event.target.value, 'contains')" placeholder="Keyboard Search" />-->
 						</p-iconField>
-						<p-button [outlined]="true" icon="pi pi-filter-slash" label="Limpiar" (click)="clear(dt)" />
+						<p-button  icon="pi pi-filter-slash" label="Limpiar" (click)="clear(dt)" />
 
 					</div></div>
 			</div>
@@ -207,7 +207,7 @@
 				<td class="text-end">
 					@if (customer.cant_entrada>0){
 						<div class="d-flex justify-content-center">
-						<p class="text-success mx-1">{{ customer.cant_entrada }}</p>
+						<span class="text-success mx-1">{{ customer.cant_entrada }}</span>
 						<i class="pi pi-plus" style="color: green;font-size:0.8rem"></i>
 						</div>
 					} @else {
@@ -218,7 +218,7 @@
 				<td class="text-end">
 					@if (customer.cant_salida>0){
 						<div class="d-flex justify-content-center">
-							<p class="text-danger mx-1">{{ customer.cant_salida }}</p>
+							<span class="text-danger mx-1">{{ customer.cant_salida }}</span>
 							<i class="pi pi-minus text-danger" style="font-size:0.8rem"></i>
 						</div>
 					}@else{
@@ -228,7 +228,7 @@
 				<td class="text-end">
 					{{ customer.cant_actual }}
 				</td>
-				<td>
+				<td class="text-end">
 					{{ customer.impunit }}
 				</td>
 				<td>

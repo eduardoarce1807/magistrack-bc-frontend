@@ -271,12 +271,12 @@ export class AsignarProveedorComponent {
 			}
 		})
 	}
-	calculatemateriasTotal(id_fabricante: number) {
+	calculatemateriasTotal(fabricante: string) {
 		let total = 0;
 
 		if (this.listaMateriaPrima) {
 			for (let materia of this.listaMateriaPrima) {
-				if (materia.id_fabricante === id_fabricante) {
+				if (materia.fabricante === fabricante) {
 					total++;
 				}
 			}

@@ -378,7 +378,7 @@ export class InventarioMatprimaComponent {
 			this.verdetalle=false
 			this.fila_select.detalleproveedor=[]
 			this.fila_select.detalleproveedor=this.selectedProveedor
-		this.fila_select.id_fabricante=this.fabricanteselected.id_fabricante
+		this.fila_select.fabricante=this.fabricanteselected.fabricante
 		// console.log(this.fila_select,this.op,'antes de enviar')
 		this.materiaService.registrarMateriaprima(this.fila_select,this.op).subscribe({
 			next:(data)=>{

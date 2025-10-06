@@ -147,7 +147,7 @@
 						<div class="d-flex  align-items-center">
 							<img src="assets/img/ingenieria.png" width="40">
 							<span class="font-bold ml-2 text-danger">{{customer.fabricante}}</span>
-							<span class="mx-2">Total : {{calculatemateriasTotal(customer.id_fabricante)}}</span>
+							<span class="mx-2">Total : {{calculatemateriasTotal(customer.fabricante)}}</span>
 						</div>
 					</td>
 				</tr>
@@ -155,7 +155,7 @@
 			<ng-template pTemplate="groupfooter" let-customer>
 				<tr>
 					<td colspan="3" class="text-right font-bold pr-6">
-						Total Materias Primas: {{calculatemateriasTotal(customer.id_fabricante)}}
+						Total Materias Primas: {{calculatemateriasTotal(customer.fabricante)}}
 					</td>
 				</tr>
 			</ng-template>

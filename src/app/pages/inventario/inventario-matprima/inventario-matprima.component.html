@@ -30,7 +30,7 @@
 						<input pInputText  #input (input)="dt.filterGlobal(input.value, 'contains')" placeholder="Keyword" />
 						<!--					<input pInputText type="text" [(ngModel)]="searchValue" (input)="dt.filterGlobal($event.target.value, 'contains')" placeholder="Keyboard Search" />-->
 					</p-iconField>
-					<p-button [outlined]="true" icon="pi pi-filter-slash" label="Limpiar" (click)="clear(dt)" />
+					<p-button  icon="pi pi-filter-slash" label="Limpiar" (click)="clear(dt)" />
 					<p-button  icon="pi pi-plus" label="Nueva Materia Prima" class="mx-1" severity="success" (click)="nuevamateriaprima()" />
 					<p-button
 						label="Filtro"
@@ -253,25 +253,24 @@
 					inputId="integeronly"
 					[(ngModel)]="fila_select.stock_referencia" />
 				<label class="p-text-secondary fw-bold">Fabricante</label>
-				<p-autoComplete [(ngModel)]="fabricanteselected" [forceSelection]="true" [dropdown]="true" appendTo="body" class="w-full"
 
-								[suggestions]="listaFabricantesugerencias" (completeMethod)="search($event)"
-								optionLabel="fabricante">
-					<ng-template let-item #item>
-						<div class="flex items-center gap-2">
-							<div >{{ item.fabricante }}</div>
-						</div>
-					</ng-template>
-				</p-autoComplete>
-				<p-button icon="pi pi-plus" styleClass="mt-2" [rounded]="true" severity="success" label="Nuevo Fabricante"
-				(click)="visible=true"/>
-<!--				<p-dropdown-->
-<!--					[options]="listaFabricante"-->
-<!--					[(ngModel)]="fila_select.id_fabricante"-->
-<!--					optionLabel="fabricante"-->
-<!--					optionValue="id_fabricante"-->
-<!--					appendTo="body"-->
-<!--					placeholder="Seleccionar Fabricante" />-->
+				<input
+					class="w-full"
+					type="text"
+					pInputText
+					[(ngModel)]="fila_select.fabricante" />
+<!--				<p-autoComplete [(ngModel)]="fabricanteselected" [forceSelection]="true" [dropdown]="true" appendTo="body" class="w-full"-->
+
+<!--								[suggestions]="listaFabricantesugerencias" (completeMethod)="search($event)"-->
+<!--								optionLabel="fabricante">-->
+<!--					<ng-template let-item #item>-->
+<!--						<div class="flex items-center gap-2">-->
+<!--							<div >{{ item.fabricante }}</div>-->
+<!--						</div>-->
+<!--					</ng-template>-->
+<!--				</p-autoComplete>-->
+<!--				<p-button icon="pi pi-plus" styleClass="mt-2" [rounded]="true" severity="success" label="Nuevo Fabricante"-->
+<!--				(click)="visible=true"/>-->
 			</div>
 		</div>
 		<div class="row">
@@ -299,7 +298,7 @@
 			</div>
 		</div>
 		<ng-template pTemplate="footer">
-	 		<p-button [outlined]="true" icon="pi pi-trash" label="Cancelar" class="mx-1" severity="danger" (click)="verdetalle=false;"  />
+	 		<p-button  icon="pi pi-trash" label="Cancelar" class="mx-1" severity="danger" (click)="verdetalle=false;"  />
 			<p-button  icon="pi pi-save" label="Registrar Materia" class="mx-1" severity="success"  (click)="guardarmateria()"/>
 		</ng-template>
 	</p-dialog>
@@ -505,7 +504,7 @@
 			</div>
 		</div>
 		<ng-template pTemplate="footer">
-			<p-button [outlined]="true" icon="pi pi-trash" label="Cancelar" class="mx-1" severity="danger" (click)="verdetalle=false;"  />
+			<p-button  icon="pi pi-trash" label="Cancelar" class="mx-1" severity="danger" (click)="verdetalle=false;"  />
 			<p-button  icon="pi pi-save" label="Confirmar baja" class="mx-1" severity="success"  (click)="guardarbaja()"/>
 		</ng-template>
 	</p-dialog>
@@ -629,7 +628,7 @@
 			</div>
 		</div>
 		<ng-template pTemplate="footer">
-			<p-button [outlined]="true" icon="pi pi-trash" label="Cancelar" class="mx-1" severity="danger" (click)="veradicionar=false;"  />
+			<p-button  icon="pi pi-trash" label="Cancelar" class="mx-1" severity="danger" (click)="veradicionar=false;"  />
 			<p-button  icon="pi pi-save" label="Confirmar Ajuste" class="mx-1" severity="success"  (click)="guardarbaja()"/>
 		</ng-template>
 	</p-dialog>
@@ -697,7 +696,7 @@
 			</div>
 		</div>
 		<ng-template pTemplate="footer">
-			<p-button [outlined]="true" icon="pi pi-trash" label="Cancelar" class="mx-1" severity="danger" (click)="verreducir=false;"  />
+			<p-button  icon="pi pi-trash" label="Cancelar" class="mx-1" severity="danger" (click)="verreducir=false;"  />
 			<p-button  icon="pi pi-save" label="Confirmar baja" class="mx-1" severity="success"  (click)="guardarbaja()"/>
 		</ng-template>
 	</p-dialog>
@@ -885,7 +884,7 @@
 			</p-panel>
 		</div>
 		<ng-template pTemplate="footer">
-			<p-button [outlined]="true" icon="pi pi-trash" label="Cancelar" class="mx-1" severity="danger" (click)="verdetalle=false;"  />
+			<p-button  icon="pi pi-trash" label="Cancelar" class="mx-1" severity="danger" (click)="verdetalle=false;"  />
 			<p-button  icon="pi pi-save" label="Generar Requerimiento" class="mx-1" severity="success"  (click)="guardarRequermiento()"/>
 		</ng-template>
 	</p-dialog>
