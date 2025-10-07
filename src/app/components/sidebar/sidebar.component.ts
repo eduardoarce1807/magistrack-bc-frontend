@@ -328,7 +328,7 @@ export class SidebarComponent implements OnInit, AfterViewInit {
 					items: [
 						{
 							key: '5_0',
-							label: 'Listado de Materia Prima',
+							label: 'Listado de Materias Primas',
 							icon: 'pi pi-list',
 							command: () => this.irA('pages/inventario/inventario-matprima')
 						},
