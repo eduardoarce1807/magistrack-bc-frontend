@@ -16,6 +16,7 @@ $bootstrap-icons-font-dir: "bootstrap-icons/font/fonts";
 //@import url("https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap");
 //@import "primeng/resources/themes/lara-light-blue/theme.css";
 //@import "primeng/resources/primeng.css";
+
 .p-inputnumber input{
 	width:100% !important;
 	text-align:end;
@@ -24,37 +25,95 @@ $bootstrap-icons-font-dir: "bootstrap-icons/font/fonts";
 	width:100% !important;
 	text-align:end;
 }
-
+.p-dialog-header-icon{
+	color:white;
+}
 /* Estilo para botones principales con color #D4858C */
 .btn-primary {
   background-color: #D4858C !important;
   border-color: #D4858C !important;
 }
-
+.p-datatable-thead tr th{
+	background-color: #D4858C !important;
+	color:white;
+}
+.p-table .p-icon-wrapper,.p-sortable-column-icon,.pi-filter-icon{
+	color:white !important;
+}
 .btn-primary:hover {
   background-color: #C07178 !important;
   border-color: #C07178 !important;
+	border-radius: 50px;
 }
 
+.p-button-outlined{
+
+	color: white !important;
+	border-color: #C07178 !important;
+	background-color: #C07178 !important;
+}
 /* Botones de PrimeNG principales, pero excluir botones de texto */
+
+.p-button-success{
+	color: white !important;
+	border-color: #a0bd6d !important;
+	background-color: #a0bd6d !important;
+	border-radius: 50px;
+}
+.p-button-danger{
+	color: white !important;
+	border-color: #C07178 !important;
+	background-color: #C07178 !important;
+	border-radius: 50px;
+}
+.p-paginator-icon{
+	color: #C07178  !important;
+
+}
+.p-button-success:hover{
+	color: white !important;
+	border-color: #7a9151 !important;
+	background-color: #7a9151 !important;
+	border-radius: 50px;
+}
+.p-button-danger:hover{
+	color: white !important;
+	border-color: #a66268 !important;
+	background-color: #a66268 !important;
+	border-radius: 50px;
+}
+
+//.p-button{
+//	color: white !important;
+//	border-color: #bdbdbd ;
+//	background-color: #bdbdbd ;
+//}
+//.p-button:hover{
+//	color: white !important;
+//	border-color: #8f8f8f;
+//	background-color: #8f8f8f ;
+//}
 .p-button:not(.p-button-text) {
-  background-color: #D4858C !important;
-  border-color: #D4858C !important;
+	background-color: #D4858C ;
+	border-color: #D4858C ;
+	border-radius: 50px;
 }
 
 .p-button:not(.p-button-text):hover {
-  background-color: #C07178 !important;
-  border-color: #C07178 !important;
+	background-color: #C07178 ;
+	border-color: #C07178 ;
+	border-radius: 50px;
 }
-
 /* Botones de texto de PrimeNG con color rosa */
 .p-button.p-button-text {
   color: #D4858C !important;
+	border-radius: 50px;
 }
 
 .p-button.p-button-text:hover {
   color: #C07178 !important;
   background-color: rgba(212, 133, 140, 0.1) !important;
+	border-radius: 50px;
 }
 
 /* Personalizar cabeceras de tablas Bootstrap */
@@ -76,11 +135,7 @@ $bootstrap-icons-font-dir: "bootstrap-icons/font/fonts";
   color: white !important;
   border-color: #C07178 !important;
 }
-.p-button-outlined{
 
-	color: white !important;
-	border-color: #C07178 !important;
-}
 /* Fix para overlays de PrimeNG en modales */
 .p-column-filter-overlay,
 .p-overlaypanel,
