@@ -37,7 +37,7 @@ $bootstrap-icons-font-dir: "bootstrap-icons/font/fonts";
 	background-color: #D4858C !important;
 	color:white;
 }
-.p-icon-wrapper,.p-sortable-column-icon{
+.p-table .p-icon-wrapper,.p-sortable-column-icon,.pi-filter-icon{
 	color:white !important;
 }
 .btn-primary:hover {
@@ -66,7 +66,10 @@ $bootstrap-icons-font-dir: "bootstrap-icons/font/fonts";
 	background-color: #C07178 !important;
 	border-radius: 50px;
 }
+.p-paginator-icon{
+	color: #C07178  !important;
 
+}
 .p-button-success:hover{
 	color: white !important;
 	border-color: #7a9151 !important;
@@ -75,8 +78,8 @@ $bootstrap-icons-font-dir: "bootstrap-icons/font/fonts";
 }
 .p-button-danger:hover{
 	color: white !important;
-	border-color: #C07178 !important;
-	background-color: #C07178 !important;
+	border-color: #a66268 !important;
+	background-color: #a66268 !important;
 	border-radius: 50px;
 }
 
