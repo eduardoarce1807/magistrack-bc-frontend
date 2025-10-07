@@ -70,7 +70,7 @@ export class SidebarComponent implements OnInit, AfterViewInit {
 					command: () => this.irA('pages/perfil')
 				}
 			] : []),
-			...(atencionClienteAccessRoles.includes(user.rol.idRol) || user.rol.idRol === 11 ? [
+			...(atencionClienteAccessRoles.includes(user.rol.idRol) || user.rol.idRol === 11 || user.rol.idRol === 12 ? [
 				{
 					key: '0_3',
 					label: 'Gestión de Devoluciones',
@@ -195,7 +195,7 @@ export class SidebarComponent implements OnInit, AfterViewInit {
 		];
 
 		// Logística - Despacho, Seguimiento entregas, Devoluciones físicas, Facturación/pagos
-		// Rol Logística (12) solo tiene acceso a despacho
+		// Rol Logística (12) tiene acceso a despacho y visualizador de pagos
 		const logisticaItems = [
 			...(logisticaAccessRoles.includes(user.rol.idRol) ? [
 				{
@@ -205,8 +205,8 @@ export class SidebarComponent implements OnInit, AfterViewInit {
 					command: () => this.irA('pages/produccion/bandeja-despacho')
 				}
 			] : []),
-			// Solo administrador y ventas pueden ver visualizador de pagos
-			...([1, 5].includes(user.rol.idRol) ? [
+			// Administrador, ventas y logística pueden ver visualizador de pagos
+			...([1, 5, 12].includes(user.rol.idRol) ? [
 				{
 					key: '2_1',
 					label: 'Visualizador de pagos',

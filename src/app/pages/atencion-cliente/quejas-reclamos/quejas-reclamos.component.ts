@@ -136,6 +136,7 @@ export class QuejasReclamosComponent implements OnInit {
               html: `
                 <p>${response.mensaje}</p>
                 <p><strong>Correlativo generado:</strong> ${response.correlativoGenerado}</p>
+                <p>Pronto atenderemos su solicitud por correo y vía WhatsApp.</p>
               `,
               showConfirmButton: true
             }).then(() => {
