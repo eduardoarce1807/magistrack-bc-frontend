@@ -19,7 +19,7 @@ export class itecotizacionModel {
 	itemitereq:number=0;
 	id_requerimiento:string|null=null;
 	estadocoti:string|null=null;
-	id_materia_prima:number=0;
+	id_materia_prima:string='';
 	desmateriaprima:string|null=null;
 	impsubtotal:number=0;
 	cantidad:number=0;

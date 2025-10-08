@@ -1,7 +1,7 @@
 import {soloproveedorModel} from "./proveedoresModel";
 
 export class MateriaprimaModel {
-	id_materia_prima: number=0;
+	id_materia_prima:string='';
 	nombre:           string='';
 	costo_gramo:      number=0;
 	stock_materia:    number=0;

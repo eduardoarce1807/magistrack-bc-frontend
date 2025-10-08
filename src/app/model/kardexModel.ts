@@ -5,7 +5,7 @@ export class kardexModel {
 	cant_salida:      number=0;
 	cant_actual:	  number=0;
 	impunit:          number=0;
-	id_materia_prima: number=0;
+	id_materia_prima:string='';
 	observaciones:    string='';
 	id_movimiento:    number=0;
 	archivobase64:    string='';

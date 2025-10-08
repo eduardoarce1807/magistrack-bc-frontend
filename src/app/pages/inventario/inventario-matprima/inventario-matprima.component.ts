@@ -346,7 +346,7 @@ export class InventarioMatprimaComponent {
 			}
 		})
 	}
-	cargarproveedoresasignados(id_materia_prima:number){
+	cargarproveedoresasignados(id_materia_prima:string){
 		this.selectedProveedor=[]
 		this.fila_select.detalleproveedor=[]
 		this.proveedorService.getProveedoresconMateria(id_materia_prima).subscribe({
@@ -462,7 +462,7 @@ export class InventarioMatprimaComponent {
 	// 	window.open(url);
 	// }
 	guardarbaja(){
-		this.subirBaja.documento='MP'+this.fila_select.id_materia_prima.toString()
+		this.subirBaja.documento=this.fila_select.id_materia_prima
 		this.subirBaja.impunit=this.fila_select.costo_gramo
 		this.subirBaja.id_materia_prima=this.fila_select.id_materia_prima
 		this.subirBaja.path_kardex=''
