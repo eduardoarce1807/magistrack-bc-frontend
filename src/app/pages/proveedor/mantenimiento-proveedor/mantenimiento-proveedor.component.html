@@ -86,7 +86,7 @@
 						<p-columnFilter type="text" field="ruc" display="menu" class="ml-auto" />
 					</div>
 				</th>
-				<th pSortableColumn="desrubro" style="min-width: 40px">
+				<th pSortableColumn="desrubro" style="min-width: 200px">
 					<div class="flex justify-content-between align-items-center">
 						Rubro
 						<p-sortIcon field="desrubro" />
@@ -100,7 +100,7 @@
 						<p-columnFilter type="text" field="desbanco" display="menu" class="ml-auto" />
 					</div>
 				</th>
-				<th pSortableColumn="cuenta_soles" style="min-width: 40px">
+				<th pSortableColumn="cuenta_soles" style="min-width: 150px">
 					<div class="flex justify-content-between align-items-center">
 						Cta.Soles
 						<p-sortIcon field="cuenta_soles" />
@@ -126,13 +126,14 @@
 		<ng-template pTemplate="body" let-customer>
 			<tr class="p-selectable-row" >
 				<td>
-					{{ customer.idproveedor }}
+
 					<p-button  [rounded]="true" icon="pi pi-pencil" class="mx-1" severity="success"
+							   [label]="customer.idproveedor"
 							   pTooltip="Editar Proveedor"
 							   tooltipPosition="right"
 							   (click)="editarproveedor(customer)"/>
 				</td>
-				<td>
+				<td >
 					{{ customer.descripcion }}
 				</td>
 				<td>
@@ -144,7 +145,8 @@
 				<td>
 					{{ customer.celular }}
 				</td>
-				<td>
+				<td class="text-truncate" style="max-width: 200px;" [pTooltip]="customer.direccion"
+					tooltipPosition="right">
 					{{ customer.direccion }}
 				</td>
 				<td>
