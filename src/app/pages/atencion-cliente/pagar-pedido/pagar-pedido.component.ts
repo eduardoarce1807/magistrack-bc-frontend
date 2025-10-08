@@ -64,6 +64,9 @@ export class PagarPedidoComponent implements OnInit, AfterViewInit {
     extensionArchivo: ''
   };
 
+  // Propiedad para controlar la aceptación de términos y condiciones
+  terminosAceptados: boolean = false;
+
   constructor(
     private route: ActivatedRoute,
     public router: Router,
@@ -88,6 +91,8 @@ export class PagarPedidoComponent implements OnInit, AfterViewInit {
   }
 
   ngOnInit(): void {
+    // Scroll hacia arriba al cargar el componente
+    window.scrollTo(0, 0);
 
     this.routeSubscription = this.route.paramMap.subscribe(params => {
       this.idPedido = params.get('idPedido');
@@ -117,6 +122,7 @@ export class PagarPedidoComponent implements OnInit, AfterViewInit {
   }
 
   @ViewChild('pagoIzipay', { static: true }) pagoIzipay: TemplateRef<any> | null = null;
+  @ViewChild('pagoManualTemplate', { static: true }) pagoManualTemplate: TemplateRef<any> | null = null;
   openModalIziPay(content: TemplateRef<any>) {
     this.modalService.dismissAll(); // Cierra cualquier modal abierto antes de abrir uno nuevo
     this.modalService.open(content, {backdrop: 'static', keyboard: false});
@@ -486,6 +492,60 @@ export class PagarPedidoComponent implements OnInit, AfterViewInit {
     }
 
     return true;
+  }
+
+  // Método para aceptar términos y condiciones desde el modal
+  aceptarTerminos(): void {
+    this.terminosAceptados = true;
+  }
+
+  // Método para volver al registro del pedido
+  volverARegistroPedido(): void {
+    this.router.navigate(['/pages/atencion-cliente/registro-pedido', this.idPedido]);
+  }
+
+  // Método para confirmar pago manual
+  confirmarPagoManual(): void {
+    Swal.fire({
+      title: '¿Estás seguro/a?',
+      text: 'Estás a punto de proceder con el pago manual del pedido.',
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#6c757d',
+      confirmButtonText: 'Sí, continuar',
+      cancelButtonText: 'Cancelar',
+      customClass: {
+        confirmButton: 'btn btn-primary',
+        cancelButton: 'btn btn-secondary',
+      },
+    }).then((result) => {
+      if (result.isConfirmed && this.pagoManualTemplate) {
+        this.openModal(this.pagoManualTemplate);
+      }
+    });
+  }
+
+  // Método para confirmar pago con tarjeta
+  confirmarPagoIziPay(): void {
+    Swal.fire({
+      title: '¿Estás seguro/a?',
+      text: 'Estás a punto de proceder con el pago mediante tarjeta de crédito/débito.',
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#6c757d',
+      confirmButtonText: 'Sí, continuar',
+      cancelButtonText: 'Cancelar',
+      customClass: {
+        confirmButton: 'btn btn-danger',
+        cancelButton: 'btn btn-secondary',
+      },
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.openModalIziPay(this.pagoIzipay!);
+      }
+    });
   }
 
 }

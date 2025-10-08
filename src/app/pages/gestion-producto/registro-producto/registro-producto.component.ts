@@ -37,7 +37,7 @@ export interface Producto {
 }
 
 export interface Ingrediente {
-  idMateriaPrima: number;
+  idMateriaPrima: string;
   cantidad: number;
 }
 
@@ -82,7 +82,7 @@ export class RegistroProductoComponent implements OnInit {
     phDefinidoMax: null,
     estado: true,
     ingredientes: [{
-      idMateriaPrima: 0,
+      idMateriaPrima: '',
       cantidad: 0
     }],
     procedimientos: [
@@ -237,7 +237,7 @@ export class RegistroProductoComponent implements OnInit {
       return;
     }
 
-    this.producto.ingredientes.push({ idMateriaPrima: 0, cantidad: cantidadRestante });
+    this.producto.ingredientes.push({ idMateriaPrima: '', cantidad: cantidadRestante });
   }
 
   eliminarIngrediente(index: number): void {
@@ -292,9 +292,9 @@ export class RegistroProductoComponent implements OnInit {
       return true;
     }
 
-    // Todos los ingredientes deben tener idMateriaPrima distinto de 0 y cantidad > 0
+    // Todos los ingredientes deben tener idMateriaPrima distinto de '' y cantidad > 0
     const algunIngredienteInvalido = this.producto.ingredientes.some(
-      (i: any) => !i.idMateriaPrima || !i.cantidad
+      (i: any) => !i.idMateriaPrima || i.idMateriaPrima === '' || !i.cantidad
     );
     if (algunIngredienteInvalido) {
       return true;
@@ -388,7 +388,7 @@ export class RegistroProductoComponent implements OnInit {
       phDefinidoMin: null,
       phDefinidoMax: null,
       estado: true,
-      ingredientes: [{ idMateriaPrima: 0, cantidad: 0 }],
+      ingredientes: [{ idMateriaPrima: '', cantidad: 0 }],
       procedimientos: [{ orden: 1, descripcion: '' }],
       presentaciones: [{ idProducto: null, idTipoPresentacion: 1, presentacion: null, precio: null, estado: true }],
       elementosSeguridadPersonal: '',

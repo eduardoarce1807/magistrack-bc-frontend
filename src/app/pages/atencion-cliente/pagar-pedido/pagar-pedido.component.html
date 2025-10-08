@@ -1,5 +1,11 @@
 <div class="container mt-5" style="width: 50%">
 	<div class="card shadow-lg p-4 rounded-4">
+		<!-- Botón de retroceso -->
+		<button class="btn-back-rosa position-absolute" (click)="volverARegistroPedido()">
+			<i class="bi bi-arrow-left"></i>
+			<span>Volver al Pedido</span>
+		</button>
+		
 		<h2 class="mb-4 text-center">Pago de Pedido</h2>
 
 		<div class="row mb-2">
@@ -26,14 +32,30 @@
 			</div>
 		</div>
 		<hr>
+		
+		<!-- Checkbox de términos y condiciones -->
+		<div class="row mb-3">
+			<div class="col-12 d-flex justify-content-center">
+				<div class="form-check">
+					<input type="checkbox" class="form-check-input" id="terminosCondiciones" [(ngModel)]="terminosAceptados">
+					<label class="form-check-label" for="terminosCondiciones">
+						Acepto los 
+						<a href="javascript:void(0)" class="text-decoration-underline text-primary" (click)="openModal(terminosCondicionesTemplate)">
+							Términos y Condiciones
+						</a>
+					</label>
+				</div>
+			</div>
+		</div>
+		
 		<div class="row mt-2 justify-content-center">
-			@if(dataService.getLoggedUser().rol.idRol == 1){
+			@if(dataService.getLoggedUser().rol.idRol == 1 || dataService.getLoggedUser().rol.idRol == 5){
 				<div class="col-md-6 d-flex justify-content-center mb-2 mb-md-0">
-					<button class="btn btn-primary col-12" type="button" (click)="openModal(pagoManualTemplate)"><i class="bi bi-pencil-square"></i> Pago manual</button>
+					<button class="btn btn-primary col-12" type="button" [disabled]="!terminosAceptados" (click)="confirmarPagoManual()"><i class="bi bi-pencil-square"></i> Pago manual</button>
 				</div>
 			}
 			<div class="col-md-6 d-flex justify-content-center">
-				<button class="btn btn-danger col-12" type="button" (click)="openModalIziPay(pagoIzipay)"><i class="bi bi-credit-card"></i> Tarjeta (IziPay)</button>
+				<button class="btn btn-danger col-12" type="button" [disabled]="!terminosAceptados" (click)="confirmarPagoIziPay()"><i class="bi bi-credit-card"></i> Tarjeta (IziPay)</button>
 			</div>
 		</div>
 
@@ -123,4 +145,57 @@
 			<button type="submit" class="btn btn-success" [disabled]="!esFormularioValido(pagoManualForm)">Registrar Pago</button>
 		</div>
 	</form>
+</ng-template>
+
+<!-- Modal de Términos y Condiciones -->
+<ng-template #terminosCondicionesTemplate let-modal>
+	<div class="modal-header">
+		<h4 class="modal-title">Términos y Condiciones</h4>
+		<button type="button" class="btn-close" aria-label="Close" (click)="modal.dismiss('Cross click')"></button>
+	</div>
+	<div class="modal-body" style="max-height: 70vh; overflow-y: auto;">
+		<div class="text-justify">
+			<h5 class="fw-bold">Términos y condiciones</h5>
+			
+			<h6 class="fw-bold mt-3">Términos y condiciones para el uso del sitio web</h6>
+			<p>
+				Lea detenidamente estos Términos y Condiciones antes de utilizar este sitio web. Al acceder y utilizar el Sitio, usted acepta estos Términos y Condiciones en su totalidad, además de cualquier otra ley o reglamento que sea aplicable al Sitio y a Internet. Al visitar y/o comprar en nuestro sitio web, usted afirma estar de acuerdo con los Términos y Condiciones, si no acepta estos Términos y Condiciones en su totalidad, por favor, abandone el Sitio.
+			</p>
+			
+			<h6 class="fw-bold mt-3">Propiedad</h6>
+			<p>
+				Este sitio se encuentra operado por DERMOFARMACIA BELLA CURET S.A.C., constituida legalmente bajo las leyes de la República del Perú, RUC N° 20602592457, con su principal centro de operaciones ubicado en Av. Petit Thouars 4373 A, Miraflores, Lima.
+			</p>
+			<p>
+				Todos los contenidos gráficos o textuales (imágenes, ilustraciones, fotografías, dibujos, diseños, íconos, logos, entre otros materiales) son de propiedad y marca registrada controlada por DERMOFARMACIA BELLA CURET S.A.C.
+			</p>
+			
+			<h6 class="fw-bold mt-3">Aceptación de usuario</h6>
+			<p>
+				Usted (en adelante el "Usuario") al navegar, utilizar y/o visitar https://magistrack-bc.website/magistrack-bc/, acepta los Términos y Condiciones de este sitio web. En caso de que el Usuario no aceptara algunos de estos términos, no estará autorizado a utilizar la página web. Además, cabe señalar que https://magistrack-bc.website/magistrack-bc/ posee la facultad de modificar o revisar los Términos y Condiciones en cualquier momento, lo cual será debidamente informado a todos los usuarios mediante un aviso visible dentro de la página web, otorgándose así al Usuario la posibilidad de revisar las nuevas modificaciones y/o revisiones, a efectos de que las acepte o las rechace mediante el envío de un correo electrónico a la dirección que será consignada en el aviso.
+			</p>
+			
+			<h6 class="fw-bold mt-3">Datos personales</h6>
+			<p>
+				El Usuario autoriza y conoce que su información de contacto, así como sus demás datos personales serán almacenados en la base de datos de clientes o proveedores de https://magistrack-bc.website/magistrack-bc/, según corresponda, y utilizados por éste para remitirle publicidad y/o información relevante y relacionada con el negocio de https://magistrack-bc.website/magistrack-bc/.
+			</p>
+			<p>
+				Al otorgar su autorización, Bella Curet cumplirá el marco legal sobre protección de datos personales en el Perú; razón por la cual le garantizamos que su información será preservada para los fines anteriormente descritos bajo estricta seguridad
+			</p>
+			
+			<h6 class="fw-bold mt-3">Renuncia a las garantías</h6>
+			<p>
+				La normativa regida por la empresa Bella Curet expresa que la garantía de los productos se encuentra ligada a la posesión del producto. Ante cualquier daño o pérdida por parte del currier o tercero encargado de realizar el envío. La empresa no cubre gastos de envío en cuanto a las devoluciones de los productos, en este caso, cualquier daño durante el transporte de devolución de algún pedido será rechazado por parte de la empresa y la devolución del producto será automáticamente descartada.
+			</p>
+			
+			<h6 class="fw-bold mt-3">Limitación de responsabilidad</h6>
+			<p>
+				El uso que usted haga del Sitio es por su propia cuenta y riesgo. La empresa no se hace responsables de ninguna parte involucrada en la creación, la producción o la distribución.
+			</p>
+		</div>
+	</div>
+	<div class="modal-footer">
+		<button type="button" class="btn btn-secondary" (click)="modal.dismiss('cancel')">Cerrar</button>
+		<button type="button" class="btn btn-primary" (click)="aceptarTerminos(); modal.close('accept')">Aceptar Términos</button>
+	</div>
 </ng-template>

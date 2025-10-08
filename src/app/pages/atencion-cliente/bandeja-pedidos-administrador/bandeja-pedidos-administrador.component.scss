@@ -123,3 +123,33 @@
 .table-responsive:hover::after {
   opacity: 1;
 }
+
+// Estilos para paginación rosa
+.pagination-rosa {
+  ::ng-deep .page-link {
+    color: #D4858C;
+    border-color: #D4858C;
+    
+    &:hover {
+      color: #fff;
+      background-color: #D4858C;
+      border-color: #D4858C;
+    }
+    
+    &:focus {
+      box-shadow: 0 0 0 0.2rem rgba(212, 133, 140, 0.25);
+    }
+  }
+  
+  ::ng-deep .page-item.active .page-link {
+    background-color: #D4858C;
+    border-color: #D4858C;
+    color: #fff;
+  }
+  
+  ::ng-deep .page-item.disabled .page-link {
+    color: #C07178;
+    background-color: #fff;
+    border-color: #dee2e6;
+  }
+}

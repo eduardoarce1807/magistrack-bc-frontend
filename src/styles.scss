@@ -145,7 +145,11 @@ $bootstrap-icons-font-dir: "bootstrap-icons/font/fonts";
   color: white !important;
   border-color: #C07178 !important;
 }
+.p-button-outlined{
 
+	color: white !important;
+	border-color: #C07178 !important;
+}
 /* Fix para overlays de PrimeNG en modales */
 .p-column-filter-overlay,
 .p-overlaypanel,
@@ -414,6 +418,36 @@ body .rosa-menu.p-panelmenu .p-highlight.active-menu-item * {
 /* Estilos para asegurar que el footer esté siempre debajo del viewport */
 router-outlet + * {
   min-height: calc(100vh - 200px); /* Dejar espacio para navbar y footer */
+}
+
+/* Estilos globales para paginación rosa */
+.pagination-rosa {
+  .page-link {
+    color: #D4858C;
+    border-color: #D4858C;
+    
+    &:hover {
+      color: #fff;
+      background-color: #D4858C;
+      border-color: #D4858C;
+    }
+    
+    &:focus {
+      box-shadow: 0 0 0 0.2rem rgba(212, 133, 140, 0.25);
+    }
+  }
+  
+  .page-item.active .page-link {
+    background-color: #D4858C;
+    border-color: #D4858C;
+    color: #fff;
+  }
+  
+  .page-item.disabled .page-link {
+    color: #C07178;
+    background-color: #fff;
+    border-color: #dee2e6;
+  }
 }
 
 
