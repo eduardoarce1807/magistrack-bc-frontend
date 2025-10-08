@@ -39,7 +39,7 @@ export class Detalleorden {
 	estadoconf:      string='';
 	estadoval:       string='';
 	desmateria:      string='';
-	id_materia_prima:number=0;
+	id_materia_prima:string='';
 	id_proveedor:    string='';
 	impsubtotal:     number=0;
 	cantidad_conf_total:number=0;
@@ -117,7 +117,7 @@ export class Detalleconformidad {
 	cantidad_conf_total: number=0;
 	id_orden_compra:     string='';
 	item:                number=0;
-	id_materia_prima_conf:number=0;
+	id_materia_prima_conf:string='';
 }
 export class ordencompraPeriodo {
 	idproveedor:string|null=null
