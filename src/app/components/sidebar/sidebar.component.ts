@@ -19,20 +19,20 @@ import {filter} from 'rxjs/operators';
 export class SidebarComponent implements OnInit, AfterViewInit {
 	items: MenuItem[]=[];
 	private currentActiveUrl: string = '';
-	
+
 	@ViewChild('panelMenu') panelMenuRef!: PanelMenu;
-	
+
 	constructor(private router: Router, public dataService: DataService, private cdr: ChangeDetectorRef) {
 
 		const user = this.dataService.getLoggedUser();
-		
+
 		// Definición de roles para acceso - incluye nuevos roles 11-15
 		const atencionClienteAccessRoles = [1, 5]; // Excluye rol 11 - no tiene acceso a Ventas & Pedidos
 		const logisticaAccessRoles = [1, 5, 12]; // Incluye nuevo rol Logística (12)
 		const comprasAccessRoles = [1, 13]; // Incluye nuevo rol Compras (13)
 		const almacenAccessRoles = [1, 14]; // Incluye nuevo rol Almacén (14)
 		const investigacionAccessRoles = [1, 15]; // Incluye nuevo rol Investigación y Desarrollo (15)
-		
+
 		// Atención al Cliente - Reclamos, Registro de Devoluciones, Consulta de pedidos, Encuestas
 		const atencionClienteItems = [
 			...([2,3,4].includes(user.rol.idRol) ? [
@@ -315,6 +315,18 @@ export class SidebarComponent implements OnInit, AfterViewInit {
 							label: 'Ordenes de Compras',
 							icon: 'pi pi-shopping-bag',
 							command: () => this.irA('pages/compras/ordencompra')
+						},
+						{
+							key: '4_3',
+							label: 'Ordenes de Compras x Periodo',
+							icon: 'pi pi-file',
+							command: () => this.irA('pages/reportes/orden-compra-periodo')
+						},
+						{
+							key: '4_4',
+							label: 'Comparativo de Precios',
+							icon: 'pi pi-file',
+							command: () => this.irA('pages/reportes/comparativo-precio')
 						}
 					]
 				}
@@ -337,6 +349,30 @@ export class SidebarComponent implements OnInit, AfterViewInit {
 							label: 'kardex x Mat.Prima',
 							icon: 'pi pi-chart-line',
 							command: () => this.irA('pages/inventario/kardex-producto/0')
+						},
+						{
+							key: '5_2',
+							label: 'Comparativo de Stock',
+							icon: 'pi pi-file',
+							command: () => this.irA('pages/reportes/comparativo-stock')
+						},
+						{
+							key: '5_3',
+							label: 'Entradas y Salidas',
+							icon: 'pi pi-file',
+							command: () => this.irA('pages/reportes/entradas-salidas')
+						},
+						// {
+						// 	key: '5_4',
+						// 	label: 'Reporte Valorización', --pendiente
+						// 	icon: 'pi pi-file',
+						// 	command: () => this.irA('pages/reportes/reporte-valorizacion')
+						// },
+						{
+							key: '5_5',
+							label: 'MP por categoría',
+							icon: 'pi pi-file',
+							command: () => this.irA('pages/reportes/reporte-categoria-mp')
 						}
 					]
 				}
@@ -450,7 +486,7 @@ export class SidebarComponent implements OnInit, AfterViewInit {
 			}
 		}, 500);
 	}
-	
+
 	ngAfterViewInit() {
 		// Inicialización del acordeón DESPUÉS de que la vista esté completamente renderizada
 		setTimeout(() => {
@@ -463,17 +499,17 @@ export class SidebarComponent implements OnInit, AfterViewInit {
 		if (this.currentActiveUrl === currentUrl) {
 			return;
 		}
-		
+
 		// Solo actualizar si no es la carga inicial
 		if (this.currentActiveUrl !== '') {
 			this.currentActiveUrl = currentUrl;
-			
+
 			// Limpiar todos los states activos primero
 			this.clearActiveStates(this.items);
-			
+
 			// Expandir el módulo correcto y marcar el item activo
 			this.expandModuleForActiveRoute(this.items, currentUrl);
-			
+
 			// Asegurar que el item activo esté marcado
 			this.setActiveMenuItem(this.items, currentUrl);
 		} else {
@@ -513,7 +549,7 @@ export class SidebarComponent implements OnInit, AfterViewInit {
 					return true;
 				}
 			}
-			
+
 			if (item.items) {
 				const foundInSubItems = this.setActiveMenuItem(item.items, currentUrl);
 				if (foundInSubItems) {
@@ -539,9 +575,9 @@ export class SidebarComponent implements OnInit, AfterViewInit {
 		// Normalizar URLs removiendo barras iniciales y finales
 		const normalizedCurrentUrl = currentUrl.replace(/^\/+|\/+$/g, '');
 		const normalizedRouteCommand = routeCommand.replace(/^\/+|\/+$/g, '');
-		
+
 		// Verificar coincidencia exacta o si la URL actual contiene la ruta del comando
-		return normalizedCurrentUrl === normalizedRouteCommand || 
+		return normalizedCurrentUrl === normalizedRouteCommand ||
 			   normalizedCurrentUrl.startsWith(normalizedRouteCommand + '/') ||
 			   normalizedCurrentUrl.includes(normalizedRouteCommand);
 	}
@@ -549,16 +585,16 @@ export class SidebarComponent implements OnInit, AfterViewInit {
 	private forceVisualUpdate(): void {
 		// Forzar una actualización visual del menú aplicando las clases nuevamente
 		const currentUrl = this.router.url;
-		
+
 		// Verificar y re-aplicar estilos activos
 		this.verifyActiveStyles(this.items, currentUrl);
-		
+
 		// Verificar el estado de expansión
 		this.verifyExpansionState(currentUrl);
-		
+
 		// Forzar detección de cambios de Angular
 		this.cdr.detectChanges();
-		
+
 		// Forzar re-render del componente PrimeNG recreando el array de items
 		setTimeout(() => {
 			this.items = [...this.items];
@@ -600,29 +636,29 @@ export class SidebarComponent implements OnInit, AfterViewInit {
 	private initializeAccordionState(): void {
 		// Obtener la URL actual
 		const currentUrl = this.router.url;
-		
+
 		// Contraer todos los módulos por defecto
 		this.items.forEach(item => {
 			item.expanded = false;
 		});
-		
+
 		// Limpiar todos los estados activos primero
 		this.clearActiveStates(this.items);
-		
+
 		// Buscar y expandir el módulo que contiene la ruta activa
 		// Este método YA marca el submenú activo internamente
 		const moduleExpanded = this.expandModuleForActiveRoute(this.items, currentUrl);
-		
+
 		// Si no se expandió ningún módulo, hacer un segundo intento más directo
 		if (!moduleExpanded) {
 			this.forceExpandCorrectModule(currentUrl);
 			// Marcar el elemento activo manualmente
 			this.setActiveMenuItem(this.items, currentUrl);
 		}
-		
+
 		// Forzar detección de cambios una sola vez al final
 		this.cdr.detectChanges();
-		
+
 		// Forzar detección de cambios DESPUÉS de toda la inicialización
 		setTimeout(() => {
 			this.cdr.detectChanges();
@@ -636,7 +672,7 @@ export class SidebarComponent implements OnInit, AfterViewInit {
 		this.items.forEach(module => {
 			if (module.items) {
 				let shouldExpand = false;
-				
+
 				module.items.forEach(submenu => {
 					if (submenu.command) {
 						const routeCommand = this.extractRouteFromCommand(submenu.command);
@@ -645,7 +681,7 @@ export class SidebarComponent implements OnInit, AfterViewInit {
 						}
 					}
 				});
-				
+
 				if (shouldExpand) {
 					module.expanded = true;
 					// Forzar detección de cambios
@@ -665,10 +701,10 @@ export class SidebarComponent implements OnInit, AfterViewInit {
 					item.expanded = true;
 					// También marcar el submenú activo dentro de este módulo
 					this.markActiveSubmenu(item.items, currentUrl);
-					
+
 					// Forzar detección de cambios y expansión visual
 					this.cdr.detectChanges();
-					
+
 					// Forzar expansión usando el PanelMenu directamente
 					setTimeout(() => {
 						if (this.panelMenuRef) {
@@ -680,7 +716,7 @@ export class SidebarComponent implements OnInit, AfterViewInit {
 							this.cdr.detectChanges();
 						}
 					}, 50);
-					
+
 					return true;
 				}
 			}
