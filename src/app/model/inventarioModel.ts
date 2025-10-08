@@ -1,7 +1,7 @@
 import {soloproveedorModel} from "./proveedoresModel";
 
 export class MateriaprimaModel {
-	id_materia_prima: number=0;
+	id_materia_prima:string='';
 	nombre:           string='';
 	costo_gramo:      number=0;
 	stock_materia:    number=0;
@@ -9,7 +9,7 @@ export class MateriaprimaModel {
 	umbral_min:       number=0;
 	abreviado:		  string='';
 	observaciones:	  string='';
-	id_unimed:		  number=0;
+	id_unimed:		  number=1;
 	id_requerimiento_stock:		  string='';
 	estadorequerimiento:string=''
 	fabricante:string='';
@@ -20,7 +20,7 @@ export class MateriaprimaModel {
 	lote:              string='';
 	peso_bruto:        number=0;
 	peso_neto:         number=0;
-	id_tipomateria:	number=1;
+	id_tipomateria:	number=2;
 	detalleproveedor:soloproveedorModel[]=[]
 
 }

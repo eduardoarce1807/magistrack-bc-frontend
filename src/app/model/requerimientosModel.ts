@@ -33,7 +33,7 @@ export class iterequerimientoModel {
 	cantidad_requerida: number=0;
 	impsubtotal:number=0;
 	impigv: number=0;
-	id_materia_prima: number=0;
+	id_materia_prima:string='';
 	desmateriaprima:string|null=null;
 	costo_gramo: number=0;
 	cantidad_cotizada_total: number=0;

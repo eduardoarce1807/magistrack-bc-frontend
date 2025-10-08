@@ -28,7 +28,7 @@ export class ProveedorService {
 	getProveedorxMateria(): Observable<Response_Generico<Response_Generico_Read<proveedorModel>>> {
 		return this.http.get<Response_Generico<Response_Generico_Read<proveedorModel>>>(`${this.baseUrl}/materia-prima-x-proveedor`);
 	}
-	getProveedoresconMateria(id_materia_prima:number): Observable<Response_Generico<soloproveedorModel[]>> {
+	getProveedoresconMateria(id_materia_prima:string): Observable<Response_Generico<soloproveedorModel[]>> {
 		return this.http.get<Response_Generico<soloproveedorModel[]>>(`${this.baseUrl}/proveedores-x-materia-prima/${id_materia_prima}`);
 	}
 	registrarProveedor(proveedor:soloproveedorModel,op:number): Observable<Response_Generico<any>> {

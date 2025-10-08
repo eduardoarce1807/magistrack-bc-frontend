@@ -49,10 +49,10 @@
 					<div class="flex justify-content-between align-items-center">
 						Id
 						<p-sortIcon field="id_materia_prima" />
-						<p-columnFilter type="numeric" field="id_materia_prima" display="menu" class="ml-auto" />
+						<p-columnFilter type="text" field="id_materia_prima" display="menu" class="ml-auto" />
 					</div>
 				</th>
-				<th pSortableColumn="nombre" style="min-width: 300px">
+				<th pSortableColumn="nombre" style="min-width: 200px">
 					<div class="flex justify-content-between align-items-center">
 						Nombre
 						<p-sortIcon field="nombre" />
@@ -61,14 +61,14 @@
 				</th>
 				<th pSortableColumn="stock_materia" style="min-width: 40px">
 					<div class="flex justify-content-between align-items-center">
-						Cant. Actual
+						Cant.Actual
 						<p-sortIcon field="stock_materia" />
 						<p-columnFilter type="numeric" field="stock_materia" display="menu" class="ml-auto" />
 					</div>
 				</th>
 				<th pSortableColumn="umbral_min" style="min-width: 40px">
 					<div class="flex justify-content-between align-items-center">
-						Umbral mín.
+						Umbralmín.
 						<p-sortIcon field="umbral_min" />
 						<p-columnFilter type="numeric" field="umbral_min" display="menu" class="ml-auto" />
 					</div>
@@ -82,12 +82,12 @@
 				</th>
 				<th pSortableColumn="costo_gramo" style="min-width: 40px">
 					<div class="flex justify-content-between align-items-center">
-						S/ unid
+						S/unid
 						<p-sortIcon field="costo_gramo" />
 						<p-columnFilter type="numeric" field="costo_gramo" display="menu" class="ml-auto" />
 					</div>
 				</th>
-				<th pSortableColumn="estado" style="min-width: 100px">
+				<th pSortableColumn="estado" style="min-width: 150px">
 					<div class="flex justify-content-between align-items-center">
 						Estado
 						<p-sortIcon field="estado" />
@@ -106,7 +106,9 @@
 				<td>
 					{{ customer.id_materia_prima }}
 				</td>
-				<td>
+				<td class="text-truncate" style="max-width: 200px;"
+					[pTooltip]="customer.nombre+' - ('+customer.abreviado+')'"
+					tooltipPosition="right" >
 					{{ customer.nombre }} - ({{ customer.abreviado }})
 				</td>
 				<td>
@@ -193,7 +195,7 @@
 				<label class="p-text-secondary fw-bold">ID Materia Prima</label>
 				<input
 					class="w-full"
-					type="number"
+					type="text"
 					pInputText
 					readonly
 					[(ngModel)]="fila_select.id_materia_prima" />
@@ -324,7 +326,7 @@
 					<div class="col-md-3">
 	 					<input
 							class="w-full"
-							type="number"
+							type="text"
 							pInputText
 							readonly
 							[(ngModel)]="fila_select.id_materia_prima" />
@@ -530,7 +532,7 @@
 					<div class="col-md-3">
 						<input
 							class="w-full"
-							type="number"
+							type="text"
 							pInputText
 							readonly
 							[(ngModel)]="fila_select.id_materia_prima" />
