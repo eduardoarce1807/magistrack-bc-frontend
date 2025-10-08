@@ -5,7 +5,7 @@ import { MateriaPrimaService } from '../../../services/materia-prima.service';
 
 interface MateriaPrimaCalculadora {
   id: number;
-  idMateriaPrima: number;
+  idMateriaPrima: string;
   nombre: string;
   costoGramo: number;
   cantidad: number;
@@ -56,8 +56,12 @@ export class CalculadoraCapsulaComponent implements OnInit {
   cargarMateriasPrimas(): void {
     this.materiaPrimaService.getMateriasPrimas().subscribe({
       next: (materiasPrimas: any[]) => {
-        this.materiasPrimasDisponibles = materiasPrimas;
-        console.log('Materias primas cargadas:', this.materiasPrimasDisponibles);
+        // Filtrar solo materias primas con costoGramo mayor a 0 y ordenar alfabéticamente
+        this.materiasPrimasDisponibles = materiasPrimas
+          .filter(mp => mp.costoGramo > 0)
+          .sort((a, b) => a.nombre.localeCompare(b.nombre));
+        console.log('Materias primas cargadas:', this.materiasPrimasDisponibles.length);
+        console.log('Materias primas filtradas (con costo > 0):', this.materiasPrimasDisponibles);
       },
       error: (error) => {
         console.error('Error al cargar materias primas:', error);
@@ -93,9 +97,9 @@ export class CalculadoraCapsulaComponent implements OnInit {
     console.log('Selected idMateriaPrima:', this.materiasPrimasCalculadora[index].idMateriaPrima);
     console.log('Available materias primas:', this.materiasPrimasDisponibles);
     
-    const idSeleccionado = Number(this.materiasPrimasCalculadora[index].idMateriaPrima);
+    const idSeleccionado = this.materiasPrimasCalculadora[index].idMateriaPrima;
     const materiaPrimaSeleccionada = this.materiasPrimasDisponibles.find(
-      mp => Number(mp.idMateriaPrima) === idSeleccionado
+      mp => mp.idMateriaPrima === idSeleccionado
     );
     
     console.log('Found materia prima:', materiaPrimaSeleccionada);

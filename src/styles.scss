@@ -76,7 +76,11 @@ $bootstrap-icons-font-dir: "bootstrap-icons/font/fonts";
   color: white !important;
   border-color: #C07178 !important;
 }
+.p-button-outlined{
 
+	color: white !important;
+	border-color: #C07178 !important;
+}
 /* Fix para overlays de PrimeNG en modales */
 .p-column-filter-overlay,
 .p-overlaypanel,

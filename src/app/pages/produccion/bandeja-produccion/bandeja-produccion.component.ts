@@ -744,7 +744,7 @@ export class BandejaProduccionComponent implements OnInit {
 		// Create kardex model object
 		const kardexData = new kardexModel();
 		kardexData.fecha = fechaActual;
-		kardexData.documento = `MP${ingrediente.materiaPrima.idMateriaPrima}`;
+		kardexData.documento = ingrediente.materiaPrima.idMateriaPrima; //`MP${ingrediente.materiaPrima.idMateriaPrima}`;
 		kardexData.cant_entrada = 0;
 		kardexData.cant_salida = cantidadSalida;
 		kardexData.impunit = ingrediente.materiaPrima.costoGramo;

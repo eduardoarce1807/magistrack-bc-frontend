@@ -148,8 +148,12 @@ export class CalculadoraMaestraComponent implements OnInit {
   getMateriasPrimas(): void {
     this.materiaPrimaService.getMateriasPrimas().subscribe(
       (data: any[]) => {
-        this.materiasPrimas = data;
+        // Filtrar solo materias primas con costoGramo mayor a 0 y ordenar alfabéticamente
+        this.materiasPrimas = data
+          .filter(mp => mp.costoGramo > 0)
+          .sort((a, b) => a.nombre.localeCompare(b.nombre));
         console.log('Materias primas cargadas:', this.materiasPrimas.length);
+        console.log('Materias primas filtradas (con costo > 0):', this.materiasPrimas);
       },
       (error) => {
         console.error('Error al obtener las materias primas', error);
@@ -211,7 +215,7 @@ export class CalculadoraMaestraComponent implements OnInit {
     this.updatePrecios();
   }
 
-  onChangeMateriaPrimaComponente(index: number, idMateriaPrima: number): void {
+  onChangeMateriaPrimaComponente(index: number, idMateriaPrima: string): void {
     const factor = Math.pow(10, 4);
     const factorCostoPorcentaje = Math.pow(10, 5);
     let indexx = this.materiasPrimas.findIndex(materia => materia.idMateriaPrima == idMateriaPrima);
