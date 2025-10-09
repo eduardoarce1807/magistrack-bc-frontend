@@ -165,6 +165,8 @@ export class InventarioMatprimaComponent {
 							// this.router.navigate(['/installation']);
 							this.editarmateriaprima(this.fila_select)
 							this.cargarproveedoresasignados(this.fila_select.id_materia_prima)
+							this.subirBaja=new kardexModel()
+							this.fechavencimiento=new Date()
 						}
 					},
 					{
@@ -173,6 +175,7 @@ export class InventarioMatprimaComponent {
 						command: () => {
 							// this.router.navigate(['/installation']);
 							this.subirBaja=new kardexModel()
+							this.fechavencimiento=new Date()
 							this.subirBaja.cant_entrada=0
 							this.subirBaja.cant_salida=0
 							this.subirBaja.observaciones=''
@@ -189,6 +192,7 @@ export class InventarioMatprimaComponent {
 							// this.router.navigate(['/installation']);
 
 							this.subirBaja=new kardexModel()
+							this.fechavencimiento=new Date()
 							this.subirBaja.cant_entrada=0
 							this.subirBaja.cant_salida=0
 							this.subirBaja.observaciones=''
@@ -469,6 +473,11 @@ export class InventarioMatprimaComponent {
 		this.subirBaja.impunit=this.fila_select.costo_gramo
 		this.subirBaja.id_materia_prima=this.fila_select.id_materia_prima
 		this.subirBaja.path_kardex=''
+
+		if((this.subirBaja.archivobase64=='' || !this.subirBaja.archivobase64) && this.verdardebaja){
+			this.messageService.add({ severity: 'warn', summary: 'Aviso de usuario', detail: 'Debe subir una imagen para validar' });
+			return
+		}
 		// console.log(this.subirBaja)
 		this.spinner=true
 		this.verdardebaja?this.check_imagen=1:this.check_imagen=0
