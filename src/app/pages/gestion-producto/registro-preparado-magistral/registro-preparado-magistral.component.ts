@@ -40,7 +40,7 @@ export interface PreparadoMagistral {
 }
 
 export interface MateriaPrimaUsada {
-  idMateriaPrima: number;
+  idMateriaPrima: string;
   cantidad: number;
 }
 
@@ -128,7 +128,7 @@ export class RegistroPreparadoMagistralComponent implements OnInit {
       idTipoPresentacion: 0,
       phDefinidoMin: null,
       phDefinidoMax: null,
-      materiasPrimas: [{ idMateriaPrima: 0, cantidad: 0 }], // Inicializar con una entrada como en ingredientes
+      materiasPrimas: [{ idMateriaPrima: '', cantidad: 0 }], // Inicializar con una entrada como en ingredientes
       procedimientos: [{ orden: 1, descripcion: '' }],
       elementosSeguridadPersonal: '',
       utillaje: '',
@@ -197,7 +197,7 @@ export class RegistroPreparadoMagistralComponent implements OnInit {
       // Precargar materias primas desde los componentes de la calculadora
       if (this.datosCalculadora.componentes && this.datosCalculadora.componentes.length > 0) {
         this.preparado.materiasPrimas = this.datosCalculadora.componentes.map((componente: any) => ({
-          idMateriaPrima: Number(componente.idMateriaPrima), // Asegurar que sea número
+          idMateriaPrima: String(componente.idMateriaPrima), // Asegurar que sea string
           cantidad: Math.round(componente.porcentaje * 100 * 100) / 100 // Convertir de decimal a porcentaje
         }));
         
@@ -294,7 +294,7 @@ export class RegistroPreparadoMagistralComponent implements OnInit {
 
   mapearMateriasPrimas(materiasPrimasResponse: any[]): MateriaPrimaUsada[] {
     if (!materiasPrimasResponse || materiasPrimasResponse.length === 0) {
-      return [{ idMateriaPrima: 0, cantidad: 0 }];
+      return [{ idMateriaPrima: '', cantidad: 0 }];
     }
 
     return materiasPrimasResponse.map(mp => ({
@@ -400,7 +400,7 @@ export class RegistroPreparadoMagistralComponent implements OnInit {
     }
 
     this.preparado.materiasPrimas.push({
-      idMateriaPrima: 0,
+      idMateriaPrima: '',
       cantidad: cantidadRestante
     });
   }
@@ -731,7 +731,7 @@ export class RegistroPreparadoMagistralComponent implements OnInit {
     this.initializeModels();
   }
 
-  obtenerNombreMateriaPrima(idMateriaPrima: number): string {
+  obtenerNombreMateriaPrima(idMateriaPrima: string): string {
     const materia = this.materiasPrimas.find(m => m.idMateriaPrima === idMateriaPrima);
     return materia ? materia.nombre : 'Materia prima no encontrada';
   }
