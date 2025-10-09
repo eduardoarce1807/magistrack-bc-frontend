@@ -17,7 +17,7 @@
 		<ng-template pTemplate="caption">
 			<div class="row">
 				<div class="col-md-4 col-sm-6">
-					<h4 class="text-success fw-bold d-flex align-items-center justify-content-center fs-5 "><img src="assets/img/crema.gif" width="50">Kardex por Materia Prima: {{id_materia_prima!=0?'MP'+id_materia_prima:'TODOS'}}</h4>
+					<h4 class="text-success fw-bold d-flex align-items-center justify-content-center fs-5 "><img src="assets/img/crema.gif" width="50">Kardex por Materia Prima: {{id_materia_prima!=''?id_materia_prima:'TODOS'}}</h4>
 				</div>
 				<div class="col-md-4 col-sm-6 d-flex justify-content-around">
 					<p-dropdown

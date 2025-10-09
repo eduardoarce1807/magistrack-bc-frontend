@@ -147,14 +147,14 @@ $bootstrap-icons-font-dir: "bootstrap-icons/font/fonts";
 }
 
 /* Fix para overlays de PrimeNG en modales */
-.p-column-filter-overlay,
-.p-overlaypanel,
-.p-dropdown-panel,
-.p-multiselect-panel,
-.p-calendar-panel,
-.p-component-overlay {
-  z-index: 99999 !important;
-}
+//.p-column-filter-overlay,
+//.p-overlaypanel,
+//.p-dropdown-panel,
+//.p-multiselect-panel,
+//.p-calendar-panel,
+//.p-component-overlay {
+//  z-index: 99999 !important;
+//}
 
 /* Específico para filtros dentro de modales de Bootstrap */
 .modal .p-column-filter-overlay,

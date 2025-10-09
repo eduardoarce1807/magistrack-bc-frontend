@@ -24,7 +24,7 @@ export class KardexService {
 	getMovimiento(id_tipomovimiento:String): Observable<Response_Generico<MovimientoModel[]>> {
 		return this.http.get<Response_Generico<MovimientoModel[]>>(`${this.baseUrl}/listado-movimiento/${id_tipomovimiento}`);
 	}
-	getKardexMateriaPrima(id_materia_prima:Number): Observable<Response_Generico<kardexModel[]>> {
+	getKardexMateriaPrima(id_materia_prima:String): Observable<Response_Generico<kardexModel[]>> {
 		return this.http.get<Response_Generico<kardexModel[]>>(`${this.baseUrl}/obtener-kardex-x-materiaprima/${id_materia_prima}`);
 	}
 	getKardextipoMateriaProveedor(id_tipomateria:Number,idproveedor:String): Observable<Response_Generico<kardexModel[]>> {

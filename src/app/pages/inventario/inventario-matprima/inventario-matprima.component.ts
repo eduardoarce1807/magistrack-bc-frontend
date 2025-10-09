@@ -172,6 +172,7 @@ export class InventarioMatprimaComponent {
 						icon: 'pi pi-sort-numeric-down',
 						command: () => {
 							// this.router.navigate(['/installation']);
+							this.subirBaja=new kardexModel()
 							this.subirBaja.cant_entrada=0
 							this.subirBaja.cant_salida=0
 							this.subirBaja.observaciones=''
@@ -186,6 +187,8 @@ export class InventarioMatprimaComponent {
 						icon: 'pi pi-plus-circle',
 						command: () => {
 							// this.router.navigate(['/installation']);
+
+							this.subirBaja=new kardexModel()
 							this.subirBaja.cant_entrada=0
 							this.subirBaja.cant_salida=0
 							this.subirBaja.observaciones=''
