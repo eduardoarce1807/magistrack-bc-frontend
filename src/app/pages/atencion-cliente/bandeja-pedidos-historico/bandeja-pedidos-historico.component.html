@@ -133,7 +133,8 @@
         currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} registros"
         responsiveLayout="scroll"
         styleClass="p-datatable-striped"
-        [tableStyle]="{'min-width': '1400px', 'width': '100%'}">
+        [tableStyle]="{'min-width': '1400px'}"
+        [scrollable]="true" scrollHeight="100%" scrollWidth="100%">
         
         <!-- Header con búsqueda global -->
         <ng-template pTemplate="caption">
