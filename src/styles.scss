@@ -80,6 +80,9 @@ $bootstrap-icons-font-dir: "bootstrap-icons/font/fonts";
 	color: #C07178  !important;
 
 }
+.p-dialog-header-icon{
+	color: #b2c296 !important;
+}
 .p-button-success:hover{
 	color: white !important;
 	border-color: #7a9151 !important;
@@ -151,14 +154,14 @@ $bootstrap-icons-font-dir: "bootstrap-icons/font/fonts";
 	border-color: #C07178 !important;
 }
 /* Fix para overlays de PrimeNG en modales */
-.p-column-filter-overlay,
-.p-overlaypanel,
-.p-dropdown-panel,
-.p-multiselect-panel,
-.p-calendar-panel,
-.p-component-overlay {
-  z-index: 99999 !important;
-}
+//.p-column-filter-overlay,
+//.p-overlaypanel,
+//.p-dropdown-panel,
+//.p-multiselect-panel,
+//.p-calendar-panel,
+//.p-component-overlay {
+//  z-index: 99999 !important;
+//}
 
 /* Específico para filtros dentro de modales de Bootstrap */
 .modal .p-column-filter-overlay,
@@ -425,24 +428,24 @@ router-outlet + * {
   .page-link {
     color: #D4858C;
     border-color: #D4858C;
-    
+
     &:hover {
       color: #fff;
       background-color: #D4858C;
       border-color: #D4858C;
     }
-    
+
     &:focus {
       box-shadow: 0 0 0 0.2rem rgba(212, 133, 140, 0.25);
     }
   }
-  
+
   .page-item.active .page-link {
     background-color: #D4858C;
     border-color: #D4858C;
     color: #fff;
   }
-  
+
   .page-item.disabled .page-link {
     color: #C07178;
     background-color: #fff;

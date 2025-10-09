@@ -98,7 +98,7 @@
 			[tableStyle]="{'min-width': '30rem'}"
 			[globalFilterFields]="['id_materia_prima', 'nombre','costo_gramo']"
 			rowGroupMode="subheader"
-			groupRowsBy="id_fabricante"
+			groupRowsBy="tipomateria"
 		>
 			<ng-template pTemplate="caption">
 				<div class="flex justify-between items-center">
@@ -146,8 +146,8 @@
 					<td colspan="3">
 						<div class="d-flex  align-items-center">
 							<img src="assets/img/ingenieria.png" width="40">
-							<span class="font-bold ml-2 text-danger">{{customer.fabricante}}</span>
-							<span class="mx-2">Total : {{calculatemateriasTotal(customer.fabricante)}}</span>
+							<span class="font-bold ml-2 text-danger">{{customer.tipomateria}}</span>
+							<span class="mx-2">Total : {{calculatemateriasTotal(customer.tipomateria)}}</span>
 						</div>
 					</td>
 				</tr>
@@ -155,7 +155,7 @@
 			<ng-template pTemplate="groupfooter" let-customer>
 				<tr>
 					<td colspan="3" class="text-right font-bold pr-6">
-						Total Materias Primas: {{calculatemateriasTotal(customer.fabricante)}}
+						Total Materias Primas: {{calculatemateriasTotal(customer.tipomateria)}}
 					</td>
 				</tr>
 			</ng-template>
