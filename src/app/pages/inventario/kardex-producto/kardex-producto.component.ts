@@ -52,7 +52,7 @@ registerLocaleData(localeEsPe, 'es-PE');
 })
 export class KardexProductoComponent {
 
-	id_materia_prima:number=0
+	id_materia_prima:string=''
 
 	activityValuesEntrada: number[] = [0, 9999];
 	activityValuesSalida: number[] = [0, 9999];
@@ -79,7 +79,7 @@ export class KardexProductoComponent {
 		this.cantidadentrada=0
 		this.cantidadsalida=0
 		this.stock=0
-		this.id_materia_prima= Number(this.route.snapshot.paramMap.get('id_materia_prima'));
+		this.id_materia_prima= this.route.snapshot.paramMap.get('id_materia_prima')!;
 		this.kardexService.getKardexMateriaPrima(this.id_materia_prima).subscribe({
 			next:(data)=>{
 				this.spinner=false

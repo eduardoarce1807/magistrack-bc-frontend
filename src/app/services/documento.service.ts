@@ -42,4 +42,13 @@ export class DocumentoService {
       params: { idPedido, ruc, razonSocial }
     });
   }
+
+  // Métodos para Guía de Remisión
+  crearGuiaRemision(data: any): Observable<any> {
+    return this.http.post(`${this.baseUrl}/guia-remision/crear`, data);
+  }
+
+  generarPDFGuiaRemision(idPedido: string): Observable<any> {
+    return this.http.get(`${this.baseUrl}/guia-remision/${idPedido}`);
+  }
 }

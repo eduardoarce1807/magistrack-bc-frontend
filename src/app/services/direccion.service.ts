@@ -39,4 +39,8 @@ export class DireccionService {
   getDireccionesByTiendaId(idTienda: number): Observable<any[]> {
     return this.http.get<any[]>(`${this.baseUrl}/tienda/${idTienda}`);
   }
+
+  getDistritoById(idDistrito: number): Observable<any> {
+    return this.http.get<any>(`${this.baseUrl}/distrito/${idDistrito}`);
+  }
 }

@@ -196,18 +196,28 @@ export class RegistroPreparadoMagistralComponent implements OnInit {
       
       // Precargar materias primas desde los componentes de la calculadora
       if (this.datosCalculadora.componentes && this.datosCalculadora.componentes.length > 0) {
-        this.preparado.materiasPrimas = this.datosCalculadora.componentes.map((componente: any) => ({
-          idMateriaPrima: String(componente.idMateriaPrima), // Asegurar que sea string
-          cantidad: Math.round(componente.porcentaje * 100 * 100) / 100 // Convertir de decimal a porcentaje
-        }));
+        this.preparado.materiasPrimas = this.datosCalculadora.componentes.map((componente: any) => {
+          // Convertir ambos valores a string para comparación consistente
+          const idMateriaPrimaString = String(componente.idMateriaPrima);
+          
+          // Verificar que la materia prima existe en la lista cargada
+          const materiaPrimaExiste = this.materiasPrimas.find(m => String(m.idMateriaPrima) === idMateriaPrimaString);
+          
+          console.log(`Mapeando materia prima: ID original=${componente.idMateriaPrima}, ID string=${idMateriaPrimaString}, existe=${!!materiaPrimaExiste}, nombre=${materiaPrimaExiste?.nombre}`);
+          
+          return {
+            idMateriaPrima: idMateriaPrimaString,
+            cantidad: Math.round(componente.porcentaje * 100 * 100) / 100 // Convertir de decimal a porcentaje
+          };
+        });
         
         console.log('Materias primas precargadas:', this.preparado.materiasPrimas);
-        console.log('Materias primas disponibles:', this.materiasPrimas);
+        console.log('Materias primas disponibles (IDs):', this.materiasPrimas.map(m => ({ id: m.idMateriaPrima, nombre: m.nombre, tipo: typeof m.idMateriaPrima })));
         
-        // Verificar que los IDs coincidan
+        // Verificar coincidencias finales
         this.preparado.materiasPrimas.forEach((mp, index) => {
-          const materiaPrimaExiste = this.materiasPrimas.find(m => m.idMateriaPrima === mp.idMateriaPrima);
-          console.log(`Materia prima ${index}: ID=${mp.idMateriaPrima}, existe=${!!materiaPrimaExiste}, nombre=${materiaPrimaExiste?.nombre}`);
+          const materiaPrimaExiste = this.materiasPrimas.find(m => String(m.idMateriaPrima) === String(mp.idMateriaPrima));
+          console.log(`Verificación final ${index}: ID=${mp.idMateriaPrima}, tipo=${typeof mp.idMateriaPrima}, existe=${!!materiaPrimaExiste}, nombre=${materiaPrimaExiste?.nombre}`);
         });
       } else {
         // Si no hay componentes, inicializar con array vacío
@@ -322,7 +332,8 @@ export class RegistroPreparadoMagistralComponent implements OnInit {
 
   // Función para comparar valores en el select
   compareFn(a: any, b: any): boolean {
-    return Number(a) === Number(b);
+    // Manejar comparación tanto para números como strings
+    return String(a) === String(b);
   }
 
   cargarDatos(): void {
@@ -732,7 +743,7 @@ export class RegistroPreparadoMagistralComponent implements OnInit {
   }
 
   obtenerNombreMateriaPrima(idMateriaPrima: string): string {
-    const materia = this.materiasPrimas.find(m => m.idMateriaPrima === idMateriaPrima);
+    const materia = this.materiasPrimas.find(m => String(m.idMateriaPrima) === String(idMateriaPrima));
     return materia ? materia.nombre : 'Materia prima no encontrada';
   }
 

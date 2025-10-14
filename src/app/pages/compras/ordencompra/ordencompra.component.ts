@@ -69,11 +69,12 @@ registerLocaleData(localeEsPe, 'es-PE');
 		FileUploadModule,
 		InputTextareaModule,
 		ProgressBarModule,
-		FormsModule, CommonModule, CalendarModule, InputSwitchModule, TagModule, PanelModule, UppercaseDirective, RadioButtonModule, RouterLink
+		FormsModule, CommonModule, CalendarModule, InputSwitchModule, TagModule, PanelModule,
+		UppercaseDirective, RadioButtonModule, RouterLink,DatePipe
 	],
   templateUrl: './ordencompra.component.html',
   styleUrl: './ordencompra.component.scss',
-	providers: [MessageService,DatePipe,FuncionesService ],
+	providers: [MessageService,DatePipe,FuncionesService],
 	encapsulation: ViewEncapsulation.None,
 })
 export class OrdencompraComponent {
@@ -477,8 +478,8 @@ export class OrdencompraComponent {
 		this.verconformidad=true;
 		this.fila_select=registro;
 		this.checked_parametro1=this.fila_select.parametro_conf1 == 1
-		this.checked_parametro2=this.fila_select.parametro_conf2 == 2
-		this.checked_parametro3=this.fila_select.parametro_conf3 == 3
+		this.checked_parametro2=this.fila_select.parametro_conf2 == 1
+		this.checked_parametro3=this.fila_select.parametro_conf3 == 1
 		this.fila_select.imppagado=this.fila_select.imptotalfact
 		this.cambiocantidad()
 	}
