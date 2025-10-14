@@ -103,12 +103,24 @@
 							<i class="bi bi-file-earmark-check"></i>
 						</button>
 						<button
-							class="btn btn-secondary"
+							class="btn btn-secondary me-2"
 							(click)="openModalNota(item, nota)"
 							ngbTooltip="Agregar observaciones"
 							placement="top"
 						>
 							<i class="bi bi-stickies"></i>
+						</button>
+						<button
+							class="btn btn-danger"
+							(click)="openModalGuiaRemision(guiaRemision, item)"
+							[disabled]="loadingGuiaRemision[item.idPedido]"
+							ngbTooltip="Generar guía de remisión"
+							placement="top"
+						>
+							<i class="bi bi-truck"></i>
+							@if (loadingGuiaRemision[item.idPedido]) {
+								<span class="spinner-border spinner-border-sm ms-2" role="status" aria-hidden="true"></span>
+							}
 						</button>
 					</td>
 				</tr>
@@ -367,6 +379,507 @@
 			(click)="saveObservacion()"
 		>
 			Guardar
+		</button>
+	</div>
+</ng-template>
+
+<ng-template #guiaRemision let-modal>
+	<div class="modal-header">
+		<h4 class="modal-title">Generar Guía de Remisión</h4>
+		<button
+			type="button"
+			class="btn-close"
+			aria-label="Close"
+			(click)="modal.dismiss('Cross click')"
+		></button>
+	</div>
+	<div class="modal-body">
+		<div class="container-fluid">
+			<p><strong>Pedido:</strong> {{ guiaRemisionData.idPedido }}</p>
+			
+			<form #guiaRemisionForm="ngForm">
+				<!-- Datos del Cliente -->
+				<div class="mb-4">
+					<h6 class="text-primary mb-3">
+						<i class="bi bi-person me-2"></i>Datos del Cliente
+					</h6>
+					<div class="row">
+						<div class="col-md-6 mb-3">
+							<label class="form-label">Tipo Documento Cliente *</label>
+							<select 
+								class="form-select" 
+								[(ngModel)]="guiaRemisionData.tipoDocumentoCliente" 
+								name="tipoDocumentoCliente"
+								required
+							>
+								<option value="1">DNI</option>
+								<option value="6">RUC</option>
+							</select>
+						</div>
+						<div class="col-md-6 mb-3">
+							<label class="form-label">Número Documento *</label>
+							<input 
+								type="text" 
+								class="form-control" 
+								[(ngModel)]="guiaRemisionData.numeroDocumentoCliente"
+								name="numeroDocumentoCliente"
+								required
+							/>
+						</div>
+					</div>
+					<div class="row" *ngIf="guiaRemisionData.tipoDocumentoCliente === '6'">
+						<div class="col-12 mb-3">
+							<label class="form-label">Razón Social Cliente *</label>
+							<input 
+								type="text" 
+								class="form-control" 
+								[(ngModel)]="guiaRemisionData.razonSocialCliente"
+								name="razonSocialCliente"
+								[required]="guiaRemisionData.tipoDocumentoCliente === '6'"
+							/>
+						</div>
+					</div>
+					<div class="row">
+						<div class="col-12 mb-3">
+							<label class="form-label">Dirección Cliente *</label>
+							<input 
+								type="text" 
+								class="form-control" 
+								[(ngModel)]="guiaRemisionData.direccionCliente"
+								name="direccionCliente"
+								required
+							/>
+						</div>
+					</div>
+				</div>
+
+				<!-- Datos del Envío -->
+				<div class="mb-4">
+					<h6 class="text-success mb-3">
+						<i class="bi bi-box me-2"></i>Datos del Envío
+					</h6>
+					<div class="row">
+						<div class="col-md-4 mb-3">
+							<label class="form-label">Peso Bruto * ({{ guiaRemisionData.unidadMedidaPeso }})</label>
+							<input 
+								type="number" 
+								step="0.01" 
+								class="form-control" 
+								[(ngModel)]="guiaRemisionData.pesoBruto"
+								name="pesoBruto"
+								required
+							/>
+						</div>
+						<div class="col-md-4 mb-3">
+							<label class="form-label">Unidad Medida Peso *</label>
+							<select 
+								class="form-select" 
+								[(ngModel)]="guiaRemisionData.unidadMedidaPeso"
+								name="unidadMedidaPeso"
+								required
+							>
+								<option value="KGM">Kilogramos (KGM)</option>
+								<option value="GRM">Gramos (GRM)</option>
+							</select>
+						</div>
+						<div class="col-md-4 mb-3">
+							<label class="form-label">Número de Bultos *</label>
+							<input 
+								type="number" 
+								class="form-control" 
+								[(ngModel)]="guiaRemisionData.numeroBultos"
+								name="numeroBultos"
+								required
+								min="1"
+							/>
+						</div>
+					</div>
+					<div class="row">
+						<div class="col-md-6 mb-3">
+							<label class="form-label">Fecha de Traslado *</label>
+							<input 
+								type="date" 
+								class="form-control" 
+								[(ngModel)]="guiaRemisionData.fechaTraslado"
+								name="fechaTraslado"
+								required
+							/>
+						</div>
+						<div class="col-md-6 mb-3">
+							<label class="form-label">Motivo de Traslado *</label>
+							<select 
+								class="form-select" 
+								[(ngModel)]="guiaRemisionData.motivoTraslado"
+								name="motivoTraslado"
+								required
+							>
+								<option value="VENTA">Venta</option>
+								<option value="COMPRA">Compra</option>
+								<option value="TRASLADO_ENTRE_ESTABLECIMIENTOS">Traslado entre Establecimientos</option>
+								<option value="DEVOLUCION">Devolución</option>
+								<option value="OTROS">Otros</option>
+							</select>
+						</div>
+					</div>
+				</div>
+
+				<!-- Direcciones -->
+				<div class="mb-4">
+					<h6 class="text-info mb-3">
+						<i class="bi bi-geo-alt me-2"></i>Direcciones
+					</h6>
+
+					<!-- Punto de Partida -->
+					<div class="card mb-3">
+						<div class="card-header bg-light">
+							<h6 class="mb-0">Punto de Partida *</h6>
+						</div>
+						<div class="card-body">
+							<div class="row">
+								<div class="col-md-4 mb-3">
+									<label class="form-label">Departamento *</label>
+									<select 
+										class="form-select" 
+										[(ngModel)]="guiaRemisionData.partidaDepartamento"
+										name="partidaDepartamento"
+										required
+										(change)="onDepartamentoPartidaChange($event.target.value)"
+										[disabled]="loadingDirecciones"
+									>
+										<option value="">Seleccionar departamento</option>
+										<option 
+											*ngFor="let dept of departamentos" 
+											[value]="dept.idDepartamento">
+											{{ dept.nombre }}
+										</option>
+									</select>
+								</div>
+								<div class="col-md-4 mb-3">
+									<label class="form-label">Provincia *</label>
+									<select 
+										class="form-select" 
+										[(ngModel)]="guiaRemisionData.partidaProvincia"
+										name="partidaProvincia"
+										required
+										(change)="onProvinciaPartidaChange($event.target.value)"
+										[disabled]="provinciasPartida.length === 0"
+									>
+										<option value="">Seleccionar provincia</option>
+										<option 
+											*ngFor="let prov of provinciasPartida" 
+											[value]="prov.idProvincia">
+											{{ prov.nombre }}
+										</option>
+									</select>
+								</div>
+								<div class="col-md-4 mb-3">
+									<label class="form-label">Distrito *</label>
+									<select 
+										class="form-select" 
+										[(ngModel)]="guiaRemisionData.partidaDistrito"
+										name="partidaDistrito"
+										required
+										(change)="onDistritoPartidaChange($event.target.value)"
+										[disabled]="distritosPartida.length === 0"
+									>
+										<option value="">Seleccionar distrito</option>
+										<option 
+											*ngFor="let dist of distritosPartida" 
+											[value]="dist.idDistrito">
+											{{ dist.nombre }}
+										</option>
+									</select>
+								</div>
+							</div>
+							<div class="row">
+								<div class="col-md-8 mb-3">
+									<label class="form-label">Dirección Completa *</label>
+									<input 
+										type="text" 
+										class="form-control" 
+										[(ngModel)]="guiaRemisionData.puntoPartidaDireccion"
+										name="puntoPartidaDireccion"
+										required
+										placeholder="Ingrese la dirección completa"
+									/>
+								</div>
+								<div class="col-md-4 mb-3">
+									<label class="form-label">Ubigeo</label>
+									<input 
+										type="text" 
+										class="form-control" 
+										[(ngModel)]="guiaRemisionData.ubigeoPartida"
+										name="ubigeoPartida"
+										readonly
+										placeholder="Se genera automáticamente"
+									/>
+								</div>
+							</div>
+						</div>
+					</div>
+
+					<!-- Punto de Llegada -->
+					<div class="card mb-3">
+						<div class="card-header bg-light">
+							<h6 class="mb-0">Punto de Llegada *</h6>
+						</div>
+						<div class="card-body">
+							<div class="row">
+								<div class="col-md-4 mb-3">
+									<label class="form-label">Departamento *</label>
+									<select 
+										class="form-select" 
+										[(ngModel)]="guiaRemisionData.llegadaDepartamento"
+										name="llegadaDepartamento"
+										required
+										(change)="onDepartamentoLlegadaChange($event.target.value)"
+									>
+										<option value="">Seleccionar departamento</option>
+										<option 
+											*ngFor="let dept of departamentos" 
+											[value]="dept.idDepartamento">
+											{{ dept.nombre }}
+										</option>
+									</select>
+								</div>
+								<div class="col-md-4 mb-3">
+									<label class="form-label">Provincia *</label>
+									<select 
+										class="form-select" 
+										[(ngModel)]="guiaRemisionData.llegadaProvincia"
+										name="llegadaProvincia"
+										required
+										(change)="onProvinciaLlegadaChange($event.target.value)"
+										[disabled]="provinciasllegada.length === 0"
+									>
+										<option value="">Seleccionar provincia</option>
+										<option 
+											*ngFor="let prov of provinciasllegada" 
+											[value]="prov.idProvincia">
+											{{ prov.nombre }}
+										</option>
+									</select>
+								</div>
+								<div class="col-md-4 mb-3">
+									<label class="form-label">Distrito *</label>
+									<select 
+										class="form-select" 
+										[(ngModel)]="guiaRemisionData.llegadaDistrito"
+										name="llegadaDistrito"
+										required
+										(change)="onDistritoLlegadaChange($event.target.value)"
+										[disabled]="distritosLlegada.length === 0"
+									>
+										<option value="">Seleccionar distrito</option>
+										<option 
+											*ngFor="let dist of distritosLlegada" 
+											[value]="dist.idDistrito">
+											{{ dist.nombre }}
+										</option>
+									</select>
+								</div>
+							</div>
+							<div class="row">
+								<div class="col-md-8 mb-3">
+									<label class="form-label">Dirección Completa *</label>
+									<input 
+										type="text" 
+										class="form-control" 
+										[(ngModel)]="guiaRemisionData.puntoLlegadaDireccion"
+										name="puntoLlegadaDireccion"
+										required
+										placeholder="Ingrese la dirección completa"
+									/>
+								</div>
+								<div class="col-md-4 mb-3">
+									<label class="form-label">Ubigeo</label>
+									<input 
+										type="text" 
+										class="form-control" 
+										[(ngModel)]="guiaRemisionData.ubigeoLlegada"
+										name="ubigeoLlegada"
+										readonly
+										placeholder="Se genera automáticamente"
+									/>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<!-- Tipo de Transporte -->
+				<div class="mb-4">
+					<h6 class="text-warning mb-3">
+						<i class="bi bi-truck me-2"></i>Transporte
+					</h6>
+					<div class="row">
+						<div class="col-12 mb-3">
+							<label class="form-label">Tipo de Transporte *</label>
+							<select 
+								class="form-select" 
+								[(ngModel)]="guiaRemisionData.tipoTransporte"
+								name="tipoTransporte"
+								required
+								(change)="onTipoTransporteChange()"
+							>
+								<option value="">Seleccione tipo de transporte</option>
+								<option value="TRANSPORTE_PRIVADO">Transporte Privado</option>
+								<option value="TRANSPORTE_PUBLICO">Transporte Público</option>
+							</select>
+						</div>
+					</div>
+					
+					<div class="row">
+						<div class="col-12 mb-3">
+							<div class="form-check">
+								<input 
+									class="form-check-input" 
+									type="checkbox" 
+									[(ngModel)]="guiaRemisionData.trasladoVehiculoMenores"
+									name="trasladoVehiculoMenores"
+									id="trasladoVehiculoMenores"
+								>
+								<label class="form-check-label" for="trasladoVehiculoMenores">
+									Traslado en vehículo menor a 2 toneladas
+								</label>
+							</div>
+						</div>
+					</div>
+
+					<!-- Datos para Transporte Privado -->
+					<div *ngIf="guiaRemisionData.tipoTransporte === 'TRANSPORTE_PRIVADO'">
+						<h6 class="text-secondary mb-3">Datos del Conductor</h6>
+						<div class="row">
+							<div class="col-md-6 mb-3">
+								<label class="form-label">Tipo Documento Conductor *</label>
+								<select 
+									class="form-select" 
+									[(ngModel)]="guiaRemisionData.conductorTipoDocumento"
+									name="conductorTipoDocumento"
+									[required]="guiaRemisionData.tipoTransporte === 'TRANSPORTE_PRIVADO'"
+								>
+									<option value="1">DNI</option>
+									<option value="6">RUC</option>
+								</select>
+							</div>
+							<div class="col-md-6 mb-3">
+								<label class="form-label">Número Documento Conductor *</label>
+								<input 
+									type="text" 
+									class="form-control" 
+									[(ngModel)]="guiaRemisionData.conductorNumeroDocumento"
+									name="conductorNumeroDocumento"
+									[required]="guiaRemisionData.tipoTransporte === 'TRANSPORTE_PRIVADO'"
+								/>
+							</div>
+						</div>
+						<div class="row">
+							<div class="col-md-6 mb-3">
+								<label class="form-label">Nombres Conductor *</label>
+								<input 
+									type="text" 
+									class="form-control" 
+									[(ngModel)]="guiaRemisionData.conductorNombres"
+									name="conductorNombres"
+									[required]="guiaRemisionData.tipoTransporte === 'TRANSPORTE_PRIVADO'"
+								/>
+							</div>
+							<div class="col-md-6 mb-3">
+								<label class="form-label">Apellidos Conductor *</label>
+								<input 
+									type="text" 
+									class="form-control" 
+									[(ngModel)]="guiaRemisionData.conductorApellidos"
+									name="conductorApellidos"
+									[required]="guiaRemisionData.tipoTransporte === 'TRANSPORTE_PRIVADO'"
+								/>
+							</div>
+						</div>
+						<div class="row">
+							<div class="col-md-6 mb-3">
+								<label class="form-label">Número de Licencia *</label>
+								<input 
+									type="text" 
+									class="form-control" 
+									[(ngModel)]="guiaRemisionData.conductorNumeroLicencia"
+									name="conductorNumeroLicencia"
+									[required]="guiaRemisionData.tipoTransporte === 'TRANSPORTE_PRIVADO'"
+								/>
+							</div>
+							<div class="col-md-6 mb-3">
+								<label class="form-label">Placa del Vehículo *</label>
+								<input 
+									type="text" 
+									class="form-control" 
+									[(ngModel)]="guiaRemisionData.vehiculoPlaca"
+									name="vehiculoPlaca"
+									[required]="guiaRemisionData.tipoTransporte === 'TRANSPORTE_PRIVADO'"
+									placeholder="ABC-123"
+								/>
+							</div>
+						</div>
+					</div>
+
+					<!-- Datos para Transporte Público -->
+					<div *ngIf="guiaRemisionData.tipoTransporte === 'TRANSPORTE_PUBLICO'">
+						<h6 class="text-secondary mb-3">Datos del Transportista</h6>
+						<div class="row">
+							<div class="col-md-6 mb-3">
+								<label class="form-label">Tipo Documento Transportista *</label>
+								<select 
+									class="form-select" 
+									[(ngModel)]="guiaRemisionData.transportistaTipoDocumento"
+									name="transportistaTipoDocumento"
+									[required]="guiaRemisionData.tipoTransporte === 'TRANSPORTE_PUBLICO'"
+								>
+									<option value="1">DNI</option>
+									<option value="6">RUC</option>
+								</select>
+							</div>
+							<div class="col-md-6 mb-3">
+								<label class="form-label">Número Documento Transportista *</label>
+								<input 
+									type="text" 
+									class="form-control" 
+									[(ngModel)]="guiaRemisionData.transportistaNumeroDocumento"
+									name="transportistaNumeroDocumento"
+									[required]="guiaRemisionData.tipoTransporte === 'TRANSPORTE_PUBLICO'"
+								/>
+							</div>
+						</div>
+						<div class="row">
+							<div class="col-12 mb-3">
+								<label class="form-label">Razón Social Transportista *</label>
+								<input 
+									type="text" 
+									class="form-control" 
+									[(ngModel)]="guiaRemisionData.transportistaRazonSocial"
+									name="transportistaRazonSocial"
+									[required]="guiaRemisionData.tipoTransporte === 'TRANSPORTE_PUBLICO'"
+								/>
+							</div>
+						</div>
+					</div>
+				</div>
+			</form>
+		</div>
+	</div>
+	<div class="modal-footer">
+		<button
+			type="button"
+			class="btn btn-secondary"
+			(click)="modal.dismiss('cancel')"
+		>
+			Cancelar
+		</button>
+		<button
+			type="button"
+			class="btn btn-danger"
+			[disabled]="loadingGuiaRemision[guiaRemisionData.idPedido] || !guiaRemisionForm.form.valid"
+			(click)="generarGuiaRemision()"
+		>
+			<span *ngIf="loadingGuiaRemision[guiaRemisionData.idPedido]" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+			Generar Guía de Remisión
 		</button>
 	</div>
 </ng-template>
