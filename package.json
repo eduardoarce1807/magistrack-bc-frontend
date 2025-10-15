@@ -5,8 +5,10 @@
     "ng": "ng",
     "start": "ng serve -o",
     "start-prod": "ng serve -o --configuration production",
+    "start-desarrollo": "ng serve -o --configuration desarrollo",
     "build-dev": "ng build --configuration development",
     "build-prod": "ng build --configuration production",
+    "build-desarrollo": "ng build --configuration desarrollo",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test"

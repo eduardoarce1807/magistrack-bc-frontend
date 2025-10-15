@@ -239,13 +239,13 @@ export class SidebarComponent implements OnInit, AfterViewInit {
 				{
 					key: '3',
 					label: 'PRODUCCIÓN',
-					icon: 'pi pi-cog',
+					icon: 'bi bi-flask',
 					items: [
 						...([1, 6].includes(user.rol.idRol) ? [
 							{
 								key: '3_0',
 								label: 'Bandeja de producción',
-								icon: 'pi pi-wrench',
+								icon: 'bi bi-flask-florence',
 								command: () => this.irA('pages/produccion/bandeja-produccion')
 							}
 						] : []),
@@ -261,7 +261,7 @@ export class SidebarComponent implements OnInit, AfterViewInit {
 							{
 								key: '3_2',
 								label: 'Bandeja de envasado',
-								icon: 'pi pi-box',
+								icon: 'bi bi-measuring-cup',
 								command: () => this.irA('pages/produccion/bandeja-envasado')
 							}
 						] : []),
