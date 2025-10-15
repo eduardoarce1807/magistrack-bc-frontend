@@ -411,6 +411,7 @@
 								[(ngModel)]="guiaRemisionData.tipoDocumentoCliente" 
 								name="tipoDocumentoCliente"
 								required
+								(change)="onTipoDocumentoClienteChange(guiaRemisionData.tipoDocumentoCliente, pedidoActual)"
 							>
 								<option value="1">DNI</option>
 								<option value="6">RUC</option>
@@ -427,7 +428,19 @@
 							/>
 						</div>
 					</div>
-					<div class="row" *ngIf="guiaRemisionData.tipoDocumentoCliente === '6'">
+					<div class="row" *ngIf="guiaRemisionData && guiaRemisionData.tipoDocumentoCliente === '1'">
+						<div class="col-12 mb-3">
+							<label class="form-label">Nombre Cliente *</label>
+							<input 
+								type="text" 
+								class="form-control" 
+								[(ngModel)]="guiaRemisionData.nombreCliente"
+								name="nombreCliente"
+								[required]="guiaRemisionData.tipoDocumentoCliente === '1'"
+							/>
+						</div>
+					</div>
+					<div class="row" *ngIf="guiaRemisionData && guiaRemisionData.tipoDocumentoCliente === '6'">
 						<div class="col-12 mb-3">
 							<label class="form-label">Razón Social Cliente *</label>
 							<input 
