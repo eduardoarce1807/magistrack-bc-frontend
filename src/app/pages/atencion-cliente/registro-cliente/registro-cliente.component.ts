@@ -189,6 +189,13 @@ export class RegistroClienteComponent implements OnInit {
             this.clienteForm.get('password')?.valueChanges.subscribe(() => {
               this.passwordTouched = true;
             });
+            
+            // Aplicar validaciones condicionales basadas en el rol cargado
+            setTimeout(() => {
+              if (cliente.rol) {
+                this.aplicarValidacionesCondicionales(cliente.rol.toString());
+              }
+            }, 100);
           }
         );
       }
@@ -197,6 +204,11 @@ export class RegistroClienteComponent implements OnInit {
     this.cargarTiposDocumento();
     this.cargarMediosContacto();
     this.cargarRoles();
+    
+    // Suscribirse a cambios en el rol para validaciones condicionales
+    this.clienteForm.get('rol')?.valueChanges.subscribe(rolId => {
+      this.aplicarValidacionesCondicionales(rolId);
+    });
   }
 
   onNombreInput(event: Event): void {
@@ -283,6 +295,13 @@ export class RegistroClienteComponent implements OnInit {
           this.clienteForm.get('password')?.valueChanges.subscribe(() => {
             this.passwordTouched = true;
           });
+          
+          // Aplicar validaciones condicionales basadas en el rol cargado
+          setTimeout(() => {
+            if (cliente.rol) {
+              this.aplicarValidacionesCondicionales(cliente.rol.toString());
+            }
+          }, 100);
         },
         (error) => {
           console.error('Error al cargar datos del usuario', error);
@@ -469,8 +488,70 @@ export class RegistroClienteComponent implements OnInit {
         this.archivoBase64 = base64; // Incluye "data:application/pdf;base64,..." o similar
         this.nombreArchivo = file.name.split('.').slice(0, -1).join('.');
         this.extensionArchivo = file.name.split('.').pop()!;
+        
+        // Actualizar el control del formulario para validaciones
+        this.clienteForm.get('documentoAdicional')?.setValue(this.nombreArchivo);
       };
       reader.readAsDataURL(file); // genera base64 completo con encabezado
+    } else {
+      // Si no hay archivo, limpiar los valores
+      this.archivoBase64 = '';
+      this.nombreArchivo = '';
+      this.extensionArchivo = '';
+      this.clienteForm.get('documentoAdicional')?.setValue(null);
     }
+  }
+
+  aplicarValidacionesCondicionales(rolId: string): void {
+    // Solo aplicar validaciones condicionales cuando NO es acceso público Y NO es modo perfil
+    if (this.isPublicAccess || this.isProfileMode) {
+      return;
+    }
+
+    const profesionControl = this.clienteForm.get('profesion');
+    const colegioProfesionalControl = this.clienteForm.get('colegioProfesional');
+    const numeroColegiaturaControl = this.clienteForm.get('numeroColegiatura');
+    const documentoAdicionalControl = this.clienteForm.get('documentoAdicional');
+
+    // Limpiar validaciones previas
+    profesionControl?.clearValidators();
+    colegioProfesionalControl?.clearValidators();
+    numeroColegiaturaControl?.clearValidators();
+    documentoAdicionalControl?.clearValidators();
+
+    if (rolId === '3') { // Estudiante
+      // Solo archivo adjunto es obligatorio
+      documentoAdicionalControl?.setValidators([Validators.required]);
+    } else if (rolId === '4') { // Esteticista
+      // Todos los campos son obligatorios
+      profesionControl?.setValidators([Validators.required]);
+      colegioProfesionalControl?.setValidators([Validators.required]);
+      numeroColegiaturaControl?.setValidators([Validators.required]);
+      documentoAdicionalControl?.setValidators([Validators.required]);
+    }
+
+    // Actualizar validez de los controles
+    profesionControl?.updateValueAndValidity();
+    colegioProfesionalControl?.updateValueAndValidity();
+    numeroColegiaturaControl?.updateValueAndValidity();
+    documentoAdicionalControl?.updateValueAndValidity();
+  }
+
+  // Método para verificar si el archivo adjunto es obligatorio
+  isArchivoObligatorio(): boolean {
+    if (!this.isProfileMode && !this.isPublicAccess) {
+      const rolId = this.clienteForm.get('rol')?.value;
+      return rolId === '3' || rolId === '4';
+    }
+    return false;
+  }
+
+  // Método para verificar si los campos profesionales son obligatorios
+  isCamposProfesionalesObligatorios(): boolean {
+    if (!this.isProfileMode && !this.isPublicAccess) {
+      const rolId = this.clienteForm.get('rol')?.value;
+      return rolId === '4';
+    }
+    return false;
   }
 }

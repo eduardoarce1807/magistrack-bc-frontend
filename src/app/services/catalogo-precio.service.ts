@@ -63,4 +63,9 @@ export class CatalogoPrecioService {
   actualizarProductoCatalogo(item: CatalogoProductoUpdateDTO): Observable<ResponseDTO> {
     return this.http.put<ResponseDTO>(`${this.url}/catalogo-producto/actualizar`, item);
   }
+
+  // Método para actualizar múltiples productos en bloque (simplificado)
+  actualizarEstadoProductosEnBloque(request: { idsCatalogoProducto: number[], estado: boolean }): Observable<ResponseDTO> {
+    return this.http.put<ResponseDTO>(`${this.url}/catalogo-producto/actualizar-estado-bloque`, request);
+  }
 }

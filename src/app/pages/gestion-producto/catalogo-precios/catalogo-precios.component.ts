@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { NgbTypeaheadModule, NgbPaginationModule, NgbTooltipModule } from '@ng-bootstrap/ng-bootstrap';
@@ -42,6 +42,10 @@ export class CatalogoPreciosComponent implements OnInit {
   roles: any[] = [];
 
   catalogo: any = null;
+
+  // Variables para selección múltiple
+  productosSeleccionados: any[] = [];
+  todosSeleccionados: boolean = false;
   nombreCatalogo: string = '';
   colorEtiqueta: string = '#667eea'; // Color por defecto
   idRol: number = 2;
@@ -50,6 +54,9 @@ export class CatalogoPreciosComponent implements OnInit {
   // Para la edición inline
   editingItemId: number | null = null;
   originalItem: any = null;
+
+  // Referencia a la tabla PrimeNG
+  @ViewChild('dt1') tabla!: Table;
 
   constructor(
     private rolService: RolService,
@@ -89,6 +96,13 @@ export class CatalogoPreciosComponent implements OnInit {
           this.nombreCatalogo = "";
           
         }
+        
+        // Limpiar selección cuando se recargan los datos
+        this.limpiarSeleccion();
+        
+        // Resetear paginación
+        this.page = 1;
+        
         this.isLoading = false; // Finalizar loader
       },
       (error) => {
@@ -133,6 +147,8 @@ export class CatalogoPreciosComponent implements OnInit {
   clear(table: Table) {
       table.clear();
       this.searchValue = "";
+      // Actualizar estado de selección después de limpiar filtros
+      setTimeout(() => this.actualizarEstadoSeleccionGeneral(), 100);
     }
 
   // Filtro personalizado mejorado para búsqueda inteligente
@@ -166,6 +182,9 @@ export class CatalogoPreciosComponent implements OnInit {
 
     // Aplicar el filtro a la tabla
     table.filteredValue = datosFiltrados;
+    
+    // Actualizar estado de selección después de filtrar
+    setTimeout(() => this.actualizarEstadoSeleccionGeneral(), 100);
   }
 
   // Método auxiliar para normalizar texto (quitar acentos y convertir a minúsculas)
@@ -351,6 +370,232 @@ export class CatalogoPreciosComponent implements OnInit {
   // Método para obtener el color del texto según el fondo
   getTextColor(): string {
     return this.isColorLight(this.colorEtiqueta) ? '#333333' : '#ffffff';
+  }
+
+  // ========== MÉTODOS PARA SELECCIÓN MÚLTIPLE ==========
+
+  // Método para manejar la selección de un producto individual
+  onSeleccionProducto(item: any): void {
+    if (item.seleccionado) {
+      // Agregar a la lista de seleccionados si no existe (evitar duplicados)
+      if (!this.productosSeleccionados.find(p => p.idCatalogoProducto === item.idCatalogoProducto)) {
+        this.productosSeleccionados.push(item);
+      }
+    } else {
+      // Remover de la lista de seleccionados
+      this.productosSeleccionados = this.productosSeleccionados.filter(
+        p => p.idCatalogoProducto !== item.idCatalogoProducto
+      );
+    }
+    this.actualizarEstadoSeleccionGeneral();
+  }
+
+  // Método para obtener los productos visibles en la página actual
+  getProductosVisiblesPaginaActual(): any[] {
+    if (this.tabla && this.tabla.filteredValue) {
+      // Si hay filtros aplicados, usar los datos filtrados
+      const datosFiltrados = this.tabla.filteredValue;
+      const inicio = this.tabla.first || 0;
+      const fin = inicio + (this.tabla.rows || this.pageSize);
+      return datosFiltrados.slice(inicio, fin);
+    } else if (this.tabla) {
+      // Sin filtros, usar datos originales con paginación
+      const inicio = this.tabla.first || 0;
+      const fin = inicio + (this.tabla.rows || this.pageSize);
+      return this.catalogos.slice(inicio, fin);
+    }
+    
+    // Fallback: usar lógica manual si no hay referencia a tabla
+    const paginaActual = this.page - 1;
+    const inicio = paginaActual * this.pageSize;
+    const fin = inicio + this.pageSize;
+    return this.catalogos.slice(inicio, fin);
+  }
+
+  // Método para seleccionar/deseleccionar solo los productos visibles en la página actual
+  toggleTodosSeleccionados(): void {
+    const productosVisibles = this.getProductosVisiblesPaginaActual();
+    
+    // Determinar si todos los productos visibles ya están seleccionados
+    const todosVisiblesSeleccionados = productosVisibles.every(item => item.seleccionado);
+    
+    // Si todos están seleccionados, deseleccionar todos los visibles
+    // Si no todos están seleccionados, seleccionar todos los visibles
+    const nuevoEstado = !todosVisiblesSeleccionados;
+    
+    productosVisibles.forEach(item => {
+      const yaSeleccionado = this.productosSeleccionados.find(
+        p => p.idCatalogoProducto === item.idCatalogoProducto
+      );
+      
+      if (nuevoEstado) {
+        // Seleccionar: marcar checkbox y agregar a lista si no existe
+        item.seleccionado = true;
+        if (!yaSeleccionado) {
+          this.productosSeleccionados.push(item);
+        }
+      } else {
+        // Deseleccionar: desmarcar checkbox y remover de lista
+        item.seleccionado = false;
+        if (yaSeleccionado) {
+          this.productosSeleccionados = this.productosSeleccionados.filter(
+            p => p.idCatalogoProducto !== item.idCatalogoProducto
+          );
+        }
+      }
+    });
+
+    this.actualizarEstadoSeleccionGeneral();
+  }
+
+  // Método para actualizar el estado del checkbox principal basado en productos visibles
+  actualizarEstadoSeleccionGeneral(): void {
+    const productosVisibles = this.getProductosVisiblesPaginaActual();
+    
+    if (productosVisibles.length === 0) {
+      this.todosSeleccionados = false;
+      return;
+    }
+
+    // El checkbox general está marcado solo si TODOS los productos visibles están seleccionados
+    this.todosSeleccionados = productosVisibles.every(item => item.seleccionado);
+  }
+
+  // Método para verificar si hay selección parcial en la página actual
+  haySeleccionParcial(): boolean {
+    const productosVisibles = this.getProductosVisiblesPaginaActual();
+    
+    if (productosVisibles.length === 0) {
+      return false;
+    }
+
+    const productosVisiblesSeleccionados = productosVisibles.filter(item => item.seleccionado).length;
+    return productosVisiblesSeleccionados > 0 && productosVisiblesSeleccionados < productosVisibles.length;
+  }
+
+  // Método para manejar cambios de página
+  onPageChange(event: any): void {
+    this.page = event.page + 1; // PrimeNG usa índice 0, pero nosotros usamos índice 1
+    this.pageSize = event.rows;
+    
+    // Actualizar el estado del checkbox general para la nueva página
+    this.actualizarEstadoSeleccionGeneral();
+  }
+
+  // Método para verificar si todos los productos seleccionados están activos
+  todosSeleccionadosActivos(): boolean {
+    return this.productosSeleccionados.length > 0 && 
+           this.productosSeleccionados.every(producto => producto.estado === true);
+  }
+
+  // Método para verificar si todos los productos seleccionados están inactivos
+  todosSeleccionadosInactivos(): boolean {
+    return this.productosSeleccionados.length > 0 && 
+           this.productosSeleccionados.every(producto => producto.estado === false);
+  }
+
+  // Método para limpiar la selección
+  limpiarSeleccion(): void {
+    this.catalogos.forEach(item => {
+      item.seleccionado = false;
+    });
+    this.productosSeleccionados = [];
+    this.todosSeleccionados = false;
+  }
+
+  // Método para activar productos en bloque
+  activarEnBloque(): void {
+    const productosAActivar = this.productosSeleccionados.filter(p => !p.estado);
+    
+    if (productosAActivar.length === 0) {
+      Swal.fire('Información', 'No hay productos inactivos seleccionados para activar', 'info');
+      return;
+    }
+
+    // Crear lista de productos para mostrar en el mensaje
+    const listaProductos = productosAActivar.map(p => 
+      `• ${p.producto.productoMaestro.nombre} - ${p.producto.presentacion} ${p.producto.tipoPresentacion.descripcion}`
+    ).join('<br>');
+
+    Swal.fire({
+      title: 'Activar Productos en Bloque',
+      html: `¿Estás seguro de que deseas <strong>activar</strong> los siguientes ${productosAActivar.length} productos?<br><br>
+             <div style="text-align: left; max-height: 200px; overflow-y: auto; font-size: 0.9em;">
+               ${listaProductos}
+             </div>`,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: `Sí, activar ${productosAActivar.length} productos`,
+      cancelButtonText: 'Cancelar',
+      customClass: {
+        popup: 'swal-wide'
+      }
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.ejecutarCambioEstadoBloque(productosAActivar, true);
+      }
+    });
+  }
+
+  // Método para desactivar productos en bloque
+  desactivarEnBloque(): void {
+    const productosADesactivar = this.productosSeleccionados.filter(p => p.estado);
+    
+    if (productosADesactivar.length === 0) {
+      Swal.fire('Información', 'No hay productos activos seleccionados para desactivar', 'info');
+      return;
+    }
+
+    // Crear lista de productos para mostrar en el mensaje
+    const listaProductos = productosADesactivar.map(p => 
+      `• ${p.producto.productoMaestro.nombre} - ${p.producto.presentacion} ${p.producto.tipoPresentacion.descripcion}`
+    ).join('<br>');
+
+    Swal.fire({
+      title: 'Desactivar Productos en Bloque',
+      html: `¿Estás seguro de que deseas <strong>desactivar</strong> los siguientes ${productosADesactivar.length} productos?<br><br>
+             <div style="text-align: left; max-height: 200px; overflow-y: auto; font-size: 0.9em;">
+               ${listaProductos}
+             </div>`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: `Sí, desactivar ${productosADesactivar.length} productos`,
+      cancelButtonText: 'Cancelar',
+      customClass: {
+        popup: 'swal-wide'
+      }
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.ejecutarCambioEstadoBloque(productosADesactivar, false);
+      }
+    });
+  }
+
+  // Método para ejecutar el cambio de estado en bloque (simplificado)
+  private ejecutarCambioEstadoBloque(productos: any[], nuevoEstado: boolean): void {
+    // Crear request simplificado con solo IDs y estado
+    const request = {
+      idsCatalogoProducto: productos.map(producto => producto.idCatalogoProducto),
+      estado: nuevoEstado
+    };
+
+    // Llamada al servicio
+    this.catalogoPrecioService.actualizarEstadoProductosEnBloque(request).subscribe(
+      (response: any) => {
+        if (response.idResultado === 1) {
+          const accion = nuevoEstado ? 'activados' : 'desactivados';
+          Swal.fire('Éxito', `${productos.length} productos ${accion} correctamente`, 'success');
+          this.limpiarSeleccion();
+          this.cargarCatalogosPrecio();
+        } else {
+          Swal.fire('Error', response.resultado || 'No se pudieron actualizar los productos', 'error');
+        }
+      },
+      (error: any) => {
+        console.error('Error al actualizar productos en bloque:', error);
+        Swal.fire('Error', 'Ocurrió un error al actualizar los productos', 'error');
+      }
+    );
   }
 
 }

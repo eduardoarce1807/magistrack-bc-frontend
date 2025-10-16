@@ -508,7 +508,7 @@ export class PagarPedidoComponent implements OnInit, AfterViewInit {
   confirmarPagoManual(): void {
     Swal.fire({
       title: '¿Estás seguro/a?',
-      text: 'Estás a punto de proceder con el pago manual del pedido.',
+      html: 'Estás a punto de proceder con el pago manual del pedido.<br><br><strong>⚠️ Importante:</strong> Una vez pagado el pedido, <strong>no se podrá editar</strong>.',
       icon: 'question',
       showCancelButton: true,
       confirmButtonColor: '#d33',
@@ -530,7 +530,7 @@ export class PagarPedidoComponent implements OnInit, AfterViewInit {
   confirmarPagoIziPay(): void {
     Swal.fire({
       title: '¿Estás seguro/a?',
-      text: 'Estás a punto de proceder con el pago mediante tarjeta de crédito/débito.',
+      html: 'Estás a punto de proceder con el pago mediante tarjeta de crédito/débito.<br><br><strong>⚠️ Importante:</strong> Una vez pagado el pedido, <strong>no se podrá editar</strong>.',
       icon: 'question',
       showCancelButton: true,
       confirmButtonColor: '#d33',
