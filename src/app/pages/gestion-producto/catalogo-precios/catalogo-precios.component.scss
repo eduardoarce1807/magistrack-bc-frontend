@@ -33,3 +33,74 @@
   pointer-events: none;
   transition: opacity 0.3s ease;
 }
+
+// ========== ESTILOS PARA SELECCIÓN MÚLTIPLE ==========
+
+// Estilo para las filas seleccionadas
+tr.selected {
+  background-color: rgba(0, 123, 255, 0.1) !important;
+  border: 1px solid rgba(0, 123, 255, 0.3);
+}
+
+// Estilos para los checkboxes
+.form-check-input {
+  cursor: pointer;
+  transform: scale(1.1);
+  
+  &:checked {
+    background-color: #007bff;
+    border-color: #007bff;
+  }
+  
+  &:focus {
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+  }
+}
+
+// Estilos para los botones de acción masiva
+.d-flex.gap-2 {
+  .btn {
+    transition: all 0.2s ease;
+    
+    &:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    }
+    
+    &.btn-danger {
+      background-color: #dc3545;
+      border-color: #dc3545;
+      
+      &:hover {
+        background-color: #c82333;
+        border-color: #bd2130;
+      }
+    }
+    
+    &.btn-success {
+      background-color: #28a745;
+      border-color: #28a745;
+      
+      &:hover {
+        background-color: #218838;
+        border-color: #1e7e34;
+      }
+    }
+    
+    &.btn-secondary {
+      background-color: #6c757d;
+      border-color: #6c757d;
+      
+      &:hover {
+        background-color: #5a6268;
+        border-color: #545b62;
+      }
+    }
+  }
+}
+
+// Estilo para el SweetAlert personalizado
+:global(.swal-wide) {
+  width: 600px !important;
+  max-width: 90vw !important;
+}

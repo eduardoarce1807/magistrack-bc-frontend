@@ -157,18 +157,50 @@
         </div>
 		    <!-- Profesion -->
         <div class="col-md-6">
-          <label for="profesion" class="form-label fw-bold">Profesión / Oficio</label>
+          <label for="profesion" class="form-label fw-bold">
+            Profesión / Oficio
+            @if (isCamposProfesionalesObligatorios()) {
+              <span class="text-danger">*</span>
+            }
+          </label>
           <input type="text" formControlName="profesion" class="form-control" placeholder="Ingrese la profesión" />
+          @if (clienteForm.get('profesion')?.invalid && clienteForm.get('profesion')?.touched) {
+            <div class="text-danger small">
+              La profesión es obligatoria.
+            </div>
+          }
         </div>
 
         <div class="col-md-6">
-          <label for="colegioProfesional" class="form-label fw-bold">Colegio profesional (opcional)</label>
+          <label for="colegioProfesional" class="form-label fw-bold">
+            Colegio profesional
+            @if (isCamposProfesionalesObligatorios()) {
+              <span class="text-danger">*</span>
+            } @else {
+              (opcional)
+            }
+          </label>
           <input type="text" formControlName="colegioProfesional" class="form-control" placeholder="Ingrese su colegio profesional" />
+          @if (clienteForm.get('colegioProfesional')?.invalid && clienteForm.get('colegioProfesional')?.touched) {
+            <div class="text-danger small">
+              El colegio profesional es obligatorio.
+            </div>
+          }
         </div>
 
         <div class="col-md-6">
-          <label for="numeroColegiatura" class="form-label fw-bold">N° Colegiatura</label>
+          <label for="numeroColegiatura" class="form-label fw-bold">
+            N° Colegiatura
+            @if (isCamposProfesionalesObligatorios()) {
+              <span class="text-danger">*</span>
+            }
+          </label>
           <input type="text" formControlName="numeroColegiatura" class="form-control" placeholder="Ingrese el número de su colegiatura" />
+          @if (clienteForm.get('numeroColegiatura')?.invalid && clienteForm.get('numeroColegiatura')?.touched) {
+            <div class="text-danger small">
+              El número de colegiatura es obligatorio.
+            </div>
+          }
         </div>
 
         <!-- Usuario -->
@@ -214,7 +246,12 @@
           <textarea formControlName="observaciones" class="form-control" rows="3" placeholder="Ingrese comentarios adicionales"></textarea>
         </div>
         <div class="col-md-6">
-          <label for="archivoInput" class="form-label fw-bold">Selecciona un archivo</label>
+          <label for="archivoInput" class="form-label fw-bold">
+            Selecciona un archivo
+            @if (isArchivoObligatorio()) {
+              <span class="text-danger">*</span>
+            }
+          </label>
     
           <input type="file"
                 id="archivoInput"
@@ -222,8 +259,18 @@
                 (change)="onArchivoSeleccionado($event)" accept=".pdf,.jpg,.png">
 
           <div class="text-secondary small">
-            *Si es profesional de Estetica adjuntar constancia o certificado, si es estudiante adjuntar boleta, carnét u otro documento que acredite
+            @if (isArchivoObligatorio()) {
+              <span class="text-danger">*Obligatorio: </span>
+            } @else {
+              *
+            }
+            Si es profesional de Estética adjuntar constancia o certificado, si es estudiante adjuntar boleta, carnét u otro documento que acredite
           </div>
+          @if (clienteForm.get('documentoAdicional')?.invalid && clienteForm.get('documentoAdicional')?.touched) {
+            <div class="text-danger small">
+              El archivo adjunto es obligatorio.
+            </div>
+          }
         </div>
       </div>
       <div class="text-center mt-4">
