@@ -1,7 +1,10 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { FormGroup, FormBuilder, Validators, ReactiveFormsModule } from '@angular/forms';
+import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { UsuarioService } from '../../../services/usuario.service';
+import { AnuncioService } from '../../../services/anuncio.service';
+import { GoogleDriveImagePipe } from '../../../pipes/google-drive-image.pipe';
 import Swal from 'sweetalert2';
 
 declare const grecaptcha: any;
@@ -14,9 +17,9 @@ declare const grecaptcha: any;
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './login.component.html',
-  styleUrl: './login.component.scss'
+  styleUrls: ['./login.component.scss']
 })
 export class LoginComponent implements OnInit, OnDestroy {
 
@@ -26,7 +29,19 @@ export class LoginComponent implements OnInit, OnDestroy {
   private siteKey = '6Lcm-torAAAAAHUxC-nR_ZsHmb053eoaVhM7szyP';
   private recaptchaId: any;
 
-  constructor(private fb: FormBuilder, private router: Router, private usuarioService: UsuarioService) {
+  // propiedad que contiene el estilo inline para aplicar el background
+  backgroundStyle: string | null = null;
+  isLoadingBackground = false;
+
+  // instancia local del pipe para convertir URLs de Google Drive a enlace directo
+  private googleDrivePipe = new GoogleDriveImagePipe();
+
+  constructor(
+    private fb: FormBuilder,
+    private router: Router,
+    private usuarioService: UsuarioService,
+    private anuncioService: AnuncioService
+  ) {
     this.loginForm = this.fb.group({
       usuario: ['', [Validators.required]],
       password: ['', [Validators.required, Validators.minLength(6)]]
@@ -38,6 +53,8 @@ export class LoginComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.initializeRecaptcha();
+    // Cargar configuración pública del background del login
+    this.loadLoginBackground();
   }
 
   ngOnDestroy(): void {
@@ -122,6 +139,31 @@ export class LoginComponent implements OnInit, OnDestroy {
         console.error('Error de login', error);
         const errorMessage = error.error?.message || 'Usuario o contraseña incorrectos';
         this.handleLoginError(errorMessage);
+      }
+    );
+  }
+
+  private loadLoginBackground(): void {
+    this.isLoadingBackground = true;
+    this.anuncioService.getLoginBackgroundConfig().subscribe(
+      (resp: any) => {
+        this.isLoadingBackground = false;
+        if (resp && resp.success && resp.data) {
+          const bg = resp.data.backgroundActivo;
+          if (bg && bg.urlImagen) {
+            // Convertir URL a formato directo si es necesario y aplicar estilo
+            const directUrl = this.googleDrivePipe.transform(bg.urlImagen);
+            this.backgroundStyle = `url('${directUrl}')`;
+            return;
+          }
+        }
+        // Si no hay fondo activo, limpiar para usar patrón por defecto
+        this.backgroundStyle = null;
+      },
+      error => {
+        console.error('Error cargando configuración de background:', error);
+        this.isLoadingBackground = false;
+        this.backgroundStyle = null;
       }
     );
   }

@@ -55,7 +55,7 @@ export class SidebarComponent implements OnInit, AfterViewInit {
 					command: () => this.irA('pages/perfil')
 				}
 			] : []),
-			// Rol 11 (Atención al Cliente) solo tiene acceso a quejas/reclamos y perfil
+			// Rol 11 (Atención al Cliente) solo tiene acceso a quejas/reclamos, perfil y gestor de anuncios
 			...(user.rol.idRol === 11 ? [
 				{
 					key: '0_0',
@@ -68,6 +68,21 @@ export class SidebarComponent implements OnInit, AfterViewInit {
 					label: 'Mi Perfil',
 					icon: 'pi pi-user',
 					command: () => this.irA('pages/perfil')
+				},
+				{
+					key: '0_5',
+					label: 'Gestor de Anuncios',
+					icon: 'pi pi-megaphone',
+					command: () => this.irA('pages/gestor-anuncios')
+				}
+			] : []),
+			// Administrador (rol 1) también tiene acceso al Gestor de Anuncios
+			...(user.rol.idRol === 1 ? [
+				{
+					key: '0_6',
+					label: 'Gestor de Anuncios',
+					icon: 'pi pi-megaphone',
+					command: () => this.irA('pages/gestor-anuncios')
 				}
 			] : []),
 			...(atencionClienteAccessRoles.includes(user.rol.idRol) || user.rol.idRol === 11 || user.rol.idRol === 12 ? [
