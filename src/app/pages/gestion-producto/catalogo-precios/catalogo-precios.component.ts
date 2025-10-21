@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+import { CommonModule, DatePipe } from '@angular/common';
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -9,6 +9,7 @@ import { CuponService } from '../../../services/cupon.service';
 import { PedidoService } from '../../../services/pedido.service';
 import { CatalogoPrecioService } from '../../../services/catalogo-precio.service';
 import { RolService } from '../../../services/rol.service';
+import { ExcelService } from '../../../services/excel.service';
 import { Table, TableModule } from 'primeng/table';
 import { PaginatorModule } from 'primeng/paginator';
 import { ButtonModule } from 'primeng/button';
@@ -28,7 +29,8 @@ interface PageEvent {
   standalone: true,
   imports: [FormsModule, NgbTypeaheadModule, NgbPaginationModule, NgbTooltipModule, CommonModule, TableModule, ButtonModule, IconFieldModule, InputIconModule, InputTextModule],
   templateUrl: './catalogo-precios.component.html',
-  styleUrl: './catalogo-precios.component.scss'
+  styleUrl: './catalogo-precios.component.scss',
+  providers: [ExcelService, DatePipe]
 })
 export class CatalogoPreciosComponent implements OnInit {
 
@@ -58,10 +60,16 @@ export class CatalogoPreciosComponent implements OnInit {
   // Referencia a la tabla PrimeNG
   @ViewChild('dt1') tabla!: Table;
 
+  // Control para habilitar/deshabilitar exportación
+  get exportDisabled(): boolean {
+    return this.catalogos.length === 0 || this.isLoading;
+  }
+
   constructor(
     private rolService: RolService,
     public router: Router,
-    private catalogoPrecioService: CatalogoPrecioService
+    private catalogoPrecioService: CatalogoPrecioService,
+    private excelService: ExcelService
   ) {}
 
   ngOnInit(): void {
@@ -596,6 +604,93 @@ export class CatalogoPreciosComponent implements OnInit {
         Swal.fire('Error', 'Ocurrió un error al actualizar los productos', 'error');
       }
     );
+  }
+
+  // Método para exportar a Excel
+  exportarExcel(): void {
+    if (this.catalogos.length === 0) {
+      Swal.fire('Información', 'No hay datos para exportar', 'info');
+      return;
+    }
+
+    // Obtener los datos a exportar (usar datos filtrados si existen)
+    let datosAExportar = this.tabla && this.tabla.filteredValue ? this.tabla.filteredValue : this.catalogos;
+
+    // Preparar los datos para exportación
+    const datosExcel = datosAExportar.map((item: any) => ({
+      'Código': item.producto?.idProducto || '',
+      'Nombre del Producto': item.producto?.productoMaestro?.nombre || '',
+      'Presentación': item.producto?.presentacion || '',
+      'Tipo Presentación': item.producto?.tipoPresentacion?.descripcion || '',
+      'Tipo de Envase': item.tipoEnvase || '',
+      'Precio (S/)': Number(item.precio || 0).toFixed(2),
+      'Estado': item.estado ? 'Activo' : 'Inactivo'
+    }));
+
+    // Configurar parámetros para el Excel con formato completo
+    const cabecera = [
+      '', // Columna vacía inicial
+      'Código',
+      'Nombre del Producto',
+      'Presentación',
+      'Tipo Presentación',
+      'Tipo de Envase',
+      'Precio (S/)',
+      'Estado'
+    ];
+
+    const campos = [
+      '',
+      'Código',
+      'Nombre del Producto',
+      'Presentación',
+      'Tipo Presentación',
+      'Tipo de Envase',
+      'Precio (S/)',
+      'Estado'
+    ];
+
+    const ancho = [12, 40, 15, 15, 30, 18, 15, 12]; // Anchos de columnas
+
+    const subcabecera = [
+      '','',
+      'Catálogo:', this.nombreCatalogo,
+      'Tipo de Cliente:', this.getRolNombre(this.idRol),
+      'Total de Productos:', this.catalogos.length.toString(),
+      'Productos Filtrados:', datosAExportar.length.toString()
+    ];
+
+    const sumarcampos = [0, 0, 0, 0, 0, 0, 0, 0]; // No sumar ningún campo
+
+    const nombreArchivo = `catalogo_precios_${this.getRolNombre(this.idRol).toLowerCase().replace(/ /g, '_')}`;
+    
+    try {
+      this.excelService.downloadExcel(
+        datosExcel,
+        cabecera,
+        campos,
+        `Catálogo de Precios - ${this.getRolNombre(this.idRol)}`,
+        ancho,
+        subcabecera,
+        nombreArchivo,
+        sumarcampos
+      );
+
+      Swal.fire({
+        icon: 'success',
+        title: 'Exportación exitosa',
+        text: 'El catálogo de precios ha sido descargado correctamente.',
+        timer: 3000,
+        showConfirmButton: false
+      });
+    } catch (error) {
+      console.error('Error al exportar a Excel:', error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error de exportación',
+        text: 'Hubo un problema al generar el archivo Excel. Por favor, inténtalo de nuevo.',
+      });
+    }
   }
 
 }
