@@ -1,5 +1,6 @@
 <div class="login-container">
-	<div class="login-background"></div>
+ 	<!-- Contenedor de fondo dinámico: si backgroundStyle está definido se aplica inline, si no se usa el CSS por defecto -->
+ 	<div class="login-background" [ngStyle]="backgroundStyle ? {'background-image': backgroundStyle, 'background-size': 'cover', 'background-position': 'center'} : null"></div>
 	<div class="login-content">
 		<div class="login-card">
 			<div class="logo-container mb-4">

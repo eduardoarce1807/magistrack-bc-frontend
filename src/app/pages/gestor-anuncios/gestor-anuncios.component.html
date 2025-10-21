@@ -1,0 +1,627 @@
+<div class="container-fluid mt-4">
+  <div class="row">
+    <div class="col-12">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="mb-0">
+          <i class="fas fa-cogs me-2"></i>
+          Gestor de Contenido Visual
+        </h2>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pestañas de navegación -->
+  <div class="row">
+    <div class="col-12">
+      <ul class="nav nav-pills nav-fill mb-4" id="contentTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+          <button 
+            class="nav-link" 
+            [class.active]="activeTab === 'anuncios'"
+            [ngClass]="{'bg-rosa': activeTab === 'anuncios'}"
+            id="anuncios-tab" 
+            data-bs-toggle="pill" 
+            data-bs-target="#anuncios" 
+            type="button" 
+            role="tab" 
+            (click)="setActiveTab('anuncios')"
+          >
+            <i class="fas fa-bullhorn me-2"></i>
+            Anuncios del Home
+          </button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button 
+            class="nav-link" 
+            [class.active]="activeTab === 'login-background'"
+            [ngClass]="{'bg-rosa': activeTab === 'login-background'}"
+            id="login-background-tab" 
+            data-bs-toggle="pill" 
+            data-bs-target="#login-background" 
+            type="button" 
+            role="tab" 
+            (click)="setActiveTab('login-background')"
+          >
+            <i class="fas fa-image me-2"></i>
+            Fondo del Login
+          </button>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Contenido de las pestañas -->
+  <div class="tab-content mb-3" id="contentTabsContent">
+    
+    <!-- PESTAÑA: ANUNCIOS DEL HOME -->
+    <div 
+      class="tab-pane fade" 
+      [class.show]="activeTab === 'anuncios'"
+      [class.active]="activeTab === 'anuncios'"
+      id="anuncios" 
+      role="tabpanel"
+    >
+      <div class="row">
+        <!-- Formulario de Anuncios -->
+        <div class="col-lg-4 col-md-12 mb-4">
+          <div class="card shadow-sm">
+            <div class="card-header bg-rosa text-white">
+              <h5 class="mb-0">
+                <i class="fas fa-plus me-2"></i>
+                {{ editMode ? 'Editar Anuncio' : 'Nuevo Anuncio' }}
+              </h5>
+            </div>
+            <div class="card-body">
+              <form [formGroup]="anuncioForm" (ngSubmit)="onSubmitAnuncio()">
+                <!-- Nombre -->
+                <div class="mb-3">
+                  <label for="nombre" class="form-label">Nombre *</label>
+                  <input
+                    type="text"
+                    id="nombre"
+                    class="form-control"
+                    formControlName="nombre"
+                    [class.is-invalid]="isFieldInvalid('nombre')"
+                    placeholder="Nombre del anuncio"
+                  >
+                  <div class="invalid-feedback" *ngIf="isFieldInvalid('nombre')">
+                    {{ getFieldError('nombre') }}
+                  </div>
+                </div>
+
+                <!-- Descripción -->
+                <div class="mb-3">
+                  <label for="descripcion" class="form-label">Descripción</label>
+                  <textarea
+                    id="descripcion"
+                    class="form-control"
+                    formControlName="descripcion"
+                    rows="3"
+                    [class.is-invalid]="isFieldInvalid('descripcion')"
+                    placeholder="Descripción opcional del anuncio"
+                  ></textarea>
+                  <div class="invalid-feedback" *ngIf="isFieldInvalid('descripcion')">
+                    {{ getFieldError('descripcion') }}
+                  </div>
+                </div>
+
+                <!-- Posición -->
+                <div class="mb-3">
+                  <label for="posicion" class="form-label">Posición en el Home *</label>
+                  <select
+                    id="posicion"
+                    class="form-select"
+                    formControlName="posicion"
+                    [class.is-invalid]="isFieldInvalid('posicion')"
+                  >
+                    <option *ngFor="let pos of posiciones" [value]="pos.value">
+                      {{ pos.label }}
+                    </option>
+                  </select>
+                  <div class="invalid-feedback" *ngIf="isFieldInvalid('posicion')">
+                    {{ getFieldError('posicion') }}
+                  </div>
+                </div>
+
+                <!-- Estado Activo -->
+                <div class="mb-3">
+                  <div class="form-check">
+                    <input
+                      class="form-check-input"
+                      type="checkbox"
+                      id="activo"
+                      formControlName="activo"
+                    >
+                    <label class="form-check-label" for="activo">
+                      Activo (se mostrará en el home)
+                    </label>
+                  </div>
+                </div>
+
+                <!-- Selección de imagen -->
+                <div class="mb-3">
+                  <label for="fileInput" class="form-label">
+                    Imagen * 
+                    <small class="text-muted">(JPG, JPEG, PNG - Máx 4MB)</small>
+                  </label>
+                  <input
+                    type="file"
+                    id="fileInput"
+                    class="form-control"
+                    accept=".jpg,.jpeg,.png"
+                    (change)="onAnuncioFileSelected($event)"
+                  >
+                  <div class="mt-2" *ngIf="!editMode">
+                    <small class="text-danger">* La imagen es requerida para nuevos anuncios</small>
+                  </div>
+                </div>
+
+                <!-- Preview de imagen -->
+                <div class="mb-3" *ngIf="anuncioImagePreview">
+                  <label class="form-label">Vista previa:</label>
+                  <div class="text-center">
+                    <img 
+                      [src]="anuncioImagePreview" 
+                      alt="Preview" 
+                      class="img-thumbnail"
+                      style="max-width: 100%; max-height: 200px;"
+                    >
+                    <div class="mt-2">
+                      <button 
+                        type="button" 
+                        class="btn btn-sm btn-outline-danger"
+                        (click)="clearAnuncioFileSelection()"
+                      >
+                        <i class="fas fa-times"></i> Quitar imagen
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Botones -->
+                <div class="d-grid gap-2">
+                  <button 
+                    type="submit" 
+                    class="btn bg-rosa"
+                    [disabled]="isLoadingAnuncios"
+                  >
+                    <span *ngIf="isLoadingAnuncios" class="spinner-border spinner-border-sm me-2"></span>
+                    <i class="fas fa-save me-2" *ngIf="!isLoadingAnuncios"></i>
+                    {{ editMode ? 'Actualizar' : 'Crear' }} Anuncio
+                  </button>
+                  
+                  <button 
+                    type="button" 
+                    class="btn btn-secondary"
+                    (click)="resetForm()"
+                    [disabled]="isLoadingAnuncios"
+                  >
+                    <i class="fas fa-times me-2"></i>
+                    Cancelar
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+
+        <!-- Lista de anuncios -->
+        <div class="col-lg-8 col-md-12">
+          <div class="card shadow-sm">
+            <div class="card-header bg-rosa text-white">
+              <h5 class="mb-0">
+                <i class="fas fa-list me-2"></i>
+                Anuncios Registrados ({{ anuncios.length }})
+              </h5>
+            </div>
+            <div class="card-body p-0">
+              <div *ngIf="isLoadingAnuncios" class="text-center p-4">
+                <div class="spinner-border text-primary" role="status">
+                  <span class="visually-hidden">Cargando...</span>
+                </div>
+                <p class="mt-2">Cargando anuncios...</p>
+              </div>
+
+              <div *ngIf="!isLoadingAnuncios && anuncios.length === 0" class="text-center p-4">
+                <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                <p class="text-muted">No hay anuncios registrados</p>
+              </div>
+
+              <div class="table-responsive" *ngIf="!isLoadingAnuncios && anuncios.length > 0">
+                <table class="table table-striped table-hover mb-0">
+                  <thead class="table-dark">
+                    <tr>
+                      <th width="60">Preview</th>
+                      <th>Nombre</th>
+                      <th>Posición</th>
+                      <th>Estado</th>
+                      <th>Fecha</th>
+                      <th width="150">Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let anuncio of anuncios; index as i; trackBy: trackByAnuncio">
+                      <td>
+                        <img 
+                          [src]="anuncio.urlImagen | googleDriveImage" 
+                          [alt]="anuncio.nombre"
+                          class="img-thumbnail"
+                          style="width: 50px; height: 50px; object-fit: cover;"
+                        >
+                      </td>
+                      <td>
+                        <div>
+                          <strong>{{ anuncio.nombre }}</strong>
+                          <div *ngIf="anuncio.descripcion" class="text-muted small">
+                            {{ anuncio.descripcion }}
+                          </div>
+                        </div>
+                      </td>
+                      <td>
+                        <span class="badge bg-info">
+                          {{ getPosicionLabel(anuncio.posicion) }}
+                        </span>
+                      </td>
+                      <td>
+                        <div class="form-check form-switch">
+                          <input 
+                            class="form-check-input" 
+                            type="checkbox" 
+                            [checked]="anuncio.activo"
+                            (change)="toggleEstado(anuncio)"
+                          >
+                          <label class="form-check-label">
+                            <span class="badge" [class]="anuncio.activo ? 'bg-success' : 'bg-danger'">
+                              {{ anuncio.activo ? 'Activo' : 'Inactivo' }}
+                            </span>
+                          </label>
+                        </div>
+                      </td>
+                      <td>
+                        <small class="text-muted">
+                          {{ anuncio.fechaCreacion | date:'dd/MM/yyyy' }}
+                        </small>
+                      </td>
+                      <td>
+                        <div class="btn-group btn-group-sm" role="group">
+                          <button 
+                            class="btn bg-rosa"
+                            (click)="editarAnuncio(anuncio)"
+                            title="Editar"
+                          >
+                            <i class="bi bi-pencil-square"></i>
+                          </button>
+                          <button 
+                            class="btn btn-danger"
+                            (click)="eliminarAnuncio(anuncio.idAnuncio!)"
+                            title="Eliminar"
+                          >
+                            <i class="bi bi-trash-fill"></i>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- Vista previa del layout del home -->
+          <div class="card shadow-sm mt-4" *ngIf="anuncios.length > 0">
+            <div class="card-header bg-rosa text-white">
+              <h5 class="mb-0">
+                <i class="fas fa-eye me-2"></i>
+                Vista Previa del Home
+              </h5>
+            </div>
+            <div class="card-body">
+              <div class="row g-2">
+                <div 
+                  *ngFor="let anuncio of getAnunciosActivos()" 
+                  class="col-lg-6 col-md-6 col-sm-12"
+                >
+                  <div class="card h-100">
+                    <img 
+                      [src]="anuncio.urlImagen | googleDriveImage" 
+                      [alt]="anuncio.nombre"
+                      class="card-img-top"
+                      style="height: 150px; object-fit: cover;"
+                    >
+                    <div class="card-body p-2">
+                      <h6 class="card-title mb-0">{{ anuncio.nombre }}</h6>
+                      <small class="text-muted">{{ getPosicionLabel(anuncio.posicion) }}</small>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div *ngIf="getAnunciosActivos().length === 0" class="text-center text-muted">
+                No hay anuncios activos para mostrar
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PESTAÑA: FONDO DEL LOGIN -->
+    <div 
+      class="tab-pane fade" 
+      [class.show]="activeTab === 'login-background'"
+      [class.active]="activeTab === 'login-background'"
+      id="login-background" 
+      role="tabpanel"
+    >
+      <div class="row">
+        <!-- Formulario de Background del Login -->
+        <div class="col-lg-4 col-md-12 mb-4">
+          <div class="card shadow-sm">
+            <div class="card-header bg-rosa text-white">
+              <h5 class="mb-0">
+                <i class="fas fa-plus me-2"></i>
+                {{ editModeBackground ? 'Editar Fondo' : 'Nuevo Fondo del Login' }}
+              </h5>
+            </div>
+            <div class="card-body">
+              <form [formGroup]="backgroundForm" (ngSubmit)="onSubmitBackground()">
+                <!-- Nombre -->
+                <div class="mb-3">
+                  <label for="nombreBackground" class="form-label">Nombre *</label>
+                  <input
+                    type="text"
+                    id="nombreBackground"
+                    class="form-control"
+                    formControlName="nombre"
+                    [class.is-invalid]="isBackgroundFieldInvalid('nombre')"
+                    placeholder="Nombre del fondo"
+                  >
+                  <div class="invalid-feedback" *ngIf="isBackgroundFieldInvalid('nombre')">
+                    {{ getBackgroundFieldError('nombre') }}
+                  </div>
+                </div>
+
+                <!-- Descripción -->
+                <div class="mb-3">
+                  <label for="descripcionBackground" class="form-label">Descripción</label>
+                  <textarea
+                    id="descripcionBackground"
+                    class="form-control"
+                    formControlName="descripcion"
+                    rows="2"
+                    [class.is-invalid]="isBackgroundFieldInvalid('descripcion')"
+                    placeholder="Descripción opcional del fondo"
+                  ></textarea>
+                  <div class="invalid-feedback" *ngIf="isBackgroundFieldInvalid('descripcion')">
+                    {{ getBackgroundFieldError('descripcion') }}
+                  </div>
+                </div>
+
+                <!-- Selección de imagen -->
+                <div class="mb-3">
+                  <label for="backgroundFileInput" class="form-label">
+                    Imagen de Fondo *
+                  </label>
+                  <input
+                    type="file"
+                    id="backgroundFileInput"
+                    class="form-control"
+                    accept=".jpg,.jpeg,.png"
+                    (change)="onBackgroundFileSelected($event)"
+                  >
+                  <div class="form-text">
+                    <small class="text-muted">
+                      <strong>Formatos:</strong> JPG, JPEG, PNG<br>
+                      <strong>Tamaño máximo:</strong> 4MB<br>
+                      <strong>Recomendado:</strong> 1920x1080 (Full HD) o 2560x1440 (2K)<br>
+                      <strong>Orientación:</strong> Horizontal (landscape)
+                    </small>
+                  </div>
+                  <div class="mt-2" *ngIf="!editModeBackground">
+                    <small class="text-danger">* La imagen es requerida para nuevo fondo</small>
+                  </div>
+                </div>
+
+                <!-- Preview de imagen -->
+                <div class="mb-3" *ngIf="backgroundImagePreview">
+                  <label class="form-label">Vista previa:</label>
+                  <div class="text-center">
+                    <img 
+                      [src]="backgroundImagePreview" 
+                      alt="Preview Background" 
+                      class="img-thumbnail"
+                      style="max-width: 100%; max-height: 200px; object-fit: cover;"
+                    >
+                    <div class="mt-2">
+                      <button 
+                        type="button" 
+                        class="btn btn-sm btn-outline-danger"
+                        (click)="clearBackgroundFileSelection()"
+                      >
+                        <i class="fas fa-times"></i> Quitar imagen
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Botones -->
+                <div class="d-grid gap-2">
+                  <button 
+                    type="submit" 
+                    class="btn bg-rosa"
+                    [disabled]="isLoadingBackground"
+                  >
+                    <span *ngIf="isLoadingBackground" class="spinner-border spinner-border-sm me-2"></span>
+                    <i class="fas fa-save me-2" *ngIf="!isLoadingBackground"></i>
+                    {{ editModeBackground ? 'Actualizar' : 'Crear' }} Fondo
+                  </button>
+                  
+                  <button 
+                    type="button" 
+                    class="btn btn-secondary"
+                    (click)="resetBackgroundForm()"
+                    [disabled]="isLoadingBackground"
+                  >
+                    <i class="fas fa-times me-2"></i>
+                    Cancelar
+                  </button>
+                </div>
+              </form>
+
+              <hr class="my-4">
+
+              <!-- Botón para volver al patrón por defecto -->
+              <div class="d-grid">
+                <button 
+                  type="button" 
+                  class="btn bg-rosa"
+                  (click)="activarPatronPorDefecto()"
+                  [disabled]="isLoadingBackground"
+                >
+                  <i class="fas fa-undo me-2"></i>
+                  Usar Patrón por Defecto
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Lista de fondos del login -->
+        <div class="col-lg-8 col-md-12">
+          <div class="card shadow-sm">
+            <div class="card-header bg-rosa text-white">
+              <h5 class="mb-0">
+                <i class="fas fa-images me-2"></i>
+                Fondos del Login ({{ loginBackgrounds.length }})
+              </h5>
+            </div>
+            <div class="card-body p-0">
+              <div *ngIf="isLoadingBackground" class="text-center p-4">
+                <div class="spinner-border text-info" role="status">
+                  <span class="visually-hidden">Cargando...</span>
+                </div>
+                <p class="mt-2">Cargando fondos...</p>
+              </div>
+
+              <div *ngIf="!isLoadingBackground && loginBackgrounds.length === 0" class="text-center p-4">
+                <i class="fas fa-image fa-3x text-muted mb-3"></i>
+                <p class="text-muted">No hay fondos de login registrados</p>
+                <small class="text-muted">Se está usando el patrón por defecto</small>
+              </div>
+
+              <div class="table-responsive" *ngIf="!isLoadingBackground && loginBackgrounds.length > 0">
+                <table class="table table-striped table-hover mb-0">
+                  <thead class="table-dark">
+                    <tr>
+                      <th width="100">Preview</th>
+                      <th>Nombre</th>
+                      <th>Estado</th>
+                      <th>Fecha</th>
+                      <th width="150">Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let background of loginBackgrounds; trackBy: trackByBackground">
+                      <td>
+                        <img 
+                          [src]="background.urlImagen | googleDriveImage" 
+                          [alt]="background.nombre"
+                          class="img-thumbnail"
+                          style="width: 80px; height: 50px; object-fit: cover;"
+                        >
+                      </td>
+                      <td>
+                        <div>
+                          <strong>{{ background.nombre }}</strong>
+                          <div *ngIf="background.descripcion" class="text-muted small">
+                            {{ background.descripcion }}
+                          </div>
+                        </div>
+                      </td>
+                      <td>
+                        <span class="badge" [class]="background.activo ? 'bg-success' : 'bg-secondary'">
+                          {{ background.activo ? 'ACTIVO' : 'Inactivo' }}
+                        </span>
+                      </td>
+                      <td>
+                        <small class="text-muted">
+                          {{ background.fechaCreacion | date:'dd/MM/yyyy' }}
+                        </small>
+                      </td>
+                      <td>
+                        <div class="btn-group btn-group-sm" role="group">
+                          <button 
+                            class="btn btn-success"
+                            (click)="activarBackground(background.idBackground!)"
+                            title="Activar"
+                            [disabled]="background.activo"
+                          >
+                            <i class="bi bi-check-circle-fill"></i>
+                          </button>
+                          <button 
+                            class="btn bg-rosa"
+                            (click)="editarBackground(background)"
+                            title="Editar"
+                          >
+                            <i class="bi bi-pencil-square"></i>
+                          </button>
+                          <button 
+                            class="btn btn-danger"
+                            (click)="eliminarBackground(background.idBackground!)"
+                            title="Eliminar"
+                          >
+                            <i class="bi bi-trash-fill"></i>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- Vista previa del fondo activo -->
+          <div class="card shadow-sm mt-4">
+            <div class="card-header bg-rosa text-white">
+              <h5 class="mb-0">
+                <i class="fas fa-desktop me-2"></i>
+                Vista Previa del Login
+              </h5>
+            </div>
+            <div class="card-body p-0">
+              <div class="login-preview-container" style="height: 450px; position: relative; overflow: hidden;">
+                <!-- Usa la clase exacta del LoginComponent cuando no hay fondo activo -->
+                <div 
+                  [class]="!getActiveBackgroundPreview() ? 'login-background' : 'login-preview-background'"
+                  [style.background-image]="getActiveBackgroundPreview()"
+                  style="width: 100%; height: 100%; background-size: cover; background-position: center; background-repeat: no-repeat; position: relative; display: flex; align-items: center; justify-content: center;"
+                >
+                  <!-- Card del login más pequeño -->
+                  <div class="login-card" style="width: 100%; max-width: 320px; padding: 15px;">
+                    <div style="background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); border-radius: 20px; padding: 30px 25px; box-shadow: 0 15px 30px rgba(212, 133, 140, 0.15), 0 8px 15px rgba(0, 0, 0, 0.05); border: 1px solid rgba(255, 255, 255, 0.3);">
+                      <div class="text-center mb-3">
+                        <div style="color: #2c3e50; font-size: 22px; font-weight: 600; margin-bottom: 6px;">Bienvenido de nuevo</div>
+                        <div style="color: #6c757d; font-size: 12px; opacity: 0.8;">Ingresa a tu sistema de gestión dermatológica</div>
+                      </div>
+                      <div class="mb-2">
+                        <label style="color: #495057; font-weight: 500; font-size: 12px; margin-bottom: 6px;">Usuario</label>
+                        <input type="text" class="form-control" placeholder="admin" disabled style="background-color: #F8F9FA; border: 2px solid #e9ecef; border-radius: 10px; padding: 10px 12px; font-size: 14px;">
+                      </div>
+                      <div class="mb-3">
+                        <label style="color: #495057; font-weight: 500; font-size: 12px; margin-bottom: 6px;">Contraseña</label>
+                        <input type="password" class="form-control" placeholder="••••••" disabled style="background-color: #F8F9FA; border: 2px solid #e9ecef; border-radius: 10px; padding: 10px 12px; font-size: 14px;">
+                      </div>
+                      <button class="btn w-100" disabled style="background: linear-gradient(135deg, #D4858C 0%, #c67882 100%); border: none; color: white; font-weight: 600; font-size: 14px; padding: 12px 20px; border-radius: 10px; box-shadow: 0 4px 15px rgba(212, 133, 140, 0.3);">
+                        🔓 Iniciar Sesión
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

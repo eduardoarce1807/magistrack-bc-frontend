@@ -1,0 +1,199 @@
+// Estilos para el contenedor principal - Pantalla completa
+:host {
+  display: block;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.container-fluid {
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+}
+
+// Grid de 4 secciones equitativas
+.row.h-100 {
+  height: 100vh !important;
+}
+
+.row.g-0 > [class*="col-"] {
+  height: 50vh; // Cada sección ocupa la mitad de la altura
+}
+
+// Estilos para los anuncios
+.anuncio-container {
+  position: relative;
+  overflow: hidden;
+  height: 100%;
+}
+
+.anuncio-card {
+  border: none;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  overflow: hidden;
+  height: 100%;
+  border-radius: 0; // Sin bordes redondeados para que sea más clean
+}
+
+.anuncio-card:hover {
+  transform: scale(1.02);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  z-index: 10;
+}
+
+.anuncio-image-container {
+  position: relative;
+  overflow: hidden;
+  height: 100%;
+}
+
+.anuncio-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.anuncio-card:hover .anuncio-image {
+  transform: scale(1.1);
+}
+
+.anuncio-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.8), transparent);
+  color: white;
+  padding: 30px;
+  transform: translateY(20px);
+  transition: transform 0.3s ease, opacity 0.3s ease;
+  opacity: 0;
+}
+
+.anuncio-card:hover .anuncio-overlay {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+.anuncio-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+}
+
+.anuncio-description {
+  font-size: 1rem;
+  margin-bottom: 0;
+  opacity: 0.95;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
+  line-height: 1.4;
+}
+
+// Mensaje cuando no hay anuncios
+.min-vh-100 {
+  min-height: 100vh !important;
+}
+
+.alert {
+  border: none;
+  border-radius: 15px;
+  padding: 20px 30px;
+  font-size: 1.1rem;
+}
+
+// Loading spinner
+.spinner-border {
+  width: 3rem;
+  height: 3rem;
+}
+
+// Responsive adjustments
+@media (max-width: 992px) {
+  .row.g-0 > [class*="col-"] {
+    height: 50vh; // Mantener 50% en tablets
+  }
+  
+  .anuncio-title {
+    font-size: 1.3rem;
+  }
+  
+  .anuncio-description {
+    font-size: 0.9rem;
+  }
+  
+  .anuncio-overlay {
+    padding: 20px;
+  }
+}
+
+@media (max-width: 768px) {
+  .row.g-0 > [class*="col-"] {
+    height: 25vh; // En móviles, cada sección es 25% de altura
+  }
+  
+  .anuncio-title {
+    font-size: 1.1rem;
+  }
+  
+  .anuncio-description {
+    font-size: 0.8rem;
+  }
+  
+  .anuncio-overlay {
+    padding: 15px;
+  }
+}
+
+@media (max-width: 576px) {
+  .anuncio-overlay {
+    padding: 10px;
+    background: rgba(0, 0, 0, 0.8); // Más opaco en móviles
+    opacity: 1; // Siempre visible en móviles
+    transform: translateY(0);
+  }
+  
+  .anuncio-title {
+    font-size: 1rem;
+  }
+  
+  .anuncio-description {
+    font-size: 0.75rem;
+  }
+}
+
+// Animaciones suaves
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.anuncio-card {
+  animation: fadeIn 0.6s ease-out;
+}
+
+// Asegurar que no haya scroll
+html, body {
+  overflow: hidden;
+}
+
+// Padding mínimo entre secciones
+.p-1 {
+  padding: 2px !important;
+}
+
+// Sombras sutiles entre secciones
+.anuncio-card.border-0.shadow-sm {
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1) !important;
+}
+
+.anuncio-card:hover.border-0.shadow-sm {
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3) !important;
+}
