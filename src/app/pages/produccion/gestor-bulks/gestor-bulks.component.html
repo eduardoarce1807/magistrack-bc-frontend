@@ -1,0 +1,358 @@
+<div class="card">
+  <div class="card-header d-flex justify-content-between align-items-center mb-4">
+    <div class="d-flex align-items-center">
+      <i class="pi pi-list me-2"></i>
+      <h3 class="mb-0">Gestor de Bulks</h3>
+      <span class="badge bg-primary ms-3" *ngIf="!loading">
+        {{ getFilteredBulksCount() }} / {{ getTotalBulks() }} bulks
+      </span>
+    </div>
+    <p-button 
+      icon="pi pi-refresh" 
+      label="Actualizar" 
+      [loading]="loading"
+      (onClick)="refreshData()"
+      severity="secondary">
+    </p-button>
+  </div>
+
+  <!-- Mensaje de carga -->
+  <div *ngIf="loading" class="text-center p-4">
+    <p-progressSpinner></p-progressSpinner>
+    <p class="mt-2 text-muted">Cargando bulks...</p>
+  </div>
+
+  <!-- Contenido principal -->
+  <div *ngIf="!loading">
+    <p-card>
+      <div class="mb-3">
+        <div class="row g-3">
+          <!-- Filtro global -->
+          <div class="col-md-6">
+            <p-iconField iconPosition="left">
+              <p-inputIcon styleClass="pi pi-search"></p-inputIcon>
+              <input 
+                pInputText 
+                type="text" 
+                [(ngModel)]="globalFilterValue"
+                (input)="onGlobalFilter(dt, $event)" 
+                placeholder="Buscar por ID, nombre, descripción, estado..." 
+                >
+            </p-iconField>
+          </div>
+          
+          <!-- Filtro por estado -->
+          <div class="col-md-4">
+            <p-dropdown 
+              [options]="stateOptions" 
+              [(ngModel)]="selectedState"
+              (ngModelChange)="onStateChange()"
+              optionLabel="label" 
+              optionValue="value"
+              placeholder="Filtrar por estado"
+              [showClear]="true"
+              styleClass="w-100">
+            </p-dropdown>
+          </div>
+          
+          <!-- Botón limpiar filtros -->
+          <div class="col-md-2">
+            <p-button 
+              label="Limpiar" 
+              icon="pi pi-filter-slash" 
+              severity="secondary"
+              [outlined]="true"
+              (onClick)="clear(dt)" 
+              class="w-100">
+            </p-button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Información de filtros activos -->
+      <div *ngIf="selectedState !== null" class="mb-3">
+        <div class="alert alert-info d-flex align-items-center">
+          <i class="pi pi-info-circle me-2"></i>
+          <span>Mostrando solo bulks en estado: <strong>{{ getSelectedStateLabel() }}</strong></span>
+          <p-button 
+            icon="pi pi-times" 
+            [text]="true" 
+            size="small"
+            (onClick)="selectedState = null; onStateChange()" 
+            class="ms-auto"
+            severity="info">
+          </p-button>
+        </div>
+      </div>
+
+      <p-table 
+        #dt
+        [value]="filteredBulks" 
+        [loading]="loading"
+        [paginator]="true" 
+        [rows]="10"
+        [rowsPerPageOptions]="[5, 10, 20, 50]"
+        [globalFilterFields]="['idBulk', 'nombreItem', 'descripcionItem', 'estadoProducto', 'tipoBulk']"
+        [scrollable]="true"
+        scrollHeight="60vh"
+        scrollDirection="both"
+        [showCurrentPageReport]="true"
+        currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} registros"
+        responsiveLayout="scroll"
+        styleClass="p-datatable-striped"
+        [style]="{'overflow-x': 'auto', 'min-width': '100%'}"
+        [tableStyle]="{'min-width': '1300px'}">
+        
+        <!-- Encabezados de columnas -->
+        <ng-template pTemplate="header">
+          <tr>
+            <th pSortableColumn="idBulk" style="width: 120px;">
+              ID Bulk
+              <p-sortIcon field="idBulk"></p-sortIcon>
+            </th>
+            <th pSortableColumn="tipoBulk" style="width: 140px;">
+              Tipo
+              <p-sortIcon field="tipoBulk"></p-sortIcon>
+            </th>
+            <th pSortableColumn="nombreItem" style="min-width: 200px;">
+              Nombre Item
+              <p-sortIcon field="nombreItem"></p-sortIcon>
+            </th>
+            <th pSortableColumn="descripcionItem" style="min-width: 150px;">
+              Descripción
+              <p-sortIcon field="descripcionItem"></p-sortIcon>
+            </th>
+            <th pSortableColumn="totalPresentacion" style="width: 130px;" class="text-center">
+              Presentación
+              <p-sortIcon field="totalPresentacion"></p-sortIcon>
+            </th>
+            <th 
+              pSortableColumn="estadoProducto" 
+              style="width: 140px;" 
+              class="text-center">
+              Estado
+              <p-sortIcon field="estadoProducto"></p-sortIcon>
+            </th>
+            <th pSortableColumn="fechaCreacion" style="width: 180px;" class="text-center">
+              Fecha Creación
+              <p-sortIcon field="fechaCreacion"></p-sortIcon>
+            </th>
+            <!-- <th style="width: 100px;" class="text-center">
+              pH Rango
+            </th> -->
+            <th style="width: 150px;" class="text-center">
+              Acciones
+            </th>
+          </tr>
+        </ng-template>
+
+        <!-- Filas de datos -->
+        <ng-template pTemplate="body" let-bulk let-rowIndex="rowIndex">
+          <tr [ngClass]="{'bg-light': rowIndex % 2 === 0}">
+            <td>
+              <strong class="text-primary">{{ bulk.idBulk }}</strong>
+            </td>
+            <td>
+              <div class="d-flex align-items-center">
+                <i [class]="getTipoBulkIcon(bulk.tipoBulk)" class="me-2"></i>
+                <span class="badge bg-secondary">{{ getTipoBulkLabel(bulk.tipoBulk) }}</span>
+              </div>
+            </td>
+            <td>
+              <div class="fw-bold">{{ bulk.nombreItem }}</div>
+            </td>
+            <td>
+              <span 
+                *ngIf="bulk.descripcionItem" 
+                [pTooltip]="bulk.descripcionItem"
+                tooltipPosition="top"
+                class="text-muted">
+                {{ bulk.descripcionItem.length > 30 ? (bulk.descripcionItem | slice:0:30) + '...' : bulk.descripcionItem }}
+              </span>
+              <span *ngIf="!bulk.descripcionItem" class="text-muted fst-italic">Sin descripción</span>
+            </td>
+            <td class="text-center">
+              <span class="badge bg-info">
+                {{ bulk.totalPresentacion }} {{ bulk.tipoPresentacion }}
+              </span>
+            </td>
+            <td class="text-center">
+              <p-tag 
+                [value]="bulk.estadoProducto" 
+                [severity]="getSeverity(bulk.estadoProducto)">
+              </p-tag>
+            </td>
+            <td class="text-center">
+              <small class="text-muted">{{ formatDate(bulk.fechaCreacion) }}</small>
+            </td>
+            <!-- <td class="text-center">
+              <div *ngIf="bulk.phDefinidoMin !== null && bulk.phDefinidoMax !== null; else noPh">
+                <small class="text-success">
+                  {{ bulk.phDefinidoMin }} - {{ bulk.phDefinidoMax }}
+                </small>
+              </div>
+              <ng-template #noPh>
+                <span class="text-muted fst-italic">N/A</span>
+              </ng-template>
+            </td> -->
+            <td class="text-center">
+              <div class="d-flex justify-content-center gap-1">
+                <p-button 
+                  *ngIf="bulk.idBulk"
+                  icon="pi pi-print" 
+                  severity="warning"
+                  [outlined]="true"
+                  size="small"
+                  (onClick)="openModalCodigoBarraIndividual(bulk)"
+                  pTooltip="Imprimir código de barras del bulk"
+                  tooltipPosition="top">
+                </p-button>
+                <p-button 
+                  *ngIf="bulk.idBulk"
+                  icon="pi pi-list" 
+                  severity="info"
+                  [outlined]="true"
+                  size="small"
+                  (onClick)="openModalCodigoBarrasMasivo(bulk)"
+                  pTooltip="Imprimir códigos de barras de todos los productos del bulk"
+                  tooltipPosition="top">
+                </p-button>
+                <span *ngIf="!bulk.idBulk" class="text-muted fst-italic">Sin código</span>
+              </div>
+            </td>
+          </tr>
+        </ng-template>
+
+        <!-- Estado vacío -->
+        <ng-template pTemplate="emptymessage">
+          <tr>
+            <td colspan="9" class="text-center p-4">
+              <div class="d-flex flex-column align-items-center">
+                <i class="pi pi-inbox text-muted" style="font-size: 3rem;"></i>
+                <h5 class="text-muted mt-2">No se encontraron bulks</h5>
+                <p class="text-muted">
+                  <span *ngIf="selectedState !== null">
+                    No hay bulks en estado "{{ getSelectedStateLabel() }}" que coincidan con los criterios de búsqueda.
+                  </span>
+                  <span *ngIf="selectedState === null">
+                    No hay bulks que coincidan con los criterios de búsqueda.
+                  </span>
+                </p>
+                <p-button 
+                  label="Actualizar datos" 
+                  icon="pi pi-refresh" 
+                  severity="secondary"
+                  [outlined]="true"
+                  (onClick)="refreshData()">
+                </p-button>
+              </div>
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </p-card>
+  </div>
+</div>
+
+<!-- Modal para código de barras individual -->
+<ng-template #codigoBarraIndividual let-modal>
+  <div class="modal-header">
+    <h4 class="modal-title" id="modal-basic-title">Código de Barras</h4>
+    <button
+      type="button"
+      class="btn-close"
+      aria-label="Close"
+      (click)="modal.dismiss('Cross click')">
+    </button>
+  </div>
+  <div class="modal-body">
+    <div class="text-center">
+      <p><strong>Tipo:</strong> {{ getTipoBulkLabel(itemCodigoBarras?.tipoBulk) }}</p>
+      <p><strong>Nombre:</strong> {{ itemCodigoBarras?.nombreItem || 'N/A' }}</p>
+      <p><strong>ID Bulk:</strong> {{ itemCodigoBarras?.idBulk || 'N/A' }}</p>
+      <p><strong>Presentación:</strong> {{ itemCodigoBarras?.totalPresentacion }} {{ itemCodigoBarras?.tipoPresentacion }}</p>
+      <hr>
+      <div id="barcodeIndividualDiv" class="d-flex justify-content-center">
+        <div style="border: 1px dashed #ccc; padding: 20px;">
+          <svg id="barcode-individual" class="barcode"></svg>
+        </div>
+      </div>
+    </div>
+    <div class="d-flex justify-content-center mt-3">
+      <p-button 
+        label="Imprimir" 
+        icon="pi pi-print" 
+        (onClick)="imprimirCodigoBarraIndividual('barcodeIndividualDiv')">
+      </p-button>
+    </div>
+  </div>
+</ng-template>
+
+<!-- Modal para códigos de barras masivos -->
+<ng-template #codigoBarrasMasivo let-modal>
+  <div class="modal-header">
+    <h4 class="modal-title" id="modal-basic-title">Códigos de Barras - Productos del Bulk</h4>
+    <button
+      type="button"
+      class="btn-close"
+      aria-label="Close"
+      (click)="modal.dismiss('Cross click')">
+    </button>
+  </div>
+  <div class="modal-body">
+    <div *ngIf="loadingProductos" class="text-center p-4">
+      <p-progressSpinner></p-progressSpinner>
+      <p class="mt-2 text-muted">Cargando productos del bulk...</p>
+    </div>
+    
+    <div *ngIf="!loadingProductos && productosDelBulk.length > 0">
+      <div class="text-center mb-3">
+        <p><strong>Bulk:</strong> {{ bulkSeleccionado?.idBulk }}</p>
+        <p><strong>Nombre:</strong> {{ bulkSeleccionado?.nombreItem }}</p>
+        <p><strong>Productos encontrados:</strong> {{ productosDelBulk.length }}</p>
+      </div>
+      <hr>
+      <div id="barcodesMasivoDiv">
+        <div style="width: 100%; display: flex; flex-wrap: wrap; justify-content: center;">
+          <div *ngFor="let producto of productosDelBulk; let i = index" 
+               style="border: 1px dashed #ccc; padding: 8px; margin: 4px; text-align: center;">
+            <div style="margin-bottom: 5px;">
+              <small><strong>{{ producto.nombre }}</strong></small><br>
+              <small>{{ producto.presentacion }} {{ producto.tipoPresentacion }}</small><br>
+              <small>ID: {{ producto.id }}</small>
+            </div>
+            <svg [id]="'barcode-masivo-' + i" class="barcode"></svg>
+          </div>
+        </div>
+      </div>
+      <div class="d-flex justify-content-center mt-3">
+        <p-button 
+          label="Imprimir Todos" 
+          icon="pi pi-print" 
+          (onClick)="imprimirCodigoBarrasMasivo('barcodesMasivoDiv')">
+        </p-button>
+      </div>
+    </div>
+    
+    <div *ngIf="!loadingProductos && productosDelBulk.length === 0 && !errorCargandoProductos">
+      <div class="text-center p-4">
+        <i class="pi pi-info-circle text-muted" style="font-size: 3rem;"></i>
+        <h5 class="text-muted mt-2">No se encontraron productos</h5>
+        <p class="text-muted">No hay productos asociados a este bulk.</p>
+      </div>
+    </div>
+    
+    <div *ngIf="errorCargandoProductos" class="text-center p-4">
+      <i class="pi pi-exclamation-triangle text-danger" style="font-size: 3rem;"></i>
+      <h5 class="text-danger mt-2">Error al cargar productos</h5>
+      <p class="text-muted">{{ errorCargandoProductos }}</p>
+      <p-button 
+        label="Reintentar" 
+        icon="pi pi-refresh" 
+        severity="secondary"
+        [outlined]="true"
+        (onClick)="reintentarCargaProductos()">
+      </p-button>
+    </div>
+  </div>
+</ng-template>

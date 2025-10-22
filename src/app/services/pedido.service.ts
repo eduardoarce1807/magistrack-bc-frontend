@@ -228,4 +228,14 @@ export class PedidoService {
 		return this.http.put<any>(url, data);
 	}
 
+	getBulksList(): Observable<any[]> {
+		let url = `${this.baseUrl}/bulks/listado`;
+		return this.http.get<any[]>(url);
+	}
+
+	getProductosByBulkId(idBulk: string): Observable<any[]> {
+		let url = `${this.baseUrl}/productos/envasado/${idBulk}`;
+		return this.http.get<any[]>(url);
+	}
+
 }

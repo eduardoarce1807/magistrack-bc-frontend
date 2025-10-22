@@ -8,5 +8,6 @@ export const produccionRoutes: Routes = [
     { path: 'bandeja-etiquetado', loadComponent: () => import('./bandeja-etiquetado/bandeja-etiquetado.component').then(m => m.BandejaEtiquetadoComponent), canActivate: [AuthGuard], data: { roles: [1, 9] } },
     { path: 'bandeja-despacho', loadComponent: () => import('./bandeja-despacho/bandeja-despacho.component').then(m => m.BandejaDespachoComponent), canActivate: [AuthGuard], data: { roles: [1, 5, 12] } },
     { path: 'registro-despacho/:idPedido', loadComponent: () => import('./registro-despacho/registro-despacho.component').then(m => m.RegistroDespachoComponent), canActivate: [AuthGuard], data: { roles: [1, 5, 12] } },
+    { path: 'gestor-bulks', loadComponent: () => import('./gestor-bulks/gestor-bulks.component').then(m => m.GestorBulksComponent), canActivate: [AuthGuard], data: { roles: [1] } },
 
 ];
