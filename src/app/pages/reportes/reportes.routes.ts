@@ -11,4 +11,5 @@ export const reportesRoutes: Routes = [
   { path: 'top-n', loadComponent: () => import('./reporte-top-n/reporte-top-n.component').then(m => m.ReporteTopNComponent), canActivate: [AuthGuard], data: { roles: [1, 5] } },
   { path: 'pedidos-produccion', loadComponent: () => import('./reporte-pedidos-produccion/reporte-pedidos-produccion.component').then(m => m.ReportePedidosProduccionComponent), canActivate: [AuthGuard], data: { roles: [1, 5] } },
   { path: 'cumplimiento-fee', loadComponent: () => import('./reporte-cumplimiento-fee/reporte-cumplimiento-fee.component').then(m => m.ReporteCumplimientoFeeComponent), canActivate: [AuthGuard], data: { roles: [1, 5] } },
+  { path: 'reporte-despacho', loadComponent: () => import('./reporte-despacho/reporte-despacho.component').then(m => m.ReporteDespachoComponent), canActivate: [AuthGuard], data: { roles: [1, 12] } },
 ];

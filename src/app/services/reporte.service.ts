@@ -20,4 +20,8 @@ export class ReporteService {
     return this.http.post<any>(`${this.baseUrl}/cumplimiento-fee`, filtros);
   }
 
+  getReporteDespacho(filtros: any): Observable<any[]> {
+    return this.http.post<any[]>(`${this.baseUrl}/despacho`, filtros);
+  }
+
 }

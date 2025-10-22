@@ -1,0 +1,418 @@
+<div class="container-fluid mt-5" style="padding: 0px 60px;">
+	<div class="card shadow-lg p-4 rounded-4">
+		<h2 class="mb-4 text-center">Reporte de Despacho</h2>
+
+		<!-- Filtros -->
+		<div class="card mb-4">
+			<div class="card-header">
+				<h5 class="mb-0">
+					<i class="bi bi-funnel me-2"></i>Filtros de Búsqueda
+				</h5>
+			</div>
+			<div class="card-body">
+				<div class="row g-3">
+					<!-- Fechas -->
+					<div class="col-md-3">
+						<label for="fechaInicio" class="form-label">Fecha Inicio</label>
+						<p-calendar 
+							[(ngModel)]="fechaInicio" 
+							dateFormat="dd/mm/yy"
+							[showIcon]="true"
+							inputId="fechaInicio"
+							styleClass="w-100"
+							placeholder="Seleccionar fecha">
+						</p-calendar>
+					</div>
+					<div class="col-md-3">
+						<label for="fechaFin" class="form-label">Fecha Fin</label>
+						<p-calendar 
+							[(ngModel)]="fechaFin" 
+							dateFormat="dd/mm/yy"
+							[showIcon]="true"
+							inputId="fechaFin"
+							styleClass="w-100"
+							placeholder="Seleccionar fecha">
+						</p-calendar>
+					</div>
+
+					<!-- Tipo de Entrega -->
+					<div class="col-md-3">
+						<label for="tipoEntrega" class="form-label">Tipo de Entrega</label>
+						<p-multiSelect 
+							[(ngModel)]="tiposEntregaSeleccionados"
+							[options]="tiposEntrega"
+							optionLabel="descripcion"
+							placeholder="Seleccionar tipos de entrega"
+							styleClass="w-100"
+							[filter]="true"
+							filterPlaceHolder="Buscar...">
+						</p-multiSelect>
+					</div>
+
+					<!-- Tipo de Pago -->
+					<div class="col-md-3">
+						<label for="tipoPago" class="form-label">Tipo de Pago</label>
+						<p-multiSelect 
+							[(ngModel)]="tiposPagoSeleccionados"
+							[options]="tiposPago"
+							optionLabel="descripcion"
+							placeholder="Seleccionar tipos de pago"
+							styleClass="w-100"
+							[filter]="true"
+							filterPlaceHolder="Buscar...">
+						</p-multiSelect>
+					</div>
+
+					<!-- Canal de Venta -->
+					<div class="col-md-4">
+						<label for="canalVenta" class="form-label">Canal de Venta</label>
+						<p-multiSelect 
+							[(ngModel)]="canalesVentaSeleccionados"
+							[options]="canalesVenta"
+							optionLabel="descripcion"
+							placeholder="Seleccionar canales"
+							styleClass="w-100"
+							[filter]="true"
+							filterPlaceHolder="Buscar...">
+						</p-multiSelect>
+					</div>
+
+					<!-- Productos -->
+					<div class="col-md-4">
+						<label for="productos" class="form-label">Productos</label>
+						<p-multiSelect 
+							[(ngModel)]="productosSeleccionados"
+							[options]="productos"
+							optionLabel="displayText"
+							placeholder="Seleccionar productos"
+							styleClass="w-100"
+							[filter]="true"
+							filterPlaceHolder="Buscar productos...">
+							<ng-template let-producto pTemplate="item">
+								<div>
+									<span class="fw-bold">{{producto.idProducto}}</span> - 
+									{{producto.productoMaestro.nombre.length > 35 
+										? producto.productoMaestro.nombre.substring(0, 35) + '...'
+										: producto.productoMaestro.nombre}} - {{producto.presentacion}} {{producto.tipoPresentacion.descripcion}}
+								</div>
+							</ng-template>
+						</p-multiSelect>
+					</div>
+
+					<!-- Clientes -->
+					<div class="col-md-4">
+						<label for="clientes" class="form-label">Clientes</label>
+						<p-multiSelect 
+							[(ngModel)]="clientesSeleccionados"
+							[options]="clientes"
+							optionLabel="nombres"
+							placeholder="Seleccionar clientes"
+							styleClass="w-100"
+							[filter]="true"
+							filterPlaceHolder="Buscar clientes...">
+							<ng-template let-cliente pTemplate="item">
+								<div>
+									{{cliente.nombres}} {{cliente.apellidos}}
+								</div>
+							</ng-template>
+						</p-multiSelect>
+					</div>
+
+					<!-- Tipo de Cliente -->
+					<div class="col-md-4">
+						<label for="roles" class="form-label">Tipo de Cliente</label>
+						<p-multiSelect 
+							[(ngModel)]="rolesSeleccionados"
+							[options]="roles"
+							optionLabel="nombre"
+							placeholder="Seleccionar tipos de cliente"
+							styleClass="w-100"
+							[filter]="true"
+							filterPlaceHolder="Buscar tipos...">
+						</p-multiSelect>
+					</div>
+				</div>
+
+				<!-- Botones de acción -->
+				<div class="row mt-4">
+					<div class="col-12 d-flex justify-content-center gap-2">
+						<button 
+							type="button" 
+							class="btn btn-primary"
+							(click)="buscarDespachos()"
+							[disabled]="loading">
+							<i class="bi bi-search me-2"></i>
+							@if (loading) {
+								<span class="spinner-border spinner-border-sm me-2" role="status"></span>
+								Buscando...
+							} @else {
+								Buscar Despachos
+							}
+						</button>
+						<button 
+							type="button" 
+							class="btn btn-success"
+							(click)="exportarExcel()"
+							[disabled]="exportDisabled">
+							<i class="bi bi-file-earmark-excel me-2"></i>
+							Exportar Excel
+						</button>
+						<button 
+							type="button" 
+							class="btn btn-secondary"
+							(click)="limpiarFiltros()">
+							<i class="bi bi-arrow-clockwise me-2"></i>
+							Limpiar Filtros
+						</button>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<!-- Información de estado -->
+		@if (datosDespacho.length > 0 && !loading) {
+			<div class="alert alert-info mb-4">
+				<i class="bi bi-info-circle me-2"></i>
+				<strong>Mostrando {{datosDespacho.length}} registros</strong> 
+				- Filtro aplicado: Solo pedidos en estado de despacho
+				@if (datosAgrupados.length > 0) {
+					| <strong>{{datosAgrupados.length}} pedidos únicos</strong>
+				}
+			</div>
+		}
+
+		<!-- Tabla de resultados agrupados -->
+		@if (datosAgrupados.length > 0) {
+			<div class="card">
+				<div class="card-header">
+					<h5 class="mb-0">
+						<i class="bi bi-table me-2"></i>Resultados Agrupados por Pedido - Cliente
+					</h5>
+				</div>
+				<div class="card-body">
+					<div class="table-responsive">
+						@for (grupo of datosAgrupados; track grupo.idPedido) {
+							<div class="card mb-3 border">
+								<div class="card-header bg-light">
+									<div class="row">
+										<div class="col-md-6">
+											<h6 class="mb-0">
+												<i class="bi bi-box-seam me-2"></i>
+												<strong>Pedido:</strong> {{grupo.idPedido}}
+											</h6>
+											<small class="text-muted">
+												<strong>Cliente:</strong> {{grupo.cliente}}
+											</small>
+										</div>
+										<div class="col-md-6 text-md-end">
+											<div class="mb-1">
+												<strong>Fecha:</strong> {{grupo.fecha | date:'dd/MM/yyyy'}}
+											</div>
+											<div class="mb-1">
+												<strong>Total Pedido:</strong> S/ {{grupo.totalPedido | number:'1.2-2'}}
+											</div>
+										</div>
+									</div>
+									<div class="row mt-2">
+										<div class="col-md-4">
+											<small><strong>Método Pago:</strong> {{grupo.metodoPago}}</small>
+										</div>
+										<div class="col-md-4">
+											<small><strong>Canal:</strong> {{grupo.canal}}</small>
+										</div>
+										<div class="col-md-4">
+											<small><strong>Tipo Entrega:</strong> {{grupo.tipoEntrega}}</small>
+										</div>
+									</div>
+								</div>
+								<div class="card-body">
+									<div class="table-responsive">
+										<table class="table table-sm table-hover">
+											<thead class="table-dark">
+												<tr>
+													<th>Producto</th>
+													<th>Presentación</th>
+													<th class="text-center">Cantidad</th>
+													<th class="text-end">Precio Unit. (S/)</th>
+													<th class="text-end">Subtotal (S/)</th>
+												</tr>
+											</thead>
+											<tbody>
+												@for (producto of grupo.productos; track $index) {
+													<tr>
+														<td>{{producto.producto}}</td>
+														<td>{{producto.presentacion}}</td>
+														<td class="text-center">{{producto.cantidad}}</td>
+														<td class="text-end">{{producto.precioUnitario | number:'1.2-2'}}</td>
+														<td class="text-end">{{producto.subtotal | number:'1.2-2'}}</td>
+													</tr>
+												}
+											</tbody>
+											<tfoot class="table-light">
+												<tr>
+													<td colspan="2"><strong>Totales del Pedido:</strong></td>
+													<td class="text-center">
+														<strong>{{calcularTotalProductosPorPedido(grupo.productos)}}</strong>
+													</td>
+													<td></td>
+													<td class="text-end">
+														<strong>S/ {{calcularSubtotalPorPedido(grupo.productos) | number:'1.2-2'}}</strong>
+													</td>
+												</tr>
+											</tfoot>
+										</table>
+									</div>
+								</div>
+							</div>
+						}
+					</div>
+				</div>
+			</div>
+		}
+
+		<!-- Tabla de resultados detallados -->
+		@if (datosDespacho.length > 0) {
+			<div class="card mt-4">
+				<div class="card-header">
+					<h5 class="mb-0">
+						<i class="bi bi-list-ul me-2"></i>Detalle Completo
+					</h5>
+				</div>
+				<div class="card-body">
+					<p-table 
+						[value]="datosDespacho" 
+						[paginator]="true" 
+						[rows]="pageSize"
+						[totalRecords]="datosDespacho.length"
+						[loading]="loading"
+						[sortMode]="'multiple'"
+						[globalFilterFields]="['fecha', 'idPedido', 'cliente', 'producto', 'metodoPago', 'canal', 'tipoEntrega']"
+						styleClass="p-datatable-sm"
+						responsiveLayout="scroll">
+						
+						<ng-template pTemplate="header">
+							<tr>
+								<th pSortableColumn="fecha">
+									<div class="flex justify-content-between align-items-center">
+										Fecha
+										<p-sortIcon field="fecha" />
+									</div>
+								</th>
+								<th pSortableColumn="idPedido">
+									<div class="flex justify-content-between align-items-center">
+										N° Pedido
+										<p-sortIcon field="idPedido" />
+									</div>
+								</th>
+								<th pSortableColumn="cliente">
+									<div class="flex justify-content-between align-items-center">
+										Cliente
+										<p-sortIcon field="cliente" />
+									</div>
+								</th>
+								<th pSortableColumn="producto">
+									<div class="flex justify-content-between align-items-center">
+										Producto
+										<p-sortIcon field="producto" />
+									</div>
+								</th>
+								<th pSortableColumn="presentacion">
+									<div class="flex justify-content-between align-items-center">
+										Presentación
+										<p-sortIcon field="presentacion" />
+									</div>
+								</th>
+								<th pSortableColumn="cantidad">
+									<div class="flex justify-content-between align-items-center">
+										Cantidad
+										<p-sortIcon field="cantidad" />
+									</div>
+								</th>
+								<th pSortableColumn="precioUnitario">
+									<div class="flex justify-content-between align-items-center">
+										Precio Unit. (S/)
+										<p-sortIcon field="precioUnitario" />
+									</div>
+								</th>
+								<th pSortableColumn="subtotal">
+									<div class="flex justify-content-between align-items-center">
+										Subtotal (S/)
+										<p-sortIcon field="subtotal" />
+									</div>
+								</th>
+								<th pSortableColumn="totalPedido">
+									<div class="flex justify-content-between align-items-center">
+										Total Pedido (S/)
+										<p-sortIcon field="totalPedido" />
+									</div>
+								</th>
+								<th pSortableColumn="metodoPago">
+									<div class="flex justify-content-between align-items-center">
+										Método Pago
+										<p-sortIcon field="metodoPago" />
+									</div>
+								</th>
+								<th pSortableColumn="canal">
+									<div class="flex justify-content-between align-items-center">
+										Canal
+										<p-sortIcon field="canal" />
+									</div>
+								</th>
+								<th pSortableColumn="tipoCliente">
+									<div class="flex justify-content-between align-items-center">
+										Tipo Cliente
+										<p-sortIcon field="tipoCliente" />
+									</div>
+								</th>
+								<th pSortableColumn="tipoEntrega">
+									<div class="flex justify-content-between align-items-center">
+										Tipo Entrega
+										<p-sortIcon field="tipoEntrega" />
+									</div>
+								</th>
+							</tr>
+						</ng-template>
+						
+						<ng-template pTemplate="body" let-item>
+							<tr>
+								<td>{{item.fecha | date:'dd/MM/yyyy'}}</td>
+								<td>{{item.idPedido}}</td>
+								<td>{{item.cliente}}</td>
+								<td>{{item.producto}}</td>
+								<td>{{item.presentacion}}</td>
+								<td class="text-center">{{item.cantidad}}</td>
+								<td class="text-end">{{item.precioUnitario | number:'1.2-2'}}</td>
+								<td class="text-end">{{item.subtotal | number:'1.2-2'}}</td>
+								<td class="text-end">{{item.totalPedido | number:'1.2-2'}}</td>
+								<td>{{item.metodoPago}}</td>
+								<td>{{item.canal}}</td>
+								<td>{{item.tipoCliente}}</td>
+								<td>{{item.tipoEntrega}}</td>
+							</tr>
+						</ng-template>
+						
+						<ng-template pTemplate="emptymessage">
+							<tr>
+								<td colspan="13" class="text-center py-4">
+									@if (loading) {
+										<div class="d-flex justify-content-center align-items-center">
+											<div class="spinner-border me-2" role="status">
+												<span class="visually-hidden">Cargando...</span>
+											</div>
+											Cargando datos...
+										</div>
+									} @else {
+										<div class="text-muted">
+											<i class="bi bi-info-circle me-2"></i>
+											No se encontraron datos de despacho. Realice una búsqueda para mostrar resultados.
+										</div>
+									}
+								</td>
+							</tr>
+						</ng-template>
+					</p-table>
+				</div>
+			</div>
+		}
+	</div>
+</div>
