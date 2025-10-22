@@ -180,7 +180,7 @@ export class InventarioMatprimaComponent {
 							this.subirBaja.cant_salida=0
 							this.subirBaja.observaciones=''
 							this.verdardebaja=true
-							this.veradicionar
+							this.veradicionar=false
 							this.cargartipomovimiento()
 							this.cambiotipomovimento()
 						}
@@ -474,13 +474,13 @@ export class InventarioMatprimaComponent {
 		this.subirBaja.id_materia_prima=this.fila_select.id_materia_prima
 		this.subirBaja.path_kardex=''
 
-		if((this.subirBaja.archivobase64=='' || !this.subirBaja.archivobase64) && this.verdardebaja){
+		if((this.subirBaja.archivobase64=='' || !this.subirBaja.archivobase64)){
 			this.messageService.add({ severity: 'warn', summary: 'Aviso de usuario', detail: 'Debe subir una imagen para validar' });
 			return
 		}
 		// console.log(this.subirBaja)
 		this.spinner=true
-		this.verdardebaja?this.check_imagen=1:this.check_imagen=0
+		this.check_imagen=1
 		this.subirBaja.id_movimiento=this.veradicionar?2:this.verreducir?3:1
 		this.subirBaja.fecha_vencimiento=this.funcionesService.convetir_de_date_a_string_fecha(this.fechavencimiento)
 		this.verdardebaja=false
@@ -496,13 +496,13 @@ export class InventarioMatprimaComponent {
 					this.verdardebaja=false
 					this.veradicionar=false
 				}else{
-					this.verdardebaja=true
-					this.messageService.add({ severity: 'error', summary: 'Aviso de usuario', detail: 'Ocurriò un error al guardar' });
+					this.subirBaja.cant_entrada>0?this.veradicionar=true:this.verdardebaja=false
+					this.messageService.add({ severity: 'error', summary: 'Aviso de usuario', detail: 'Ocurriò un error al guardar o la imagene es muy pesada' });
 				}
 			},error:(err)=>{
 				this.spinner=false
-				this.verdardebaja=true
-				this.veradicionar=false
+				this.subirBaja.cant_entrada>0?this.veradicionar=true:this.verdardebaja=false
+				this.messageService.add({ severity: 'error', summary: 'Aviso de usuario', detail: 'Ocurriò un error al guardar o la imagene es muy pesada' });
 			}
 		})
 	}
