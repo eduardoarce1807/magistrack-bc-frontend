@@ -358,7 +358,7 @@
 				</div>
 				<div class="row">
 					<div class="col-md-6 d-flex flex-column">
-						<label class="p-text-secondary fw-bold">Ficha Técnica</label>
+						<label class="p-text-secondary fw-bold">Nombre de ficha Técnica</label>
 						<input
 							class="w-full"
 							type="text"
@@ -555,7 +555,7 @@
 							readonly
 							[(ngModel)]="fila_select.stock_materia" /></div>
 					<div class="col-md-6 d-flex flex-column">
-						<label class="p-text-secondary fw-bold">Cantidad adicional</label>
+						<label class="p-text-secondary fw-bold">Cantidad registrada</label>
 						<p-inputNumber
 							inputId="integeronly"
 							[(ngModel)]="subirBaja.cant_entrada"
@@ -563,7 +563,7 @@
 				</div>
 				<div class="row">
 					<div class="col-md-6 d-flex flex-column">
-						<label class="p-text-secondary fw-bold">Ficha Técnica</label>
+						<label class="p-text-secondary fw-bold">Nombre de ficha Técnica</label>
 						<input
 							class="w-full"
 							type="text"
@@ -626,6 +626,51 @@
 					pInputTextarea
 					[(ngModel)]="subirBaja.observaciones">
 				</textarea>
+				<div class="row">
+					<div class="col-md-4 col-sm-12 d-flex flex-column">
+
+						<label class="mt-2">Adjuntar ficha técnica (PDF,images*)</label>
+						<p-fileUpload
+							mode="basic"
+							name="demo[]"
+							chooseIcon="pi pi-upload"
+							url="https://www.primefaces.org/cdn/api/upload.php"
+							accept="image/*,application/pdf"
+							maxFileSize="10000000"
+							(onSelect)="this.carga=true"
+							(onUpload)="onBasicUploadAuto($event);"
+							[auto]="true"
+							[disabled]="carga"
+							chooseLabel="Buscar Archivos" />
+					</div>
+					<div class="col-md-8 col-sm-12 d-flex justify-content-center align-items-center">
+						@if (carga){
+							<div class="d-flex align-items-center justify-content-center">
+								<i class="pi pi-spin pi-cog" style="font-size: 100px;color: #5698bb"></i>
+							</div>
+						}
+
+						@if (subirBaja.archivobase64 && !carga){
+							<img *ngIf="subirBaja.extensiondoc === 'jpeg' || subirBaja.extensiondoc === 'jpg' || subirBaja.extensiondoc === 'png'"
+								 [src]="subirBaja.archivobase64"
+								 style="max-width: 100%; max-height: 250px;" class="mt-2" />
+
+							@if(subirBaja.extensiondoc === 'pdf' && !carga){
+
+								<app-mostrar-pdf [base64pdf]="subirBaja.archivobase64" class="mt-2"></app-mostrar-pdf>
+							}
+							<!--								<iframe *ngIf="subirBaja.extensiondoc === 'pdf' && !carga"-->
+								<!--										[src]="sanitizarPdf(subirBaja.archivobase64)"-->
+								<!--										width="100%"-->
+								<!--										height="250"-->
+								<!--										style="border: none"-->
+								<!--										allowfullscreen>-->
+								<!--								</iframe>-->
+								<!--								<button (click)="abrirPdf(subirBaja.archivobase64)">Abrir PDF en nueva pestaña</button>-->
+
+						}
+					</div>
+				</div>
 
 			</div>
 		</div>
