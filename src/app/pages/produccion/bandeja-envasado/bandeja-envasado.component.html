@@ -66,6 +66,7 @@
 						</th>
 						<th scope="col" style="min-width: 120px;">Código producto</th>
 						<th scope="col" style="min-width: 200px;">Nombre producto</th>
+						<th scope="col" style="min-width: 120px;">Tipo de Envase</th>
 						<th scope="col" style="min-width: 120px;">Presentación</th>
 						<th scope="col" style="min-width: 100px;">Cantidad</th>
 						<th scope="col" style="min-width: 100px;">Estado</th>
@@ -76,7 +77,7 @@
 				<tbody>
 					@if (productos.length === 0 && !isSearching) {
 						<tr>
-							<td colspan="8" class="text-center py-4">
+							<td colspan="9" class="text-center py-4">
 								<div class="text-muted">
 									<i class="bi bi-search fs-1"></i>
 									<p class="mt-2">{{ idBulkBusqueda.trim() ? 'No se encontraron productos para este ID Bulk.' : 'Ingrese un ID Bulk para buscar productos en envasado.' }}</p>
@@ -107,6 +108,7 @@
 					</td>
 					<td>{{ item.idProducto }}</td>
 					<td>{{ item.nombre }}</td>
+					<td>{{ item.tipoEnvase }}</td>
 					<td>{{ item.presentacion + " " + item.tipoPresentacion }}</td>
 					<td>{{ item.cantidad }}</td>
 					<td>{{ item.estadoProducto }}</td>

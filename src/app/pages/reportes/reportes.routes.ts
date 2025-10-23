@@ -18,4 +18,5 @@ export const reportesRoutes: Routes = [
   { path: 'entradas-salidas', loadComponent: () => import('./inventario/reporte-entradas-salidas/reporte-entradas-salidas.component').then(m => m.ReporteEntradasSalidasComponent), canActivate: [AuthGuard], data: { roles: [1] } },
   { path: 'reporte-valorizacion', loadComponent: () => import('./inventario/reporte-valorizacion/reporte-valorizacion.component').then(m => m.ReporteValorizacionComponent), canActivate: [AuthGuard], data: { roles: [1] } },
   { path: 'reporte-categoria-mp', loadComponent: () => import('./compras/reporte-categorida-mp/reporte-categorida-mp.component').then(m => m.ReporteCategoridaMpComponent), canActivate: [AuthGuard], data: { roles: [1] } },
+  { path: 'reporte-despacho', loadComponent: () => import('./reporte-despacho/reporte-despacho.component').then(m => m.ReporteDespachoComponent), canActivate: [AuthGuard], data: { roles: [1, 12] } },
 ];

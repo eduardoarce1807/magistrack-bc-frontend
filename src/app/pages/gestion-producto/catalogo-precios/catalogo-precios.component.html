@@ -115,13 +115,56 @@
 				[tableStyle]="{'min-width': '30rem'}"
 				[rowsPerPageOptions]="[5, 25, 50]"
 				dataKey="idCatalogoProducto"
-				[globalFilterFields]="['producto.idProducto', 'producto.productoMaestro.nombre']"
+				[globalFilterFields]="['producto.idProducto', 'producto.productoMaestro.nombre', 'tipoEnvase']"
 				[style.opacity]="isLoading ? '0.3' : '1'"
 				[style.pointer-events]="isLoading ? 'none' : 'auto'"
+				(onPage)="onPageChange($event)"
 			>
-		>
 			<ng-template pTemplate="caption">
 					<div class="flex justify-between items-center">
+						<!-- Botones de acción masiva -->
+						<div class="d-flex gap-2">
+							<button 
+								*ngIf="productosSeleccionados.length > 0 && todosSeleccionadosActivos()" 
+								class="btn btn-danger btn-sm"
+								(click)="desactivarEnBloque()"
+								ngbTooltip="Desactivar productos seleccionados"
+								placement="top"
+							>
+								<i class="bi bi-dash-circle me-1"></i>
+								Desactivar Seleccionados ({{productosSeleccionados.length}})
+							</button>
+							<button 
+								*ngIf="productosSeleccionados.length > 0 && todosSeleccionadosInactivos()" 
+								class="btn btn-success btn-sm"
+								(click)="activarEnBloque()"
+								ngbTooltip="Activar productos seleccionados"
+								placement="top"
+							>
+								<i class="bi bi-check-circle me-1"></i>
+								Activar Seleccionados ({{productosSeleccionados.length}})
+							</button>
+							<button 
+								*ngIf="productosSeleccionados.length > 0" 
+								class="btn btn-secondary btn-sm"
+								(click)="limpiarSeleccion()"
+								ngbTooltip="Limpiar selección"
+								placement="top"
+							>
+								<i class="bi bi-x-lg me-1"></i>
+								Limpiar
+							</button>
+							<button 
+								class="btn btn-success btn-sm"
+								(click)="exportarExcel()"
+								[disabled]="exportDisabled"
+								ngbTooltip="Exportar catálogo a Excel"
+								placement="top"
+							>
+								<i class="bi bi-file-earmark-excel me-1"></i>
+								Exportar Excel
+							</button>
+						</div>
 
 						<div class="text-end">
 							<p-iconField iconPosition="left">
@@ -141,6 +184,15 @@
 				</ng-template>
 			<ng-template pTemplate="header">
 				<tr>
+					<th style="width: 50px">
+						<input 
+							type="checkbox" 
+							class="form-check-input" 
+							[(ngModel)]="todosSeleccionados"
+							(change)="toggleTodosSeleccionados()"
+							[indeterminate]="haySeleccionParcial()"
+						/>
+					</th>
 					<th pSortableColumn="producto.idProducto" style="width: 20px">
 						<div class="flex justify-content-between align-items-center">
 							Código
@@ -153,6 +205,13 @@
 							Nombre
 							<p-sortIcon field="producto.productoMaestro.nombre" />
 							<p-columnFilter type="text" field="producto.productoMaestro.nombre" display="menu" class="ml-auto" />
+						</div>
+					</th>
+					<th pSortableColumn="tipoEnvase">
+						<div class="flex justify-content-between align-items-center">
+							Tipo de Envase
+							<p-sortIcon field="tipoEnvase" />
+							<p-columnFilter type="text" field="tipoEnvase" display="menu" class="ml-auto" />
 						</div>
 					</th>
 					<th pSortableColumn="costo" style="display: none;">
@@ -187,9 +246,18 @@
 				</tr>
 			</ng-template>
 			<ng-template pTemplate="body" let-item>
-				<tr>
+				<tr [class.selected]="item.seleccionado">
+					<td>
+						<input 
+							type="checkbox" 
+							class="form-check-input" 
+							[(ngModel)]="item.seleccionado"
+							(change)="onSeleccionProducto(item)"
+						/>
+					</td>
 					<td>{{item.producto.idProducto}}</td>
 					<td>{{item.producto.productoMaestro.nombre}} - {{item.producto.presentacion}} {{item.producto.tipoPresentacion.descripcion}}</td>
+					<td>{{item.tipoEnvase}}</td>
 					<td style="display: none;">
 						<input 
 							*ngIf="isEditing(item); else costoReadonly" 

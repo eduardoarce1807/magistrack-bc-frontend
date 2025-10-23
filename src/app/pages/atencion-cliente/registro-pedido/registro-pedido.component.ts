@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, effect, EventEmitter, inject, OnDestroy, OnInit, Output, signal, TemplateRef, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, effect, EventEmitter, inject, OnDestroy, OnInit, Output, signal, TemplateRef, ViewChild } from '@angular/core';
 import { ProductoService } from '../../../services/producto.service';
 import Swal from 'sweetalert2';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
@@ -22,6 +22,8 @@ import { InputIconModule } from 'primeng/inputicon';
 import { InputTextModule } from 'primeng/inputtext';
 import { Table, TableModule } from 'primeng/table';
 import { DocumentoService } from '../../../services/documento.service';
+import { StepperModule } from 'primeng/stepper';
+import { PagarPedidoComponent } from '../pagar-pedido/pagar-pedido.component';
 
 interface PedidoRequest {
   idCliente: number;
@@ -114,7 +116,7 @@ interface Direccion {
 @Component({
   selector: 'app-registro-pedido',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, NgbTooltipModule, ToastsContainer, NgbPaginationModule, TableModule, ButtonModule, IconFieldModule, InputIconModule, InputTextModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, NgbTooltipModule, ToastsContainer, NgbPaginationModule, TableModule, ButtonModule, IconFieldModule, InputIconModule, InputTextModule, StepperModule, PagarPedidoComponent],
   templateUrl: './registro-pedido.component.html',
   styleUrl: './registro-pedido.component.scss'
 })
@@ -126,6 +128,38 @@ export class RegistroPedidoComponent implements OnInit, OnDestroy {
   toastService = inject(ToastService);
 
   idRol: number = 0;
+
+  // Propiedades para el stepper
+  activeStepIndex: number = 0;
+  pedidoPagado: boolean = false;
+  loadingPedido: boolean = true;
+
+  // Getter para verificar si el pedido está pagado (sin logs infinitos)
+  get esPedidoPagado(): boolean {
+    return this.pedidoPagado;
+  }
+
+  // Método para actualizar el estado de pago
+  private actualizarEstadoPago(): void {
+    const estadoAnterior = this.pedidoPagado;
+    this.pedidoPagado = this.pedido && this.pedido.estadoPedido && this.pedido.estadoPedido.idEstadoPedido > 1;
+    
+    if (estadoAnterior !== this.pedidoPagado) {
+      console.log('Estado de pago actualizado:', {
+        pedido: !!this.pedido,
+        estadoPedido: this.pedido?.estadoPedido,
+        idEstado: this.pedido?.estadoPedido?.idEstadoPedido,
+        pedidoPagado: this.pedidoPagado
+      });
+    }
+
+    this.changeDetectorRef.detectChanges();
+  }
+
+  // Getter para obtener el número total de pasos
+  get totalPasos(): number {
+    return this.esPedidoPagado ? 3 : 4;
+  }
 
   productoSeleccionado: any;
 
@@ -189,11 +223,13 @@ export class RegistroPedidoComponent implements OnInit, OnDestroy {
     this.routeSubscription = this.route.paramMap.subscribe(params => {
       this.idPedido = params.get('idPedido');
       if (this.idPedido) {
+        this.loadingPedido = true;
         this.getUbigeoData();
         this.getMetodosEntrega();
         this.getPedidoById(this.idPedido);
         // cargarProductosByIdPedido se ejecutará después de getPedidoById
       }else{
+        this.loadingPedido = false; // No hay pedido que cargar
 
         if(this.dataService.getLoggedUser().rol.idRol === 1 || this.dataService.getLoggedUser().rol.idRol === 5) {
           this.getClientes();
@@ -238,7 +274,8 @@ export class RegistroPedidoComponent implements OnInit, OnDestroy {
     private ubigeoService: UbigeoService,
     private clienteService: ClienteService,
     private cuponService: CuponService,
-    private documentoService: DocumentoService
+    private documentoService: DocumentoService,
+    private changeDetectorRef: ChangeDetectorRef
   ) {
     this.idRol = this.dataService.getLoggedUser().rol.idRol;
     console.log('ID del Rol:', this.idRol);
@@ -528,10 +565,20 @@ export class RegistroPedidoComponent implements OnInit, OnDestroy {
 
 
   getPedidoById(idPedido: string): void {
+    this.loadingPedido = true;
     this.pedidoService.getPedidoById(idPedido).subscribe(
       (pedido) => {
         if(pedido) {
           this.pedido = pedido;
+          
+          // Actualizar el estado de pago
+          this.actualizarEstadoPago();
+          
+          console.log('=== DEBUG PEDIDO PAGADO ===');
+          console.log('Estado del pedido:', pedido.estadoPedido);
+          console.log('ID Estado:', pedido.estadoPedido?.idEstadoPedido);
+          console.log('Pedido pagado:', this.pedidoPagado);
+          console.log('========================');
           
           // Activar modo preparado magistral si corresponde
           this.modoPreparadoMagistral = pedido.tipoPedido === "PREPARADO_MAGISTRAL";
@@ -569,11 +616,15 @@ export class RegistroPedidoComponent implements OnInit, OnDestroy {
 
           // Cargar productos después de obtener los datos del pedido
           this.cargarProductosByIdPedido(idPedido);
+          
+          // Finalizar el loading una vez que se han cargado los datos
+          this.loadingPedido = false;
         }
         console.log('Pedido:', pedido);
       },
       (error) => {
         console.error('Error al cargar el pedido', error);
+        this.loadingPedido = false;
       }
     );
   }
@@ -1462,6 +1513,47 @@ export class RegistroPedidoComponent implements OnInit, OnDestroy {
         console.error('Error al actualizar nota de delivery:', error);
       }
     );
+  }
+
+  // Método para retroceder en el stepper
+  prevStep() {
+    if (this.activeStepIndex > 0) {
+      this.activeStepIndex--;
+    }
+  }
+
+  // Método para avanzar en el stepper
+  nextStep() {
+    const maxSteps = this.totalPasos - 1; // Convertir a índice base 0
+    console.log('nextStep - activeStepIndex:', this.activeStepIndex, 'maxSteps:', maxSteps, 'totalPasos:', this.totalPasos, 'esPedidoPagado:', this.esPedidoPagado);
+    if (this.activeStepIndex < maxSteps) {
+      this.activeStepIndex++;
+    }
+  }
+
+  // Método para verificar si se puede avanzar al siguiente paso
+  canAdvanceToNextStep(): boolean {
+    switch (this.activeStepIndex) {
+      case 0: // Paso 1: Productos
+        return this.productosPedido.length > 0;
+      case 1: // Paso 2: Cliente
+        return !!this.clienteSeleccionado || this.esClienteGenerico;
+      case 2: // Paso 3: Entrega
+        if (this.esPedidoPagado) {
+          return false; // Si está pagado, el paso 3 es el último
+        }
+        return this.lstMetodosEntrega.length > 0 && !!this.idMetodoEntregaSeleccionado;
+      case 3: // Paso 4: Pago (solo si no está pagado)
+        return false; // El último paso no necesita avanzar
+      default:
+        return false;
+    }
+  }
+
+  // Método para aceptar términos y condiciones
+  aceptarTerminos() {
+    this.modalService.dismissAll();
+    console.log('Términos y condiciones aceptados');
   }
 
 }

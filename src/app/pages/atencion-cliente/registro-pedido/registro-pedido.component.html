@@ -19,506 +19,793 @@
 			</div>
 		</div>
 
-		<!-- Buscador de Producto (solo para pedidos regulares) -->
-		@if (pedido.estadoPedido.idEstadoPedido == 1 && !modoPreparadoMagistral) {
-			<div class="row">
-			<div class="col-md-8">
-				<label for="cantidad" class="form-label">Buscar producto</label>
-			</div>
-			<div class="col-md-2">
-				<label for="cantidad" class="form-label">Cantidad</label>
-			</div>
-		</div>
-		<div class="row mb-2">
-			<div class="col-md-6">
-				<div class="position-relative">
-					<div class="input-group">
-						<input
-							type="text"
-							class="form-control"
-							placeholder="Buscar producto por nombre o código"
-							aria-label="Buscar producto"
-							[(ngModel)]="query"
-							(keyup.enter)="buscarProducto()"
-							(focus)="searchFocused = true"
-							(mousedown)="searchFocused = true"
-							(blur)="onSearchBlur()"
-						/>
-						<button
-							class="btn btn-primary"
-							type="button"
-							(click)="buscarProducto()"
-						>
-							<i class="bi bi-search"></i> Buscar
-						</button>
-					</div>
-					<ul
-						*ngIf="productosBusqueda.length > 0 && searchFocused"
-						class="list-group position-absolute w-100"
-						style="
-							z-index: 1000;
-							max-height: 200px;
-							overflow-y: auto;
-						"
-					>
-						<li
-							*ngFor="let producto of productosBusqueda"
-							(click)="selectProducto(producto)"
-							class="list-group-item list-group-item-action cursor-pointer"
-						>
-							{{ producto.productoMaestro.nombre }} - {{producto.presentacion + ' ' + producto.tipoPresentacion.descripcion}}
-						</li>
-					</ul>
+		<!-- Loading state -->
+		@if (loadingPedido) {
+			<div class="d-flex flex-column align-items-center justify-content-center py-5">
+				<div class="spinner-border text-primary mb-3" role="status" style="width: 3rem; height: 3rem;">
+					<span class="visually-hidden">Cargando...</span>
 				</div>
+				<h5 class="text-muted">Cargando información del pedido...</h5>
+				<p class="text-muted mb-0">Por favor espere un momento</p>
 			</div>
-			<div class="col-md-2">
-				<button class="btn btn-dark w-100" (click)="openModalBusquedaAvanzada(busquedaAvanzada)">Búsq. Avanzada</button>
-			</div>
-			<div class="col-md-2">
-				<input [(ngModel)]="cantidad" type="text" class="form-control" placeholder="Ej: 2" />
-			</div>
-			<div class="col-md-2">
-				<button class="btn btn-primary w-100" (click)="agregarProducto()"><i class="bi bi-plus-circle"></i> Agregar</button>
-			</div>
-		</div>
 		}
 
-		<!-- Tabla de Productos Regulares -->
-		@if (!modoPreparadoMagistral) {
-		<table
-			class="table table-bordered align-middle mt-4"
-		>
-			<thead class="table-primary">
-				<tr>
-					<th scope="col">Código</th>
-					<th scope="col">Producto</th>
-					<th scope="col">Presentación</th>
-					<th scope="col">Descripción</th>
-					<th scope="col">Personalizado</th>
-					<th scope="col">Cantidad</th>
-					<th scope="col">Precio Unitario</th>
-					<th scope="col">Subtotal</th>
-					@if (pedido.cupon) {
-						<th scope="col">Descuento</th>
-					}
-					<th scope="col">Opciones</th>
-				</tr>
-			</thead>
-			<tbody>
-				@for (item of productosPedido; track $index) {
-				<tr>
-					<td>{{item.idProducto}}</td>
-					<td>{{item.nombre}}</td>
-					<td>{{item.presentacion + ' ' + item.tipoPresentacion}}</td>
-					<td>{{item.descripcion}}</td>
-					<td>
-						@if (item.personalizado) {
-							<span class="badge bg-success">Sí</span>
-						} @else {
-							<span class="badge bg-danger">No</span>
-						}
-					</td>
-					<td style="max-width: 50px;">
-						<input
-							type="number"
-							class="form-control form-control-sm"
-							min="1"
-							[disabled]="pedido.estadoPedido.idEstadoPedido > 1"
-							[value]="item.cantidad" 
-              				(change)="changeCantidad(item, $event)" 
-						/>
-					</td>
-					<td>
-						@if (item.personalizado && !item.precioPersonalizado) {
-							-
-						} @else if(!item.tieneDescuento)  {
-							<div class="d-flex justify-content-end align-items-center">
-								<span>S/ {{item.precio.toFixed(2)}}</span>
+		<!-- Stepper de PrimeNG (se muestra solo cuando no está cargando) -->
+		@if (!loadingPedido) {
+			<p-stepper [(activeStep)]="activeStepIndex" [linear]="false" [ngClass]="{'pedido-pagado': esPedidoPagado}">
+			<!-- Paso 1: Productos y Cupón -->
+			<p-stepperPanel header="Productos y Cupón">
+				<ng-template pTemplate="content" let-nextCallback="nextCallback" let-index="index">
+					<!-- Buscador de Producto (solo para pedidos regulares) -->
+					@if (pedido.estadoPedido.idEstadoPedido == 1 && !modoPreparadoMagistral) {
+						<div class="row">
+							<div class="col-md-8">
+								<label for="cantidad" class="form-label">Buscar producto</label>
 							</div>
-						} @else if(pedido.cupon) {
-							<div class="d-flex justify-content-between align-items-center">
-								<span style="text-decoration:line-through; font-size: 11pt;">S/ {{item.precio.toFixed(2)}}</span>
-								<span>S/ {{(item.precio - ((pedido.cupon.descuento / 100) * item.precio)).toFixed(2)}}</span>
+							<div class="col-md-2">
+								<label for="cantidad" class="form-label">Cantidad</label>
 							</div>
-						}
-					</td>
-					<td>
-						@if (item.personalizado && !item.precioPersonalizado) {
-							-
-						} @else {
-							S/ {{item.subtotal.toFixed(2)}}
-						}
-					</td>
-					@if (pedido.cupon) {
-						<td>
-							@if (item.tieneDescuento) {
-								{{pedido.cupon.descuento}}%
-							} @else {
-								-
-							}
-						</td>
-					}
-					<td style="min-width: 90px">
-						@if (pedido.estadoPedido.idEstadoPedido == 1) {
-							<button class="btn btn-danger btn-sm me-2" (click)="eliminarProducto(item)"><i class="bi bi-trash3-fill"></i></button>
-						}
-						@if (idRol == 1 && pedido.estadoPedido.idEstadoPedido == 1) {
-						<button class="btn btn-primary btn-sm" (click)="router.navigate(['/pages/atencion-cliente/personalizacion-producto', idPedido, item.idProducto])">
-							<i class="bi bi-pencil-square"></i>
-						</button>
-						}
-					</td>
-				</tr>
-				}
-				<tr>
-					<td colspan="6" class="text-end fw-bold">Total Pedido:</td>
-					<td colspan="2" class="fw-bold">
-						S/ {{totalPedido.toFixed(2)}}
-				</tr>
-			</tbody>
-		</table>
-		}
-
-		<!-- Tabla de Preparados Magistrales -->
-		@if (modoPreparadoMagistral) {
-		<table
-			class="table table-bordered align-middle mt-4"
-		>
-			<thead class="table-primary">
-				<tr>
-					<th scope="col">Código</th>
-					<th scope="col">Nombre</th>
-					<th scope="col">Descripción</th>
-					<th scope="col">Presentación</th>
-					<th scope="col">Estado</th>
-					<th scope="col">Cantidad</th>
-					<th scope="col">Precio Unitario</th>
-					<th scope="col">Subtotal</th>
-					<!-- <th scope="col">pH Definido</th> -->
-					<th scope="col">Opciones</th>
-				</tr>
-			</thead>
-			<tbody>
-				@for (preparado of preparadosMagistrales; track $index) {
-				<tr>
-					<td>{{preparado.idPreparadoMagistral}}</td>
-					<td>{{preparado.nombre}}</td>
-					<td>{{preparado.descripcion}}</td>
-					<td>{{preparado.presentacion + ' ' + preparado.tipoPresentacion}}</td>
-					<td>
-						<span class="badge" 
-							[ngClass]="{
-								'bg-secondary': preparado.idEstadoProducto === 1,
-								'bg-info': preparado.idEstadoProducto === 2,
-								'bg-warning': preparado.idEstadoProducto === 3,
-								'bg-success': preparado.idEstadoProducto === 4
-							}">
-							{{preparado.estadoProducto}}
-						</span>
-					</td>
-					<td style="max-width: 50px;">
-						<input
-							type="number"
-							class="form-control form-control-sm"
-							min="1"
-							[disabled]="pedido.estadoPedido.idEstadoPedido > 1"
-							[value]="preparado.cantidad" 
-              				(change)="changeCantidadPreparado(preparado, $event)" 
-						/>
-					</td>
-					<td>
-						<div class="d-flex justify-content-end align-items-center">
-							<span>S/ {{preparado.precio.toFixed(2)}}</span>
 						</div>
-					</td>
-					<td>
-						S/ {{preparado.subtotal.toFixed(2)}}
-					</td>
-					<!-- <td>
-						@if (preparado.phDefinidoMin && preparado.phDefinidoMax) {
-							{{preparado.phDefinidoMin}} - {{preparado.phDefinidoMax}}
-						} @else {
-							-
-						}
-					</td> -->
-					<td style="min-width: 90px">
-						<!-- @if (pedido.estadoPedido.idEstadoPedido == 1) {
-							<button class="btn btn-danger btn-sm me-2" (click)="eliminarPreparado(preparado)">
-								<i class="bi bi-trash3-fill"></i>
-							</button>
-						}
-						@if (idRol == 1) {
-						<button class="btn btn-info btn-sm" 
-							title="Ver detalles del preparado magistral">
-							<i class="bi bi-eye"></i>
-						</button>
-						} -->
-					</td>
-				</tr>
-				}
-				<tr>
-					<td colspan="7" class="text-end fw-bold">Total Pedido:</td>
-					<td colspan="3" class="fw-bold">
-						S/ {{totalPedido.toFixed(2)}}
-					</td>
-				</tr>
-			</tbody>
-		</table>
-		}
-
-		<div class="row">
-			<div class="col-4">
-				<label class="form-label" for="cuponDescuento">Cupón de Descuento</label>
-				<div class="input-group">
-					<input
-						type="text"
-						class="form-control"
-						placeholder="Ingrese el código del cupón"
-						aria-label="Código del cupón"
-						[(ngModel)]="codigoCupon"
-						[disabled]="pedido.estadoPedido.idEstadoPedido > 1 || cuponValidado"
-					/>
-					@if (!cuponValidado) {
-					<button
-						class="btn btn-dark"
-						type="button"
-						(click)="validarCodigoCupon()"
-						[disabled]="pedido.estadoPedido.idEstadoPedido > 1"
-					>
-						<i class="bi bi-search"></i> Validar
-					</button>
-					} @else {
-						<button
-						class="btn btn-danger"
-						type="button"
-						(click)="quitarCupon()"
-						[disabled]="pedido.estadoPedido.idEstadoPedido > 1">
-						<i class="bi bi-x-circle"></i> Quitar
-					</button>
+						<div class="row mb-2">
+							<div class="col-md-6">
+								<div class="position-relative">
+									<div class="input-group">
+										<input
+											type="text"
+											class="form-control"
+											placeholder="Buscar producto por nombre o código"
+											aria-label="Buscar producto"
+											[(ngModel)]="query"
+											(keyup.enter)="buscarProducto()"
+											(focus)="searchFocused = true"
+											(mousedown)="searchFocused = true"
+											(blur)="onSearchBlur()"
+										/>
+										<button
+											class="btn btn-primary"
+											type="button"
+											(click)="buscarProducto()"
+										>
+											<i class="bi bi-search"></i> Buscar
+										</button>
+									</div>
+									<ul
+										*ngIf="productosBusqueda.length > 0 && searchFocused"
+										class="list-group position-absolute w-100"
+										style="
+											z-index: 1000;
+											max-height: 200px;
+											overflow-y: auto;
+										"
+									>
+										<li
+											*ngFor="let producto of productosBusqueda"
+											(click)="selectProducto(producto)"
+											class="list-group-item list-group-item-action cursor-pointer"
+										>
+											{{ producto.productoMaestro.nombre }} - {{producto.presentacion + ' ' + producto.tipoPresentacion.descripcion}}
+										</li>
+									</ul>
+								</div>
+							</div>
+							<div class="col-md-2">
+								<button class="btn btn-dark w-100" (click)="openModalBusquedaAvanzada(busquedaAvanzada)">Búsq. Avanzada</button>
+							</div>
+							<div class="col-md-2">
+								<input [(ngModel)]="cantidad" type="text" class="form-control" placeholder="Ej: 2" />
+							</div>
+							<div class="col-md-2">
+								<button class="btn btn-primary w-100" (click)="agregarProducto()"><i class="bi bi-plus-circle"></i> Agregar</button>
+							</div>
+						</div>
 					}
-				</div>
-				@if(errorCupon){
-					<div class="form-text text-danger">
-						*{{textoErrorCupon}}
-					</div>
-				}@else if(cuponValidado){
-					<div class="form-text text-success">
-						*{{textoCupon}}
-					</div>
-				}
-			</div>
-		</div>
 
-		<div class="row mt-3 align-items-end">
-			<div class="col-3">
-				<label class="form-label" for="tipoComprobante">Comprobante de pago*</label>
-				<select (change)="changeTipoComprobante()" class="form-select" [(ngModel)]="tipoComprobante" [disabled]="pedido.estadoPedido.idEstadoPedido > 1">
-					<option [ngValue]="0" selected>Sin Comprobante</option>
-					<option [ngValue]="1">Boleta</option>
-					<option [ngValue]="2">Factura</option>
-				</select>
-			</div>
-			@if(tipoComprobante == 1) {
-				<div class="col-3">
-					<label for="dniCliente" class="form-label">DNI*</label>
-					<input
-						type="text"
-						id="dniCliente"
-						class="form-control"
-						[(ngModel)]="dniCliente"
-						placeholder="Ingrese el DNI"
-						maxlength="8"
-						pattern="[0-9]*"
-						inputmode="numeric"
-						(keyup)="onDniKeyup()"
-						[disabled]="pedido.estadoPedido.idEstadoPedido > 1"
-					/>
-				</div>
-				<div class="col-4">
-					<label for="nombreCompletoCliente" class="form-label">Nombre completo*</label>
-					<input
-						type="text"
-						id="nombreCompletoCliente"
-						class="form-control"
-						[(ngModel)]="nombreCompletoCliente"
-						placeholder="Ingrese el nombre completo"
-						(input)="nombreCompletoCliente = $event.target.value.toUpperCase()"
-						[disabled]="pedido.estadoPedido.idEstadoPedido > 1"
-					/>
-				</div>
-			}
-			@if(tipoComprobante == 2){
-				<div class="col-3">
-					<label for="rucCliente" class="form-label">RUC*</label>
-					<input
-						type="text"
-						id="rucCliente"
-						class="form-control"
-						[(ngModel)]="rucCliente"
-						placeholder="Ingrese el RUC"
-						maxlength="11"
-						pattern="[0-9]*"
-						inputmode="numeric"
-						(keyup)="onRucKeyup()"
-						[disabled]="pedido.estadoPedido.idEstadoPedido > 1"
-					/>
-				</div>
-				<div class="col-4">
-					<label for="razonSocialCliente" class="form-label">Razón Social*</label>
-					<input
-						type="text"
-						id="razonSocialCliente"
-						class="form-control"
-						[(ngModel)]="razonSocialCliente"
-						placeholder="Ingrese la razón social"
-						(input)="razonSocialCliente = $event.target.value.toUpperCase()"
-						[disabled]="pedido.estadoPedido.idEstadoPedido > 1"
-					/>
-				</div>
-			}
-			@if(tipoComprobante != 1 && tipoComprobante != 2){
-				<div class="col-7"></div>
-			}
-			@if(tipoComprobante != 0){
-				<div class="col-2 d-flex justify-content-end">
-					<button (click)="guardarDatosCliente()" class="btn btn-primary col-12" [disabled]="
-						(tipoComprobante == 1 && (!nombreCompletoCliente || !dniCliente || !isValidDni(dniCliente))) ||
-						(tipoComprobante == 2 && (!razonSocialCliente || !rucCliente || !isValidRuc(rucCliente))) ||
-						pedido.estadoPedido.idEstadoPedido > 1
-					">
-						<i class="bi bi-save"></i> Guardar
-					</button>
-				</div>
-			}
-		</div>
+					<!-- Tabla de Productos Regulares -->
+					@if (!modoPreparadoMagistral) {
+						<table class="table table-bordered align-middle mt-4">
+							<thead class="table-primary">
+								<tr>
+									<th scope="col">Código</th>
+									<th scope="col">Producto</th>
+									<th scope="col">Presentación</th>
+									<th scope="col">Descripción</th>
+									<th scope="col">Personalizado</th>
+									<th scope="col">Cantidad</th>
+									<th scope="col">Precio Unitario</th>
+									<th scope="col">Subtotal</th>
+									@if (pedido.cupon) {
+										<th scope="col">Descuento</th>
+									}
+									<th scope="col">Opciones</th>
+								</tr>
+							</thead>
+							<tbody>
+								@for (item of productosPedido; track $index) {
+								<tr>
+									<td>{{item.idProducto}}</td>
+									<td>{{item.nombre}}</td>
+									<td>{{item.presentacion + ' ' + item.tipoPresentacion}}</td>
+									<td>{{item.descripcion}}</td>
+									<td>
+										@if (item.personalizado) {
+											<span class="badge bg-success">Sí</span>
+										} @else {
+											<span class="badge bg-danger">No</span>
+										}
+									</td>
+									<td style="max-width: 50px;">
+										<input
+											type="number"
+											class="form-control form-control-sm"
+											min="1"
+											[disabled]="pedido.estadoPedido.idEstadoPedido > 1"
+											[value]="item.cantidad" 
+											(change)="changeCantidad(item, $event)" 
+										/>
+									</td>
+									<td>
+										@if (item.personalizado && !item.precioPersonalizado) {
+											-
+										} @else if(!item.tieneDescuento)  {
+											<div class="d-flex justify-content-end align-items-center">
+												<span>S/ {{item.precio.toFixed(2)}}</span>
+											</div>
+										} @else if(pedido.cupon) {
+											<div class="d-flex justify-content-between align-items-center">
+												<span style="text-decoration:line-through; font-size: 11pt;">S/ {{item.precio.toFixed(2)}}</span>
+												<span>S/ {{(item.precio - ((pedido.cupon.descuento / 100) * item.precio)).toFixed(2)}}</span>
+											</div>
+										}
+									</td>
+									<td>
+										@if (item.personalizado && !item.precioPersonalizado) {
+											-
+										} @else {
+											S/ {{item.subtotal.toFixed(2)}}
+										}
+									</td>
+									@if (pedido.cupon) {
+										<td>
+											@if (item.tieneDescuento) {
+												{{pedido.cupon.descuento}}%
+											} @else {
+												-
+											}
+										</td>
+									}
+									<td style="min-width: 90px">
+										@if (pedido.estadoPedido.idEstadoPedido == 1) {
+											<button class="btn btn-danger btn-sm me-2" (click)="eliminarProducto(item)"><i class="bi bi-trash3-fill"></i></button>
+										}
+										@if (idRol == 1 && pedido.estadoPedido.idEstadoPedido == 1) {
+										<button class="btn btn-primary btn-sm" (click)="router.navigate(['/pages/atencion-cliente/personalizacion-producto', idPedido, item.idProducto])">
+											<i class="bi bi-pencil-square"></i>
+										</button>
+										}
+									</td>
+								</tr>
+								}
+								<tr>
+									<td colspan="6" class="text-end fw-bold">Total Pedido:</td>
+									<td colspan="2" class="fw-bold">
+										S/ {{totalPedido.toFixed(2)}}
+									</td>
+								</tr>
+							</tbody>
+						</table>
+					}
 
-		<div class="row">
-			<div class="col-12 mt-3">
-				<p class="text-muted small mb-3">
-					<strong>DELIVERY GRATIS A PARTIR DE 350 SOLES Y PROVINCIA A PARTIR DE 500 SOLES</strong><br>
-					<strong>HORARIO DE RECOJO EN FARMACIA DE LUNES A VIERNES DE 9 AM A 5 PM</strong><br>
-					<strong>TIEMPO DE ENTREGA DEL PEDIDO (LIMA) = 24 HORAS (PUEDE VARIAR EN FECHAS FESTIVAS Y EVENTOS)</strong><br>
-					<strong>TIEMPO DE ENTREGA DEL PEDIDO (PROVINCIA) = 48 HORAS (PUEDE VARIAR EN FECHAS FESTIVAS Y EVENTOS)</strong><br>
-					<strong>MEDIOS DE PAGO: BCP Soles 1932458267078 a nombre de DERMOFARMACIA BELLA CURET YAPE/PLIN = 956324064</strong><br>
-					Estimado cliente sírvase a revisar bien su pedido, ya que una vez aprobada la cotización no habrá lugar a modificación y/o reclamo.
-				</p>
-			</div>
-		</div>
+					<!-- Tabla de Preparados Magistrales -->
+					@if (modoPreparadoMagistral) {
+						<table class="table table-bordered align-middle mt-4">
+							<thead class="table-primary">
+								<tr>
+									<th scope="col">Código</th>
+									<th scope="col">Nombre</th>
+									<th scope="col">Descripción</th>
+									<th scope="col">Presentación</th>
+									<th scope="col">Estado</th>
+									<th scope="col">Cantidad</th>
+									<th scope="col">Precio Unitario</th>
+									<th scope="col">Subtotal</th>
+									<th scope="col">Opciones</th>
+								</tr>
+							</thead>
+							<tbody>
+								@for (preparado of preparadosMagistrales; track $index) {
+								<tr>
+									<td>{{preparado.idPreparadoMagistral}}</td>
+									<td>{{preparado.nombre}}</td>
+									<td>{{preparado.descripcion}}</td>
+									<td>{{preparado.presentacion + ' ' + preparado.tipoPresentacion}}</td>
+									<td>
+										<span class="badge" 
+											[ngClass]="{
+												'bg-secondary': preparado.idEstadoProducto === 1,
+												'bg-info': preparado.idEstadoProducto === 2,
+												'bg-warning': preparado.idEstadoProducto === 3,
+												'bg-success': preparado.idEstadoProducto === 4
+											}">
+											{{preparado.estadoProducto}}
+										</span>
+									</td>
+									<td style="max-width: 50px;">
+										<input
+											type="number"
+											class="form-control form-control-sm"
+											min="1"
+											[disabled]="pedido.estadoPedido.idEstadoPedido > 1"
+											[value]="preparado.cantidad" 
+											(change)="changeCantidadPreparado(preparado, $event)" 
+										/>
+									</td>
+									<td>
+										<div class="d-flex justify-content-end align-items-center">
+											<span>S/ {{preparado.precio.toFixed(2)}}</span>
+										</div>
+									</td>
+									<td>
+										S/ {{preparado.subtotal.toFixed(2)}}
+									</td>
+									<td style="min-width: 90px">
+										<!-- Opciones para preparados magistrales -->
+									</td>
+								</tr>
+								}
+								<tr>
+									<td colspan="7" class="text-end fw-bold">Total Pedido:</td>
+									<td colspan="3" class="fw-bold">
+										S/ {{totalPedido.toFixed(2)}}
+									</td>
+								</tr>
+							</tbody>
+						</table>
+					}
 
-		<!-- <div class="d-flex justify-content-end mb-3">
-			<span class="fw-bold">Total Pedido: S/ {{totalPedido.toFixed(2)}}</span>
-		</div> -->
-
-		<!-- <div class="d-flex justify-content-end align-items-center">
-			<button class="btn btn-primary me-2">Guardar Pedido</button>
-		</div> -->
-		@if (idPedido != null) {
-			<hr>
-			<div class="row">
-				<div [className]="idMetodoEntregaSeleccionado == 2 && pedido.estadoPedido.idEstadoPedido == 1 ? 'col-md-4' : 'col-md-5'">
-					<label for="metodoEntrega" class="form-label">Método de Entrega*</label>
-					
-				</div>
-				<div [className]="idMetodoEntregaSeleccionado == 2 && pedido.estadoPedido.idEstadoPedido == 1 ? 'col-md-6' : 'col-md-7'">
-					<label for="direccionEntrega" class="form-label">Dirección de Entrega*</label>
-				</div>
-			</div>
-
-			<div class="row">
-				<div [className]="idMetodoEntregaSeleccionado == 2 && pedido.estadoPedido.idEstadoPedido == 1 ? 'col-md-4' : 'col-md-5'">
-					<select
-						id="metodoEntrega"
-						class="form-select"
-						[(ngModel)]="idMetodoEntregaSeleccionado"
-						(change)="onMetodoEntregaChange()"
-						[disabled]="pedido.estadoPedido.idEstadoPedido > 1"
-						name="metodoEntrega"
-					>
-						<option value="0" disabled selected>Seleccione un método de entrega</option>
-						<option *ngFor="let metodo of lstMetodosEntrega" [ngValue]="metodo.idMetodoEntrega">
-							{{ metodo.descripcion }}
-						</option>
-					</select>
-				</div>
-				<div [className]="idMetodoEntregaSeleccionado == 2 && pedido.estadoPedido.idEstadoPedido == 1 ? 'col-md-6' : 'col-md-7'">
-					<select
-						id="direccionEntrega"
-						class="form-select"
-						[(ngModel)]="idDireccionSeleccionada"
-						[disabled]="!lstDirecciones || lstDirecciones.length === 0 || pedido.estadoPedido.idEstadoPedido > 1"
-						(change)="guardarEntrega()"
-					>
-						<option value="0" disabled selected>Seleccione una dirección</option>
-						<option *ngFor="let direccion of lstDirecciones" [ngValue]="direccion.idDireccion">
-							{{ direccion.direccion }} - {{ direccion.distrito.nombre }} - {{ direccion.provincia.nombre }} - {{ direccion.departamento.nombre }}
-						</option>
-					</select>
-					<div class="form-text">
-						*La dirección se actualizará automáticamente al seleccionar un método de entrega.
+					<!-- Cupón de Descuento -->
+					<div class="row mt-4">
+						<div class="col-4">
+							<label class="form-label" for="cuponDescuento">Cupón de Descuento</label>
+							<div class="input-group">
+								<input
+									type="text"
+									class="form-control"
+									placeholder="Ingrese el código del cupón"
+									aria-label="Código del cupón"
+									[(ngModel)]="codigoCupon"
+									[disabled]="pedido.estadoPedido.idEstadoPedido > 1 || cuponValidado"
+								/>
+								@if (!cuponValidado) {
+								<button
+									class="btn btn-dark"
+									type="button"
+									(click)="validarCodigoCupon()"
+									[disabled]="pedido.estadoPedido.idEstadoPedido > 1"
+								>
+									<i class="bi bi-search"></i> Validar
+								</button>
+								} @else {
+									<button
+									class="btn btn-danger"
+									type="button"
+									(click)="quitarCupon()"
+									[disabled]="pedido.estadoPedido.idEstadoPedido > 1">
+									<i class="bi bi-x-circle"></i> Quitar
+								</button>
+								}
+							</div>
+							@if(errorCupon){
+								<div class="form-text text-danger">
+									*{{textoErrorCupon}}
+								</div>
+							}@else if(cuponValidado){
+								<div class="form-text text-success">
+									*{{textoCupon}}
+								</div>
+							}
+						</div>
 					</div>
-				</div>
-				@if (idMetodoEntregaSeleccionado == 2 && pedido.estadoPedido.idEstadoPedido == 1) {
-					<div class="col-md-2">
-						<button class="btn btn-dark w-100" (click)="openModal(agregarDireccion)"><i class="bi bi-plus-circle"></i> Agregar Dirección</button>
+
+					<!-- Mostrar información si el pedido ya está pagado -->
+					@if(esPedidoPagado) {
+						<div class="alert alert-info mt-4">
+							<i class="bi bi-info-circle"></i>
+							<strong>Pedido Pagado:</strong> Este pedido ya ha sido procesado y pagado. Los campos se muestran en modo solo lectura.
+						</div>
+					}
+
+					<!-- Botones de navegación -->
+					<div class="d-flex justify-content-end mt-4">
+						<button 
+							class="btn btn-primary" 
+							(click)="nextStep()"
+							[disabled]="!canAdvanceToNextStep()"
+						>
+							Siguiente: Comprobante y Entrega <i class="bi bi-arrow-right"></i>
+						</button>
 					</div>
-				}
-				<!-- <div class="col-md-2">
-					<button class="btn btn-dark w-100" [disabled]="isLoading" (click)="guardarEntrega()">
-						Guardar Entrega
-					</button>
-				</div> -->
-			</div>
-			
-			@if (idMetodoEntregaSeleccionado == 2) {
-				<div class="row mt-3">
-					<div class="col-md-12">
-						<label for="notaDelivery" class="form-label">Nota Delivery</label>
-						<textarea
-							id="notaDelivery"
-							class="form-control"
-							rows="3"
-							placeholder="Ingrese una nota para el delivery..."
-							[(ngModel)]="notaDelivery"
-							(input)="onNotaDeliveryChange()"
-							[disabled]="pedido.estadoPedido.idEstadoPedido > 1"
-						></textarea>
-					</div>
-				</div>
-			}
+				</ng-template>
+			</p-stepperPanel>
+
+			<!-- Paso 2: Comprobante y Método de Entrega -->
+			<p-stepperPanel header="Comprobante y Entrega">
+					<ng-template pTemplate="content" let-prevCallback="prevCallback" let-nextCallback="nextCallback" let-index="index">
+						<!-- Comprobante de pago -->
+						<div class="row mt-3 align-items-end">
+							<div class="col-3">
+								<label class="form-label" for="tipoComprobante">Comprobante de pago*</label>
+								<select (change)="changeTipoComprobante()" class="form-select" [(ngModel)]="tipoComprobante" [disabled]="pedido.estadoPedido.idEstadoPedido > 1">
+									<option [ngValue]="0" selected>Sin Comprobante</option>
+									<option [ngValue]="1">Boleta</option>
+									<option [ngValue]="2">Factura</option>
+								</select>
+							</div>
+							@if(tipoComprobante == 1) {
+								<div class="col-3">
+									<label for="dniCliente" class="form-label">DNI*</label>
+									<input
+										type="text"
+										id="dniCliente"
+										class="form-control"
+										[(ngModel)]="dniCliente"
+										placeholder="Ingrese el DNI"
+										maxlength="8"
+										pattern="[0-9]*"
+										inputmode="numeric"
+										(keyup)="onDniKeyup()"
+										[disabled]="pedido.estadoPedido.idEstadoPedido > 1"
+									/>
+								</div>
+								<div class="col-4">
+									<label for="nombreCompletoCliente" class="form-label">Nombre completo*</label>
+									<input
+										type="text"
+										id="nombreCompletoCliente"
+										class="form-control"
+										[(ngModel)]="nombreCompletoCliente"
+										placeholder="Ingrese el nombre completo"
+										(input)="nombreCompletoCliente = $event.target.value.toUpperCase()"
+										[disabled]="pedido.estadoPedido.idEstadoPedido > 1"
+									/>
+								</div>
+							}
+							@if(tipoComprobante == 2){
+								<div class="col-3">
+									<label for="rucCliente" class="form-label">RUC*</label>
+									<input
+										type="text"
+										id="rucCliente"
+										class="form-control"
+										[(ngModel)]="rucCliente"
+										placeholder="Ingrese el RUC"
+										maxlength="11"
+										pattern="[0-9]*"
+										inputmode="numeric"
+										(keyup)="onRucKeyup()"
+										[disabled]="pedido.estadoPedido.idEstadoPedido > 1"
+									/>
+								</div>
+								<div class="col-4">
+									<label for="razonSocialCliente" class="form-label">Razón Social*</label>
+									<input
+										type="text"
+										id="razonSocialCliente"
+										class="form-control"
+										[(ngModel)]="razonSocialCliente"
+										placeholder="Ingrese la razón social"
+										(input)="razonSocialCliente = $event.target.value.toUpperCase()"
+										[disabled]="pedido.estadoPedido.idEstadoPedido > 1"
+									/>
+								</div>
+							}
+							@if(tipoComprobante != 1 && tipoComprobante != 2){
+								<div class="col-7"></div>
+							}
+							@if(tipoComprobante != 0){
+								<div class="col-2 d-flex justify-content-end">
+									<button (click)="guardarDatosCliente()" class="btn btn-primary col-12" [disabled]="
+										(tipoComprobante == 1 && (!nombreCompletoCliente || !dniCliente || !isValidDni(dniCliente))) ||
+										(tipoComprobante == 2 && (!razonSocialCliente || !rucCliente || !isValidRuc(rucCliente))) ||
+										pedido.estadoPedido.idEstadoPedido > 1
+									">
+										<i class="bi bi-save"></i> Guardar
+									</button>
+								</div>
+							}
+						</div>
+
+						<!-- Método de Entrega -->
+						@if (idPedido != null) {
+							<hr class="mt-4">
+							<div class="row">
+								<div [className]="idMetodoEntregaSeleccionado == 2 && pedido.estadoPedido.idEstadoPedido == 1 ? 'col-md-4' : 'col-md-5'">
+									<label for="metodoEntrega" class="form-label">Método de Entrega*</label>
+								</div>
+								<div [className]="idMetodoEntregaSeleccionado == 2 && pedido.estadoPedido.idEstadoPedido == 1 ? 'col-md-6' : 'col-md-7'">
+									<label for="direccionEntrega" class="form-label">Dirección de Entrega*</label>
+								</div>
+							</div>
+
+							<div class="row">
+								<div [className]="idMetodoEntregaSeleccionado == 2 && pedido.estadoPedido.idEstadoPedido == 1 ? 'col-md-4' : 'col-md-5'">
+									<select
+										id="metodoEntrega"
+										class="form-select"
+										[(ngModel)]="idMetodoEntregaSeleccionado"
+										(change)="onMetodoEntregaChange()"
+										[disabled]="pedido.estadoPedido.idEstadoPedido > 1"
+										name="metodoEntrega"
+									>
+										<option value="0" disabled selected>Seleccione un método de entrega</option>
+										<option *ngFor="let metodo of lstMetodosEntrega" [ngValue]="metodo.idMetodoEntrega">
+											{{ metodo.descripcion }}
+										</option>
+									</select>
+								</div>
+								<div [className]="idMetodoEntregaSeleccionado == 2 && pedido.estadoPedido.idEstadoPedido == 1 ? 'col-md-6' : 'col-md-7'">
+									<select
+										id="direccionEntrega"
+										class="form-select"
+										[(ngModel)]="idDireccionSeleccionada"
+										[disabled]="!lstDirecciones || lstDirecciones.length === 0 || pedido.estadoPedido.idEstadoPedido > 1"
+										(change)="guardarEntrega()"
+									>
+										<option value="0" disabled selected>Seleccione una dirección</option>
+										<option *ngFor="let direccion of lstDirecciones" [ngValue]="direccion.idDireccion">
+											{{ direccion.direccion }} - {{ direccion.distrito.nombre }} - {{ direccion.provincia.nombre }} - {{ direccion.departamento.nombre }}
+										</option>
+									</select>
+									<div class="form-text">
+										*La dirección se actualizará automáticamente al seleccionar un método de entrega.
+									</div>
+								</div>
+								@if (idMetodoEntregaSeleccionado == 2 && pedido.estadoPedido.idEstadoPedido == 1) {
+									<div class="col-md-2">
+										<button class="btn btn-dark w-100" (click)="openModal(agregarDireccion)"><i class="bi bi-plus-circle"></i> Agregar Dirección</button>
+									</div>
+								}
+							</div>
+							
+							@if (idMetodoEntregaSeleccionado == 2) {
+								<div class="row mt-3">
+									<div class="col-md-12">
+										<label for="notaDelivery" class="form-label">Nota Delivery</label>
+										<textarea
+											id="notaDelivery"
+											class="form-control"
+											rows="3"
+											placeholder="Ingrese una nota para el delivery..."
+											[(ngModel)]="notaDelivery"
+											(input)="onNotaDeliveryChange()"
+											[disabled]="pedido.estadoPedido.idEstadoPedido > 1"
+										></textarea>
+									</div>
+								</div>
+							}
+						}
+
+						<!-- Información importante -->
+						<div class="row mt-4">
+							<div class="col-12">
+								<div class="card" style="border-color: #D4858C;">
+									<div class="card-header text-white" style="background-color: #D4858C;">
+										<h6 class="mb-0"><i class="bi bi-info-circle me-2"></i>Información Importante</h6>
+									</div>
+									<div class="card-body">
+										<div class="row">
+											<div class="col-md-6">
+												<div class="mb-3">
+													<h6 style="color: #D4858C;"><i class="bi bi-truck me-2"></i>Delivery Gratuito</h6>
+													<p class="mb-1"><strong>Lima:</strong> A partir de S/ 350.00</p>
+													<p class="mb-0"><strong>Provincia:</strong> A partir de S/ 500.00</p>
+												</div>
+												<div class="mb-3">
+													<h6 style="color: #D4858C;"><i class="bi bi-clock me-2"></i>Horario de Recojo</h6>
+													<p class="mb-0">Lunes a Viernes de 9:00 AM a 5:00 PM</p>
+												</div>
+											</div>
+											<div class="col-md-6">
+												<div class="mb-3">
+													<h6 style="color: #D4858C;"><i class="bi bi-calendar-check me-2"></i>Tiempos de Entrega</h6>
+													<p class="mb-1"><strong>Lima:</strong> 24 horas</p>
+													<p class="mb-2"><strong>Provincia:</strong> 48 horas</p>
+													<small class="text-muted">*Puede variar en fechas festivas y eventos</small>
+												</div>
+											</div>
+										</div>
+										<hr>
+										<div class="mb-3">
+											<h6 style="color: #D4858C;"><i class="bi bi-credit-card me-2"></i>Medios de Pago</h6>
+											<div class="row">
+												<div class="col-md-6">
+													<p class="mb-1"><strong>BCP Soles:</strong> 1932458267078</p>
+													<small class="text-muted">A nombre de DERMOFARMACIA BELLA CURET</small>
+												</div>
+												<div class="col-md-6">
+													<p class="mb-0"><strong>YAPE/PLIN:</strong> 956324064</p>
+												</div>
+											</div>
+										</div>
+										<div class="alert alert-warning mb-0">
+											<i class="bi bi-exclamation-triangle me-2"></i>
+											<strong>Importante:</strong> Estimado cliente sírvase a revisar bien su pedido, ya que una vez aprobada la cotización no habrá lugar a modificación y/o reclamo.
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+
+						<!-- Mostrar información si el pedido ya está pagado -->
+						@if(esPedidoPagado) {
+							<div class="alert alert-info mt-4">
+								<i class="bi bi-info-circle"></i>
+								<strong>Pedido Pagado:</strong> Este pedido ya ha sido procesado y pagado. Los campos se muestran en modo solo lectura.
+							</div>
+						}
+
+						<!-- Botones de navegación -->
+						<div class="d-flex justify-content-between mt-4">
+							<button class="btn btn-secondary" (click)="prevStep()">
+								<i class="bi bi-arrow-left"></i> Anterior
+							</button>
+							<button 
+								class="btn btn-primary" 
+								(click)="nextStep()"
+								[disabled]="!canAdvanceToNextStep()"
+							>
+								Siguiente: Resumen <i class="bi bi-arrow-right"></i>
+							</button>
+						</div>
+					</ng-template>
+				</p-stepperPanel>
+
+				<!-- Paso 3: Resumen -->
+				<p-stepperPanel header="Resumen">
+					<ng-template pTemplate="content" let-prevCallback="prevCallback" let-nextCallback="nextCallback" let-index="index">
+						<h4 class="mb-4">Resumen del Pedido</h4>
+						
+						<!-- Información básica del pedido -->
+						<div class="row mb-4">
+							<div class="col-md-6">
+								<div class="card">
+									<div class="card-header">
+										<h6 class="mb-0">Información del Pedido</h6>
+									</div>
+									<div class="card-body">
+										<p><strong>ID Pedido:</strong> {{idPedido}}</p>
+										<p><strong>Cliente:</strong> {{pedido.cliente?.nombres}} {{pedido.cliente?.apellidos}}</p>
+										<p><strong>Fecha:</strong> {{pedido.fechaPedido | date:'dd/MM/yyyy'}}</p>
+										<p><strong>Tipo:</strong> 
+											@if (modoPreparadoMagistral) {
+												<span class="badge bg-info">Preparados Magistrales</span>
+											} @else {
+												<span class="badge bg-primary">Productos Regulares</span>
+											}
+										</p>
+									</div>
+								</div>
+							</div>
+							<div class="col-md-6">
+								<div class="card">
+									<div class="card-header">
+										<h6 class="mb-0">Información de Entrega</h6>
+									</div>
+									<div class="card-body">
+										@if (idMetodoEntregaSeleccionado > 0) {
+											<p><strong>Método:</strong> 
+												@for (metodo of lstMetodosEntrega; track metodo.idMetodoEntrega) {
+													@if (metodo.idMetodoEntrega === idMetodoEntregaSeleccionado) {
+														{{metodo.descripcion}}
+													}
+												}
+											</p>
+											@if (idDireccionSeleccionada > 0) {
+												<p><strong>Dirección:</strong> 
+													@for (direccion of lstDirecciones; track direccion.idDireccion) {
+														@if (direccion.idDireccion === idDireccionSeleccionada) {
+															{{direccion.direccion}}, {{direccion.distrito.nombre}}, {{direccion.provincia.nombre}}
+														}
+													}
+												</p>
+											}
+											@if (notaDelivery && idMetodoEntregaSeleccionado == 2) {
+												<p><strong>Nota delivery:</strong> {{notaDelivery}}</p>
+											}
+										}
+									</div>
+								</div>
+							</div>
+						</div>
+
+						<!-- Resumen de productos -->
+						<div class="card mb-4">
+							<div class="card-header">
+								<h6 class="mb-0">Productos del Pedido</h6>
+							</div>
+							<div class="card-body">
+								@if (!modoPreparadoMagistral) {
+									<div class="table-responsive">
+										<table class="table table-sm">
+											<thead>
+												<tr>
+													<th>ID</th>
+													<th>Producto</th>
+													<th>Cantidad</th>
+													<th>Precio Unit.</th>
+													<th>Subtotal</th>
+												</tr>
+											</thead>
+											<tbody>
+												@for (item of productosPedido; track $index) {
+													<tr>
+														<td>{{item.idProducto}}</td>
+														<td>{{item.nombre}}</td>
+														<td>{{item.cantidad}}</td>
+														<td>
+															@if (!item.tieneDescuento) {
+																S/ {{item.precio.toFixed(2)}}
+															} @else {
+																<span class="text-decoration-line-through">S/ {{item.precio.toFixed(2)}}</span>
+																<br>
+																<span class="text-success">S/ {{(item.precio - ((pedido.cupon.descuento / 100) * item.precio)).toFixed(2)}}</span>
+															}
+														</td>
+														<td>S/ {{item.subtotal.toFixed(2)}}</td>
+													</tr>
+												}
+											</tbody>
+										</table>
+									</div>
+								} @else {
+									<div class="table-responsive">
+										<table class="table table-sm">
+											<thead>
+												<tr>
+													<th>ID</th>
+													<th>Preparado Magistral</th>
+													<th>Cantidad</th>
+													<th>Precio Unit.</th>
+													<th>Subtotal</th>
+												</tr>
+											</thead>
+											<tbody>
+												@for (preparado of preparadosMagistrales; track $index) {
+													<tr>
+														<td>{{preparado.idPreparadoMagistral}}</td>
+														<td>{{preparado.nombre}}</td>
+														<td>{{preparado.cantidad}}</td>
+														<td>S/ {{preparado.precio.toFixed(2)}}</td>
+														<td>S/ {{preparado.subtotal.toFixed(2)}}</td>
+													</tr>
+												}
+											</tbody>
+										</table>
+									</div>
+								}
+								
+								@if (pedido.cupon) {
+									<div class="alert alert-success">
+										<strong>Cupón aplicado:</strong> {{pedido.cupon.codigo}} ({{pedido.cupon.descuento}}% de descuento)
+									</div>
+								}
+								
+								<div class="text-end">
+									<h5><strong>Total: S/ {{totalPedido.toFixed(2)}}</strong></h5>
+								</div>
+							</div>
+						</div>
+
+						<!-- Información de comprobante -->
+						@if (tipoComprobante > 0) {
+							<div class="card mb-4">
+								<div class="card-header">
+									<h6 class="mb-0">Datos para Comprobante</h6>
+								</div>
+								<div class="card-body">
+									@if (tipoComprobante === 1) {
+										<p><strong>Tipo:</strong> Boleta</p>
+										<p><strong>DNI:</strong> {{dniCliente}}</p>
+										<p><strong>Nombre:</strong> {{nombreCompletoCliente}}</p>
+									} @else if (tipoComprobante === 2) {
+										<p><strong>Tipo:</strong> Factura</p>
+										<p><strong>RUC:</strong> {{rucCliente}}</p>
+										<p><strong>Razón Social:</strong> {{razonSocialCliente}}</p>
+									}
+								</div>
+							</div>
+						}
+
+						<!-- Botones de navegación -->
+						<!-- Mostrar información si el pedido ya está pagado -->
+						@if(esPedidoPagado) {
+							<div class="alert alert-info mt-4">
+								<i class="bi bi-check-circle"></i>
+								<strong>Pedido Pagado:</strong> Este pedido ya ha sido procesado y pagado. Los campos se muestran en modo solo lectura.
+							</div>
+						}
+
+						<div class="d-flex justify-content-between mt-4">
+							<button class="btn btn-secondary" (click)="prevStep()">
+								<i class="bi bi-arrow-left"></i> Anterior
+							</button>
+							@if(!esPedidoPagado) {
+								<button 
+									class="btn btn-primary" 
+									(click)="nextStep()"
+								>
+									Siguiente: Pago <i class="bi bi-arrow-right"></i>
+								</button>
+							}
+						</div>
+					</ng-template>
+				</p-stepperPanel>
+
+				<!-- Paso 4: Pago (oculto si el pedido está pagado) -->
+				<!-- DEBUG: pedidoPagado = {{pedidoPagado}}, pedido.estadoPedido = {{pedido?.estadoPedido | json}} -->
+				<p-stepperPanel *ngIf="!esPedidoPagado" header="Pago">
+					<ng-template pTemplate="content" let-prevCallback="prevCallback" let-index="index">
+						<h4 class="mb-4">Realizar Pago</h4>
+						
+						<!-- Usar el componente de pago existente -->
+						@if(idPedido) {
+							<app-pagar-pedido></app-pagar-pedido>
+						} @else {
+							<div class="alert alert-warning">
+								<i class="bi bi-exclamation-triangle"></i>
+								Primero debe completar el registro del pedido en los pasos anteriores.
+							</div>
+						}
+
+						<!-- Botón para volver -->
+						<div class="d-flex justify-content-start mt-4">
+							<button class="btn btn-secondary" (click)="prevStep()">
+								<i class="bi bi-arrow-left"></i> Anterior
+							</button>
+						</div>
+					</ng-template>
+				</p-stepperPanel>
+		</p-stepper>
 		}
-
-		<!-- Botones de Acción -->
-		 <hr>
-		<div class="d-flex justify-content-end align-items-center">
-			<!-- @if (idRol == 1){
-				<button class="btn btn-primary">Enviar a Producción</button>
-			} -->
-			@if (pedido.estadoPedido.idEstadoPedido == 1 && (productosPedido.length > 0 || preparadosMagistrales.length > 0)) {
-				<button
-					class="btn btn-success me-2"
-					[disabled]="isLoading || disabledPagar || 
-						(tipoComprobante == 1 && (
-							!nombreCompletoCliente || 
-							!dniCliente || 
-							!isValidDni(dniCliente) ||
-							pedido.documento == null
-						)) ||
-						(tipoComprobante == 2 && (
-							!razonSocialCliente || 
-							!rucCliente || 
-							!isValidRuc(rucCliente) ||
-							pedido.documento == null
-						)) ||
-						idMetodoEntregaSeleccionado === 0"
-					(click)="router.navigate(['/pages/atencion-cliente/pagar-pedido', idPedido])"
-				>
-					<i class="bi bi-wallet2"></i> Registrar Pago
-				</button>
-			}
-		</div>
 	</div>
 </div>
 
+<!-- Modal de Términos y Condiciones -->
+<ng-template #terminosCondicionesTemplate let-modal>
+	<div class="modal-header">
+		<h5 class="modal-title">Términos y Condiciones</h5>
+		<button type="button" class="btn-close" aria-label="Close" (click)="modal.dismiss('cancel')"></button>
+	</div>
+	<div class="modal-body">
+		<div class="terms-content" style="max-height: 400px; overflow-y: auto;">
+			<h6>1. ACEPTACIÓN DE LOS TÉRMINOS</h6>
+			<p>Al utilizar nuestros servicios, usted acepta estar sujeto a estos términos y condiciones.</p>
+			
+			<h6>2. DESCRIPCIÓN DEL SERVICIO</h6>
+			<p>Ofrecemos productos farmacéuticos y servicios relacionados con la salud a través de nuestra plataforma.</p>
+			
+			<h6>3. RESPONSABILIDADES DEL CLIENTE</h6>
+			<p>El cliente se compromete a proporcionar información veraz y actualizada para el procesamiento de sus pedidos.</p>
+			
+			<h6>4. POLÍTICA DE ENTREGA</h6>
+			<p>Los tiempos de entrega pueden variar según la ubicación y disponibilidad de productos.</p>
+			
+			<h6>5. POLÍTICA DE PAGOS</h6>
+			<p>Los pagos deben realizarse a través de los métodos autorizados por la empresa.</p>
+			
+			<h6>6. POLÍTICA DE DEVOLUCIONES</h6>
+			<p>Las devoluciones están sujetas a nuestras políticas específicas de productos farmacéuticos.</p>
+			
+			<h6>7. LIMITACIÓN DE RESPONSABILIDAD</h6>
+			<p>La empresa no se hace responsable por el uso inadecuado de los productos adquiridos.</p>
+		</div>
+	</div>
+	<div class="modal-footer">
+		<button type="button" class="btn btn-secondary" (click)="modal.dismiss('cancel')">Cerrar</button>
+		<button type="button" class="btn btn-primary" (click)="aceptarTerminos()">Aceptar Términos</button>
+	</div>
+</ng-template>
+
+<!-- Modales existentes -->
 <ng-template #agregarDireccion let-modal>
 	<div class="modal-header">
 		<h5 class="modal-title">Agregar Dirección</h5>
@@ -577,23 +864,7 @@
 							 class="form-control"
 							 placeholder="Ej: 2" />
 			</div>
-			<!-- <div class="col-auto">
-				<button class="btn btn-dark" (click)="filterByLetter('')">Listar Todo</button>
-			</div> -->
 		</div>
-		<!-- <hr>
-		<div class="mb-3">
-			<div class="btn-group w-100" role="group" aria-label="Filtro alfabético">
-				<button
-					*ngFor="let letter of 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('')"
-					type="button"
-					class="btn btn-outline-secondary btn-sm flex-fill"
-					(click)="filterByLetter(letter)"
-				>
-					{{ letter }}
-				</button>
-			</div>
-		</div> -->
 
 		<p-table
 			#dt1
@@ -614,24 +885,22 @@
 			[globalFilterFields]="['idProducto', 'productoMaestro.nombre', 'productoMaestro.descripcion']"
 		>
 			<ng-template pTemplate="caption">
-					<div class="flex justify-between items-center">
-
-						<div class="text-end">
-							<p-iconField iconPosition="left">
-								<p-inputIcon>
-									<i class="pi pi-search"></i>
-								</p-inputIcon>
-								<input 
-									pInputText 
-									[(ngModel)]="searchValue"
-									(input)="filtrarTabla(dt1, searchValue)" 
-									placeholder="Buscar por código, nombre, descripción..." />
-							</p-iconField>
-							<p-button [outlined]="true" icon="pi pi-filter-slash" label="Limpiar" (click)="clear(dt1)" />
-						</div>
+				<div class="flex justify-between items-center">
+					<div class="text-end">
+						<p-iconField iconPosition="left">
+							<p-inputIcon>
+								<i class="pi pi-search"></i>
+							</p-inputIcon>
+							<input 
+								pInputText 
+								[(ngModel)]="searchValue"
+								(input)="filtrarTabla(dt1, searchValue)" 
+								placeholder="Buscar por código, nombre, descripción..." />
+						</p-iconField>
+						<p-button [outlined]="true" icon="pi pi-filter-slash" label="Limpiar" (click)="clear(dt1)" />
 					</div>
-
-				</ng-template>
+				</div>
+			</ng-template>
 			<ng-template pTemplate="header">
 				<tr>
 					<th pSortableColumn="idProducto" style="width: 20px">
@@ -685,8 +954,6 @@
 				</tr>
 			</ng-template>
 		</p-table>
-
-		
 	</div>
 	<div class="modal-footer">
 		<button type="button" class="btn btn-secondary" (click)="modal.close()">Cerrar</button>
@@ -746,6 +1013,7 @@
 	</div>
 </ng-template>
 
+<!-- Templates de notificaciones -->
 <ng-template #successTpl>Cantidad actualizada correctamente.</ng-template>
 <ng-template #successTplDireccion>Método de entrega actualizado correctamente.</ng-template>
 <ng-template #successTplNotDelivery>Nota de delivery actualizado correctamente.</ng-template>

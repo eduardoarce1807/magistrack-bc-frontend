@@ -55,7 +55,7 @@ export class SidebarComponent implements OnInit, AfterViewInit {
 					command: () => this.irA('pages/perfil')
 				}
 			] : []),
-			// Rol 11 (Atención al Cliente) solo tiene acceso a quejas/reclamos y perfil
+			// Rol 11 (Atención al Cliente) solo tiene acceso a quejas/reclamos, perfil y gestor de anuncios
 			...(user.rol.idRol === 11 ? [
 				{
 					key: '0_0',
@@ -68,6 +68,21 @@ export class SidebarComponent implements OnInit, AfterViewInit {
 					label: 'Mi Perfil',
 					icon: 'pi pi-user',
 					command: () => this.irA('pages/perfil')
+				},
+				{
+					key: '0_5',
+					label: 'Gestor de Anuncios',
+					icon: 'pi pi-megaphone',
+					command: () => this.irA('pages/gestor-anuncios')
+				}
+			] : []),
+			// Administrador (rol 1) también tiene acceso al Gestor de Anuncios
+			...(user.rol.idRol === 1 ? [
+				{
+					key: '0_6',
+					label: 'Gestor de Anuncios',
+					icon: 'pi pi-megaphone',
+					command: () => this.irA('pages/gestor-anuncios')
 				}
 			] : []),
 			...(atencionClienteAccessRoles.includes(user.rol.idRol) || user.rol.idRol === 11 || user.rol.idRol === 12 ? [
@@ -203,12 +218,18 @@ export class SidebarComponent implements OnInit, AfterViewInit {
 					label: 'Bandeja de despacho',
 					icon: 'pi pi-send',
 					command: () => this.irA('pages/produccion/bandeja-despacho')
+				},
+				{
+					key: '2_1',
+					label: 'Reporte de Despacho',
+					icon: 'pi pi-chart-line',
+					command: () => this.irA('pages/reportes/reporte-despacho')
 				}
 			] : []),
 			// Administrador, ventas y logística pueden ver visualizador de pagos
 			...([1, 5, 12].includes(user.rol.idRol) ? [
 				{
-					key: '2_1',
+					key: '2_2',
 					label: 'Visualizador de pagos',
 					icon: 'pi pi-credit-card',
 					command: () => this.irA('pages/atencion-cliente/visualizador-pagos')
@@ -273,16 +294,25 @@ export class SidebarComponent implements OnInit, AfterViewInit {
 								command: () => this.irA('pages/produccion/bandeja-etiquetado')
 							}
 						] : []),
+						// Gestor de Bulks - Solo para administrador (rol 1)
+						...(user.rol.idRol === 1 ? [
+							{
+								key: '3_4',
+								label: 'Gestor de Bulks',
+								icon: 'bi bi-bag',
+								command: () => this.irA('pages/produccion/gestor-bulks')
+							}
+						] : []),
 						// Reportes de Producción
 						...(atencionClienteAccessRoles.includes(user.rol.idRol) ? [
 							{
-								key: '3_4',
+								key: '3_5',
 								label: 'Pedidos en Producción',
 								icon: 'pi pi-list-check',
 								command: () => this.irA('pages/reportes/pedidos-produccion')
 							},
 							{
-								key: '3_5',
+								key: '3_6',
 								label: 'Cumplimiento FEE',
 								icon: 'pi pi-calendar',
 								command: () => this.irA('pages/reportes/cumplimiento-fee')

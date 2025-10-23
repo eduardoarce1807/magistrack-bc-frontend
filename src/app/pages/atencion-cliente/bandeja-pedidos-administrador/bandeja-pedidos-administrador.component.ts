@@ -40,6 +40,7 @@ export class BandejaPedidosAdministradorComponent implements OnInit {
 	pedidoSeleccionado: any = null;
 	urlComprobanteValida: boolean = false;
 	urlComprobanteSanitizada: SafeResourceUrl | null = null;
+	loadingPDF: { [key: string]: boolean } = {};
 
 	constructor(
 		private pedidoService: PedidoService,
@@ -402,5 +403,258 @@ export class BandejaPedidosAdministradorComponent implements OnInit {
 			console.error('Error al convertir URL de Drive:', error);
 			return null;
 		}
+	}
+
+	imprimirHojaPedido(idPedido: string): void {
+		// Activar estado de carga
+		this.loadingPDF[idPedido] = true;
+		
+		// Primero obtener los datos del pedido para verificar el tipoPedido
+		this.pedidoService.getPedidoById(idPedido).subscribe({
+			next: (pedido) => {
+				console.log('Datos del pedido:', pedido);
+				
+				// Verificar que los datos del pedido existan
+				if (!pedido) {
+					throw new Error('No se pudieron obtener los datos del pedido');
+				}
+				
+				// Determinar qué request hacer según el tipoPedido
+				let productosRequest;
+				if (pedido.tipoPedido === 'PREPARADO_MAGISTRAL') {
+					// Para preparados magistrales
+					productosRequest = this.pedidoService.getPreparadosMagistralesByIdPedido(idPedido);
+				} else {
+					// Para productos regulares (tipoPedido === 'PRODUCTO' o cualquier otro valor)
+					productosRequest = this.pedidoService.getProductosByPedidoId(idPedido);
+				}
+				
+				// Ejecutar el request correspondiente
+				productosRequest.subscribe({
+					next: (items) => {
+						console.log('Items del pedido:', items);
+						
+						// Verificar que los items existan y que haya al menos uno
+						if (!items || items.length === 0) {
+							this.loadingPDF[idPedido] = false;
+							Swal.fire({
+								icon: 'warning',
+								title: 'Pedido sin productos',
+								text: 'Este pedido no tiene productos seleccionados. No se puede generar la hoja de pedido.',
+								showConfirmButton: true,
+							});
+							return;
+						}
+						
+						// Generar el HTML del PDF
+						const htmlContent = this.generarHTMLHojaPedido(pedido, items);
+						
+						// Crear una ventana para imprimir
+						const printWindow = window.open('', '_blank', 'width=800,height=600');
+						if (printWindow) {
+							printWindow.document.write(htmlContent);
+							printWindow.document.close();
+							printWindow.focus();
+							setTimeout(() => {
+								printWindow.print();
+								printWindow.close();
+								// Desactivar estado de carga después de que se abre la ventana de impresión
+								this.loadingPDF[idPedido] = false;
+							}, 500);
+						} else {
+							// Si no se pudo abrir la ventana, desactivar estado de carga
+							this.loadingPDF[idPedido] = false;
+						}
+					},
+					error: (error) => {
+						console.error('Error al obtener items del pedido:', error);
+						// Desactivar estado de carga en caso de error
+						this.loadingPDF[idPedido] = false;
+						Swal.fire({
+							icon: 'error',
+							title: 'Error',
+							text: 'No se pudieron obtener los items del pedido para generar la hoja.',
+							showConfirmButton: true,
+						});
+					}
+				});
+			},
+			error: (error) => {
+				console.error('Error al obtener datos del pedido:', error);
+				// Desactivar estado de carga en caso de error
+				this.loadingPDF[idPedido] = false;
+				Swal.fire({
+					icon: 'error',
+					title: 'Error',
+					text: 'No se pudieron obtener los datos del pedido para generar la hoja.',
+					showConfirmButton: true,
+				});
+			}
+		});
+	}
+
+	private generarHTMLHojaPedido(pedido: any, items: any[]): string {
+		const fechaPedido = new Date(pedido.fechaPedido).toLocaleDateString('es-PE');
+		const esPreparadoMagistral = pedido.tipoPedido === 'PREPARADO_MAGISTRAL';
+		
+		let itemsHTML = '';
+		items.forEach(item => {
+			if (esPreparadoMagistral) {
+				// Para preparados magistrales
+				const precioTotal = item.precio * item.cantidad;
+				itemsHTML += `
+					<tr>
+						<td style="padding: 8px; border: 1px solid #ddd;">${item.nombre} x ${item.cantidad}</td>
+						<td style="padding: 8px; border: 1px solid #ddd;">${item.presentacion} ${item.tipoPresentacion}</td>
+						<td style="padding: 8px; border: 1px solid #ddd; text-align: right;">S/ ${precioTotal.toFixed(2)}</td>
+					</tr>
+				`;
+			} else {
+				// Para productos regulares
+				const precioTotal = item.precio * item.cantidad;
+				itemsHTML += `
+					<tr>
+						<td style="padding: 8px; border: 1px solid #ddd;">${item.nombre} x ${item.cantidad}</td>
+						<td style="padding: 8px; border: 1px solid #ddd;">${item.presentacion} ${item.tipoPresentacion}</td>
+						<td style="padding: 8px; border: 1px solid #ddd; text-align: right;">S/ ${precioTotal.toFixed(2)}</td>
+					</tr>
+				`;
+			}
+		});
+
+		const tipoItemTexto = esPreparadoMagistral ? 'PREPARADOS MAGISTRALES' : 'PRODUCTOS';
+
+		return `
+			<html>
+				<head>
+					<title>Hoja de Pedido - ${pedido.idPedido}</title>
+					<style>
+						body { 
+							font-family: Arial, sans-serif; 
+							margin: 20px; 
+							font-size: 12px;
+						}
+						.header {
+							text-align: center;
+							margin-bottom: 20px;
+							border-bottom: 2px solid #333;
+							padding-bottom: 10px;
+						}
+						.section {
+							margin-bottom: 15px;
+						}
+						.section-title {
+							font-weight: bold;
+							margin-bottom: 5px;
+							color: #333;
+						}
+						table {
+							width: 100%;
+							border-collapse: collapse;
+							margin-top: 10px;
+						}
+						th {
+							background-color: #f5f5f5;
+							padding: 8px;
+							border: 1px solid #ddd;
+							font-weight: bold;
+						}
+						td {
+							padding: 8px;
+							border: 1px solid #ddd;
+						}
+						.total {
+							font-weight: bold;
+							font-size: 14px;
+							text-align: right;
+							margin-top: 10px;
+						}
+						.tipo-pedido {
+							background-color: ${esPreparadoMagistral ? '#e3f2fd' : '#f3e5f5'};
+							padding: 5px 10px;
+							border-radius: 5px;
+							display: inline-block;
+							font-weight: bold;
+							color: ${esPreparadoMagistral ? '#1976d2' : '#7b1fa2'};
+						}
+						@media print {
+							body { margin: 0; }
+						}
+					</style>
+				</head>
+				<body>
+					<div class="header">
+						<h1>HOJA DE PEDIDO</h1>
+						<h2>${pedido.idPedido}</h2>
+						<div class="tipo-pedido">${pedido.tipoPedido || 'PRODUCTO'}</div>
+					</div>
+
+					<div class="section">
+						<div class="section-title">Cliente:</div>
+						${pedido.cliente?.nombres || ''} ${pedido.cliente?.apellidos || ''}
+					</div>
+
+					<div class="section">
+						<div class="section-title">DNI:</div>
+						${pedido.cliente?.numeroDocumento || 'No especificado'}
+					</div>
+
+					<div class="section">
+						<div class="section-title">Correo:</div>
+						${pedido.cliente?.correo || 'No especificado'}
+					</div>
+
+					<div class="section">
+						<div class="section-title">Número de pedido:</div>
+						${pedido.idPedido}
+					</div>
+
+					<div class="section">
+						<div class="section-title">Fecha:</div>
+						${fechaPedido}
+					</div>
+
+					<div class="section">
+						<div class="section-title">Total:</div>
+						S/ ${pedido.montoTotal.toFixed(2)}
+					</div>
+
+					<div class="section">
+						<div class="section-title">Método de pago:</div>
+						${pedido.tipoPago?.descripcion || 'No especificado'}
+					</div>
+
+					<div class="section">
+						<div class="section-title">Método de entrega:</div>
+						${pedido.metodoEntrega?.descripcion || 'No especificado'}
+					</div>
+
+					<div class="section">
+						<div class="section-title">Dirección:</div>
+						${pedido.direccion?.direccion || 'No especificada'} - ${pedido.direccion?.distrito?.nombre || ''} - ${pedido.direccion?.provincia?.nombre || ''} - ${pedido.direccion?.departamento?.nombre || ''}
+					</div>
+
+					<div class="section">
+						<div class="section-title">DETALLES DEL PEDIDO - ${tipoItemTexto}</div>
+						<table>
+							<thead>
+								<tr>
+									<th>${esPreparadoMagistral ? 'Preparado Magistral' : 'Producto'}</th>
+									<th>Presentación</th>
+									<th>Precio</th>
+								</tr>
+							</thead>
+							<tbody>
+								${itemsHTML}
+							</tbody>
+						</table>
+					</div>
+
+					<div class="total">
+						TOTAL: S/ ${pedido.montoTotal.toFixed(2)}
+					</div>
+				</body>
+			</html>
+		`;
 	}
 }

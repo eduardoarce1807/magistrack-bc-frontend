@@ -40,6 +40,12 @@ export const pagesRoutes: Routes = [
 		loadChildren: () => import('./inventario/inventario.routes').then(m => m.inventarioRoutes),
 		canActivate: [AuthGuard, ProfileCompleteGuard]
 	},
+	{ 
+		path: 'gestor-anuncios', 
+		loadComponent: () => import('./gestor-anuncios/gestor-anuncios.component').then(m => m.GestorAnunciosComponent),
+		canActivate: [AuthGuard, ProfileCompleteGuard],
+		data: { roles: [1, 11] } // Solo administrador y atención al cliente
+	},
 	{ path: 'perfil', loadComponent: () => import('./atencion-cliente/registro-cliente/registro-cliente.component').then(m => m.RegistroClienteComponent), canActivate: [AuthGuard], data: { roles: [2, 3, 4, 11] } },
 	{ path: '**', redirectTo: 'auth/login' }
 
