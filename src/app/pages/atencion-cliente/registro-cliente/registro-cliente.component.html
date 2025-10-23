@@ -159,7 +159,7 @@
         <div class="col-md-6">
           <label for="profesion" class="form-label fw-bold">
             Profesión / Oficio
-            @if (isCamposProfesionalesObligatorios()) {
+            @if (isProfesionObligatoria()) {
               <span class="text-danger">*</span>
             }
           </label>
@@ -193,6 +193,8 @@
             N° Colegiatura
             @if (isCamposProfesionalesObligatorios()) {
               <span class="text-danger">*</span>
+            } @else {
+              (opcional)
             }
           </label>
           <input type="text" formControlName="numeroColegiatura" class="form-control" placeholder="Ingrese el número de su colegiatura" />

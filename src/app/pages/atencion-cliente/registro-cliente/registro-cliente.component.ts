@@ -523,11 +523,14 @@ export class RegistroClienteComponent implements OnInit {
       // Solo archivo adjunto es obligatorio
       documentoAdicionalControl?.setValidators([Validators.required]);
     } else if (rolId === '4') { // Esteticista
-      // Todos los campos son obligatorios
+      // Solo profesión es obligatoria, colegio profesional y número de colegiatura son opcionales
+      profesionControl?.setValidators([Validators.required]);
+      documentoAdicionalControl?.setValidators([Validators.required]);
+    } else if (rolId === '16') { // Profesional de Salud
+      // Solo los campos profesionales son obligatorios, archivo opcional
       profesionControl?.setValidators([Validators.required]);
       colegioProfesionalControl?.setValidators([Validators.required]);
       numeroColegiaturaControl?.setValidators([Validators.required]);
-      documentoAdicionalControl?.setValidators([Validators.required]);
     }
 
     // Actualizar validez de los controles
@@ -541,7 +544,7 @@ export class RegistroClienteComponent implements OnInit {
   isArchivoObligatorio(): boolean {
     if (!this.isProfileMode && !this.isPublicAccess) {
       const rolId = this.clienteForm.get('rol')?.value;
-      return rolId === '3' || rolId === '4';
+      return rolId === '3' || rolId === '4'; // Solo Estudiante y Esteticista
     }
     return false;
   }
@@ -550,7 +553,16 @@ export class RegistroClienteComponent implements OnInit {
   isCamposProfesionalesObligatorios(): boolean {
     if (!this.isProfileMode && !this.isPublicAccess) {
       const rolId = this.clienteForm.get('rol')?.value;
-      return rolId === '4';
+      return rolId === '16'; // Solo el rol Profesional de Salud tiene todos los campos obligatorios
+    }
+    return false;
+  }
+
+  // Método para verificar si solo la profesión es obligatoria (para Esteticista)
+  isProfesionObligatoria(): boolean {
+    if (!this.isProfileMode && !this.isPublicAccess) {
+      const rolId = this.clienteForm.get('rol')?.value;
+      return rolId === '4' || rolId === '16'; // Esteticista y Profesional de Salud
     }
     return false;
   }

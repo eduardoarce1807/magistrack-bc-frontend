@@ -80,7 +80,7 @@ export class CatalogoPreciosComponent implements OnInit {
   listarRoles(): void {
     this.rolService.getRoles().subscribe(
       (roles) => {
-      this.roles = roles.filter((r: any) => [2, 3, 4, 10].includes(r.idRol));
+      this.roles = roles.filter((r: any) => [2, 3, 4, 10, 16].includes(r.idRol));
       },
       (error) => console.error('Error al cargar roles', error)
     );

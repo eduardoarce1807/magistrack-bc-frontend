@@ -487,14 +487,51 @@
 						<!-- Información importante -->
 						<div class="row mt-4">
 							<div class="col-12">
-								<p class="text-muted small mb-3">
-									<strong>DELIVERY GRATIS A PARTIR DE 350 SOLES Y PROVINCIA A PARTIR DE 500 SOLES</strong><br>
-									<strong>HORARIO DE RECOJO EN FARMACIA DE LUNES A VIERNES DE 9 AM A 5 PM</strong><br>
-									<strong>TIEMPO DE ENTREGA DEL PEDIDO (LIMA) = 24 HORAS (PUEDE VARIAR EN FECHAS FESTIVAS Y EVENTOS)</strong><br>
-									<strong>TIEMPO DE ENTREGA DEL PEDIDO (PROVINCIA) = 48 HORAS (PUEDE VARIAR EN FECHAS FESTIVAS Y EVENTOS)</strong><br>
-									<strong>MEDIOS DE PAGO: BCP Soles 1932458267078 a nombre de DERMOFARMACIA BELLA CURET YAPE/PLIN = 956324064</strong><br>
-									Estimado cliente sírvase a revisar bien su pedido, ya que una vez aprobada la cotización no habrá lugar a modificación y/o reclamo.
-								</p>
+								<div class="card" style="border-color: #D4858C;">
+									<div class="card-header text-white" style="background-color: #D4858C;">
+										<h6 class="mb-0"><i class="bi bi-info-circle me-2"></i>Información Importante</h6>
+									</div>
+									<div class="card-body">
+										<div class="row">
+											<div class="col-md-6">
+												<div class="mb-3">
+													<h6 style="color: #D4858C;"><i class="bi bi-truck me-2"></i>Delivery Gratuito</h6>
+													<p class="mb-1"><strong>Lima:</strong> A partir de S/ 350.00</p>
+													<p class="mb-0"><strong>Provincia:</strong> A partir de S/ 500.00</p>
+												</div>
+												<div class="mb-3">
+													<h6 style="color: #D4858C;"><i class="bi bi-clock me-2"></i>Horario de Recojo</h6>
+													<p class="mb-0">Lunes a Viernes de 9:00 AM a 5:00 PM</p>
+												</div>
+											</div>
+											<div class="col-md-6">
+												<div class="mb-3">
+													<h6 style="color: #D4858C;"><i class="bi bi-calendar-check me-2"></i>Tiempos de Entrega</h6>
+													<p class="mb-1"><strong>Lima:</strong> 24 horas</p>
+													<p class="mb-2"><strong>Provincia:</strong> 48 horas</p>
+													<small class="text-muted">*Puede variar en fechas festivas y eventos</small>
+												</div>
+											</div>
+										</div>
+										<hr>
+										<div class="mb-3">
+											<h6 style="color: #D4858C;"><i class="bi bi-credit-card me-2"></i>Medios de Pago</h6>
+											<div class="row">
+												<div class="col-md-6">
+													<p class="mb-1"><strong>BCP Soles:</strong> 1932458267078</p>
+													<small class="text-muted">A nombre de DERMOFARMACIA BELLA CURET</small>
+												</div>
+												<div class="col-md-6">
+													<p class="mb-0"><strong>YAPE/PLIN:</strong> 956324064</p>
+												</div>
+											</div>
+										</div>
+										<div class="alert alert-warning mb-0">
+											<i class="bi bi-exclamation-triangle me-2"></i>
+											<strong>Importante:</strong> Estimado cliente sírvase a revisar bien su pedido, ya que una vez aprobada la cotización no habrá lugar a modificación y/o reclamo.
+										</div>
+									</div>
+								</div>
 							</div>
 						</div>
 
@@ -591,6 +628,7 @@
 										<table class="table table-sm">
 											<thead>
 												<tr>
+													<th>ID</th>
 													<th>Producto</th>
 													<th>Cantidad</th>
 													<th>Precio Unit.</th>
@@ -600,6 +638,7 @@
 											<tbody>
 												@for (item of productosPedido; track $index) {
 													<tr>
+														<td>{{item.idProducto}}</td>
 														<td>{{item.nombre}}</td>
 														<td>{{item.cantidad}}</td>
 														<td>
@@ -622,6 +661,7 @@
 										<table class="table table-sm">
 											<thead>
 												<tr>
+													<th>ID</th>
 													<th>Preparado Magistral</th>
 													<th>Cantidad</th>
 													<th>Precio Unit.</th>
@@ -631,6 +671,7 @@
 											<tbody>
 												@for (preparado of preparadosMagistrales; track $index) {
 													<tr>
+														<td>{{preparado.idPreparadoMagistral}}</td>
 														<td>{{preparado.nombre}}</td>
 														<td>{{preparado.cantidad}}</td>
 														<td>S/ {{preparado.precio.toFixed(2)}}</td>
