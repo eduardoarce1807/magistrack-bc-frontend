@@ -18,7 +18,8 @@ export class kardexModel {
 	peso_bruto:        number=0;
 	peso_neto:         number=0;
 	impsubtotalentrada:number=0;
-	impsubtotalsalida:number=0
+	impsubtotalsalida:number=0;
+	tara:number=0
 }
 export class TipomovimientoModel {
 	id_tipomovimiento: string='';
