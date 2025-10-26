@@ -414,51 +414,28 @@
 					</div>
 				</div>
 
+				<div class="row">
+					<div class="col-md-6 d-flex flex-column">
+						<label class="p-text-secondary fw-bold">TARA</label>
+						<p-inputNumber
+							inputId="integeronly"
+							[min]="0"
+							[(ngModel)]="subirBaja.tara" /></div>
+					<div class="col-md-6 d-flex flex-column">
+
 						<label class="p-text-secondary fw-bold">Motivo para dar de Baja</label>
 						<textarea
-						rows="3"
-						cols="30"
-						pInputTextarea
-						[(ngModel)]="subirBaja.observaciones">
+							rows="3"
+							cols="30"
+							pInputTextarea
+							[(ngModel)]="subirBaja.observaciones">
 						</textarea>
+					</div>
+				</div>
 
 
 				<div class="row">
 					<div class="col-md-4 col-sm-12 d-flex flex-column">
-<!--						<label class="p-text-secondary fw-bold mt-2">Tipo Movimiento</label>-->
-<!--						<p-dropdown-->
-<!--							[options]="listaTipomovimiento"-->
-<!--							[(ngModel)]="tipomovimiento"-->
-<!--							optionLabel="descripcion"-->
-<!--							optionValue="id_tipomovimiento"-->
-<!--							[loading]="cargatipomovimiento"-->
-<!--							appendTo="body"-->
-<!--							placeholder="Seleccionar Tipo"-->
-<!--							(ngModelChange)="cambiotipomovimento()">-->
-<!--							<ng-template pTemplate="selectedItem" let-tipomovimiento>-->
-<!--								<div>({{ tipomovimiento.id_tipomovimiento }}) - {{ tipomovimiento.descripcion }}</div>-->
-<!--							</ng-template>-->
-<!--							<ng-template let-tipomovimiento pTemplate="item">-->
-<!--								<div>({{ tipomovimiento.id_tipomovimiento }}) - {{ tipomovimiento.descripcion }}</div>-->
-<!--							</ng-template>-->
-<!--						</p-dropdown>-->
-
-<!--						<label class="p-text-secondary fw-bold mt-2">Movimiento</label>-->
-<!--						<p-dropdown-->
-<!--							[options]="listaMovimiento"-->
-<!--							[(ngModel)]="subirBaja.id_movimiento"-->
-<!--							optionLabel="movimiento"-->
-<!--							optionValue="id_movimiento"-->
-<!--							[loading]="cargamovimiento"-->
-<!--							appendTo="body"-->
-<!--							placeholder="Seleccionar Tipo">-->
-<!--							<ng-template pTemplate="selectedItem" let-movimiento>-->
-<!--								<div>({{ movimiento.id_movimiento }}) - {{ movimiento.movimiento }}</div>-->
-<!--							</ng-template>-->
-<!--							<ng-template let-movimiento pTemplate="item">-->
-<!--								<div>({{ movimiento.id_movimiento }}) - {{ movimiento.movimiento }}</div>-->
-<!--							</ng-template>-->
-<!--						</p-dropdown>-->
 
 
 						<label class="mt-2">Adjuntar archivo (PDF,images*)</label>
@@ -618,14 +595,24 @@
 									[inputStyle]="{ width: '100%' }"/>
 					</div>
 				</div>
+				<div class="row">
+					<div class="col-md-6 d-flex flex-column">
+						<label class="p-text-secondary fw-bold">TARA</label>
+						<p-inputNumber
+							inputId="integeronly"
+							[min]="0"
+							[(ngModel)]="subirBaja.tara" /></div>
+					<div class="col-md-6 d-flex flex-column">
 
-				<label class="p-text-secondary fw-bold">Motivo del ajuste manual</label>
-				<textarea
-					rows="3"
-					cols="30"
-					pInputTextarea
-					[(ngModel)]="subirBaja.observaciones">
-				</textarea>
+						<label class="p-text-secondary fw-bold">Motivo del ajuste manual</label>
+						<textarea
+							rows="3"
+							cols="30"
+							pInputTextarea
+							[(ngModel)]="subirBaja.observaciones">
+						</textarea>
+					</div>
+				</div>
 				<div class="row">
 					<div class="col-md-4 col-sm-12 d-flex flex-column">
 
@@ -731,14 +718,24 @@
 							[max]="fila_select.stock_materia"
 							[min]="1"/></div>
 				</div>
+				<div class="row">
+					<div class="col-md-6 d-flex flex-column">
+						<label class="p-text-secondary fw-bold">TARA</label>
+						<p-inputNumber
+							inputId="integeronly"
+							[min]="0"
+							[(ngModel)]="subirBaja.tara" /></div>
+					<div class="col-md-6 d-flex flex-column">
 
-				<label class="p-text-secondary fw-bold">Motivo para dar de Baja</label>
-				<textarea
-					rows="3"
-					cols="30"
-					pInputTextarea
-					[(ngModel)]="subirBaja.observaciones">
-				</textarea>
+						<label class="p-text-secondary fw-bold">Motivo para dar de Baja</label>
+						<textarea
+							rows="3"
+							cols="30"
+							pInputTextarea
+							[(ngModel)]="subirBaja.observaciones">
+						</textarea>
+					</div>
+				</div>
 
 			</div>
 		</div>

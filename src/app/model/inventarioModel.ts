@@ -22,6 +22,7 @@ export class MateriaprimaModel {
 	peso_neto:         number=0;
 	id_tipomateria:	number=2;
 	tipomateria:string=''
+	tara:number=0
 	detalleproveedor:soloproveedorModel[]=[]
 
 }

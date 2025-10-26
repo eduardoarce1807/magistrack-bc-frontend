@@ -168,6 +168,13 @@
 						<p-columnFilter type="numeric" field="pureza" display="menu" class="ml-auto" />
 					</div>
 				</th>
+				<th pSortableColumn="tara" style="min-width: 80px">
+					<div class="flex justify-content-between align-items-center">
+						Tara
+						<p-sortIcon field="tara" />
+						<p-columnFilter type="numeric" field="tara" display="menu" class="ml-auto" />
+					</div>
+				</th>
 				<th pSortableColumn="peso_bruto" style="min-width: 80px">
 					<div class="flex justify-content-between align-items-center">
 						Peso Bruto
@@ -264,6 +271,9 @@
 					</td>
 					<td>
 						{{ customer.pureza }}
+					</td>
+					<td>
+						{{ customer.tara }}
 					</td>
 					<td>
 						{{ customer.peso_bruto | currency:' ':'symbol':'1.2-2':'en-US'}}
