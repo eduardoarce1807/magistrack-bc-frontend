@@ -186,9 +186,23 @@
 								</tr>
 								}
 								<tr>
-									<td colspan="6" class="text-end fw-bold">Total Pedido:</td>
+									<td colspan="6" class="text-end fw-bold">Subtotal Productos:</td>
 									<td colspan="2" class="fw-bold">
 										S/ {{totalPedido.toFixed(2)}}
+									</td>
+								</tr>
+								@if (pedido?.aplicaDelivery) {
+								<tr>
+									<td colspan="6" class="text-end">Costo de Delivery:</td>
+									<td colspan="2">
+										S/ {{pedido?.costoDelivery?.toFixed(2) || '0.00'}}
+									</td>
+								</tr>
+								}
+								<tr>
+									<td colspan="6" class="text-end fw-bold">Total Pedido:</td>
+									<td colspan="2" class="fw-bold">
+										S/ {{getTotalPedidoConDelivery().toFixed(2)}}
 									</td>
 								</tr>
 							</tbody>
@@ -253,9 +267,23 @@
 								</tr>
 								}
 								<tr>
-									<td colspan="7" class="text-end fw-bold">Total Pedido:</td>
+									<td colspan="7" class="text-end fw-bold">Subtotal Productos:</td>
 									<td colspan="3" class="fw-bold">
 										S/ {{totalPedido.toFixed(2)}}
+									</td>
+								</tr>
+								@if (pedido?.aplicaDelivery) {
+								<tr>
+									<td colspan="7" class="text-end">Costo de Delivery ({{pedido?.metodoCalculoDelivery}}):</td>
+									<td colspan="3">
+										S/ {{pedido?.costoDelivery?.toFixed(2) || '0.00'}}
+									</td>
+								</tr>
+								}
+								<tr class="table-info">
+									<td colspan="7" class="text-end fw-bold">Total Pedido:</td>
+									<td colspan="3" class="fw-bold">
+										S/ {{getTotalPedidoConDelivery().toFixed(2)}}
 									</td>
 								</tr>
 							</tbody>
@@ -564,6 +592,18 @@
 					<ng-template pTemplate="content" let-prevCallback="prevCallback" let-nextCallback="nextCallback" let-index="index">
 						<h4 class="mb-4">Resumen del Pedido</h4>
 						
+						@if (loadingResumen) {
+							<div class="d-flex justify-content-center align-items-center" style="min-height: 400px;">
+								<div class="text-center">
+									<div class="spinner-border text-primary mb-3" role="status" style="width: 3rem; height: 3rem;">
+										<span class="visually-hidden">Cargando información actualizada del pedido...</span>
+									</div>
+									<p class="text-muted">Actualizando información del pedido...</p>
+								</div>
+							</div>
+						}
+						
+						@if (!loadingResumen) {
 						<!-- Información básica del pedido -->
 						<div class="row mb-4">
 							<div class="col-md-6">
@@ -689,8 +729,14 @@
 									</div>
 								}
 								
+								@if (pedido?.aplicaDelivery) {
+									<div class="alert alert-info">
+										<strong>Delivery aplicado:</strong> S/ {{pedido?.costoDelivery?.toFixed(2) || '0.00'}}
+									</div>
+								}
+								
 								<div class="text-end">
-									<h5><strong>Total: S/ {{totalPedido.toFixed(2)}}</strong></h5>
+									<h5><strong>Total: S/ {{getTotalPedidoConDelivery().toFixed(2)}}</strong></h5>
 								</div>
 							</div>
 						</div>
@@ -723,6 +769,7 @@
 								<strong>Pedido Pagado:</strong> Este pedido ya ha sido procesado y pagado. Los campos se muestran en modo solo lectura.
 							</div>
 						}
+						} <!-- Cierre del @if (!loadingResumen) -->
 
 						<div class="d-flex justify-content-between mt-4">
 							<button class="btn btn-secondary" (click)="prevStep()">
@@ -732,8 +779,14 @@
 								<button 
 									class="btn btn-primary" 
 									(click)="nextStep()"
+									[disabled]="loadingResumen"
 								>
-									Siguiente: Pago <i class="bi bi-arrow-right"></i>
+									@if (loadingResumen) {
+										<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+										Actualizando...
+									} @else {
+										Siguiente: Pago <i class="bi bi-arrow-right"></i>
+									}
 								</button>
 							}
 						</div>

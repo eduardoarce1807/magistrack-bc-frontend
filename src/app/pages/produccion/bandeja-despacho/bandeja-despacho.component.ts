@@ -167,6 +167,17 @@ export class BandejaDespachoComponent implements OnInit {
 
 	documentoSeleccionado: any = {};
 	openModalComprobante(content: TemplateRef<any>, item: any) {
+		// Validar si el pago está completo
+		if (item.pagoCompleto === false) {
+			Swal.fire({
+				icon: 'warning',
+				title: 'Pago Incompleto',
+				text: 'No se puede generar el comprobante porque el pago del pedido no está completo.',
+				showConfirmButton: true,
+			});
+			return;
+		}
+
 		this.pedidoService.getPedidoById(item.idPedido).subscribe((pedido) => {
 			console.log('Pedido obtenido:', pedido);
 			
@@ -323,6 +334,17 @@ export class BandejaDespachoComponent implements OnInit {
 	}
 
 	confirmarEntrega(item: any) {
+		// Validar si el pago está completo
+		if (item.pagoCompleto === false) {
+			Swal.fire({
+				icon: 'warning',
+				title: 'Pago Incompleto',
+				text: 'No se puede confirmar la entrega porque el pago del pedido no está completo.',
+				showConfirmButton: true,
+			});
+			return;
+		}
+
 		Swal.fire({
 			title: '¿Estás seguro?',
 			text: `¿Deseas confirmar la entrega del pedido "${item.idPedido}"?`,
@@ -385,6 +407,28 @@ export class BandejaDespachoComponent implements OnInit {
 	}
 
 	confirmarEntregaMasivo() {
+		// Validar que todos los pedidos seleccionados tengan el pago completo
+		const pedidosConPagoIncompleto = this.pedidos
+			.filter(p => this.lstPedidosSeleccionados.includes(p.idPedido) && p.pagoCompleto === false)
+			.map(p => p.idPedido);
+
+		if (pedidosConPagoIncompleto.length > 0) {
+			let listaPedidosIncompletos = pedidosConPagoIncompleto.join('<br>');
+			Swal.fire({
+				icon: 'warning',
+				title: 'Pagos Incompletos',
+				html: `
+					<p>Los siguientes pedidos no pueden ser entregados porque tienen pagos incompletos:</p>
+					<div style="max-height: 200px; overflow-y: auto; background-color: #f8f9fa; padding: 10px; border-radius: 5px;">
+						${listaPedidosIncompletos}
+					</div>
+					<p class="mt-2">Por favor, complete los pagos antes de confirmar la entrega.</p>
+				`,
+				showConfirmButton: true,
+			});
+			return;
+		}
+
 		let lstPedidos = '';
 		for (let i = 0; i < this.lstPedidosSeleccionados.length; i++) {
 			lstPedidos += this.lstPedidosSeleccionados[i] + '<br>';
@@ -1301,6 +1345,35 @@ export class BandejaDespachoComponent implements OnInit {
 			}
 		});
 
+		// Calcular subtotal (total menos delivery si aplica)
+		const subtotal = pedido.aplicaDelivery ? (pedido.montoTotal - (pedido.costoDelivery || 0)) : pedido.montoTotal;
+		
+		// Agregar fila de subtotal de productos
+		itemsHTML += `
+			<tr>
+				<td colspan="2" style="padding: 8px; border: 1px solid #ddd; text-align: right; font-weight: bold;">Subtotal Productos:</td>
+				<td style="padding: 8px; border: 1px solid #ddd; text-align: right; font-weight: bold;">S/ ${subtotal.toFixed(2)}</td>
+			</tr>
+		`;
+		
+		// Agregar fila de delivery si aplica
+		if (pedido.aplicaDelivery && pedido.costoDelivery) {
+			itemsHTML += `
+				<tr>
+					<td colspan="2" style="padding: 8px; border: 1px solid #ddd; text-align: right;">Costo de Delivery:</td>
+					<td style="padding: 8px; border: 1px solid #ddd; text-align: right;">S/ ${(pedido.costoDelivery).toFixed(2)}</td>
+				</tr>
+			`;
+		}
+		
+		// Agregar fila de total final
+		itemsHTML += `
+			<tr style="background-color: #e3f2fd;">
+				<td colspan="2" style="padding: 8px; border: 1px solid #ddd; text-align: right; font-weight: bold; font-size: 14px;">TOTAL PEDIDO:</td>
+				<td style="padding: 8px; border: 1px solid #ddd; text-align: right; font-weight: bold; font-size: 14px;">S/ ${pedido.montoTotal.toFixed(2)}</td>
+			</tr>
+		`;
+
 		const tipoItemTexto = esPreparadoMagistral ? 'PREPARADOS MAGISTRALES' : 'PRODUCTOS';
 
 		return `
@@ -1412,6 +1485,18 @@ export class BandejaDespachoComponent implements OnInit {
 						<div class="section-title">Dirección:</div>
 						${pedido.direccion?.direccion || 'No especificada'} - ${pedido.direccion?.distrito?.nombre || ''} - ${pedido.direccion?.provincia?.nombre || ''} - ${pedido.direccion?.departamento?.nombre || ''}
 					</div>
+
+					${pedido.aplicaDelivery ? `
+					<div class="section">
+						<div class="section-title">Información de Delivery:</div>
+						<div style="margin-left: 15px;">
+							<strong>Costo:</strong> S/ ${(pedido.costoDelivery || 0).toFixed(2)}<br>
+							<strong>Método de cálculo:</strong> ${pedido.metodoCalculoDelivery || 'No especificado'}<br>
+							${pedido.tarifarioDelivery ? `<strong>Tarifa aplicada:</strong> ${pedido.tarifarioDelivery.descripcionCondicion || 'Tarifa estándar'}<br>` : ''}
+							${pedido.notaDelivery ? `<strong>Nota:</strong> ${pedido.notaDelivery}<br>` : ''}
+						</div>
+					</div>
+					` : ''}
 
 					<div class="section">
 						<div class="section-title">DETALLES DEL PEDIDO - ${tipoItemTexto}</div>

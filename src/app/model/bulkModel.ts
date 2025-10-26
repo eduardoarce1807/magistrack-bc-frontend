@@ -12,4 +12,7 @@ export interface BulkModel {
     idPreparadoMagistral?: string;
     phDefinidoMin?: number;
     phDefinidoMax?: number;
+    idUsuarioAsignado?: number;
+    nombreUsuarioAsignado?: string;
+    rolUsuarioAsignado?: string;
 }

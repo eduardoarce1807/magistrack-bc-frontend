@@ -19,4 +19,10 @@ export const reportesRoutes: Routes = [
   { path: 'reporte-valorizacion', loadComponent: () => import('./inventario/reporte-valorizacion/reporte-valorizacion.component').then(m => m.ReporteValorizacionComponent), canActivate: [AuthGuard], data: { roles: [1] } },
   { path: 'reporte-categoria-mp', loadComponent: () => import('./compras/reporte-categorida-mp/reporte-categorida-mp.component').then(m => m.ReporteCategoridaMpComponent), canActivate: [AuthGuard], data: { roles: [1] } },
   { path: 'reporte-despacho', loadComponent: () => import('./reporte-despacho/reporte-despacho.component').then(m => m.ReporteDespachoComponent), canActivate: [AuthGuard], data: { roles: [1, 12] } },
+  
+  // Rutas del Mantenedor de Delivery
+  { path: 'mantenedor-delivery', loadComponent: () => import('./mantenedor-delivery/mantenedor-delivery.component').then(m => m.MantenedorDeliveryComponent), canActivate: [AuthGuard], data: { roles: [1, 12] } },
+  { path: 'mantenedor-delivery/crear', loadComponent: () => import('./mantenedor-delivery/crear-editar-tarifa-delivery.component').then(m => m.CrearEditarTarifaDeliveryComponent), canActivate: [AuthGuard], data: { roles: [1, 12] } },
+  { path: 'mantenedor-delivery/editar/:id', loadComponent: () => import('./mantenedor-delivery/crear-editar-tarifa-delivery.component').then(m => m.CrearEditarTarifaDeliveryComponent), canActivate: [AuthGuard], data: { roles: [1, 12] } },
+  { path: 'mantenedor-delivery/duplicar/:id', loadComponent: () => import('./mantenedor-delivery/crear-editar-tarifa-delivery.component').then(m => m.CrearEditarTarifaDeliveryComponent), canActivate: [AuthGuard], data: { roles: [1, 12] } },
 ];

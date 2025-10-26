@@ -415,7 +415,14 @@ export class BandejaProduccionComponent implements OnInit {
 	}
 
 	getProductosAll(): void {
-		this.productoService.getBandejaProduccion().subscribe(
+		// Obtener el usuario loggeado
+		const usuario = this.dataService.getLoggedUser();
+		if (!usuario || !usuario.idUsuario) {
+			console.error('Usuario no encontrado');
+			return;
+		}
+
+		this.productoService.getBandejaProduccion(usuario.idUsuario).subscribe(
 			(response: any) => {
 				console.log('Response obtenido:', response);
 				

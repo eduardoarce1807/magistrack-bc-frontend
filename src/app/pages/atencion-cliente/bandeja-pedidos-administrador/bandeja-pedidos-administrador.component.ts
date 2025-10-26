@@ -16,6 +16,7 @@ import { ProductoService } from '../../../services/producto.service';
 import { ToastService } from '../../../services/toast.service';
 import { ToastsContainer } from '../../../shared/components/toasts-container/toasts-container.component';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+import { PagoPedidoService } from '../../../services/pago-pedido.service';
 
 @Component({
 	selector: 'app-bandeja-pedidos-administrador',
@@ -49,7 +50,8 @@ export class BandejaPedidosAdministradorComponent implements OnInit {
 		private dataService: DataService,
 		private productoService: ProductoService,
 		private modalService: NgbModal,
-		private sanitizer: DomSanitizer
+		private sanitizer: DomSanitizer,
+		private pagoPedidoService: PagoPedidoService
 	) {}
 
 	ngOnInit(): void {
@@ -522,6 +524,35 @@ export class BandejaPedidosAdministradorComponent implements OnInit {
 			}
 		});
 
+		// Calcular subtotal (total menos delivery si aplica)
+		const subtotal = pedido.aplicaDelivery ? (pedido.montoTotal - (pedido.costoDelivery || 0)) : pedido.montoTotal;
+		
+		// Agregar fila de subtotal de productos
+		itemsHTML += `
+			<tr>
+				<td colspan="2" style="padding: 8px; border: 1px solid #ddd; text-align: right; font-weight: bold;">Subtotal Productos:</td>
+				<td style="padding: 8px; border: 1px solid #ddd; text-align: right; font-weight: bold;">S/ ${subtotal.toFixed(2)}</td>
+			</tr>
+		`;
+		
+		// Agregar fila de delivery si aplica
+		if (pedido.aplicaDelivery && pedido.costoDelivery) {
+			itemsHTML += `
+				<tr>
+					<td colspan="2" style="padding: 8px; border: 1px solid #ddd; text-align: right;">Costo de Delivery:</td>
+					<td style="padding: 8px; border: 1px solid #ddd; text-align: right;">S/ ${(pedido.costoDelivery).toFixed(2)}</td>
+				</tr>
+			`;
+		}
+		
+		// Agregar fila de total final
+		itemsHTML += `
+			<tr style="background-color: #e3f2fd;">
+				<td colspan="2" style="padding: 8px; border: 1px solid #ddd; text-align: right; font-weight: bold; font-size: 14px;">TOTAL PEDIDO:</td>
+				<td style="padding: 8px; border: 1px solid #ddd; text-align: right; font-weight: bold; font-size: 14px;">S/ ${pedido.montoTotal.toFixed(2)}</td>
+			</tr>
+		`;
+
 		const tipoItemTexto = esPreparadoMagistral ? 'PREPARADOS MAGISTRALES' : 'PRODUCTOS';
 
 		return `
@@ -634,6 +665,18 @@ export class BandejaPedidosAdministradorComponent implements OnInit {
 						${pedido.direccion?.direccion || 'No especificada'} - ${pedido.direccion?.distrito?.nombre || ''} - ${pedido.direccion?.provincia?.nombre || ''} - ${pedido.direccion?.departamento?.nombre || ''}
 					</div>
 
+					${pedido.aplicaDelivery ? `
+					<div class="section">
+						<div class="section-title">Información de Delivery:</div>
+						<div style="margin-left: 15px;">
+							<strong>Costo:</strong> S/ ${(pedido.costoDelivery || 0).toFixed(2)}<br>
+							<strong>Método de cálculo:</strong> ${pedido.metodoCalculoDelivery || 'No especificado'}<br>
+							${pedido.tarifarioDelivery ? `<strong>Tarifa aplicada:</strong> ${pedido.tarifarioDelivery.descripcionCondicion || 'Tarifa estándar'}<br>` : ''}
+							${pedido.notaDelivery ? `<strong>Nota:</strong> ${pedido.notaDelivery}<br>` : ''}
+						</div>
+					</div>
+					` : ''}
+
 					<div class="section">
 						<div class="section-title">DETALLES DEL PEDIDO - ${tipoItemTexto}</div>
 						<table>
@@ -656,5 +699,96 @@ export class BandejaPedidosAdministradorComponent implements OnInit {
 				</body>
 			</html>
 		`;
+	}
+
+	completarPagoParcial(pedido: any): void {
+		// Calcular el monto faltante (50% del total)
+		const montoFaltante = pedido.montoTotal / 2;
+		
+		Swal.fire({
+			title: 'Completar Pago Parcial',
+			html: `
+				<p>¿Deseas completar el pago parcial del pedido <strong>${pedido.idPedido}</strong>?</p>
+				<div class="mt-3">
+					<p><strong>Cliente:</strong> ${pedido.cliente.nombres} ${pedido.cliente.apellidos}</p>
+					<p><strong>Monto Total:</strong> S/ ${pedido.montoTotal.toFixed(2)}</p>
+					<p><strong>Monto ya pagado:</strong> S/ ${(pedido.montoTotal / 2).toFixed(2)} (50%)</p>
+					<p><strong>Monto a completar:</strong> <span class="text-danger fw-bold">S/ ${montoFaltante.toFixed(2)}</span></p>
+				</div>
+			`,
+			icon: 'question',
+			showCancelButton: true,
+			confirmButtonText: 'Sí, completar pago',
+			cancelButtonText: 'Cancelar',
+			confirmButtonColor: '#28a745',
+			cancelButtonColor: '#6c757d'
+		}).then((result) => {
+			if (result.isConfirmed) {
+				// Mostrar loading
+				Swal.fire({
+					title: 'Procesando...',
+					text: 'Completando el pago parcial',
+					allowOutsideClick: false,
+					didOpen: () => {
+						Swal.showLoading();
+					}
+				});
+
+				this.pagoPedidoService.completarPagoParcial(pedido.idPedido, montoFaltante).subscribe({
+					next: (response) => {
+						if (response.success) {
+							Swal.fire({
+								icon: 'success',
+								title: '¡Pago Completado!',
+								html: `
+									<p>El pago parcial ha sido completado exitosamente.</p>
+									<div class="mt-3">
+										<p><strong>Pedido:</strong> ${pedido.idPedido}</p>
+										<p><strong>Monto Total:</strong> S/ ${response.montoTotal.toFixed(2)}</p>
+										<p><strong>Monto Pagado:</strong> S/ ${response.montoPagado.toFixed(2)}</p>
+										<p><strong>Estado:</strong> <span class="text-success fw-bold">Pago Completo</span></p>
+									</div>
+								`,
+								showConfirmButton: true,
+								confirmButtonText: 'Aceptar'
+							}).then(() => {
+								// Recargar la lista de pedidos
+								this.cargarPedidos();
+							});
+						} else {
+							Swal.fire({
+								icon: 'error',
+								title: 'Error',
+								text: response.message || 'No se pudo completar el pago parcial',
+								showConfirmButton: true
+							});
+						}
+					},
+					error: (error) => {
+						console.error('Error al completar pago parcial:', error);
+						let errorMessage = 'No se pudo completar el pago parcial. Inténtelo de nuevo.';
+						
+						if (error.error && error.error.message) {
+							errorMessage = error.error.message;
+						}
+
+						Swal.fire({
+							icon: 'error',
+							title: 'Error',
+							html: `
+								<p>${errorMessage}</p>
+								${error.error && error.error.montoRequerido ? `
+									<div class="mt-3">
+										<p><strong>Monto requerido:</strong> S/ ${error.error.montoRequerido.toFixed(2)}</p>
+										<p><strong>Monto restante:</strong> S/ ${error.error.montoRestante.toFixed(2)}</p>
+									</div>
+								` : ''}
+							`,
+							showConfirmButton: true
+						});
+					}
+				});
+			}
+		});
 	}
 }

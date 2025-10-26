@@ -1,0 +1,477 @@
+<div class="container-fluid">
+  
+  <!-- Header -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="d-flex justify-content-between align-items-center">
+        <div>
+          <h2 class="mb-1">
+            <i class="bi bi-truck me-2"></i>Mantenedor de Tarifas Delivery
+          </h2>
+          <p class="text-muted mb-0">Gestión de costos de entrega por ubicación geográfica</p>
+        </div>
+        <div>
+          <button 
+            type="button" 
+            class="btn btn-success me-2" 
+            (click)="nuevaTarifa()"
+            *ngIf="puedeEditar()">
+            <i class="bi bi-plus-circle me-2"></i>Nueva Tarifa
+          </button>
+          <button 
+            type="button" 
+            class="btn btn-outline-secondary" 
+            (click)="refrescar()"
+            [disabled]="cargando">
+            <i class="bi bi-arrow-clockwise me-2"></i>Refrescar
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filtros y Búsqueda -->
+  <div class="card mb-4">
+    <div class="card-header">
+      <h5 class="mb-0">
+        <i class="bi bi-funnel me-2"></i>Filtros y Búsqueda
+      </h5>
+    </div>
+    <div class="card-body">
+      
+      <!-- Búsqueda por texto -->
+      <div class="row mb-3">
+        <div class="col-md-6">
+          <label class="form-label">Buscar</label>
+          <div class="input-group">
+            <input
+              type="text"
+              class="form-control"
+              placeholder="Buscar por ubicación, descripción, punto de encuentro..."
+              [(ngModel)]="textoBusqueda"
+              (keyup.enter)="buscarTexto()">
+            <button 
+              class="btn btn-outline-secondary" 
+              type="button"
+              (click)="buscarTexto()">
+              <i class="bi bi-search"></i>
+            </button>
+            <button 
+              class="btn btn-outline-secondary" 
+              type="button"
+              (click)="limpiarBusqueda()"
+              *ngIf="textoBusqueda">
+              <i class="bi bi-x"></i>
+            </button>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Tipo de Entrega</label>
+          <select 
+            class="form-select"
+            [(ngModel)]="filtros.tipoFechaEntrega"
+            (change)="aplicarFiltros()">
+            <option [value]="undefined">Todos los tipos</option>
+            <option 
+              *ngFor="let tipo of tiposEntregaOptions" 
+              [value]="tipo.value">
+              {{ tipo.label }}
+            </option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Filtros de ubicación -->
+      <div class="row mb-3">
+        <div class="col-md-4">
+          <label class="form-label">Departamento</label>
+          <select 
+            class="form-select"
+            [(ngModel)]="filtros.idDepartamento"
+            (change)="onDepartamentoChange()">
+            <option [value]="undefined">Todos los departamentos</option>
+            <option 
+              *ngFor="let dept of departamentos" 
+              [value]="dept.idDepartamento">
+              {{ dept.nombre }}
+            </option>
+          </select>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Provincia</label>
+          <select 
+            class="form-select"
+            [(ngModel)]="filtros.idProvincia"
+            (change)="onProvinciaChange()"
+            [disabled]="!filtros.idDepartamento">
+            <option [value]="undefined">Todas las provincias</option>
+            <option 
+              *ngFor="let prov of provincias" 
+              [value]="prov.idProvincia">
+              {{ prov.nombre }}
+            </option>
+          </select>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Distrito</label>
+          <select 
+            class="form-select"
+            [(ngModel)]="filtros.idDistrito"
+            (change)="aplicarFiltros()"
+            [disabled]="!filtros.idProvincia">
+            <option [value]="undefined">Todos los distritos</option>
+            <option 
+              *ngFor="let dist of distritos" 
+              [value]="dist.idDistrito">
+              {{ dist.nombre }}
+            </option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Botones de filtros -->
+      <div class="d-flex gap-2">
+        <button 
+          type="button" 
+          class="btn btn-primary btn-sm"
+          (click)="aplicarFiltros()">
+          <i class="bi bi-funnel me-1"></i>Aplicar Filtros
+        </button>
+        <button 
+          type="button" 
+          class="btn btn-outline-secondary btn-sm"
+          (click)="limpiarFiltros()">
+          <i class="bi bi-x-circle me-1"></i>Limpiar Filtros
+        </button>
+      </div>
+      
+    </div>
+  </div>
+
+  <!-- Loading inicial -->
+  <div *ngIf="cargando" class="text-center py-5">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Cargando...</span>
+    </div>
+    <p class="mt-2 text-muted">Cargando tarifas de delivery...</p>
+  </div>
+
+  <!-- Tabla de tarifas -->
+  <div class="card" *ngIf="!cargando">
+    <div class="card-header">
+      <div class="d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">
+          <i class="bi bi-table me-2"></i>Tarifas de Delivery
+        </h5>
+        <div class="d-flex align-items-center gap-3">
+          <!-- Información de paginación -->
+          <small class="text-muted" *ngIf="collectionSize > 0">
+            Mostrando {{ (page - 1) * pageSize + 1 }} - {{ Math.min(page * pageSize, collectionSize) }} 
+            de {{ collectionSize }} tarifas
+          </small>
+          <div>
+            <span class="badge bg-primary">{{ collectionSize }} Total</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="card-body p-0">
+      <!-- Tabla responsive -->
+      <div class="table-responsive" *ngIf="collectionSize > 0">
+        <table class="table table-hover mb-0">
+          <thead>
+            <tr>
+              <th>Ubicación</th>
+              <th>Tipo Entrega</th>
+              <th>Precio Base</th>
+              <th>Prioridad</th>
+              <th>Estado</th>
+              <th>Condiciones</th>
+              <th class="text-center" *ngIf="puedeEditar()">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let tarifa of tarifasTable; trackBy: trackByTarifa">
+              
+              <!-- Ubicación -->
+              <td>
+                <div class="fw-semibold">{{ tarifa.ubicacionCompleta || 'Nacional' }}</div>
+                <small class="text-muted" *ngIf="tarifa.puntoEncuentro">
+                  <i class="bi bi-geo-alt me-1"></i>{{ tarifa.puntoEncuentro }}
+                </small>
+              </td>
+
+              <!-- Tipo de Entrega -->
+              <td>
+                <span 
+                  class="badge" 
+                  [class]="tarifa.tipoFechaEntrega === 'MISMO_DIA' ? 'bg-warning' : 'bg-info'">
+                  {{ tarifa.tipoFechaEntregaDescripcion }}
+                </span>
+              </td>
+
+              <!-- Precio Base -->
+              <td>
+                <div class="fw-bold text-success">{{ formatearPrecio(tarifa.precio) }}</div>
+                <small class="text-muted" *ngIf="tarifa.costoAgencia">
+                  Agencia: {{ formatearPrecio(tarifa.costoAgencia || 0) }}
+                  <span *ngIf="tarifa.aplicaCostoAgenciaSiMenosDe">
+                    (si &lt; {{ formatearPrecio(tarifa.aplicaCostoAgenciaSiMenosDe || 0) }})
+                  </span>
+                </small>
+              </td>
+
+              <!-- Prioridad -->
+              <td>
+                <span 
+                  class="badge" 
+                  [class]="'bg-' + getColorPrioridad(tarifa.prioridad)">
+                  {{ tarifa.prioridad }}
+                </span>
+              </td>
+
+              <!-- Estado -->
+              <td>
+                <span 
+                  class="fw-semibold" 
+                  [class]="getClaseEstado(tarifa.activo)">
+                  {{ getTextoEstado(tarifa.activo) }}
+                </span>
+              </td>
+
+              <!-- Condiciones -->
+              <td>
+                <div class="small" *ngIf="tarifa.montoMinimoPedido || tarifa.montoMaximoPedido">
+                  <strong>Rango:</strong>
+                  <span *ngIf="tarifa.montoMinimoPedido">
+                    desde {{ formatearPrecio(tarifa.montoMinimoPedido || 0) }}
+                  </span>
+                  <span *ngIf="tarifa.montoMinimoPedido && tarifa.montoMaximoPedido"> - </span>
+                  <span *ngIf="tarifa.montoMaximoPedido">
+                    hasta {{ formatearPrecio(tarifa.montoMaximoPedido || 0) }}
+                  </span>
+                </div>
+                <small class="text-muted" *ngIf="tarifa.descripcionCondicion">
+                  {{ tarifa.descripcionCondicion }}
+                </small>
+              </td>
+
+              <!-- Acciones -->
+              <td class="text-center" *ngIf="puedeEditar()">
+                <div class="btn-group btn-group-sm" role="group">
+                  <button 
+                    type="button" 
+                    class="btn btn-outline-info"
+                    (click)="verDetalle(tarifa, modalDetalle)"
+                    ngbTooltip="Ver detalle">
+                    <i class="bi bi-eye"></i>
+                  </button>
+                  <button 
+                    type="button" 
+                    class="btn btn-outline-primary"
+                    (click)="editarTarifa(tarifa)"
+                    ngbTooltip="Editar">
+                    <i class="bi bi-pencil"></i>
+                  </button>
+                  <button 
+                    type="button" 
+                    class="btn btn-outline-secondary"
+                    (click)="duplicarTarifa(tarifa)"
+                    ngbTooltip="Duplicar">
+                    <i class="bi bi-copy"></i>
+                  </button>
+                  <button 
+                    type="button" 
+                    class="btn btn-outline-danger"
+                    (click)="eliminarTarifa(tarifa)"
+                    ngbTooltip="Eliminar">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </div>
+              </td>
+
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Estado vacío -->
+      <div *ngIf="collectionSize === 0" class="text-center py-5">
+        <i class="bi bi-inbox display-1 text-muted"></i>
+        <h5 class="text-muted mt-3">No se encontraron tarifas</h5>
+        <p class="text-muted">
+          <span *ngIf="textoBusqueda || filtros.idDepartamento || filtros.tipoFechaEntrega">
+            Intente ajustar los filtros de búsqueda.
+          </span>
+          <span *ngIf="!textoBusqueda && !filtros.idDepartamento && !filtros.tipoFechaEntrega">
+            No hay tarifas de delivery configuradas.
+          </span>
+        </p>
+        <button 
+          type="button" 
+          class="btn btn-success" 
+          (click)="nuevaTarifa()"
+          *ngIf="puedeEditar() && !textoBusqueda && !filtros.idDepartamento && !filtros.tipoFechaEntrega">
+          <i class="bi bi-plus-circle me-2"></i>Crear Primera Tarifa
+        </button>
+      </div>
+
+    </div>
+
+    <!-- Footer con paginación -->
+    <div class="card-footer" *ngIf="collectionSize > pageSize">
+      <div class="d-flex justify-content-between align-items-center">
+        <div>
+          <small class="text-muted">
+            Mostrando {{ (page - 1) * pageSize + 1 }} - {{ Math.min(page * pageSize, collectionSize) }} 
+            de {{ collectionSize }} tarifas
+          </small>
+        </div>
+        <div>
+          <ngb-pagination
+            [(page)]="page"
+            [pageSize]="pageSize"
+            [collectionSize]="collectionSize"
+            [maxSize]="5"
+            [rotate]="true"
+            [boundaryLinks]="true"
+            (pageChange)="onPageChange()">
+          </ngb-pagination>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<!-- Modal de Detalle -->
+<ng-template #modalDetalle let-modal>
+  <div class="modal-header">
+    <h4 class="modal-title">
+      <i class="bi bi-info-circle me-2"></i>Detalle de Tarifa de Delivery
+    </h4>
+    <button 
+      type="button" 
+      class="btn-close" 
+      aria-label="Close" 
+      (click)="modal.dismiss()">
+    </button>
+  </div>
+  
+  <div class="modal-body" *ngIf="tarifaSeleccionada">
+    <div class="container-fluid">
+      
+      <!-- Información de Ubicación -->
+      <div class="row mb-4">
+        <div class="col-12">
+          <h6 class="text-primary mb-3">
+            <i class="bi bi-geo-alt me-2"></i>Información de Ubicación
+          </h6>
+          <div class="mb-2">
+            <strong>Ubicación:</strong> {{ tarifaSeleccionada.ubicacionCompleta || 'Nacional' }}
+          </div>
+          <div class="mb-2" *ngIf="tarifaSeleccionada.puntoEncuentro">
+            <strong>Punto de Encuentro:</strong> {{ tarifaSeleccionada.puntoEncuentro }}
+          </div>
+          <div class="mb-2">
+            <span 
+              class="badge" 
+              [class]="tarifaSeleccionada.tipoFechaEntrega === 'MISMO_DIA' ? 'bg-warning' : 'bg-info'">
+              {{ tarifaSeleccionada.tipoFechaEntregaDescripcion }}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Información de Precios -->
+      <div class="row mb-4">
+        <div class="col-12">
+          <h6 class="text-success mb-3">
+            <i class="bi bi-currency-dollar me-2"></i>Información de Precios
+          </h6>
+          <div class="mb-2">
+            <strong>Precio Base:</strong> 
+            <span class="fw-bold text-success ms-1">{{ formatearPrecio(tarifaSeleccionada.precio) }}</span>
+          </div>
+          <div class="mb-2" *ngIf="tarifaSeleccionada.costoAgencia">
+            <strong>Costo Agencia:</strong> {{ formatearPrecio(tarifaSeleccionada.costoAgencia || 0) }}
+            <span *ngIf="tarifaSeleccionada.aplicaCostoAgenciaSiMenosDe" class="text-muted">
+              - Aplica si pedido &lt; {{ formatearPrecio(tarifaSeleccionada.aplicaCostoAgenciaSiMenosDe || 0) }}
+            </span>
+          </div>
+          <div class="mb-2">
+            <strong>Prioridad:</strong> 
+            <span 
+              class="badge ms-1" 
+              [class]="'bg-' + getColorPrioridad(tarifaSeleccionada.prioridad)">
+              {{ tarifaSeleccionada.prioridad }}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Condiciones del Pedido -->
+      <div class="row mb-4" *ngIf="tarifaSeleccionada.montoMinimoPedido || tarifaSeleccionada.montoMaximoPedido">
+        <div class="col-12">
+          <h6 class="text-warning mb-3">
+            <i class="bi bi-list-check me-2"></i>Condiciones del Pedido
+          </h6>
+          <div class="mb-2" *ngIf="tarifaSeleccionada.montoMinimoPedido">
+            <strong>Monto Mínimo:</strong> {{ formatearPrecio(tarifaSeleccionada.montoMinimoPedido || 0) }}
+          </div>
+          <div class="mb-2" *ngIf="tarifaSeleccionada.montoMaximoPedido">
+            <strong>Monto Máximo:</strong> {{ formatearPrecio(tarifaSeleccionada.montoMaximoPedido || 0) }}
+          </div>
+          <div class="mb-2" *ngIf="tarifaSeleccionada.descripcionCondicion">
+            <strong>Descripción:</strong> {{ tarifaSeleccionada.descripcionCondicion }}
+          </div>
+        </div>
+      </div>
+
+      <!-- Información del Sistema -->
+      <div class="row">
+        <div class="col-md-6">
+          <h6 class="text-info mb-3">
+            <i class="bi bi-gear me-2"></i>Información del Sistema
+          </h6>
+          <div class="mb-2">
+            <strong>Estado:</strong> 
+            <span 
+              class="fw-semibold ms-1" 
+              [class]="getClaseEstado(tarifaSeleccionada.activo)">
+              {{ getTextoEstado(tarifaSeleccionada.activo) }}
+            </span>
+          </div>
+          <div class="mb-2">
+            <strong>Fecha Creación:</strong> {{ formatearFecha(tarifaSeleccionada.fechaCreacion) }}
+          </div>
+          <div class="mb-2" *ngIf="tarifaSeleccionada.fechaActualizacion">
+            <strong>Última Actualización:</strong> {{ formatearFecha(tarifaSeleccionada.fechaActualizacion) }}
+          </div>
+        </div>
+        <div class="col-md-6" *ngIf="tarifaSeleccionada.resumenCondiciones">
+          <h6 class="text-secondary mb-3">
+            <i class="bi bi-card-text me-2"></i>Resumen
+          </h6>
+          <div class="p-3 bg-light rounded">
+            <small>{{ tarifaSeleccionada.resumenCondiciones }}</small>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+  
+  <div class="modal-footer">
+    <button type="button" class="btn btn-secondary" (click)="modal.dismiss()">Cerrar</button>
+    <button 
+      type="button" 
+      class="btn btn-primary" 
+      (click)="modal.dismiss(); editarTarifa(tarifaSeleccionada)"
+      *ngIf="puedeEditar() && tarifaSeleccionada">
+      <i class="bi bi-pencil me-2"></i>Editar
+    </button>
+  </div>
+</ng-template>

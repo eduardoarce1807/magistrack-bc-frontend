@@ -365,7 +365,7 @@ export class PagarPedidoComponent implements OnInit, AfterViewInit {
     }
 
     // Si NO es efectivo (idTipoPago != 4), el número de operación es obligatorio
-    if (this.pagoManual.idTipoPago !== 4 && !this.pagoManual.numeroOperacion) {
+    if (this.pagoManual.idTipoPago !== 4 && this.pagoManual.idTipoPago !== 5 && !this.pagoManual.numeroOperacion) {
       Swal.fire({
         icon: 'warning',
         title: 'Número de operación requerido',
@@ -487,7 +487,7 @@ export class PagarPedidoComponent implements OnInit, AfterViewInit {
     }
 
     // Si NO es efectivo (idTipoPago != 4), el número de operación es obligatorio
-    if (this.pagoManual.idTipoPago !== 4 && !this.pagoManual.numeroOperacion) {
+    if (this.pagoManual.idTipoPago !== 4 && this.pagoManual.idTipoPago !== 5 && !this.pagoManual.numeroOperacion) {
       return false;
     }
 

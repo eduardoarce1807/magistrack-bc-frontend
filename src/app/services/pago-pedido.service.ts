@@ -37,4 +37,9 @@ export class PagoPedidoService {
         return this.http.get<any[]>(url, { params: { fechaInicio, fechaFin } });
     }
 
+    completarPagoParcial(idPedido: string, monto: number): Observable<any> {
+        let url = `${this.baseUrl}/completar-pago-parcial`;
+        return this.http.post<any>(url, { idPedido, monto });
+    }
+
 }

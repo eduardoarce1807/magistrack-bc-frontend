@@ -224,12 +224,18 @@ export class SidebarComponent implements OnInit, AfterViewInit {
 					label: 'Reporte de Despacho',
 					icon: 'pi pi-chart-line',
 					command: () => this.irA('pages/reportes/reporte-despacho')
+				},
+				{
+					key: '2_2',
+					label: 'Mantenedor Tarifas Delivery',
+					icon: 'pi pi-truck',
+					command: () => this.irA('pages/reportes/mantenedor-delivery')
 				}
 			] : []),
 			// Administrador, ventas y logística pueden ver visualizador de pagos
 			...([1, 5, 12].includes(user.rol.idRol) ? [
 				{
-					key: '2_2',
+					key: '2_3',
 					label: 'Visualizador de pagos',
 					icon: 'pi pi-credit-card',
 					command: () => this.irA('pages/atencion-cliente/visualizador-pagos')

@@ -1,0 +1,512 @@
+// Estilos para el Mantenedor de Delivery
+
+.container-fluid {
+  padding: 1.5rem;
+}
+
+// Header personalizado
+h2 {
+  color: #2c3e50;
+  font-weight: 600;
+  
+  i {
+    color: #3498db;
+  }
+}
+
+// Cards con sombra suave
+.card {
+  border: none;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+  border-radius: 8px;
+  
+  .card-header {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-bottom: 1px solid #dee2e6;
+    border-radius: 8px 8px 0 0 !important;
+    
+    h5 {
+      color: #495057;
+      font-weight: 600;
+    }
+  }
+  
+  .card-body {
+    // Asegurar que el contenedor del card mantenga dimensiones estables
+    &.p-0 {
+      // Para cards que contienen tablas, evitar cambios de padding que afecten el scroll
+      padding: 0 !important;
+      
+      .table-responsive {
+        // Asegurar que el contenedor responsive tenga dimensiones consistentes
+        border-radius: 0 0 8px 8px;
+        margin: 0;
+      }
+    }
+  }
+}
+
+// Filtros mejorados
+.form-label {
+  font-weight: 500;
+  color: #6c757d;
+  margin-bottom: 0.5rem;
+}
+
+.form-control, .form-select {
+  border-radius: 6px;
+  border: 1px solid #ced4da;
+  transition: all 0.2s ease;
+  
+  &:focus {
+    border-color: #3498db;
+    box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
+  }
+}
+
+// Botones mejorados
+.btn {
+  border-radius: 6px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  
+  &:hover {
+    transform: translateY(-1px);
+  }
+}
+
+.btn-success {
+  background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+  border: none;
+  
+  &:hover {
+    background: linear-gradient(135deg, #219a52 0%, #27ae60 100%);
+  }
+}
+
+// Tabla personalizada
+.table-responsive {
+  // Forzar que siempre reserve espacio para el scroll horizontal
+  // Esto evita el "parpadeo" cuando aparece/desaparece
+  overflow-x: auto;
+  scrollbar-gutter: stable;
+  
+  // Asegurar un ancho mínimo para evitar cambios de layout
+  min-height: 200px;
+  
+  // Estabilizar el contenedor
+  position: relative;
+  
+  &::-webkit-scrollbar {
+    height: 8px;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 4px;
+    
+    &:hover {
+      background: #a8a8a8;
+    }
+  }
+}
+
+.table {
+  // Ancho mínimo para la tabla que garantice que se active el scroll
+  // cuando sea necesario y evite cambios constantes de layout
+  min-width: 1200px;
+  margin-bottom: 0;
+  
+  thead th {
+    background-color: #f8f9fa;
+    border-bottom: 2px solid #dee2e6;
+    font-weight: 600;
+    color: #495057;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    // Evitar cambios de layout en el header
+    white-space: nowrap;
+  }
+  
+  tbody tr {
+    transition: background-color 0.15s ease;
+    // NO usar transform que puede causar reflow y activar scroll
+    
+    &:hover {
+      background-color: rgba(52, 152, 219, 0.05);
+      // Removido transform para evitar cambios de layout
+    }
+  }
+  
+  td {
+    vertical-align: middle;
+    padding: 1rem 0.75rem;
+    border-bottom: 1px solid #f1f3f4;
+    // Evitar que el contenido cause cambios de layout
+    box-sizing: border-box;
+    
+    // Asegurar que las celdas mantengan su ancho
+    &:first-child {
+      min-width: 180px; // Ubicación
+    }
+    
+    &:nth-child(2) {
+      min-width: 120px; // Tipo Entrega
+    }
+    
+    &:nth-child(3) {
+      min-width: 140px; // Precio Base
+    }
+    
+    &:nth-child(4) {
+      min-width: 100px; // Prioridad
+    }
+    
+    &:nth-child(5) {
+      min-width: 90px; // Estado
+    }
+    
+    &:nth-child(6) {
+      min-width: 200px; // Condiciones
+    }
+    
+    &:last-child {
+      min-width: 180px; // Acciones
+      // Evitar que los botones causen overflow
+      .btn-group {
+        white-space: nowrap;
+      }
+    }
+  }
+}
+
+// Badges personalizados
+.badge {
+  font-size: 0.75rem;
+  padding: 0.4em 0.6em;
+  border-radius: 4px;
+  
+  &.bg-warning {
+    background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%) !important;
+  }
+  
+  &.bg-info {
+    background: linear-gradient(135deg, #3498db 0%, #2980b9 100%) !important;
+  }
+  
+  &.bg-danger {
+    background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%) !important;
+  }
+  
+  &.bg-primary {
+    background: linear-gradient(135deg, #3498db 0%, #2980b9 100%) !important;
+  }
+}
+
+// Grupos de botones
+.btn-group-sm .btn {
+  padding: 0.4rem 0.6rem;
+  font-size: 0.875rem;
+  
+  &:not(:last-child) {
+    border-right: 1px solid rgba(255, 255, 255, 0.2);
+  }
+}
+
+// Loading spinner personalizado
+.spinner-border {
+  width: 3rem;
+  height: 3rem;
+}
+
+// Estado vacío mejorado
+.text-center py-5 {
+  .bi-inbox {
+    opacity: 0.3;
+    color: #6c757d;
+  }
+}
+
+// Paginación personalizada
+::ng-deep ngb-pagination {
+  .page-link {
+    border-radius: 6px;
+    margin: 0 2px;
+    border: 1px solid #dee2e6;
+    color: #495057;
+    transition: all 0.2s ease;
+    
+    &:hover {
+      background-color: #f8f9fa;
+      border-color: #3498db;
+      color: #3498db;
+    }
+  }
+  
+  .page-item.active .page-link {
+    background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+    border-color: #3498db;
+  }
+}
+
+// Input group mejorado
+.input-group {
+  .btn {
+    z-index: 2;
+  }
+}
+
+// Modal personalizado
+::ng-deep .modal-content {
+  border: none;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  
+  .modal-header {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-bottom: 1px solid #dee2e6;
+    border-radius: 12px 12px 0 0;
+    
+    .modal-title {
+      color: #495057;
+      font-weight: 600;
+      
+      i {
+        color: #3498db;
+      }
+    }
+  }
+  
+  .modal-body {
+    padding: 1.5rem;
+    
+    h6 {
+      font-weight: 600;
+      margin-bottom: 1rem;
+      
+      i {
+        width: 20px;
+        text-align: center;
+      }
+    }
+  }
+}
+
+// Información de ubicación
+.fw-semibold {
+  color: #2c3e50;
+}
+
+.text-muted {
+  font-size: 0.875rem;
+  
+  i {
+    opacity: 0.7;
+  }
+}
+
+// Responsive improvements
+@media (max-width: 768px) {
+  .container-fluid {
+    padding: 1rem;
+  }
+  
+  .d-flex.justify-content-between {
+    flex-direction: column;
+    gap: 1rem;
+    
+    .btn {
+      width: 100%;
+    }
+  }
+  
+  .table-responsive {
+    font-size: 0.875rem;
+    // En pantallas pequeñas, asegurar que el scroll siempre esté presente
+    // para evitar el parpadeo
+    overflow-x: scroll;
+    -webkit-overflow-scrolling: touch;
+    
+    .table {
+      // Reducir el ancho mínimo en pantallas pequeñas pero mantener estabilidad
+      min-width: 900px;
+      
+      td {
+        // Ajustar anchos mínimos para pantallas pequeñas
+        &:first-child {
+          min-width: 140px; // Ubicación
+        }
+        
+        &:nth-child(2) {
+          min-width: 100px; // Tipo Entrega
+        }
+        
+        &:nth-child(3) {
+          min-width: 120px; // Precio Base
+        }
+        
+        &:nth-child(4) {
+          min-width: 80px; // Prioridad
+        }
+        
+        &:nth-child(5) {
+          min-width: 70px; // Estado
+        }
+        
+        &:nth-child(6) {
+          min-width: 150px; // Condiciones
+        }
+        
+        &:last-child {
+          min-width: 160px; // Acciones
+        }
+      }
+    }
+  }
+  
+  .btn-group-sm {
+    flex-direction: column;
+    
+    .btn {
+      border-radius: 4px !important;
+      margin-bottom: 2px;
+    }
+  }
+}
+
+// Para pantallas muy pequeñas (móviles)
+@media (max-width: 576px) {
+  .table-responsive {
+    .table {
+      min-width: 800px;
+      font-size: 0.8rem;
+      
+      td {
+        padding: 0.5rem 0.4rem;
+        
+        &:first-child {
+          min-width: 120px;
+        }
+        
+        &:nth-child(2) {
+          min-width: 90px;
+        }
+        
+        &:nth-child(3) {
+          min-width: 100px;
+        }
+        
+        &:nth-child(4) {
+          min-width: 70px;
+        }
+        
+        &:nth-child(5) {
+          min-width: 60px;
+        }
+        
+        &:nth-child(6) {
+          min-width: 120px;
+        }
+        
+        &:last-child {
+          min-width: 140px;
+        }
+      }
+    }
+  }
+}
+
+// Animaciones
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.card {
+  animation: fadeIn 0.3s ease-out;
+}
+
+// Colores de prioridad mejorados
+.bg-danger {
+  background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%) !important;
+}
+
+.bg-warning {
+  background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%) !important;
+  color: white !important;
+}
+
+.bg-info {
+  background: linear-gradient(135deg, #3498db 0%, #2980b9 100%) !important;
+}
+
+.bg-secondary {
+  background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%) !important;
+}
+
+// Tooltips mejorados
+::ng-deep .tooltip {
+  .tooltip-inner {
+    background-color: #2c3e50;
+    color: white;
+    border-radius: 4px;
+    font-size: 0.75rem;
+  }
+}
+
+// Estado de elementos deshabilitados
+.form-control:disabled,
+.form-select:disabled {
+  background-color: #f8f9fa;
+  opacity: 0.65;
+}
+
+// Mejoras en la visualización de datos
+.fw-bold.text-success {
+  font-size: 1.1rem;
+}
+
+.small {
+  font-size: 0.8rem;
+}
+
+// Efectos hover en las filas
+tbody tr {
+  cursor: pointer;
+  
+  &:hover {
+    .btn-outline-info,
+    .btn-outline-primary,
+    .btn-outline-secondary,
+    .btn-outline-danger {
+      opacity: 1;
+    }
+  }
+}
+
+// Espaciado mejorado
+.mb-4 {
+  margin-bottom: 1.5rem !important;
+}
+
+.p-3 {
+  padding: 1rem !important;
+}
+
+// Estado de carga mejorado
+.py-5 {
+  padding-top: 3rem !important;
+  padding-bottom: 3rem !important;
+}
