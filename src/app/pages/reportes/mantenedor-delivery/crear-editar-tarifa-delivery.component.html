@@ -1,0 +1,426 @@
+<div class="container-fluid">
+
+  <!-- Header -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="d-flex justify-content-between align-items-center">
+        <div>
+          <h2 class="mb-1">
+            <i class="bi bi-plus-circle me-2" *ngIf="!isEditMode"></i>
+            <i class="bi bi-pencil me-2" *ngIf="isEditMode"></i>
+            <i class="bi bi-copy me-2" *ngIf="isDuplicateMode"></i>
+            {{ getTituloPagina() }}
+          </h2>
+          <p class="text-muted mb-0">
+            Complete los datos para {{ isEditMode ? 'actualizar' : 'crear' }} la tarifa de delivery
+          </p>
+        </div>
+        <div>
+          <button 
+            type="button" 
+            class="btn btn-outline-secondary me-2" 
+            (click)="volverAlListado()"
+            [disabled]="guardando">
+            <i class="bi bi-arrow-left me-2"></i>Volver al Listado
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Verificación de permisos -->
+  <div *ngIf="!tienePermisos()" class="alert alert-warning">
+    <i class="bi bi-exclamation-triangle me-2"></i>
+    No tiene permisos suficientes para realizar esta acción.
+  </div>
+
+  <!-- Loading inicial -->
+  <div *ngIf="cargando" class="text-center py-5">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Cargando...</span>
+    </div>
+    <p class="mt-2 text-muted">Cargando datos de la tarifa...</p>
+  </div>
+
+  <!-- Formulario -->
+  <div *ngIf="!cargando && tienePermisos()">
+    <form #tarifaForm="ngForm" (ngSubmit)="guardarTarifa(tarifaForm)">
+
+      <!-- Sección: Ubicación Geográfica -->
+      <div class="card mb-4">
+        <div class="card-header">
+          <h5 class="mb-0">
+            <i class="bi bi-geo-alt me-2"></i>Ubicación Geográfica
+          </h5>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            
+            <!-- Departamento -->
+            <div class="col-md-4 mb-3">
+              <label class="form-label">
+                Departamento <span class="text-muted">(Opcional para tarifa nacional)</span>
+              </label>
+              <select 
+                class="form-select" 
+                name="idDepartamento"
+                [(ngModel)]="tarifa.idDepartamento"
+                (change)="onDepartamentoChange()">
+                <option value="">Seleccionar departamento (Nacional)</option>
+                <option 
+                  *ngFor="let dept of departamentos" 
+                  [value]="dept.idDepartamento">
+                  {{ dept.nombre }}
+                </option>
+              </select>
+              <div class="form-text">Deje vacío para aplicar a nivel nacional</div>
+            </div>
+
+            <!-- Provincia -->
+            <div class="col-md-4 mb-3">
+              <label class="form-label">
+                Provincia 
+                <span class="spinner-border spinner-border-sm ms-2" *ngIf="cargandoProvincias"></span>
+              </label>
+              <select 
+                class="form-select" 
+                name="idProvincia"
+                [(ngModel)]="tarifa.idProvincia"
+                (change)="onProvinciaChange()"
+                [disabled]="!tarifa.idDepartamento || cargandoProvincias">
+                <option value="">Seleccionar provincia (Todas)</option>
+                <option 
+                  *ngFor="let prov of provincias" 
+                  [value]="prov.idProvincia">
+                  {{ prov.nombre }}
+                </option>
+              </select>
+            </div>
+
+            <!-- Distrito -->
+            <div class="col-md-4 mb-3">
+              <label class="form-label">
+                Distrito
+                <span class="spinner-border spinner-border-sm ms-2" *ngIf="cargandoDistritos"></span>
+              </label>
+              <select 
+                class="form-select" 
+                name="idDistrito"
+                [(ngModel)]="tarifa.idDistrito"
+                [disabled]="!tarifa.idProvincia || cargandoDistritos">
+                <option value="">Seleccionar distrito (Todos)</option>
+                <option 
+                  *ngFor="let dist of distritos" 
+                  [value]="dist.idDistrito">
+                  {{ dist.nombre }}
+                </option>
+              </select>
+            </div>
+
+          </div>
+
+          <!-- Punto de Encuentro -->
+          <div class="row">
+            <div class="col-12">
+              <label class="form-label">Punto de Encuentro (Opcional)</label>
+              <input 
+                type="text" 
+                class="form-control" 
+                name="puntoEncuentro"
+                [(ngModel)]="tarifa.puntoEncuentro"
+                placeholder="Ej: Mall del Sur - Puerta Principal, Estación María Auxiliadora">
+              <div class="form-text">
+                Especifique un punto de encuentro específico para la entrega si es necesario
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sección: Configuración de Entrega -->
+      <div class="card mb-4">
+        <div class="card-header">
+          <h5 class="mb-0">
+            <i class="bi bi-clock me-2"></i>Configuración de Entrega
+          </h5>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            
+            <!-- Tipo de Fecha de Entrega -->
+            <div class="col-md-6 mb-3">
+              <label class="form-label">
+                Tipo de Entrega <span class="text-danger">*</span>
+              </label>
+              <select 
+                class="form-select" 
+                name="tipoFechaEntrega"
+                [(ngModel)]="tarifa.tipoFechaEntrega"
+                required>
+                <option 
+                  *ngFor="let tipo of tiposEntregaOptions" 
+                  [value]="tipo.value">
+                  {{ tipo.label }}
+                </option>
+              </select>
+            </div>
+
+            <!-- Prioridad -->
+            <div class="col-md-6 mb-3">
+              <label class="form-label">
+                Prioridad <span class="text-danger">*</span>
+              </label>
+              <select 
+                class="form-select" 
+                name="prioridad"
+                [(ngModel)]="tarifa.prioridad"
+                required>
+                <option 
+                  *ngFor="let prioridad of prioridadesOptions" 
+                  [value]="prioridad.value">
+                  {{ prioridad.label }}
+                </option>
+              </select>
+              <div class="form-text">
+                Las tarifas de mayor prioridad (número menor) se aplicarán primero
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- Sección: Costos y Precios -->
+      <div class="card mb-4">
+        <div class="card-header">
+          <h5 class="mb-0">
+            <i class="bi bi-currency-dollar me-2"></i>Costos y Precios
+          </h5>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            
+            <!-- Precio Base -->
+            <div class="col-md-4 mb-3">
+              <label class="form-label">
+                Precio Base (S/) <span class="text-danger">*</span>
+              </label>
+              <input 
+                type="number" 
+                class="form-control" 
+                name="precio"
+                [(ngModel)]="tarifa.precio"
+                min="0"
+                step="0.01"
+                required
+                placeholder="0.00">
+              <div class="form-text">Precio base del delivery</div>
+            </div>
+
+            <!-- Costo de Agencia -->
+            <div class="col-md-4 mb-3">
+              <label class="form-label">Costo de Agencia (S/)</label>
+              <input 
+                type="number" 
+                class="form-control" 
+                name="costoAgencia"
+                [(ngModel)]="tarifa.costoAgencia"
+                min="0"
+                step="0.01"
+                placeholder="0.00">
+              <div class="form-text">Costo adicional por agencia (opcional)</div>
+            </div>
+
+            <!-- Aplicar Costo Agencia Si Menos De -->
+            <div class="col-md-4 mb-3">
+              <label class="form-label">Aplicar Agencia Si Pedido &lt; (S/)</label>
+              <input 
+                type="number" 
+                class="form-control" 
+                name="aplicaCostoAgenciaSiMenosDe"
+                [(ngModel)]="tarifa.aplicaCostoAgenciaSiMenosDe"
+                min="0"
+                step="0.01"
+                placeholder="500.00"
+                [disabled]="!tarifa.costoAgencia">
+              <div class="form-text">
+                Solo aplica si hay costo de agencia definido
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- Sección: Condiciones del Pedido -->
+      <div class="card mb-4">
+        <div class="card-header">
+          <h5 class="mb-0">
+            <i class="bi bi-list-check me-2"></i>Condiciones del Pedido
+          </h5>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            
+            <!-- Monto Mínimo -->
+            <div class="col-md-6 mb-3">
+              <label class="form-label">Monto Mínimo del Pedido (S/)</label>
+              <input 
+                type="number" 
+                class="form-control" 
+                name="montoMinimoPedido"
+                [(ngModel)]="tarifa.montoMinimoPedido"
+                (blur)="validarRangoMontos()"
+                min="0"
+                step="0.01"
+                placeholder="0.00">
+              <div class="form-text">Deje vacío si no hay monto mínimo</div>
+            </div>
+
+            <!-- Monto Máximo -->
+            <div class="col-md-6 mb-3">
+              <label class="form-label">Monto Máximo del Pedido (S/)</label>
+              <input 
+                type="number" 
+                class="form-control" 
+                name="montoMaximoPedido"
+                [(ngModel)]="tarifa.montoMaximoPedido"
+                (blur)="validarRangoMontos()"
+                min="0"
+                step="0.01"
+                placeholder="0.00">
+              <div class="form-text">Deje vacío si no hay monto máximo</div>
+            </div>
+
+          </div>
+
+          <!-- Descripción de Condición -->
+          <div class="row">
+            <div class="col-12">
+              <label class="form-label">Descripción de la Condición</label>
+              <div class="input-group">
+                <textarea 
+                  class="form-control" 
+                  name="descripcionCondicion"
+                  [(ngModel)]="tarifa.descripcionCondicion"
+                  rows="3"
+                  placeholder="Describa las condiciones especiales de esta tarifa..."></textarea>
+                <button 
+                  type="button" 
+                  class="btn btn-outline-secondary"
+                  (click)="generarDescripcionAutomatica()"
+                  title="Generar descripción automática">
+                  <i class="bi bi-magic"></i>
+                </button>
+              </div>
+              <div class="form-text">
+                Descripción opcional que ayude a identificar cuándo se aplica esta tarifa
+              </div>
+            </div>
+          </div>
+
+          <!-- Estado Activo -->
+          <div class="row mt-3">
+            <div class="col-12">
+              <div class="form-check">
+                <input 
+                  class="form-check-input" 
+                  type="checkbox" 
+                  name="activo"
+                  [(ngModel)]="tarifa.activo"
+                  id="checkActivo">
+                <label class="form-check-label fw-semibold" for="checkActivo">
+                  Tarifa activa
+                </label>
+                <div class="form-text">
+                  Solo las tarifas activas se considerarán en el cálculo del delivery
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Errores de Validación -->
+      <div class="alert alert-danger" *ngIf="erroresValidacion.length > 0">
+        <h6 class="alert-heading">
+          <i class="bi bi-exclamation-triangle me-2"></i>Errores de Validación
+        </h6>
+        <ul class="mb-0">
+          <li *ngFor="let error of erroresValidacion">{{ error }}</li>
+        </ul>
+      </div>
+
+      <!-- Botones de Acción -->
+      <div class="card">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center">
+            
+            <!-- Botones izquierda -->
+            <div>
+              <button 
+                type="button" 
+                class="btn btn-outline-warning me-2"
+                (click)="resetearFormulario()"
+                [disabled]="guardando || cargando">
+                <i class="bi bi-arrow-clockwise me-2"></i>Resetear
+              </button>
+              <button 
+                type="button" 
+                class="btn btn-outline-info"
+                (click)="limpiarErrores()"
+                *ngIf="erroresValidacion.length > 0">
+                <i class="bi bi-x-circle me-2"></i>Limpiar Errores
+              </button>
+            </div>
+
+            <!-- Botones derecha -->
+            <div>
+              <button 
+                type="button" 
+                class="btn btn-secondary me-2" 
+                (click)="cancelar()"
+                [disabled]="guardando">
+                <i class="bi bi-x me-2"></i>Cancelar
+              </button>
+              <button 
+                type="submit" 
+                class="btn btn-success"
+                [disabled]="!tarifaForm.valid || guardando">
+                <span *ngIf="guardando" class="spinner-border spinner-border-sm me-2"></span>
+                <i *ngIf="!guardando && !isEditMode" class="bi bi-check-circle me-2"></i>
+                <i *ngIf="!guardando && isEditMode" class="bi bi-save me-2"></i>
+                {{ getTextoBotonGuardar() }}
+              </button>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+    </form>
+  </div>
+
+</div>
+
+<!-- Información de ayuda (footer) -->
+<div class="mt-5 p-3 bg-light rounded" *ngIf="!cargando">
+  <h6 class="text-muted mb-2">
+    <i class="bi bi-info-circle me-2"></i>Información de Ayuda
+  </h6>
+  <div class="row">
+    <div class="col-md-6">
+      <small class="text-muted">
+        <strong>Ubicación:</strong> Especifique la ubicación geográfica donde aplica esta tarifa. 
+        Deje los campos vacíos para crear tarifas más generales (nacional, departamental, etc.).
+      </small>
+    </div>
+    <div class="col-md-6">
+      <small class="text-muted">
+        <strong>Prioridad:</strong> Las tarifas con menor número de prioridad se evalúan primero. 
+        Use prioridad 1 para tarifas específicas y números mayores para tarifas generales.
+      </small>
+    </div>
+  </div>
+</div>

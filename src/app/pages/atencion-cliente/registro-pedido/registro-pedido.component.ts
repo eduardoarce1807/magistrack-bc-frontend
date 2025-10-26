@@ -130,9 +130,33 @@ export class RegistroPedidoComponent implements OnInit, OnDestroy {
   idRol: number = 0;
 
   // Propiedades para el stepper
-  activeStepIndex: number = 0;
+  private _activeStepIndex: number = 0;
   pedidoPagado: boolean = false;
   loadingPedido: boolean = true;
+  loadingResumen: boolean = false;
+
+  get activeStepIndex(): number {
+    return this._activeStepIndex;
+  }
+
+  set activeStepIndex(value: number) {
+    const oldValue = this._activeStepIndex;
+    this._activeStepIndex = value;
+    
+    // Refrescar información si se navegó directamente al paso 1 o 3 (índices 0 o 2)
+    if (oldValue !== value && (value === 0 || value === 2) && this.idPedido) {
+      if (value === 2) {
+        this.loadingResumen = true;
+      }
+      this.refreshPedidoInfo();
+      if (value === 2) {
+        // Dar tiempo para que se cargue la información antes de quitar el loader
+        setTimeout(() => {
+          this.loadingResumen = false;
+        }, 1000);
+      }
+    }
+  }
 
   // Getter para verificar si el pedido está pagado (sin logs infinitos)
   get esPedidoPagado(): boolean {
@@ -176,7 +200,13 @@ export class RegistroPedidoComponent implements OnInit, OnDestroy {
 	collectionSize = this.productosBusquedaAvanzada.length;
 
   idPedido: string | null = null;
-  pedido: any = {estadoPedido: 0};
+  pedido: any = {
+    estadoPedido: 0,
+    costoDelivery: 0,
+    aplicaDelivery: false,
+    metodoCalculoDelivery: '',
+    tarifarioDelivery: null
+  };
   private routeSubscription: Subscription | null = null;
 
   // Modo preparado magistral
@@ -514,7 +544,7 @@ export class RegistroPedidoComponent implements OnInit, OnDestroy {
         this.lstDirecciones = direcciones;
         this.idDireccionSeleccionada = this.lstDirecciones[0]?.idDireccion || 0; // Seleccionar la primera dirección por defecto
         console.log('Direcciones del cliente:', direcciones);
-        if (!firstRequest) {
+        if (!firstRequest && this.lstDirecciones.length > 0) {
           this.guardarEntrega(); // Llamar al método de entrega después de obtener las direcciones
         }
       },
@@ -619,12 +649,14 @@ export class RegistroPedidoComponent implements OnInit, OnDestroy {
           
           // Finalizar el loading una vez que se han cargado los datos
           this.loadingPedido = false;
+          this.loadingResumen = false;
         }
         console.log('Pedido:', pedido);
       },
       (error) => {
         console.error('Error al cargar el pedido', error);
         this.loadingPedido = false;
+        this.loadingResumen = false;
       }
     );
   }
@@ -1515,10 +1547,20 @@ export class RegistroPedidoComponent implements OnInit, OnDestroy {
     );
   }
 
+  // Método para refrescar información del pedido cuando se accede a pasos críticos
+  private refreshPedidoInfo() {
+    if (!this.idPedido) return;
+    
+    // Solo refrescar si el pedido está en estado borrador (estado 1)
+    if (this.pedido?.estadoPedido?.idEstadoPedido === 1) {
+      this.getPedidoById(this.idPedido);
+    }
+  }
+
   // Método para retroceder en el stepper
   prevStep() {
-    if (this.activeStepIndex > 0) {
-      this.activeStepIndex--;
+    if (this._activeStepIndex > 0) {
+      this.activeStepIndex = this._activeStepIndex - 1;
     }
   }
 
@@ -1526,8 +1568,8 @@ export class RegistroPedidoComponent implements OnInit, OnDestroy {
   nextStep() {
     const maxSteps = this.totalPasos - 1; // Convertir a índice base 0
     console.log('nextStep - activeStepIndex:', this.activeStepIndex, 'maxSteps:', maxSteps, 'totalPasos:', this.totalPasos, 'esPedidoPagado:', this.esPedidoPagado);
-    if (this.activeStepIndex < maxSteps) {
-      this.activeStepIndex++;
+    if (this._activeStepIndex < maxSteps) {
+      this.activeStepIndex = this._activeStepIndex + 1;
     }
   }
 
@@ -1554,6 +1596,15 @@ export class RegistroPedidoComponent implements OnInit, OnDestroy {
   aceptarTerminos() {
     this.modalService.dismissAll();
     console.log('Términos y condiciones aceptados');
+  }
+
+  // Método para obtener el total del pedido incluyendo delivery
+  getTotalPedidoConDelivery(): number {
+    let total = this.totalPedido;
+    if (this.pedido?.aplicaDelivery && this.pedido?.costoDelivery) {
+      total += this.pedido.costoDelivery;
+    }
+    return total;
   }
 
 }

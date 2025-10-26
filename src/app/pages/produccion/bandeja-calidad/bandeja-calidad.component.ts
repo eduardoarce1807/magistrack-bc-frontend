@@ -111,8 +111,7 @@ export class BandejaCalidadComponent implements OnInit {
 	) {}
 
 	ngOnInit(): void {
-		// Ya no se cargan automáticamente los productos
-		// this.getProductosAll();
+		this.getProductosAll();
 	}
 
 	// Funciones de utilidad para type guards
@@ -149,7 +148,14 @@ export class BandejaCalidadComponent implements OnInit {
 	}
 
 	getProductosAll(): void {
-		this.pedidoService.getProductosCalidad().subscribe(
+		// Obtener el usuario loggeado
+		const usuario = this.dataService.getLoggedUser();
+		if (!usuario || !usuario.idUsuario) {
+			console.error('Usuario no encontrado');
+			return;
+		}
+
+		this.pedidoService.getProductosCalidad(usuario.idUsuario).subscribe(
 			(productos) => {
 				console.log('Productos obtenidos:', productos);
 				this.productosTable = productos;
@@ -180,7 +186,16 @@ export class BandejaCalidadComponent implements OnInit {
 		}
 
 		this.isSearching = true;
-		this.pedidoService.getProductoCalidadByIdBulk(this.idBulkBusqueda.trim()).subscribe(
+		
+		// Obtener el usuario loggeado
+		const usuario = this.dataService.getLoggedUser();
+		if (!usuario || !usuario.idUsuario) {
+			console.error('Usuario no encontrado');
+			this.isSearching = false;
+			return;
+		}
+
+		this.pedidoService.getProductoCalidadByIdBulk(this.idBulkBusqueda.trim(), usuario.idUsuario).subscribe(
 			(response: any) => {
 				console.log('Respuesta búsqueda por idBulk:', response);
 				

@@ -17,6 +17,8 @@ import { MessageModule } from 'primeng/message';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import Swal from 'sweetalert2';
 import JsBarcode from 'jsbarcode';
+import { BulkService } from '../../../services/bulk.service';
+import { UsuarioService } from '../../../services/usuario.service';
 
 @Component({
   selector: 'app-gestor-bulks',
@@ -57,6 +59,14 @@ export class GestorBulksComponent implements OnInit {
   loadingProductos: boolean = false;
   errorCargandoProductos: string = '';
   
+  // Para asignación de usuarios
+  @ViewChild('asignarUsuarioModal', { static: true }) asignarUsuarioModal: TemplateRef<any> | null = null;
+  usuarios: any[] = [];
+  usuariosFiltrados: any[] = [];
+  usuarioSeleccionado: any = null;
+  bulkParaAsignar: BulkModel | null = null;
+  loadingUsuarios: boolean = false;
+  
   private modalService = inject(NgbModal);
 
   stateOptions = [
@@ -66,7 +76,11 @@ export class GestorBulksComponent implements OnInit {
     { label: 'En envasado', value: 5 }
   ];
 
-  constructor(private pedidoService: PedidoService) {}
+  constructor(
+    private pedidoService: PedidoService,
+    private bulkService: BulkService,
+    private usuarioService: UsuarioService
+  ) {}
 
   ngOnInit(): void {
     this.loadBulks();
@@ -360,6 +374,144 @@ export class GestorBulksComponent implements OnInit {
         printWindow.close();
       }, 500);
     }
+  }
+
+  // Métodos para asignación de usuarios
+  abrirAsignacionUsuario(bulk: BulkModel): void {
+    this.bulkParaAsignar = bulk;
+    this.usuarioSeleccionado = null;
+    this.cargarUsuarios();
+    
+    if (this.asignarUsuarioModal) {
+      this.modalService.open(this.asignarUsuarioModal, { 
+        size: 'lg',
+        backdrop: 'static',
+        keyboard: false 
+      });
+    }
+  }
+
+  cargarUsuarios(): void {
+    this.loadingUsuarios = true;
+    this.usuarioService.getUsuarios().subscribe({
+      next: (usuarios: any[]) => {
+        this.usuarios = usuarios || [];
+        this.filtrarUsuariosPorEstadoBulk();
+        this.loadingUsuarios = false;
+        console.log('Usuarios cargados:', this.usuarios);
+      },
+      error: (error) => {
+        console.error('Error al cargar usuarios:', error);
+        this.loadingUsuarios = false;
+        this.usuarios = [];
+        this.usuariosFiltrados = [];
+        
+        Swal.fire({
+          icon: 'error',
+          title: 'Error al cargar usuarios',
+          text: 'No se pudieron cargar los usuarios. Por favor, intente nuevamente.',
+          showConfirmButton: true,
+        });
+      }
+    });
+  }
+
+  filtrarUsuariosPorEstadoBulk(): void {
+    if (!this.bulkParaAsignar || !this.usuarios.length) {
+      this.usuariosFiltrados = [];
+      return;
+    }
+
+    const estadoBulk = this.bulkParaAsignar.idEstadoProducto;
+    let rolRequerido: number;
+
+    // Filtrar usuarios según el estado del bulk
+    switch (estadoBulk) {
+      case 3: // En producción
+        rolRequerido = 6;
+        break;
+      case 4: // En calidad
+        rolRequerido = 7;
+        break;
+      case 5: // En envasado
+        rolRequerido = 8;
+        break;
+      default:
+        this.usuariosFiltrados = [];
+        return;
+    }
+
+    this.usuariosFiltrados = this.usuarios.filter(usuario => 
+      usuario.rol && usuario.rol.idRol === rolRequerido
+    );
+
+    console.log(`Usuarios filtrados para rol ${rolRequerido}:`, this.usuariosFiltrados);
+  }
+
+  asignarUsuarioSeleccionado(): void {
+    if (!this.usuarioSeleccionado || !this.bulkParaAsignar) {
+      Swal.fire({
+        icon: 'warning',
+        title: '¡Atención!',
+        text: 'Por favor seleccione un usuario.',
+        showConfirmButton: true,
+      });
+      return;
+    }
+
+    const data = {
+      idBulk: this.bulkParaAsignar.idBulk,
+      idBulkPreparadoMagistral: undefined, // Por ahora solo manejamos bulks de productos
+      idUsuario: this.usuarioSeleccionado.idUsuario
+    };
+
+    this.bulkService.asignarBulkAUsuario(data).subscribe({
+      next: (response: any) => {
+        console.log('Respuesta asignación:', response);
+        
+        if (response && response.idResultado === 1) {
+          Swal.fire({
+            icon: 'success',
+            title: '¡Éxito!',
+            text: response.mensaje || 'Bulk asignado correctamente.',
+            showConfirmButton: true,
+          });
+          
+          this.modalService.dismissAll();
+          this.bulkParaAsignar = null;
+          this.usuarioSeleccionado = null;
+        } else {
+          Swal.fire({
+            icon: 'error',
+            title: 'Error en la asignación',
+            text: response.mensaje || 'No se pudo asignar el bulk.',
+            showConfirmButton: true,
+          });
+        }
+      },
+      error: (error) => {
+        console.error('Error al asignar bulk:', error);
+        
+        let errorMessage = 'No se pudo asignar el bulk. Por favor, intente nuevamente.';
+        if (error.error && error.error.mensaje) {
+          errorMessage = error.error.mensaje;
+        }
+        
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: errorMessage,
+          showConfirmButton: true,
+        });
+      }
+    });
+  }
+
+  getNombreCompletoUsuario(usuario: any): string {
+    if (usuario.cliente) {
+      return `${usuario.cliente.nombres} ${usuario.cliente.apellidos}`;
+    }
+    return usuario.usuario || 'Usuario';
   }
 
   reintentarCargaProductos(): void {

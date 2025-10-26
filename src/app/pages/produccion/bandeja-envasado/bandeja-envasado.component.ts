@@ -55,12 +55,18 @@ export class BandejaEnvasadoComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    // Ya no se cargan automáticamente los productos
-    // this.getProductosAll();
+    this.getProductosAll();
   }
 
   getProductosAll(): void {
-    this.pedidoService.getProductosEnvasado().subscribe(
+    // Obtener el usuario loggeado
+    const usuario = this.dataService.getLoggedUser();
+    if (!usuario || !usuario.idUsuario) {
+      console.error('Usuario no encontrado');
+      return;
+    }
+
+    this.pedidoService.getProductosEnvasado(usuario.idUsuario).subscribe(
       (productos) => {
         console.log('Productos obtenidos:', productos);
         this.productosTable = productos;
@@ -91,7 +97,16 @@ export class BandejaEnvasadoComponent implements OnInit {
     }
 
     this.isSearching = true;
-    this.pedidoService.getProductosEnvasadoByIdBulk(this.idBulkBusqueda.trim()).subscribe(
+    
+    // Obtener el usuario loggeado
+    const usuario = this.dataService.getLoggedUser();
+    if (!usuario || !usuario.idUsuario) {
+      console.error('Usuario no encontrado');
+      this.isSearching = false;
+      return;
+    }
+
+    this.pedidoService.getProductosEnvasadoByIdBulk(this.idBulkBusqueda.trim(), usuario.idUsuario).subscribe(
       (response: any) => {
         console.log('Respuesta búsqueda por idBulk:', response);
         

@@ -98,10 +98,10 @@
 				<input type="text" id="manualCliente" class="form-control" [value]="pedido.cliente.nombres + ' ' + pedido.cliente.apellidos" readonly>
 			</div>
 			<div class="mb-3">
-				<label for="manualMontoPagado" class="form-label">Monto Pagado</label>
+				<label for="manualMontoPagado" class="form-label">Monto Pagado{{ pagoManual.idTipoPago == 5 ? ' (50%)' : '' }}</label>
 				<div class="input-group mb-3">
                     <span class="input-group-text">S/</span>
-					<input type="text" id="manualMontoPagado" class="form-control" [value]="pedido.montoTotal" readonly>
+					<input type="text" id="manualMontoPagado" class="form-control" [value]="pagoManual.idTipoPago == 5 ? (pedido.montoTotal / 2) : pedido.montoTotal" readonly>
                 </div>
 			</div>
 			<div class="mb-3">
@@ -123,8 +123,8 @@
 			}
 
 			<div class="mb-3">
-				<label for="numeroOperacion" class="form-label">Número de Operación{{ pagoManual.idTipoPago == 4 ? '' : '*' }}</label>
-				<input type="text" id="numeroOperacion" class="form-control" [(ngModel)]="pagoManual.numeroOperacion" [required]="pagoManual.idTipoPago != 4" name="numeroOperacion">
+				<label for="numeroOperacion" class="form-label">Número de Operación{{ pagoManual.idTipoPago == 4 || pagoManual.idTipoPago == 5 ? '' : '*' }}</label>
+				<input type="text" id="numeroOperacion" class="form-control" [(ngModel)]="pagoManual.numeroOperacion" [required]="pagoManual.idTipoPago != 4 && pagoManual.idTipoPago != 5" name="numeroOperacion">
 			</div>
 			<div class="mb-3">
 				<label for="fechaPago" class="form-label">Fecha de Pago*</label>

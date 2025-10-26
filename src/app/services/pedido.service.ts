@@ -130,23 +130,23 @@ export class PedidoService {
 		return this.http.get<any[]>(url);
 	}
 
-	getProductosCalidad(): Observable<any[]> {
-		let url = `${this.baseUrl}/productos/calidad`;
+	getProductosCalidad(idUsuario: number): Observable<any[]> {
+		let url = `${this.baseUrl}/productos/calidad?idUsuario=${idUsuario}`;
 		return this.http.get<any[]>(url);
 	}
 
-	getProductoCalidadByIdBulk(idBulk: string): Observable<any> {
-		let url = `${this.baseUrl}/productos/calidad/${idBulk}`;
+	getProductoCalidadByIdBulk(idBulk: string, idUsuario: number): Observable<any> {
+		let url = `${this.baseUrl}/productos/calidad/${idBulk}?idUsuario=${idUsuario}`;
 		return this.http.get<any>(url);
 	}
 
-	getProductosEnvasado(): Observable<any[]> {
-		let url = `${this.baseUrl}/productos/envasado`;
+	getProductosEnvasado(idUsuario: number): Observable<any[]> {
+		let url = `${this.baseUrl}/productos/envasado?idUsuario=${idUsuario}`;
 		return this.http.get<any[]>(url);
 	}
 
-	getProductosEnvasadoByIdBulk(idBulk: string): Observable<any> {
-		let url = `${this.baseUrl}/productos/envasado/${idBulk}`;
+	getProductosEnvasadoByIdBulk(idBulk: string, idUsuario: number): Observable<any> {
+		let url = `${this.baseUrl}/productos/envasado/${idBulk}?idUsuario=${idUsuario}`;
 		return this.http.get<any>(url);
 	}
 
@@ -236,6 +236,32 @@ export class PedidoService {
 	getProductosByBulkId(idBulk: string): Observable<any[]> {
 		let url = `${this.baseUrl}/productos/envasado/${idBulk}`;
 		return this.http.get<any[]>(url);
+	}
+
+	// ==================== MÉTODOS DE DELIVERY ====================
+
+	/**
+	 * Recalcula el delivery de un pedido específico
+	 */
+	recalcularDeliveryPedido(idPedido: string): Observable<any> {
+		let url = `${this.baseUrl}/${idPedido}/recalcular-delivery`;
+		return this.http.put<any>(url, {});
+	}
+
+	/**
+	 * Calcula el delivery de un pedido sin guardarlo
+	 */
+	calcularDeliveryPedido(idPedido: string): Observable<any> {
+		let url = `${this.baseUrl}/${idPedido}/calcular-delivery`;
+		return this.http.get<any>(url);
+	}
+
+	/**
+	 * Actualiza la nota de delivery de un pedido
+	 */
+	actualizarNotaDeliveryPedido(idPedido: string, notaDelivery: string): Observable<any> {
+		let url = `${this.baseUrl}/${idPedido}/nota-delivery`;
+		return this.http.put<any>(url, { notaDelivery });
 	}
 
 }

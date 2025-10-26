@@ -47,8 +47,8 @@ export class ProductoService {
     return this.http.get<any>(url);
   }
 
-  getBandejaProduccion(): Observable<any[]> {
-    let url = `${this.baseUrl}/bandeja-produccion`;
+  getBandejaProduccion(idUsuario: number): Observable<any[]> {
+    let url = `${this.baseUrl}/bandeja-produccion?idUsuario=${idUsuario}`;
     return this.http.get<any[]>(url);
   }
 
