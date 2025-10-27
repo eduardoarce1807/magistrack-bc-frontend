@@ -271,7 +271,7 @@ export class SidebarComponent implements OnInit, AfterViewInit {
 						...([1, 6].includes(user.rol.idRol) ? [
 							{
 								key: '3_0',
-								label: 'Bandeja de producción',
+								label: 'Hoja de producción',
 								icon: 'bi bi-flask-florence',
 								command: () => this.irA('pages/produccion/bandeja-produccion')
 							}

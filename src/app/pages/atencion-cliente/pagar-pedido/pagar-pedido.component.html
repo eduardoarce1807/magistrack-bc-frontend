@@ -19,6 +19,36 @@
                     <span class="input-group-text">S/</span>
 					<input type="text" id="montoTotal" class="form-control" [value]="pedido.montoTotal" readonly>
                 </div>
+				
+				<!-- Checkbox de pago parcial -->
+				<div class="form-check mb-2">
+					<input type="checkbox" class="form-check-input" id="pagoParcial" [(ngModel)]="esPagoParcial" (change)="onPagoParcialChange()">
+					<label class="form-check-label" for="pagoParcial">
+						Pago parcial
+					</label>
+				</div>
+
+				<!-- Campo de monto parcial -->
+				@if (esPagoParcial) {
+					<div class="mb-2">
+						<label for="montoParcial" class="form-label">Monto Adelantado</label>
+						<div class="input-group">
+							<span class="input-group-text">S/</span>
+							<input 
+								type="number" 
+								id="montoParcial" 
+								class="form-control" 
+								[(ngModel)]="montoParcial" 
+								[min]="0.01"
+								[max]="pedido?.montoTotal - 0.01"
+								step="0.01"
+								placeholder="0.00"
+								(input)="onMontoParcialChange($event)"
+							>
+						</div>
+						<small class="text-muted">Debe ser mayor a 0 y menor al monto total</small>
+					</div>
+				}
 			</div>
 		</div>
 		<div class="row mb-2">
@@ -85,10 +115,17 @@
 <ng-template #pagoManualTemplate let-modal>
 	<form (ngSubmit)="onPagarManual()" #pagoManualForm="ngForm">
 		<div class="modal-header">
-			<h4 class="modal-title">Registrar Pago Manual</h4>
+			<h4 class="modal-title">Registrar Pago Manual{{ esPagoParcial ? ' - Pago Parcial' : '' }}</h4>
 			<button type="button" class="btn-close" aria-label="Close" (click)="modal.dismiss('Cross click')"></button>
 		</div>
 		<div class="modal-body">
+			@if (esPagoParcial) {
+				<div class="alert alert-info mb-3">
+					<i class="bi bi-info-circle"></i>
+					<strong>Pago Parcial:</strong> Se está registrando un pago parcial por S/ {{ montoParcial.toFixed(2) || '0.00' }}
+				</div>
+			}
+			
 			<div class="mb-3">
 				<label for="manualIdPedido" class="form-label">ID Pedido</label>
 				<input type="text" id="manualIdPedido" class="form-control" [value]="idPedido" readonly>
@@ -98,10 +135,10 @@
 				<input type="text" id="manualCliente" class="form-control" [value]="pedido.cliente.nombres + ' ' + pedido.cliente.apellidos" readonly>
 			</div>
 			<div class="mb-3">
-				<label for="manualMontoPagado" class="form-label">Monto Pagado{{ pagoManual.idTipoPago == 5 ? ' (50%)' : '' }}</label>
+				<label for="manualMontoPagado" class="form-label">Monto {{ esPagoParcial ? 'Parcial' : 'Total' }} a Pagar</label>
 				<div class="input-group mb-3">
                     <span class="input-group-text">S/</span>
-					<input type="text" id="manualMontoPagado" class="form-control" [value]="pagoManual.idTipoPago == 5 ? (pedido.montoTotal / 2) : pedido.montoTotal" readonly>
+					<input type="text" id="manualMontoPagado" class="form-control" [value]="esPagoParcial ? montoParcial.toFixed(2) : pedido.montoTotal.toFixed(2)" readonly>
                 </div>
 			</div>
 			<div class="mb-3">

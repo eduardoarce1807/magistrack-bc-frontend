@@ -702,8 +702,9 @@ export class BandejaPedidosAdministradorComponent implements OnInit {
 	}
 
 	completarPagoParcial(pedido: any): void {
-		// Calcular el monto faltante (50% del total)
-		const montoFaltante = pedido.montoTotal / 2;
+		// Calcular el monto faltante (diferencia entre el total y el primer pago parcial)
+		const montoPagado = pedido.pagoPedido?.montoPago || 0;
+		const montoFaltante = pedido.montoTotal - montoPagado;
 		
 		Swal.fire({
 			title: 'Completar Pago Parcial',
@@ -712,7 +713,7 @@ export class BandejaPedidosAdministradorComponent implements OnInit {
 				<div class="mt-3">
 					<p><strong>Cliente:</strong> ${pedido.cliente.nombres} ${pedido.cliente.apellidos}</p>
 					<p><strong>Monto Total:</strong> S/ ${pedido.montoTotal.toFixed(2)}</p>
-					<p><strong>Monto ya pagado:</strong> S/ ${(pedido.montoTotal / 2).toFixed(2)} (50%)</p>
+					<p><strong>Monto ya pagado:</strong> S/ ${montoPagado.toFixed(2)}</p>
 					<p><strong>Monto a completar:</strong> <span class="text-danger fw-bold">S/ ${montoFaltante.toFixed(2)}</span></p>
 				</div>
 			`,
