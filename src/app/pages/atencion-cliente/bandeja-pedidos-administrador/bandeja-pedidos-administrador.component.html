@@ -30,7 +30,7 @@
 			</thead>
 			<tbody>
 				@for (item of pedidos; track $index) {
-				<tr [class]="item.pagoCompleto === false ? 'table-warning' : (item.estadoPedido.idEstadoPedido === 2 ? 'table-success' : '')">
+				<tr [class]="item.pagoParcial == true && item.pagoCompleto === false ? 'table-warning' : (item.estadoPedido.idEstadoPedido === 2 ? 'table-success' : '')">
 					<td>
 						<input class="form-check-input"
 							type="checkbox"
@@ -99,7 +99,7 @@
 								<span class="spinner-border spinner-border-sm ms-2" role="status" aria-hidden="true"></span>
 							}
 						</button>
-						@if (item.pagoCompleto === false && item.pagoPedido && item.pagoPedido.tipoPago.idTipoPago === 5) {
+						@if (item.pagoCompleto === false && item.pagoParcial === true) {
 							<button 
 								class="btn btn-secondary me-2" 
 								(click)="completarPagoParcial(item)"

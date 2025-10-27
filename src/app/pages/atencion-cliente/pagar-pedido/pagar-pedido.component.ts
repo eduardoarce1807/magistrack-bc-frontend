@@ -67,6 +67,10 @@ export class PagarPedidoComponent implements OnInit, AfterViewInit {
   // Propiedad para controlar la aceptación de términos y condiciones
   terminosAceptados: boolean = false;
 
+  // Propiedades para el pago parcial
+  esPagoParcial: boolean = false;
+  montoParcial: number = 0;
+
   constructor(
     private route: ActivatedRoute,
     public router: Router,
@@ -171,9 +175,12 @@ export class PagarPedidoComponent implements OnInit, AfterViewInit {
     const publicKey = '44817432:publickey_aFzmMC499lDdt1QSk3qOBG2C9qY03V9k6xZuHRnYvEDiw'
     let formToken = 'DEMO-TOKEN-TO-BE-REPLACED'
 
+    // Determinar el monto a pagar (parcial o total)
+    const montoPago = this.esPagoParcial ? this.montoParcial : this.pedido.montoTotal;
+
     const observable = this.http.post(
       `${environment.apiUrl}/izipay/createPayment`,
-      {amount: this.pedido.montoTotal * 100, currency: 'PEN', orderId: this.pedido.idPedido, customer: {email:this.dataService.getLoggedUser().cliente.correo}},
+      {amount: montoPago * 100, currency: 'PEN', orderId: this.pedido.idPedido, customer: {email:this.dataService.getLoggedUser().cliente.correo}},
     )
     firstValueFrom(observable)
       .then((resp: any) => {
@@ -313,9 +320,16 @@ export class PagarPedidoComponent implements OnInit, AfterViewInit {
     this.pagoManual.idPedido = this.idPedido || '';
     this.pagoManual.idCliente = this.dataService.getLoggedUser().cliente.idCliente || this.pedido.cliente.idCliente;
 
-    //console.log('Pago manual:', this.pagoManual);
+    // Crear el objeto con los campos para pago parcial
+    const pagoRequest = {
+      ...this.pagoManual,
+      esPagoParcial: this.esPagoParcial,
+      montoPago: this.esPagoParcial ? this.montoParcial : undefined
+    };
 
-    this.pagoPedidoService.savePago(this.pagoManual).subscribe(
+    //console.log('Pago manual:', pagoRequest);
+
+    this.pagoPedidoService.savePago(pagoRequest).subscribe(
       (response) => {
         if (response) {
           this.modalService.dismissAll();
@@ -414,6 +428,12 @@ export class PagarPedidoComponent implements OnInit, AfterViewInit {
     const fechaLocalDate = this.pagoManual.fechaPago.split('T')[0];
     formData.append('fechaPago', fechaLocalDate);
     
+    // Nuevos campos para pagos parciales
+    formData.append('esPagoParcial', this.esPagoParcial.toString());
+    if (this.esPagoParcial) {
+      formData.append('montoPago', this.montoParcial.toString());
+    }
+    
     // Agregar archivo si existe
     const archivoInput = document.querySelector('input[type="file"]') as HTMLInputElement;
     if (archivoInput?.files?.[0]) {
@@ -506,6 +526,20 @@ export class PagarPedidoComponent implements OnInit, AfterViewInit {
 
   // Método para confirmar pago manual
   confirmarPagoManual(): void {
+    // Validar si es pago parcial y el monto es válido
+    if (this.esPagoParcial && !this.esMontoParcialValido()) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Monto inválido',
+        text: 'El monto parcial debe ser mayor a 0 y menor al monto total del pedido.',
+        confirmButtonText: 'Aceptar',
+        customClass: {
+          confirmButton: 'btn btn-primary',
+        },
+      });
+      return;
+    }
+
     Swal.fire({
       title: '¿Estás seguro/a?',
       html: 'Estás a punto de proceder con el pago manual del pedido.<br><br><strong>⚠️ Importante:</strong> Una vez pagado el pedido, <strong>no se podrá editar, modificar ni realizar cambios o devoluciones</strong>. Tampoco habrá lugar a reclamos sobre el contenido del pedido.',
@@ -528,6 +562,20 @@ export class PagarPedidoComponent implements OnInit, AfterViewInit {
 
   // Método para confirmar pago con tarjeta
   confirmarPagoIziPay(): void {
+    // Validar si es pago parcial y el monto es válido
+    if (this.esPagoParcial && !this.esMontoParcialValido()) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Monto inválido',
+        text: 'El monto parcial debe ser mayor a 0 y menor al monto total del pedido.',
+        confirmButtonText: 'Aceptar',
+        customClass: {
+          confirmButton: 'btn btn-primary',
+        },
+      });
+      return;
+    }
+
     Swal.fire({
       title: '¿Estás seguro/a?',
       html: 'Estás a punto de proceder con el pago mediante tarjeta de crédito/débito.<br><br><strong>⚠️ Importante:</strong> Una vez pagado el pedido, <strong>no se podrá editar, modificar ni realizar cambios o devoluciones</strong>. Tampoco habrá lugar a reclamos sobre el contenido del pedido.',
@@ -546,6 +594,29 @@ export class PagarPedidoComponent implements OnInit, AfterViewInit {
         this.openModalIziPay(this.pagoIzipay!);
       }
     });
+  }
+
+  // Método para manejar el cambio del checkbox de pago parcial
+  onPagoParcialChange(): void {
+    if (this.esPagoParcial && this.pedido) {
+      // Establecer el 50% como valor por defecto
+      this.montoParcial = this.pedido.montoTotal / 2;
+    } else {
+      this.montoParcial = 0;
+    }
+  }
+
+  // Método para manejar el cambio del monto parcial
+  onMontoParcialChange(event: any): void {
+    const valor = parseFloat(event.target.value);
+    this.montoParcial = isNaN(valor) ? 0 : valor;
+  }
+
+  // Método para validar el monto parcial
+  esMontoParcialValido(): boolean {
+    if (!this.esPagoParcial) return true;
+    
+    return this.montoParcial > 0 && this.montoParcial < this.pedido.montoTotal;
   }
 
 }
