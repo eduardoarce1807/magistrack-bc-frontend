@@ -66,23 +66,25 @@ export class BandejaEnvasadoComponent implements OnInit {
       return;
     }
 
-    this.pedidoService.getProductosEnvasado(usuario.idUsuario).subscribe(
-      (productos) => {
-        console.log('Productos obtenidos:', productos);
-        this.productosTable = productos;
-        this.collectionSize = this.productosTable.length;
-        this.refreshProductos();
-      },
-      (error) => {
-        console.error('Error al obtener productos', error);
-        Swal.fire({
-          icon: 'error',
-          title: 'Oops!',
-          text: 'No se pudieron cargar los productos, inténtelo de nuevo.',
-          showConfirmButton: true,
-        });
-      }
-    );
+    if(usuario.rol.idRol != 1){
+      this.pedidoService.getProductosEnvasado(usuario.idUsuario).subscribe(
+        (productos) => {
+          console.log('Productos obtenidos:', productos);
+          this.productosTable = productos;
+          this.collectionSize = this.productosTable.length;
+          this.refreshProductos();
+        },
+        (error) => {
+          console.error('Error al obtener productos', error);
+          Swal.fire({
+            icon: 'error',
+            title: 'Oops!',
+            text: 'No se pudieron cargar los productos, inténtelo de nuevo.',
+            showConfirmButton: true,
+          });
+        }
+      );
+    }
   }
 
   buscarPorIdBulk(): void {
