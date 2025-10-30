@@ -5,6 +5,7 @@ import { DataService } from './services/data.service';
 import { PrimeNGConfig } from 'primeng/api';
 import { WhatsappFloatComponent } from './components/whatsapp-float/whatsapp-float.component';
 import { PedidoNotificationService, PedidoPago } from './services/pedido-notification.service';
+import { SolicitudPreparadoNotificationService, SolicitudPreparadoMagistral } from './services/solicitud-preparado-notification.service';
 
 @Component({
   selector: 'app-root',
@@ -37,14 +38,16 @@ export class AppComponent implements OnInit, OnDestroy {
     private router: Router, 
     private dataService: DataService,
     private primengConfig: PrimeNGConfig,
-    private pedidoNotificationService: PedidoNotificationService
+    private pedidoNotificationService: PedidoNotificationService,
+    private solicitudPreparadoNotificationService: SolicitudPreparadoNotificationService
   ) {
     this.initInactivityMonitoring();
   }
 
   ngOnInit() {
-    // Inicializar sistema global de notificaciones de pedidos pagados
+    // Inicializar sistemas globales de notificaciones
     this.initGlobalPedidoNotifications();
+    this.initGlobalSolicitudPreparadoNotifications();
     
     this.primengConfig.setTranslation({
       accept: 'Aceptar',
@@ -105,8 +108,9 @@ export class AppComponent implements OnInit, OnDestroy {
       clearInterval(this.inactivityTimer);
     }
     
-    // Detener el sistema global de notificaciones
+    // Detener los sistemas globales de notificaciones
     this.pedidoNotificationService.stopPolling();
+    this.solicitudPreparadoNotificationService.stopPolling();
   }
 
   /**
@@ -202,6 +206,56 @@ export class AppComponent implements OnInit, OnDestroy {
    */
   private onGlobalNuevosPedidosPagados(nuevosPedidos: PedidoPago[]): void {
     console.log('🎉 Nuevos pedidos pagados detectados globalmente:', nuevosPedidos);
+    
+    // Aquí puedes agregar lógica adicional global si es necesario
+    // Por ejemplo, mostrar una notificación toast, actualizar contadores globales, etc.
+    
+    // El sonido y el cambio de título ya se manejan automáticamente en el servicio
+    // Pero podrías agregar aquí notificaciones visuales adicionales
+  }
+
+  /**
+   * Inicializar el sistema global de notificaciones de solicitudes de preparado magistral
+   * Este sistema funcionará en toda la aplicación para roles Admin (1) e I+D (15)
+   */
+  private initGlobalSolicitudPreparadoNotifications(): void {
+    // Solo inicializar si el usuario está autenticado
+    if (this.auth.isAuthenticated()) {
+      console.log('🧪 Iniciando sistema global de notificaciones de solicitudes de preparado magistral');
+      
+      // Verificar rol del usuario antes de iniciar
+      const user = this.dataService.getLoggedUser();
+      const userRole = user?.rol?.idRol;
+      const allowedRoles = [1, 15]; // Admin (1) e Investigación y Desarrollo (15)
+      
+      if (userRole && allowedRoles.includes(Number(userRole))) {
+        console.log(`✅ Usuario con rol ${userRole} autorizado - Iniciando notificaciones de solicitudes`);
+        
+        // Iniciar el polling del servicio
+        this.solicitudPreparadoNotificationService.startPolling();
+
+        // Suscribirse a las notificaciones de nuevas solicitudes
+        this.solicitudPreparadoNotificationService.getNuevasSolicitudes().subscribe({
+          next: (nuevasSolicitudes) => {
+            if (nuevasSolicitudes.length > 0) {
+              this.onGlobalNuevasSolicitudesPreparado(nuevasSolicitudes);
+            }
+          },
+          error: (error) => {
+            console.error('Error en notificaciones globales de solicitudes:', error);
+          }
+        });
+      } else {
+        console.log(`🚫 Usuario con rol ${userRole} no autorizado para notificaciones de solicitudes - Solo Admin (1) e I+D (15)`);
+      }
+    }
+  }
+
+  /**
+   * Manejar la detección global de nuevas solicitudes de preparado magistral
+   */
+  private onGlobalNuevasSolicitudesPreparado(nuevasSolicitudes: SolicitudPreparadoMagistral[]): void {
+    console.log('🧪 Nuevas solicitudes de preparado magistral detectadas globalmente:', nuevasSolicitudes);
     
     // Aquí puedes agregar lógica adicional global si es necesario
     // Por ejemplo, mostrar una notificación toast, actualizar contadores globales, etc.

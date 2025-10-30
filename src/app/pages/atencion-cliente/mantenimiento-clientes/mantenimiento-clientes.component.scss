@@ -1,0 +1,61 @@
+/* ==================== ESTILOS REPORTE DE CUMPLEAÑOS ==================== */
+
+.card.bg-light {
+  border: 1px solid #e0e0e0;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.btn:disabled {
+  cursor: not-allowed;
+}
+
+/* Estilos para el dropdown de PrimeNG */
+::ng-deep .p-dropdown {
+  width: 100% !important;
+}
+
+::ng-deep .p-dropdown .p-dropdown-label {
+  padding: 0.5rem 0.75rem;
+  text-align: left !important;
+}
+
+/* Alineación específica para el dropdown del reporte */
+::ng-deep .text-start-dropdown .p-dropdown-label {
+  text-align: left !important;
+  justify-content: flex-start !important;
+}
+
+::ng-deep .text-start-dropdown .p-dropdown-items .p-dropdown-item {
+  text-align: left !important;
+}
+
+/* Spinner personalizado */
+.spinner-border-sm {
+  width: 1rem;
+  height: 1rem;
+}
+
+/* Responsividad para móviles */
+@media (max-width: 768px) {
+  .col-md-4 {
+    margin-bottom: 1rem;
+  }
+  
+  .btn {
+    width: 100%;
+  }
+  
+  small.text-muted {
+    font-size: 0.8rem;
+  }
+}
+
+/* Mejoras para la tabla */
+::ng-deep .p-datatable .p-datatable-thead > tr > th {
+  background-color: #f8f9fa;
+  font-weight: 600;
+}
+
+::ng-deep .p-datatable .p-datatable-tbody > tr:hover {
+  background-color: #f8f9fa;
+}

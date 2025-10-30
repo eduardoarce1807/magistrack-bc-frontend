@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { SolicitudPreparadoMagistralService } from '../../../services/solicitud-preparado-magistral.service';
@@ -11,6 +11,8 @@ import { InputIconModule } from 'primeng/inputicon';
 import { FormsModule } from '@angular/forms';
 import { NgbTooltipModule } from '@ng-bootstrap/ng-bootstrap';
 import Swal from 'sweetalert2';
+import { interval, Subscription } from 'rxjs';
+import { switchMap } from 'rxjs/operators';
 
 interface SolicitudPreparadoMagistral {
   id: number;
@@ -39,13 +41,17 @@ interface SolicitudPreparadoMagistral {
   templateUrl: './bandeja-solicitudes-preparados-magistrales.component.html',
   styleUrls: ['./bandeja-solicitudes-preparados-magistrales.component.scss']
 })
-export class BandejaSolicitudesPreparadosMagistralesComponent implements OnInit {
+export class BandejaSolicitudesPreparadosMagistralesComponent implements OnInit, OnDestroy {
   solicitudes: SolicitudPreparadoMagistral[] = [];
   clientes: any[] = [];
   searchValue: string = '';
   pageSize: number = 25;
   collectionSize: number = 0;
   isLoading: boolean = false;
+
+  // ==================== SISTEMA DE POLLING AUTOMÁTICO ====================
+  private pollingSubscription?: Subscription;
+  private readonly POLLING_INTERVAL = 30000; // 30 segundos
 
   constructor(
     public router: Router,
@@ -55,6 +61,11 @@ export class BandejaSolicitudesPreparadosMagistralesComponent implements OnInit 
 
   ngOnInit(): void {
     this.cargarClientes();
+    this.iniciarPollingSolicitudes();
+  }
+
+  ngOnDestroy(): void {
+    this.detenerPollingSolicitudes();
   }
 
   cargarClientes(): void {
@@ -182,5 +193,53 @@ export class BandejaSolicitudesPreparadosMagistralesComponent implements OnInit 
 
   getEstadoClass(atendido: boolean): string {
     return atendido ? 'badge bg-success' : 'badge bg-warning text-dark';
+  }
+
+  // ==================== MÉTODOS DE POLLING AUTOMÁTICO ====================
+
+  /**
+   * Iniciar el polling automático para actualizar la lista de solicitudes
+   * Se sincroniza con el sistema de notificaciones (30 segundos vs 25 segundos)
+   */
+  private iniciarPollingSolicitudes(): void {
+    console.log('🧪 Iniciando polling automático en Bandeja Solicitudes Preparados Magistrales');
+    
+    this.pollingSubscription = interval(this.POLLING_INTERVAL)
+      .pipe(
+        switchMap(() => this.solicitudService.getSolicitudes())
+      )
+      .subscribe({
+        next: (solicitudes) => {
+          // Verificar si hay cambios comparando la cantidad de solicitudes
+          const cantidadAnterior = this.solicitudes.length;
+          const cantidadNueva = solicitudes.length;
+          
+          if (cantidadAnterior !== cantidadNueva) {
+            console.log(`📊 Cambios detectados en solicitudes: ${cantidadAnterior} → ${cantidadNueva}`);
+          }
+          
+          // Actualizar la lista con información de clientes
+          this.solicitudes = solicitudes.map(solicitud => ({
+            ...solicitud,
+            clienteNombre: this.obtenerNombreCliente(solicitud.idCliente)
+          }));
+          this.collectionSize = this.solicitudes.length;
+        },
+        error: (error) => {
+          console.error('❌ Error en polling de solicitudes:', error);
+          // Continuar con el polling incluso si hay errores
+        }
+      });
+  }
+
+  /**
+   * Detener el polling automático
+   */
+  private detenerPollingSolicitudes(): void {
+    if (this.pollingSubscription) {
+      console.log('🛑 Deteniendo polling automático en Bandeja Solicitudes Preparados Magistrales');
+      this.pollingSubscription.unsubscribe();
+      this.pollingSubscription = undefined;
+    }
   }
 }

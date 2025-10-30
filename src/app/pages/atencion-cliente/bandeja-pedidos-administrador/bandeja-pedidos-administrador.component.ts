@@ -1,4 +1,4 @@
-import { Component, OnInit, TemplateRef, ViewChild, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, TemplateRef, ViewChild, inject } from '@angular/core';
 import { PedidoService } from '../../../services/pedido.service';
 import { Router } from '@angular/router';
 import Swal from 'sweetalert2';
@@ -17,6 +17,8 @@ import { ToastService } from '../../../services/toast.service';
 import { ToastsContainer } from '../../../shared/components/toasts-container/toasts-container.component';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { PagoPedidoService } from '../../../services/pago-pedido.service';
+import { interval, Subscription } from 'rxjs';
+import { switchMap } from 'rxjs/operators';
 
 @Component({
 	selector: 'app-bandeja-pedidos-administrador',
@@ -25,7 +27,7 @@ import { PagoPedidoService } from '../../../services/pago-pedido.service';
 	templateUrl: './bandeja-pedidos-administrador.component.html',
 	styleUrl: './bandeja-pedidos-administrador.component.scss',
 })
-export class BandejaPedidosAdministradorComponent implements OnInit {
+export class BandejaPedidosAdministradorComponent implements OnInit, OnDestroy {
 	@ViewChild('successTpl', { static: false }) successTpl!: TemplateRef<any>;
 	toastService = inject(ToastService);
 	
@@ -43,6 +45,10 @@ export class BandejaPedidosAdministradorComponent implements OnInit {
 	urlComprobanteSanitizada: SafeResourceUrl | null = null;
 	loadingPDF: { [key: string]: boolean } = {};
 
+	// ==================== SISTEMA DE POLLING AUTOMÁTICO ====================
+	private pollingSubscription?: Subscription;
+	private readonly POLLING_INTERVAL = 30000; // 30 segundos
+
 	constructor(
 		private pedidoService: PedidoService,
 		private pedidoAuditoriaService: PedidoAuditoriaService,
@@ -56,6 +62,11 @@ export class BandejaPedidosAdministradorComponent implements OnInit {
 
 	ngOnInit(): void {
 		this.cargarPedidos();
+		this.iniciarPollingPedidos();
+	}
+
+	ngOnDestroy(): void {
+		this.detenerPollingPedidos();
 	}
 
 	cargarPedidos(): void {
@@ -832,5 +843,51 @@ export class BandejaPedidosAdministradorComponent implements OnInit {
 		}
 		
 		return 'Tarifa estándar';
+	}
+
+	// ==================== MÉTODOS DE POLLING AUTOMÁTICO ====================
+
+	/**
+	 * Iniciar el polling automático para actualizar la lista de pedidos
+	 * Se sincroniza con el sistema de notificaciones (30 segundos vs 25 segundos)
+	 */
+	private iniciarPollingPedidos(): void {
+		console.log('🔄 Iniciando polling automático en Bandeja Pedidos Administrador');
+		
+		this.pollingSubscription = interval(this.POLLING_INTERVAL)
+			.pipe(
+				switchMap(() => this.pedidoService.getPedidosCompleto())
+			)
+			.subscribe({
+				next: (pedidos) => {
+					// Verificar si hay cambios comparando la cantidad de pedidos
+					const cantidadAnterior = this.pedidosTable.length;
+					const cantidadNueva = pedidos.length;
+					
+					if (cantidadAnterior !== cantidadNueva) {
+						console.log(`📊 Cambios detectados en pedidos: ${cantidadAnterior} → ${cantidadNueva}`);
+					}
+					
+					// Actualizar la lista
+					this.pedidosTable = pedidos;
+					this.collectionSize = this.pedidosTable.length;
+					this.refreshPedidos();
+				},
+				error: (error) => {
+					console.error('❌ Error en polling de pedidos:', error);
+					// Continuar con el polling incluso si hay errores
+				}
+			});
+	}
+
+	/**
+	 * Detener el polling automático
+	 */
+	private detenerPollingPedidos(): void {
+		if (this.pollingSubscription) {
+			console.log('🛑 Deteniendo polling automático en Bandeja Pedidos Administrador');
+			this.pollingSubscription.unsubscribe();
+			this.pollingSubscription = undefined;
+		}
 	}
 }

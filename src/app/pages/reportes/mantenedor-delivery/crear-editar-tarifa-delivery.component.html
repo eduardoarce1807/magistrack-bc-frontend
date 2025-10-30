@@ -65,12 +65,13 @@
                 name="tipoRegla"
                 [(ngModel)]="tarifa.tipoRegla"
                 (change)="onTipoReglaChange()"
+                [disabled]="isEditMode"
                 required>
                 <option value="">Seleccionar tipo de regla</option>
                 <option 
-                  *ngFor="let regla of tiposReglaOptions" 
+                  *ngFor="let regla of opcionesDisponibles" 
                   [value]="regla.value">
-                  {{ regla.label }} - {{ regla.descripcion }}
+                  {{ regla.label }}
                 </option>
               </select>
               <div class="form-text" *ngIf="tarifa.tipoRegla">
@@ -220,7 +221,7 @@
                 type="number" 
                 class="form-control" 
                 name="tarifa"
-                [(ngModel)]="tarifa.tarifa"
+                [(ngModel)]="tarifa.precio"
                 [readonly]="esEnvioGratis()"
                 min="0"
                 step="0.01"
@@ -231,8 +232,27 @@
               </div>
             </div>
 
+            <!-- Monto Mínimo (solo para reglas de envío gratis) -->
+            <div class="col-md-6 mb-3" *ngIf="requiereMontoMinimo()">
+              <label class="form-label">
+                Monto Mínimo para Envío Gratis (S/) <span class="text-danger">*</span>
+              </label>
+              <input 
+                type="number" 
+                class="form-control" 
+                name="montoMinimoAplicacion"
+                [(ngModel)]="tarifa.montoMinimoAplicacion"
+                min="1"
+                step="0.01"
+                required
+                placeholder="500.00">
+              <div class="form-text">
+                Monto mínimo del pedido para que aplique el envío gratis
+              </div>
+            </div>
+
             <!-- Descripción -->
-            <div class="col-md-6 mb-3">
+            <div class="col-md-6 mb-3" [class.col-md-12]="!requiereMontoMinimo()">
               <label class="form-label">
                 Descripción
               </label>

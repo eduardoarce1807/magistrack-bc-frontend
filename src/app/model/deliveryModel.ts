@@ -1,9 +1,9 @@
 // Modelos para el sistema de delivery simplificado
 
-// Tipos de regla para el sistema simplificado
+// Tipos de regla para el sistema dinámico configurable
 export enum TipoReglaDelivery {
-  ENVIO_GRATIS_500 = 'ENVIO_GRATIS_500',
-  ENVIO_GRATIS_LIMA_350 = 'ENVIO_GRATIS_LIMA_350',
+  ENVIO_GRATIS_NACIONAL = 'ENVIO_GRATIS_NACIONAL',
+  ENVIO_GRATIS_LIMA = 'ENVIO_GRATIS_LIMA',
   DISTRITO_ESPECIFICO = 'DISTRITO_ESPECIFICO',
   LIMA_GENERAL = 'LIMA_GENERAL',
   PROVINCIA = 'PROVINCIA'
@@ -54,7 +54,7 @@ export interface CrearTarifaDelivery {
   tipoRegla: TipoReglaDelivery | string;
   precio: number;                        // ⚠️ OBLIGATORIO (no puede ser null) - cambió de 'tarifa' a 'precio'
   idDistrito?: number | null;            // Opcional (solo para DISTRITO_ESPECIFICO)
-  montoMinimoAplicacion?: number | null; // Opcional (para reglas de envío gratis)
+  montoMinimoAplicacion?: number | null; // NUEVO: Campo configurable para envío gratis
   puntoEncuentro?: string | null;        // Opcional
   descripcion?: string | null;           // Opcional
   activo?: boolean;                      // Opcional (default: true)
@@ -96,11 +96,12 @@ export interface RespuestaGenerica {
   data?: any;
 }
 
-// Nueva clase modelo para formulario simplificado
+// Nueva clase modelo para formulario dinámico configurable
 export class TarifaDeliveryFormModel {
   id: number | null = null;
   tipoRegla: TipoReglaDelivery | string = TipoReglaDelivery.DISTRITO_ESPECIFICO;
-  tarifa: number = 0;
+  precio: number = 0;
+  montoMinimoAplicacion: number | null = null; // NUEVO: Campo configurable
   
   // Campos para la selección en cascada de ubicación
   idDepartamento: number | null = null;
@@ -118,22 +119,22 @@ export class TarifaDeliveryFormModel {
   toCreateRequest(): CrearTarifaDelivery {
     return {
       tipoRegla: this.tipoRegla,
-      precio: this.tarifa,                    // Mapear tarifa a precio
+      precio: this.precio,
       idDistrito: this.idDistrito,
-      montoMinimoAplicacion: this.getMontoMinimoSegunRegla(),
+      montoMinimoAplicacion: this.montoMinimoAplicacion, // Usar el valor configurado
       puntoEncuentro: null,                   // Por ahora null, se puede agregar al formulario después
       descripcion: this.descripcion || this.getDescripcionSegunRegla(), // Usar la descripción editada o la por defecto
       activo: this.activo
     };
   }
 
-  // Método auxiliar para obtener el monto mínimo según la regla
-  private getMontoMinimoSegunRegla(): number | null {
+  // Método auxiliar para obtener el monto mínimo por defecto según la regla (para compatibilidad)
+  private getMontoMinimoDefectoSegunRegla(): number | null {
     switch (this.tipoRegla) {
-      case TipoReglaDelivery.ENVIO_GRATIS_500:
-        return 500.00;
-      case TipoReglaDelivery.ENVIO_GRATIS_LIMA_350:
-        return 350.00;
+      case TipoReglaDelivery.ENVIO_GRATIS_NACIONAL:
+        return 500.00; // Valor por defecto, pero ahora es configurable
+      case TipoReglaDelivery.ENVIO_GRATIS_LIMA:
+        return 350.00; // Valor por defecto, pero ahora es configurable
       default:
         return null;
     }
@@ -149,7 +150,8 @@ export class TarifaDeliveryFormModel {
   fromTarifa(tarifa: TarifaDelivery): void {
     this.id = tarifa.idTarifaDelivery || tarifa.id || null;
     this.tipoRegla = tarifa.tipoRegla;
-    this.tarifa = tarifa.precio || tarifa.tarifa || 0;
+    this.precio = tarifa.precio || tarifa.tarifa || 0;
+    this.montoMinimoAplicacion = tarifa.montoMinimoAplicacion || null;
     
     // Extraer IDs de ubicación desde la estructura anidada
     if (tarifa.distrito) {
@@ -172,7 +174,8 @@ export class TarifaDeliveryFormModel {
   reset(): void {
     this.id = null;
     this.tipoRegla = TipoReglaDelivery.DISTRITO_ESPECIFICO;
-    this.tarifa = 0;
+    this.precio = 0;
+    this.montoMinimoAplicacion = null;
     this.idDepartamento = null;
     this.idProvincia = null;
     this.idDistrito = null;
@@ -205,25 +208,34 @@ export class TarifaDeliveryFormModel {
 
   // Verificar si es una regla de envío gratis
   esEnvioGratis(): boolean {
-    return this.tipoRegla === TipoReglaDelivery.ENVIO_GRATIS_500 || 
-           this.tipoRegla === TipoReglaDelivery.ENVIO_GRATIS_LIMA_350;
+    return this.tipoRegla === TipoReglaDelivery.ENVIO_GRATIS_NACIONAL || 
+           this.tipoRegla === TipoReglaDelivery.ENVIO_GRATIS_LIMA;
+  }
+
+  // Nuevo método para verificar si requiere monto mínimo configurable
+  requiereMontoMinimo(): boolean {
+    return this.esEnvioGratis();
   }
 }
 
-// Constantes para las opciones de tipo de regla
+// Constantes para las opciones de tipo de regla (sistema dinámico configurable)
 export const TIPOS_REGLA_OPTIONS = [
   { 
-    value: TipoReglaDelivery.ENVIO_GRATIS_500, 
-    label: 'Envío gratis >= S/ 500',
-    descripcion: 'Envío gratuito para compras de S/ 500 o más (aplica a todo el país)',
+    value: TipoReglaDelivery.ENVIO_GRATIS_NACIONAL, 
+    label: 'Envío gratis nacional',
+    descripcion: 'Envío gratuito nacional por monto mínimo configurable',
     requiereDistrito: false,
+    requiereMontoMinimo: true,
+    esUnico: true, // Solo puede existir 1 registro
     tarifaFija: 0
   },
   { 
-    value: TipoReglaDelivery.ENVIO_GRATIS_LIMA_350, 
-    label: 'Envío gratis Lima >= S/ 350',
-    descripcion: 'Envío gratuito para Lima con compras de S/ 350 o más',
+    value: TipoReglaDelivery.ENVIO_GRATIS_LIMA, 
+    label: 'Envío gratis Lima',
+    descripcion: 'Envío gratuito Lima por monto mínimo configurable',
     requiereDistrito: false,
+    requiereMontoMinimo: true,
+    esUnico: true, // Solo puede existir 1 registro
     tarifaFija: 0
   },
   { 
@@ -231,6 +243,8 @@ export const TIPOS_REGLA_OPTIONS = [
     label: 'Tarifa por distrito específico',
     descripcion: 'Tarifa personalizada para un distrito en particular',
     requiereDistrito: true,
+    requiereMontoMinimo: false,
+    esUnico: false, // Puede existir múltiples registros
     tarifaFija: null
   },
   { 
@@ -238,6 +252,8 @@ export const TIPOS_REGLA_OPTIONS = [
     label: 'Tarifa general para Lima',
     descripcion: 'Tarifa estándar para todos los distritos de Lima (sin reglas específicas)',
     requiereDistrito: false,
+    requiereMontoMinimo: false,
+    esUnico: true, // Solo puede existir 1 registro
     tarifaFija: null
   },
   { 
@@ -245,6 +261,8 @@ export const TIPOS_REGLA_OPTIONS = [
     label: 'Tarifa para provincia',
     descripcion: 'Tarifa estándar para distritos fuera de Lima',
     requiereDistrito: false,
+    requiereMontoMinimo: false,
+    esUnico: true, // Solo puede existir 1 registro
     tarifaFija: null
   }
 ];
@@ -259,4 +277,48 @@ export function obtenerDescripcionRegla(tipoRegla: TipoReglaDelivery | string): 
 export function reglaRequiereDistrito(tipoRegla: TipoReglaDelivery | string): boolean {
   const opcion = TIPOS_REGLA_OPTIONS.find(o => o.value === tipoRegla);
   return opcion?.requiereDistrito || false;
+}
+
+// Función helper para verificar si una regla requiere monto mínimo configurable
+export function reglaRequiereMontoMinimo(tipoRegla: TipoReglaDelivery | string): boolean {
+  const opcion = TIPOS_REGLA_OPTIONS.find(o => o.value === tipoRegla);
+  return opcion?.requiereMontoMinimo || false;
+}
+
+// Función helper para verificar si una regla es única (solo 1 registro permitido)
+export function reglaEsUnica(tipoRegla: TipoReglaDelivery | string): boolean {
+  const opcion = TIPOS_REGLA_OPTIONS.find(o => o.value === tipoRegla);
+  return opcion?.esUnico || false;
+}
+
+// Función para obtener los tipos de regla únicos
+export function obtenerTiposReglaUnicos(): TipoReglaDelivery[] {
+  return TIPOS_REGLA_OPTIONS
+    .filter(opcion => opcion.esUnico)
+    .map(opcion => opcion.value as TipoReglaDelivery);
+}
+
+// Función para filtrar opciones disponibles según registros existentes
+export function filtrarOpcionesDisponibles(
+  tarifasExistentes: TarifaDelivery[], 
+  modoEdicion: boolean = false, 
+  tarifaEnEdicion?: TarifaDelivery
+): typeof TIPOS_REGLA_OPTIONS {
+  if (modoEdicion && tarifaEnEdicion) {
+    // En modo edición, permitir la misma opción que se está editando
+    return TIPOS_REGLA_OPTIONS;
+  }
+
+  // En modo creación, filtrar opciones únicas que ya existen
+  const tiposExistentes = tarifasExistentes.map(t => t.tipoRegla);
+  
+  return TIPOS_REGLA_OPTIONS.filter(opcion => {
+    if (!opcion.esUnico) {
+      // Las reglas no únicas siempre están disponibles (DISTRITO_ESPECIFICO)
+      return true;
+    }
+    
+    // Las reglas únicas solo están disponibles si no existen ya
+    return !tiposExistentes.includes(opcion.value);
+  });
 }

@@ -2,6 +2,7 @@ import { ApplicationConfig } from '@angular/core';
 import { provideRouter } from '@angular/router';
 import { PrimeNGConfig } from 'primeng/api';
 import { LOCALE_ID } from '@angular/core';
+import { DatePipe } from '@angular/common';
 
 import { routes } from './app.routes';
 import { provideHttpClient } from '@angular/common/http';
@@ -13,6 +14,7 @@ export const appConfig: ApplicationConfig = {
     provideRouter(routes),  
     provideHttpClient(),
     provideAnimationsAsync(),
-    { provide: LOCALE_ID, useValue: 'es-PE' }
+    { provide: LOCALE_ID, useValue: 'es-PE' },
+    DatePipe
   ]
 };
