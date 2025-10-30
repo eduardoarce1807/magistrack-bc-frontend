@@ -74,4 +74,9 @@ export class ClienteService {
     let url = `${this.baseUrl}/validar-codigo-referido`;
     return this.http.get<any>(url, { params: { codigo } });
   }
+
+  buscarPorMesNacimiento(mes: number): Observable<any> {
+    let url = `${this.baseUrl}/buscarPorMesNacimiento`;
+    return this.http.get<any>(url, { params: { mes: mes.toString() } });
+  }
 }

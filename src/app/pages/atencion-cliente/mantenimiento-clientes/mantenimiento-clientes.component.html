@@ -8,6 +8,43 @@
 
 		<h2 class="mb-4 text-center">Mantenimiento de Clientes</h2>
 
+		<!-- ==================== SECCIÓN REPORTE DE CUMPLEAÑOS ==================== -->
+		<div class="card bg-light mb-4 p-3">
+			<div class="row align-items-end">
+				<div class="col-md-4">
+					<label for="mesSelect" class="form-label mb-2"><strong>Reporte de Cumpleaños:</strong></label>
+					<p-dropdown
+						id="mesSelect"
+						[options]="mesesOpciones"
+						[(ngModel)]="mesSeleccionado"
+						placeholder="Seleccionar mes"
+						optionLabel="label"
+						optionValue="value"
+						[showClear]="true"
+						styleClass="w-100 text-start-dropdown"
+					>
+					</p-dropdown>
+				</div>
+				<div class="col-md-4">
+					<button 
+						class="btn btn-success w-100"
+						[disabled]="!mesSeleccionado || loadingReporte"
+						(click)="exportarReporteCumpleanos()"
+					>
+						<i class="bi bi-download me-2" *ngIf="!loadingReporte"></i>
+						<i class="spinner-border spinner-border-sm me-2" *ngIf="loadingReporte"></i>
+						{{ loadingReporte ? 'Generando...' : 'Exportar reporte cumpleaños' }}
+					</button>
+				</div>
+				<div class="col-md-4">
+					<small class="text-muted">
+						<i class="bi bi-info-circle me-1"></i>
+						Selecciona un mes para generar el reporte de clientes que cumplen años.
+					</small>
+				</div>
+			</div>
+		</div>
+
 		<p-table
 			#dt1
 			*ngIf="clientes.length > 0"

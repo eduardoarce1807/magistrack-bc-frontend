@@ -46,7 +46,9 @@ export class DeliveryService {
    * Obtiene todas las tarifas de delivery activas
    */
   listarTarifasActivas(): Observable<TarifaDelivery[]> {
-    return this.http.get<TarifaDelivery[]>(`${this.baseUrl}?activo=true`);
+    return this.http.get<any[]>(`${this.baseUrl}/activas`).pipe(
+      map((tarifas: any[]) => tarifas.map(tarifa => this.mapearTarifaDesdeBackend(tarifa)))
+    );
   }
 
   /**
@@ -96,6 +98,32 @@ export class DeliveryService {
   // ==================== MÉTODOS AUXILIARES (NUEVA API) ====================
 
   /**
+   * Verifica qué tipos de regla únicos ya existen
+   */
+  verificarReglasUnicasExistentes(): Observable<{[key: string]: boolean}> {
+    return this.listarTarifas().pipe(
+      map((tarifas: TarifaDelivery[]) => {
+        const existentes: {[key: string]: boolean} = {};
+        
+        // Verificar cada tipo único
+        existentes[TipoReglaDelivery.ENVIO_GRATIS_NACIONAL] = 
+          tarifas.some(t => t.tipoRegla === TipoReglaDelivery.ENVIO_GRATIS_NACIONAL);
+        
+        existentes[TipoReglaDelivery.ENVIO_GRATIS_LIMA] = 
+          tarifas.some(t => t.tipoRegla === TipoReglaDelivery.ENVIO_GRATIS_LIMA);
+        
+        existentes[TipoReglaDelivery.LIMA_GENERAL] = 
+          tarifas.some(t => t.tipoRegla === TipoReglaDelivery.LIMA_GENERAL);
+        
+        existentes[TipoReglaDelivery.PROVINCIA] = 
+          tarifas.some(t => t.tipoRegla === TipoReglaDelivery.PROVINCIA);
+        
+        return existentes;
+      })
+    );
+  }
+
+  /**
    * Valida si una tarifa es válida para crear/actualizar
    */
   validarTarifa(tarifa: CrearTarifaDelivery): string[] {
@@ -110,10 +138,15 @@ export class DeliveryService {
     }
 
     // Validar que las reglas de envío gratis tengan precio 0
-    if (tarifa.tipoRegla === TipoReglaDelivery.ENVIO_GRATIS_500 || 
-        tarifa.tipoRegla === TipoReglaDelivery.ENVIO_GRATIS_LIMA_350) {
+    if (tarifa.tipoRegla === TipoReglaDelivery.ENVIO_GRATIS_NACIONAL || 
+        tarifa.tipoRegla === TipoReglaDelivery.ENVIO_GRATIS_LIMA) {
       if (tarifa.precio !== 0) {
         errores.push('Las reglas de envío gratis deben tener precio S/ 0.00');
+      }
+      
+      // Validar que tengan monto mínimo configurado
+      if (!tarifa.montoMinimoAplicacion || tarifa.montoMinimoAplicacion <= 0) {
+        errores.push('Las reglas de envío gratis requieren un monto mínimo mayor a 0');
       }
     }
 
@@ -127,14 +160,7 @@ export class DeliveryService {
       errores.push('Solo las tarifas específicas por distrito pueden tener distrito asignado');
     }
 
-    // Validar montos mínimos para reglas de envío gratis
-    if (tarifa.tipoRegla === TipoReglaDelivery.ENVIO_GRATIS_500 && tarifa.montoMinimoAplicacion !== 500) {
-      errores.push('La regla de envío gratis debe tener monto mínimo de S/ 500');
-    }
-
-    if (tarifa.tipoRegla === TipoReglaDelivery.ENVIO_GRATIS_LIMA_350 && tarifa.montoMinimoAplicacion !== 350) {
-      errores.push('La regla de envío gratis Lima debe tener monto mínimo de S/ 350');
-    }
+    // Las validaciones de monto mínimo ahora son dinámicas y se manejan en el frontend
 
     return errores;
   }
@@ -144,10 +170,10 @@ export class DeliveryService {
    */
   formatearUbicacionCompleta(tarifa: TarifaDelivery): string {
     switch (tarifa.tipoRegla) {
-      case TipoReglaDelivery.ENVIO_GRATIS_500:
-        return 'Todo el país (>= S/ 500)';
-      case TipoReglaDelivery.ENVIO_GRATIS_LIMA_350:
-        return 'Lima (>= S/ 350)';
+      case TipoReglaDelivery.ENVIO_GRATIS_NACIONAL:
+        return `Todo el país (>= S/ ${tarifa.montoMinimoAplicacion || 0})`;
+      case TipoReglaDelivery.ENVIO_GRATIS_LIMA:
+        return `Lima (>= S/ ${tarifa.montoMinimoAplicacion || 0})`;
       case TipoReglaDelivery.DISTRITO_ESPECIFICO:
         return tarifa.distrito?.nombre || 'Distrito no especificado';
       case TipoReglaDelivery.LIMA_GENERAL:
@@ -171,8 +197,8 @@ export class DeliveryService {
    */
   obtenerColorTipoRegla(tipoRegla: TipoReglaDelivery | string): string {
     switch (tipoRegla) {
-      case TipoReglaDelivery.ENVIO_GRATIS_500:
-      case TipoReglaDelivery.ENVIO_GRATIS_LIMA_350:
+      case TipoReglaDelivery.ENVIO_GRATIS_NACIONAL:
+      case TipoReglaDelivery.ENVIO_GRATIS_LIMA:
         return 'success'; // Verde para envío gratis
       case TipoReglaDelivery.DISTRITO_ESPECIFICO:
         return 'primary'; // Azul para específicos
@@ -199,8 +225,8 @@ export class DeliveryService {
    * Verifica si una tarifa es de envío gratis
    */
   esEnvioGratis(tipoRegla: TipoReglaDelivery | string): boolean {
-    return tipoRegla === TipoReglaDelivery.ENVIO_GRATIS_500 || 
-           tipoRegla === TipoReglaDelivery.ENVIO_GRATIS_LIMA_350;
+    return tipoRegla === TipoReglaDelivery.ENVIO_GRATIS_NACIONAL || 
+           tipoRegla === TipoReglaDelivery.ENVIO_GRATIS_LIMA;
   }
 
   /**

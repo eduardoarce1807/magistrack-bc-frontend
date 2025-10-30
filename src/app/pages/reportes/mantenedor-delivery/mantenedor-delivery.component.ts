@@ -190,9 +190,26 @@ export class MantenedorDeliveryComponent implements OnInit {
 
   /**
    * Navegar a crear nueva tarifa
+   * Verifica las reglas únicas existentes antes de navegar
    */
   nuevaTarifa(): void {
-    this.router.navigate(['/pages/reportes/mantenedor-delivery/crear']);
+    // Verificar qué reglas únicas ya existen
+    this.deliveryService.verificarReglasUnicasExistentes().subscribe({
+      next: (reglasExistentes) => {
+        // Navegar con información de reglas existentes
+        this.router.navigate(['/pages/reportes/mantenedor-delivery/crear'], {
+          state: { 
+            reglasExistentes: reglasExistentes,
+            tarifasExistentes: this.tarifas 
+          }
+        });
+      },
+      error: (error) => {
+        console.error('Error al verificar reglas existentes:', error);
+        // Navegar sin restricciones si hay error
+        this.router.navigate(['/pages/reportes/mantenedor-delivery/crear']);
+      }
+    });
   }
 
   /**

@@ -49,6 +49,11 @@ export class CrearEditarTarifaDeliveryComponent implements OnInit {
   
   // Mensajes de validación
   erroresValidacion: string[] = [];
+  
+  // Control de reglas únicas (nueva funcionalidad)
+  reglasUnicasExistentes: {[key: string]: boolean} = {};
+  tarifasExistentes: TarifaDelivery[] = [];
+  opcionesDisponibles = TIPOS_REGLA_OPTIONS;
 
   constructor(
     private deliveryService: DeliveryService,
@@ -60,8 +65,40 @@ export class CrearEditarTarifaDeliveryComponent implements OnInit {
 
   ngOnInit(): void {
     this.cargarDepartamentosPermitidos();
+    this.recibirReglasExistentes(); // NUEVO: Recibir información de reglas existentes
     this.verificarModoOperacion();
     this.inicializarDescripcionPorDefecto();
+  }
+
+  /**
+   * Recibe información de reglas existentes del router state
+   */
+  recibirReglasExistentes(): void {
+    const navigation = this.router.getCurrentNavigation();
+    if (navigation?.extras?.state) {
+      this.reglasUnicasExistentes = navigation.extras.state['reglasExistentes'] || {};
+      this.tarifasExistentes = navigation.extras.state['tarifasExistentes'] || [];
+      this.actualizarOpcionesDisponibles();
+    }
+  }
+
+  /**
+   * Actualiza las opciones disponibles según las reglas existentes
+   */
+  actualizarOpcionesDisponibles(): void {
+    if (!this.isEditMode) {
+      // En modo creación, filtrar opciones únicas que ya existen
+      this.opcionesDisponibles = TIPOS_REGLA_OPTIONS.filter(opcion => {
+        if (!opcion.esUnico) {
+          return true; // DISTRITO_ESPECIFICO siempre disponible
+        }
+        // Reglas únicas solo disponibles si no existen
+        return !this.reglasUnicasExistentes[opcion.value];
+      });
+    } else {
+      // En modo edición, todas las opciones están disponibles
+      this.opcionesDisponibles = TIPOS_REGLA_OPTIONS;
+    }
   }
 
   /**
@@ -252,9 +289,18 @@ export class CrearEditarTarifaDeliveryComponent implements OnInit {
       this.distritos = [];
     }
     
-    // Establecer tarifa automáticamente para reglas de envío gratis
+    // Establecer precio automáticamente para reglas de envío gratis
     if (this.tarifa.esEnvioGratis()) {
-      this.tarifa.tarifa = 0;
+      this.tarifa.precio = 0;
+      
+      // Configurar monto mínimo por defecto si no está establecido
+      if (!this.tarifa.montoMinimoAplicacion) {
+        if (this.tarifa.tipoRegla === TipoReglaDelivery.ENVIO_GRATIS_NACIONAL) {
+          this.tarifa.montoMinimoAplicacion = 500; // Valor por defecto
+        } else if (this.tarifa.tipoRegla === TipoReglaDelivery.ENVIO_GRATIS_LIMA) {
+          this.tarifa.montoMinimoAplicacion = 350; // Valor por defecto
+        }
+      }
     }
 
     // Actualizar descripción por defecto si está vacía o es la descripción anterior
@@ -423,10 +469,18 @@ export class CrearEditarTarifaDeliveryComponent implements OnInit {
   }
 
   /**
+   * Verifica si la regla actual requiere monto mínimo configurable
+   */
+  requiereMontoMinimo(): boolean {
+    return this.tarifa.requiereMontoMinimo();
+  }
+
+  /**
    * Verifica si el formulario ha cambiado
    */
   formularioHaCambiado(): boolean {
-    return this.tarifa.tarifa > 0 || 
+    return this.tarifa.precio > 0 || 
+           this.tarifa.montoMinimoAplicacion !== null ||
            this.tarifa.tipoRegla !== TipoReglaDelivery.DISTRITO_ESPECIFICO ||
            this.tarifa.idDepartamento !== null ||
            this.tarifa.idProvincia !== null ||
@@ -438,8 +492,8 @@ export class CrearEditarTarifaDeliveryComponent implements OnInit {
    * Obtiene mensaje de error del backend
    */
   obtenerMensajeError(error: any): string {
-    if (error.error?.mensaje) {
-      return error.error.mensaje;
+    if (error.error?.message) {
+      return error.error.message;
     } else if (error.message) {
       return error.message;
     } else {
