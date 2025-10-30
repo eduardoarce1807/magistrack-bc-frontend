@@ -1,145 +1,99 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
 import {
   TarifaDelivery,
   CrearTarifaDelivery,
-  CalculoDeliveryConDireccion,
-  CalculoDeliveryConUbicacion,
-  RespuestaCalculoDelivery,
-  RespuestaRecalculoDelivery,
+  CalculoDeliveryRequest,
+  CalculoDeliveryResponse,
   FiltrosBusquedaTarifas,
-  RespuestaGenerica
+  RespuestaGenerica,
+  TipoReglaDelivery,
+  obtenerDescripcionRegla,
+  Departamento,
+  Provincia,
+  Distrito
 } from '../model/deliveryModel';
+import { UbigeoService } from './ubigeo.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class DeliveryService {
 
-  private baseUrl = `${environment.apiUrl}/delivery`;
+  private baseUrl = `${environment.apiUrl}/tarifa-delivery`;
+  private calculoUrl = `${environment.apiUrl}/delivery/calcular`;
 
-  constructor(private http: HttpClient) { }
+  constructor(
+    private http: HttpClient,
+    private ubigeoService: UbigeoService
+  ) { }
 
-  // ==================== MANTENEDOR DE TARIFAS ====================
+  // ==================== MANTENEDOR DE TARIFAS (NUEVA API) ====================
   
+  /**
+   * Obtiene todas las tarifas de delivery
+   */
+  listarTarifas(): Observable<TarifaDelivery[]> {
+    return this.http.get<any[]>(`${this.baseUrl}`).pipe(
+      map((tarifas: any[]) => tarifas.map(tarifa => this.mapearTarifaDesdeBackend(tarifa)))
+    );
+  }
+
   /**
    * Obtiene todas las tarifas de delivery activas
    */
   listarTarifasActivas(): Observable<TarifaDelivery[]> {
-    return this.http.get<TarifaDelivery[]>(`${this.baseUrl}/tarifas`);
-  }
-
-  /**
-   * Crea una nueva tarifa de delivery
-   */
-  crearTarifa(tarifa: CrearTarifaDelivery): Observable<TarifaDelivery> {
-    return this.http.post<TarifaDelivery>(`${this.baseUrl}/tarifas`, tarifa);
-  }
-
-  /**
-   * Actualiza una tarifa existente
-   */
-  actualizarTarifa(id: number, tarifa: CrearTarifaDelivery): Observable<TarifaDelivery> {
-    return this.http.put<TarifaDelivery>(`${this.baseUrl}/tarifas/${id}`, tarifa);
-  }
-
-  /**
-   * Elimina (desactiva) una tarifa
-   */
-  eliminarTarifa(id: number): Observable<RespuestaGenerica> {
-    return this.http.delete<RespuestaGenerica>(`${this.baseUrl}/tarifas/${id}`);
+    return this.http.get<TarifaDelivery[]>(`${this.baseUrl}?activo=true`);
   }
 
   /**
    * Obtiene una tarifa por su ID
    */
   obtenerTarifaPorId(id: number): Observable<TarifaDelivery> {
-    return this.http.get<TarifaDelivery>(`${this.baseUrl}/tarifas/${id}`);
-  }
-
-  // ==================== BÚSQUEDAS POR UBICACIÓN ====================
-
-  /**
-   * Busca tarifas por departamento
-   */
-  buscarTarifasPorDepartamento(idDepartamento: number): Observable<TarifaDelivery[]> {
-    return this.http.get<TarifaDelivery[]>(`${this.baseUrl}/tarifas/departamento/${idDepartamento}`);
+    return this.http.get<TarifaDelivery>(`${this.baseUrl}/${id}`);
   }
 
   /**
-   * Busca tarifas por provincia
+   * Busca tarifas por tipo de regla
    */
-  buscarTarifasPorProvincia(idProvincia: number): Observable<TarifaDelivery[]> {
-    return this.http.get<TarifaDelivery[]>(`${this.baseUrl}/tarifas/provincia/${idProvincia}`);
+  buscarTarifasPorTipo(tipoRegla: TipoReglaDelivery | string): Observable<TarifaDelivery[]> {
+    return this.http.get<TarifaDelivery[]>(`${this.baseUrl}/tipo/${tipoRegla}`);
   }
 
   /**
-   * Busca tarifas por distrito
+   * Crea una nueva tarifa de delivery
    */
-  buscarTarifasPorDistrito(idDistrito: number): Observable<TarifaDelivery[]> {
-    return this.http.get<TarifaDelivery[]>(`${this.baseUrl}/tarifas/distrito/${idDistrito}`);
+  crearTarifa(tarifa: CrearTarifaDelivery): Observable<TarifaDelivery> {
+    return this.http.post<TarifaDelivery>(`${this.baseUrl}`, tarifa);
   }
 
   /**
-   * Busca tarifas con filtros múltiples
+   * Actualiza una tarifa existente
    */
-  buscarTarifasConFiltros(filtros: FiltrosBusquedaTarifas): Observable<TarifaDelivery[]> {
-    let params = new HttpParams();
-    
-    if (filtros.idDepartamento) {
-      params = params.set('idDepartamento', filtros.idDepartamento.toString());
-    }
-    if (filtros.idProvincia) {
-      params = params.set('idProvincia', filtros.idProvincia.toString());
-    }
-    if (filtros.idDistrito) {
-      params = params.set('idDistrito', filtros.idDistrito.toString());
-    }
-    if (filtros.activo !== undefined) {
-      params = params.set('activo', filtros.activo.toString());
-    }
-    if (filtros.tipoFechaEntrega) {
-      params = params.set('tipoFechaEntrega', filtros.tipoFechaEntrega);
-    }
-
-    return this.http.get<TarifaDelivery[]>(`${this.baseUrl}/tarifas/buscar`, { params });
-  }
-
-  // ==================== CÁLCULO DE DELIVERY ====================
-
-  /**
-   * Calcula el costo de delivery usando dirección
-   */
-  calcularDeliveryConDireccion(calculo: CalculoDeliveryConDireccion): Observable<RespuestaCalculoDelivery> {
-    return this.http.post<RespuestaCalculoDelivery>(`${this.baseUrl}/calcular`, calculo);
+  actualizarTarifa(id: number, tarifa: CrearTarifaDelivery): Observable<TarifaDelivery> {
+    return this.http.put<TarifaDelivery>(`${this.baseUrl}/${id}`, tarifa);
   }
 
   /**
-   * Calcula el costo de delivery usando ubicación directa
+   * Elimina una tarifa
    */
-  calcularDeliveryConUbicacion(calculo: CalculoDeliveryConUbicacion): Observable<RespuestaCalculoDelivery> {
-    return this.http.post<RespuestaCalculoDelivery>(`${this.baseUrl}/calcular`, calculo);
+  eliminarTarifa(id: number): Observable<any> {
+    return this.http.delete(`${this.baseUrl}/${id}`);
   }
 
-  // ==================== GESTIÓN DE DELIVERY EN PEDIDOS ====================
+  // ==================== CÁLCULO DE DELIVERY (NUEVA API) ====================
 
   /**
-   * Recalcula el delivery de un pedido específico
+   * Calcula el costo de delivery usando la nueva API simplificada
    */
-  recalcularDeliveryPedido(idPedido: string): Observable<RespuestaRecalculoDelivery> {
-    return this.http.put<RespuestaRecalculoDelivery>(`${environment.apiUrl}/pedido/${idPedido}/recalcular-delivery`, {});
+  calcularDelivery(request: CalculoDeliveryRequest): Observable<CalculoDeliveryResponse> {
+    return this.http.post<CalculoDeliveryResponse>(this.calculoUrl, request);
   }
 
-  /**
-   * Calcula el delivery de un pedido sin guardarlo
-   */
-  calcularDeliveryPedido(idPedido: string): Observable<RespuestaCalculoDelivery> {
-    return this.http.get<RespuestaCalculoDelivery>(`${environment.apiUrl}/pedido/${idPedido}/calcular-delivery`);
-  }
-
-  // ==================== MÉTODOS AUXILIARES ====================
+  // ==================== MÉTODOS AUXILIARES (NUEVA API) ====================
 
   /**
    * Valida si una tarifa es válida para crear/actualizar
@@ -151,124 +105,210 @@ export class DeliveryService {
       errores.push('El precio debe ser mayor o igual a 0');
     }
 
-    if (tarifa.montoMinimoPedido && tarifa.montoMaximoPedido) {
-      if (tarifa.montoMinimoPedido >= tarifa.montoMaximoPedido) {
-        errores.push('El monto mínimo debe ser menor al monto máximo');
+    if (!tarifa.tipoRegla) {
+      errores.push('Debe seleccionar un tipo de regla');
+    }
+
+    // Validar que las reglas de envío gratis tengan precio 0
+    if (tarifa.tipoRegla === TipoReglaDelivery.ENVIO_GRATIS_500 || 
+        tarifa.tipoRegla === TipoReglaDelivery.ENVIO_GRATIS_LIMA_350) {
+      if (tarifa.precio !== 0) {
+        errores.push('Las reglas de envío gratis deben tener precio S/ 0.00');
       }
     }
 
-    if (tarifa.montoMinimoPedido && tarifa.montoMinimoPedido < 0) {
-      errores.push('El monto mínimo debe ser mayor o igual a 0');
+    // Validar que distrito específico requiera idDistrito
+    if (tarifa.tipoRegla === TipoReglaDelivery.DISTRITO_ESPECIFICO && !tarifa.idDistrito) {
+      errores.push('Debe seleccionar un distrito para tarifas específicas');
     }
 
-    if (tarifa.montoMaximoPedido && tarifa.montoMaximoPedido < 0) {
-      errores.push('El monto máximo debe ser mayor o igual a 0');
+    // Validar que otras reglas no tengan distrito
+    if (tarifa.tipoRegla !== TipoReglaDelivery.DISTRITO_ESPECIFICO && tarifa.idDistrito) {
+      errores.push('Solo las tarifas específicas por distrito pueden tener distrito asignado');
     }
 
-    if (tarifa.costoAgencia && tarifa.costoAgencia < 0) {
-      errores.push('El costo de agencia debe ser mayor o igual a 0');
+    // Validar montos mínimos para reglas de envío gratis
+    if (tarifa.tipoRegla === TipoReglaDelivery.ENVIO_GRATIS_500 && tarifa.montoMinimoAplicacion !== 500) {
+      errores.push('La regla de envío gratis debe tener monto mínimo de S/ 500');
     }
 
-    if (tarifa.aplicaCostoAgenciaSiMenosDe && tarifa.aplicaCostoAgenciaSiMenosDe < 0) {
-      errores.push('El monto para aplicar costo de agencia debe ser mayor o igual a 0');
-    }
-
-    if (tarifa.prioridad < 1 || tarifa.prioridad > 10) {
-      errores.push('La prioridad debe estar entre 1 y 10');
+    if (tarifa.tipoRegla === TipoReglaDelivery.ENVIO_GRATIS_LIMA_350 && tarifa.montoMinimoAplicacion !== 350) {
+      errores.push('La regla de envío gratis Lima debe tener monto mínimo de S/ 350');
     }
 
     return errores;
   }
 
   /**
-   * Formatea el texto de ubicación completa
+   * Formatea la ubicación para mostrar
    */
   formatearUbicacionCompleta(tarifa: TarifaDelivery): string {
-    const partes: string[] = [];
-    
-    if (tarifa.departamento?.nombre) {
-      partes.push(tarifa.departamento.nombre);
+    switch (tarifa.tipoRegla) {
+      case TipoReglaDelivery.ENVIO_GRATIS_500:
+        return 'Todo el país (>= S/ 500)';
+      case TipoReglaDelivery.ENVIO_GRATIS_LIMA_350:
+        return 'Lima (>= S/ 350)';
+      case TipoReglaDelivery.DISTRITO_ESPECIFICO:
+        return tarifa.distrito?.nombre || 'Distrito no especificado';
+      case TipoReglaDelivery.LIMA_GENERAL:
+        return 'Lima (todos los distritos)';
+      case TipoReglaDelivery.PROVINCIA:
+        return 'Provincias (fuera de Lima)';
+      default:
+        return 'No definida';
     }
-    
-    if (tarifa.provincia?.nombre) {
-      partes.push(tarifa.provincia.nombre);
-    }
-    
-    if (tarifa.distrito?.nombre) {
-      partes.push(tarifa.distrito.nombre);
-    }
-
-    if (partes.length === 0) {
-      return 'Nacional';
-    }
-
-    return partes.join(', ');
   }
 
   /**
-   * Formatea el resumen de condiciones
+   * Obtiene la descripción de la regla
    */
   formatearResumenCondiciones(tarifa: TarifaDelivery): string {
-    const condiciones: string[] = [];
-
-    // Tipo de entrega
-    if (tarifa.tipoFechaEntregaDescripcion) {
-      condiciones.push(`Entrega: ${tarifa.tipoFechaEntregaDescripcion}`);
-    }
-
-    // Punto de encuentro
-    if (tarifa.puntoEncuentro) {
-      condiciones.push(`Punto: ${tarifa.puntoEncuentro}`);
-    }
-
-    // Rango de montos
-    if (tarifa.montoMinimoPedido || tarifa.montoMaximoPedido) {
-      let rango = 'Pedidos: ';
-      if (tarifa.montoMinimoPedido && tarifa.montoMaximoPedido) {
-        rango += `S/ ${tarifa.montoMinimoPedido} - S/ ${tarifa.montoMaximoPedido}`;
-      } else if (tarifa.montoMinimoPedido) {
-        rango += `desde S/ ${tarifa.montoMinimoPedido}`;
-      } else if (tarifa.montoMaximoPedido) {
-        rango += `hasta S/ ${tarifa.montoMaximoPedido}`;
-      }
-      condiciones.push(rango);
-    }
-
-    // Costo de agencia
-    if (tarifa.costoAgencia && tarifa.aplicaCostoAgenciaSiMenosDe) {
-      condiciones.push(`Agencia: S/ ${tarifa.costoAgencia} si < S/ ${tarifa.aplicaCostoAgenciaSiMenosDe}`);
-    }
-
-    return condiciones.length > 0 ? condiciones.join(' | ') : 'Sin condiciones especiales';
+    return obtenerDescripcionRegla(tarifa.tipoRegla);
   }
 
   /**
-   * Obtiene el texto descriptivo del tipo de fecha de entrega
+   * Obtiene el color del badge según el tipo de regla
    */
-  obtenerDescripcionTipoEntrega(tipo: string): string {
-    switch (tipo) {
-      case 'MISMO_DIA':
-        return 'Mismo día';
-      case 'DE_UN_DIA_PARA_OTRO':
-        return 'De un día para otro';
+  obtenerColorTipoRegla(tipoRegla: TipoReglaDelivery | string): string {
+    switch (tipoRegla) {
+      case TipoReglaDelivery.ENVIO_GRATIS_500:
+      case TipoReglaDelivery.ENVIO_GRATIS_LIMA_350:
+        return 'success'; // Verde para envío gratis
+      case TipoReglaDelivery.DISTRITO_ESPECIFICO:
+        return 'primary'; // Azul para específicos
+      case TipoReglaDelivery.LIMA_GENERAL:
+        return 'info'; // Celeste para Lima
+      case TipoReglaDelivery.PROVINCIA:
+        return 'warning'; // Amarillo para provincia
       default:
-        return tipo;
+        return 'secondary'; // Gris por defecto
     }
   }
 
   /**
-   * Obtiene el color del badge según la prioridad
+   * Formatea el precio para mostrar
    */
-  obtenerColorPrioridad(prioridad: number): string {
-    switch (prioridad) {
-      case 1:
-        return 'danger'; // Rojo para alta prioridad
-      case 2:
-        return 'warning'; // Amarillo para media prioridad
-      case 3:
-        return 'info'; // Azul para baja prioridad
-      default:
-        return 'secondary'; // Gris para muy baja/mínima prioridad
+  formatearPrecio(precio: number | undefined): string {
+    if (precio === undefined || precio === null) {
+      return 'N/A';
     }
+    return precio === 0 ? 'GRATIS' : `S/ ${precio.toFixed(2)}`;
+  }
+
+  /**
+   * Verifica si una tarifa es de envío gratis
+   */
+  esEnvioGratis(tipoRegla: TipoReglaDelivery | string): boolean {
+    return tipoRegla === TipoReglaDelivery.ENVIO_GRATIS_500 || 
+           tipoRegla === TipoReglaDelivery.ENVIO_GRATIS_LIMA_350;
+  }
+
+  /**
+   * Obtiene el texto del estado activo/inactivo
+   */
+  getTextoEstado(activo: boolean): string {
+    return activo ? 'Activa' : 'Inactiva';
+  }
+
+  /**
+   * Obtiene la clase CSS para el estado
+   */
+  getClaseEstado(activo: boolean): string {
+    return activo ? 'text-success' : 'text-danger';
+  }
+
+  // ==================== MÉTODOS DE UBICACIÓN (NUEVA FUNCIONALIDAD) ====================
+
+  /**
+   * Obtiene solo los departamentos permitidos: Lima (15) y Callao (7)
+   */
+  getDepartamentosPermitidos(): Observable<Departamento[]> {
+    return this.ubigeoService.getDepartamentos().pipe(
+      map((departamentos: any[]) => {
+        return departamentos
+          .filter(dep => dep.idDepartamento === 15 || dep.idDepartamento === 7)
+          .map(dep => ({
+            idDepartamento: dep.idDepartamento,
+            nombre: dep.nombre
+          }));
+      })
+    );
+  }
+
+  /**
+   * Obtiene las provincias de un departamento específico
+   */
+  getProvinciasPorDepartamento(idDepartamento: number): Observable<Provincia[]> {
+    return this.ubigeoService.getProvincias(idDepartamento).pipe(
+      map((provincias: any[]) => {
+        return provincias.map(prov => ({
+          idProvincia: prov.idProvincia,
+          nombre: prov.nombre,
+          departamento: {
+            idDepartamento: idDepartamento,
+            nombre: idDepartamento === 15 ? 'Lima' : 'Callao'
+          }
+        }));
+      })
+    );
+  }
+
+  /**
+   * Obtiene los distritos de una provincia específica
+   */
+  getDistritosPorProvincia(idProvincia: number): Observable<Distrito[]> {
+    return this.ubigeoService.getDistritos(idProvincia).pipe(
+      map((distritos: any[]) => {
+        return distritos.map(dist => ({
+          idDistrito: dist.idDistrito,
+          nombre: dist.nombre,
+          provincia: {
+            idProvincia: idProvincia,
+            nombre: '' // Se puede llenar si se necesita
+          }
+        }));
+      })
+    );
+  }
+
+  /**
+   * Obtiene la información completa de un distrito por su ID
+   */
+  getDistritoPorId(idDistrito: number): Observable<Distrito | null> {
+    // Este método puede requerir un endpoint específico en el backend
+    // Por ahora devolvemos null y se puede implementar más tarde si se necesita
+    return new Observable(observer => {
+      observer.next(null);
+      observer.complete();
+    });
+  }
+
+  // ==================== MÉTODOS PRIVADOS DE MAPEO ====================
+
+  /**
+   * Mapea la respuesta del backend al modelo frontend
+   */
+  private mapearTarifaDesdeBackend(backendData: any): TarifaDelivery {
+    return {
+      idTarifaDelivery: backendData.idTarifaDelivery,
+      id: backendData.idTarifaDelivery, // Para compatibilidad
+      tipoRegla: backendData.tipoRegla,
+      tipoReglaDescripcion: backendData.tipoReglaDescripcion,
+      distrito: backendData.distrito,
+      ubicacionCompleta: backendData.ubicacionCompleta,
+      precio: backendData.precio,
+      tarifa: backendData.precio, // Mapeo del campo precio a tarifa
+      montoMinimoAplicacion: backendData.montoMinimoAplicacion,
+      puntoEncuentro: backendData.puntoEncuentro,
+      descripcion: backendData.descripcion,
+      activo: backendData.activo,
+      fechaCreacion: backendData.fechaCreacion,
+      fechaActualizacion: backendData.fechaActualizacion,
+      descripcionRegla: backendData.tipoReglaDescripcion || this.formatearResumenCondiciones({
+        tipoRegla: backendData.tipoRegla,
+        distrito: backendData.distrito,
+        precio: backendData.precio
+      } as TarifaDelivery)
+    };
   }
 }

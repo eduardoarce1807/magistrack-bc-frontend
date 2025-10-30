@@ -1,9 +1,12 @@
-// Modelos para el sistema de tarifario de delivery
+// Modelos para el sistema de delivery simplificado
 
-// Tipos de fecha de entrega
-export enum TipoFechaEntrega {
-  MISMO_DIA = 'MISMO_DIA',
-  DE_UN_DIA_PARA_OTRO = 'DE_UN_DIA_PARA_OTRO'
+// Tipos de regla para el sistema simplificado
+export enum TipoReglaDelivery {
+  ENVIO_GRATIS_500 = 'ENVIO_GRATIS_500',
+  ENVIO_GRATIS_LIMA_350 = 'ENVIO_GRATIS_LIMA_350',
+  DISTRITO_ESPECIFICO = 'DISTRITO_ESPECIFICO',
+  LIMA_GENERAL = 'LIMA_GENERAL',
+  PROVINCIA = 'PROVINCIA'
 }
 
 // Interfaz para departamento
@@ -16,92 +19,59 @@ export interface Departamento {
 export interface Provincia {
   idProvincia: number;
   nombre: string;
+  departamento?: Departamento;
 }
 
 // Interfaz para distrito
 export interface Distrito {
   idDistrito: number;
   nombre: string;
+  provincia?: Provincia;
 }
 
-// Interfaz principal para tarifa de delivery
+// Nueva interfaz simplificada para tarifa de delivery (ajustada a la respuesta del backend)
 export interface TarifaDelivery {
-  idTarifarioDelivery?: number;
-  departamento?: Departamento;
-  provincia?: Provincia;
-  distrito?: Distrito;
-  puntoEncuentro?: string | null;
-  tipoFechaEntrega: TipoFechaEntrega | string;
-  tipoFechaEntregaDescripcion?: string;
-  precio: number;
-  montoMinimoPedido?: number | null;
-  montoMaximoPedido?: number | null;
-  costoAgencia?: number | null;
-  aplicaCostoAgenciaSiMenosDe?: number | null;
-  descripcionCondicion?: string;
+  idTarifaDelivery?: number; // Campo del backend
+  id?: number; // Para compatibilidad con frontend
+  tipoRegla: TipoReglaDelivery | string;
+  tipoReglaDescripcion?: string; // Campo del backend
+  distrito?: Distrito | null;
+  ubicacionCompleta?: string; // Campo del backend
+  precio?: number; // Campo del backend (precio)
+  tarifa?: number; // Para compatibilidad con frontend
+  montoMinimoAplicacion?: number | null; // Campo del backend
+  puntoEncuentro?: string | null; // Campo del backend
+  descripcion?: string; // Campo del backend
   activo: boolean;
-  prioridad: number;
   fechaCreacion?: string;
   fechaActualizacion?: string | null;
-  ubicacionCompleta?: string;
-  resumenCondiciones?: string;
+  // Propiedades calculadas para compatibilidad con componentes existentes
+  descripcionRegla?: string;
 }
 
-// Interfaz para crear/actualizar tarifa
+// Interfaz para crear/actualizar tarifa (nueva estructura del backend)
 export interface CrearTarifaDelivery {
-  idDepartamento?: number | null;
-  idProvincia?: number | null;
-  idDistrito?: number | null;
-  puntoEncuentro?: string | null;
-  tipoFechaEntrega: TipoFechaEntrega | string;
-  precio: number;
-  montoMinimoPedido?: number | null;
-  montoMaximoPedido?: number | null;
-  costoAgencia?: number | null;
-  aplicaCostoAgenciaSiMenosDe?: number | null;
-  descripcionCondicion?: string;
-  activo: boolean;
-  prioridad: number;
+  tipoRegla: TipoReglaDelivery | string;
+  precio: number;                        // ⚠️ OBLIGATORIO (no puede ser null) - cambió de 'tarifa' a 'precio'
+  idDistrito?: number | null;            // Opcional (solo para DISTRITO_ESPECIFICO)
+  montoMinimoAplicacion?: number | null; // Opcional (para reglas de envío gratis)
+  puntoEncuentro?: string | null;        // Opcional
+  descripcion?: string | null;           // Opcional
+  activo?: boolean;                      // Opcional (default: true)
 }
 
-// Interfaz para cálculo de delivery con dirección
-export interface CalculoDeliveryConDireccion {
-  idDireccion: number;
-  montoPedido: number;
-  metodoPago: string;
-  esExpress: boolean;
-}
-
-// Interfaz para cálculo de delivery con ubicación directa
-export interface CalculoDeliveryConUbicacion {
-  idDepartamento: number;
-  idProvincia: number;
+// Interfaz para cálculo de delivery (nueva estructura simplificada)
+export interface CalculoDeliveryRequest {
+  totalPedido: number;
   idDistrito: number;
-  montoPedido: number;
-  metodoPago: string;
-  esExpress: boolean;
 }
 
-// Interfaz para tarifa aplicada en cálculo
-export interface TarifaAplicada {
-  idTarifarioDelivery: number;
-  precio: number;
-  tipoFechaEntrega: string;
-  ubicacionCompleta: string;
-}
-
-// Interfaz para respuesta de cálculo de delivery
-export interface RespuestaCalculoDelivery {
-  costoDelivery: number;
-  aplicaDelivery: boolean;
-  metodoCalculoDelivery: string;
-  tarifaAplicada?: TarifaAplicada;
-  condicionesAplicadas: string[];
-  mensaje: string;
-  costoBase: number;
-  costosAdicionales: number;
-  descuentos: number;
-  ubicacionDetectada: string;
+// Nueva interfaz para respuesta de cálculo de delivery
+export interface CalculoDeliveryResponse {
+  tarifa: number;
+  reglaAplicada: TipoReglaDelivery | string;
+  descripcion: string;
+  esGratis: boolean;
 }
 
 // Interfaz para información de delivery en pedidos
@@ -112,19 +82,11 @@ export interface DeliveryEnPedido {
   notaDelivery?: string;
 }
 
-// Interfaz para respuesta de recálculo de delivery
-export interface RespuestaRecalculoDelivery {
-  idResultado: number;
-  mensaje: string;
-}
-
-// Interfaz para filtros de búsqueda de tarifas
+// Interfaz para filtros de búsqueda de tarifas (simplificado)
 export interface FiltrosBusquedaTarifas {
-  idDepartamento?: number;
-  idProvincia?: number;
+  tipoRegla?: TipoReglaDelivery | string;
   idDistrito?: number;
   activo?: boolean;
-  tipoFechaEntrega?: TipoFechaEntrega | string;
 }
 
 // Interfaz para respuesta genérica del sistema
@@ -134,100 +96,167 @@ export interface RespuestaGenerica {
   data?: any;
 }
 
-// Interfaz para paginación
-export interface PaginacionTarifas {
-  page: number;
-  size: number;
-  totalElements: number;
-  totalPages: number;
-  content: TarifaDelivery[];
-}
-
-// Clase modelo para formulario de tarifa
+// Nueva clase modelo para formulario simplificado
 export class TarifaDeliveryFormModel {
-  idTarifarioDelivery: number | null = null;
+  id: number | null = null;
+  tipoRegla: TipoReglaDelivery | string = TipoReglaDelivery.DISTRITO_ESPECIFICO;
+  tarifa: number = 0;
+  
+  // Campos para la selección en cascada de ubicación
   idDepartamento: number | null = null;
   idProvincia: number | null = null;
   idDistrito: number | null = null;
-  puntoEncuentro: string | null = null;
-  tipoFechaEntrega: string = TipoFechaEntrega.DE_UN_DIA_PARA_OTRO;
-  precio: number = 0;
-  montoMinimoPedido: number | null = null;
-  montoMaximoPedido: number | null = null;
-  costoAgencia: number | null = null;
-  aplicaCostoAgenciaSiMenosDe: number | null = null;
-  descripcionCondicion: string = '';
+  
+  // Campo editable para descripción
+  descripcion: string = '';
+  
   activo: boolean = true;
-  prioridad: number = 1;
 
   constructor() {}
 
   // Método para convertir a objeto para envío
   toCreateRequest(): CrearTarifaDelivery {
     return {
-      idDepartamento: this.idDepartamento,
-      idProvincia: this.idProvincia,
+      tipoRegla: this.tipoRegla,
+      precio: this.tarifa,                    // Mapear tarifa a precio
       idDistrito: this.idDistrito,
-      puntoEncuentro: this.puntoEncuentro,
-      tipoFechaEntrega: this.tipoFechaEntrega,
-      precio: this.precio,
-      montoMinimoPedido: this.montoMinimoPedido,
-      montoMaximoPedido: this.montoMaximoPedido,
-      costoAgencia: this.costoAgencia,
-      aplicaCostoAgenciaSiMenosDe: this.aplicaCostoAgenciaSiMenosDe,
-      descripcionCondicion: this.descripcionCondicion,
-      activo: this.activo,
-      prioridad: this.prioridad
+      montoMinimoAplicacion: this.getMontoMinimoSegunRegla(),
+      puntoEncuentro: null,                   // Por ahora null, se puede agregar al formulario después
+      descripcion: this.descripcion || this.getDescripcionSegunRegla(), // Usar la descripción editada o la por defecto
+      activo: this.activo
     };
+  }
+
+  // Método auxiliar para obtener el monto mínimo según la regla
+  private getMontoMinimoSegunRegla(): number | null {
+    switch (this.tipoRegla) {
+      case TipoReglaDelivery.ENVIO_GRATIS_500:
+        return 500.00;
+      case TipoReglaDelivery.ENVIO_GRATIS_LIMA_350:
+        return 350.00;
+      default:
+        return null;
+    }
+  }
+
+  // Método auxiliar para obtener descripción según la regla
+  private getDescripcionSegunRegla(): string | null {
+    const opcion = TIPOS_REGLA_OPTIONS.find(o => o.value === this.tipoRegla);
+    return opcion?.descripcion || null;
   }
 
   // Método para cargar datos desde una tarifa existente
   fromTarifa(tarifa: TarifaDelivery): void {
-    this.idTarifarioDelivery = tarifa.idTarifarioDelivery || null;
-    this.idDepartamento = tarifa.departamento?.idDepartamento || null;
-    this.idProvincia = tarifa.provincia?.idProvincia || null;
-    this.idDistrito = tarifa.distrito?.idDistrito || null;
-    this.puntoEncuentro = tarifa.puntoEncuentro || null;
-    this.tipoFechaEntrega = tarifa.tipoFechaEntrega;
-    this.precio = tarifa.precio;
-    this.montoMinimoPedido = tarifa.montoMinimoPedido || null;
-    this.montoMaximoPedido = tarifa.montoMaximoPedido || null;
-    this.costoAgencia = tarifa.costoAgencia || null;
-    this.aplicaCostoAgenciaSiMenosDe = tarifa.aplicaCostoAgenciaSiMenosDe || null;
-    this.descripcionCondicion = tarifa.descripcionCondicion || '';
+    this.id = tarifa.idTarifaDelivery || tarifa.id || null;
+    this.tipoRegla = tarifa.tipoRegla;
+    this.tarifa = tarifa.precio || tarifa.tarifa || 0;
+    
+    // Extraer IDs de ubicación desde la estructura anidada
+    if (tarifa.distrito) {
+      this.idDistrito = tarifa.distrito.idDistrito;
+      
+      if (tarifa.distrito.provincia) {
+        this.idProvincia = tarifa.distrito.provincia.idProvincia;
+        
+        if (tarifa.distrito.provincia.departamento) {
+          this.idDepartamento = tarifa.distrito.provincia.departamento.idDepartamento;
+        }
+      }
+    }
+    
+    this.descripcion = tarifa.descripcion || this.getDescripcionSegunRegla() || '';
     this.activo = tarifa.activo;
-    this.prioridad = tarifa.prioridad;
   }
 
   // Método para limpiar el formulario
   reset(): void {
-    this.idTarifarioDelivery = null;
+    this.id = null;
+    this.tipoRegla = TipoReglaDelivery.DISTRITO_ESPECIFICO;
+    this.tarifa = 0;
     this.idDepartamento = null;
     this.idProvincia = null;
     this.idDistrito = null;
-    this.puntoEncuentro = null;
-    this.tipoFechaEntrega = TipoFechaEntrega.DE_UN_DIA_PARA_OTRO;
-    this.precio = 0;
-    this.montoMinimoPedido = null;
-    this.montoMaximoPedido = null;
-    this.costoAgencia = null;
-    this.aplicaCostoAgenciaSiMenosDe = null;
-    this.descripcionCondicion = '';
+    this.descripcion = '';
     this.activo = true;
-    this.prioridad = 1;
+  }
+
+  // Método para limpiar la selección de ubicación
+  resetUbicacion(): void {
+    this.idDepartamento = null;
+    this.idProvincia = null;
+    this.idDistrito = null;
+  }
+
+  // Método para limpiar provincias y distritos cuando cambia el departamento
+  resetProvinciaYDistrito(): void {
+    this.idProvincia = null;
+    this.idDistrito = null;
+  }
+
+  // Método para limpiar solo el distrito cuando cambia la provincia
+  resetDistrito(): void {
+    this.idDistrito = null;
+  }
+
+  // Validar si requiere distrito
+  requiereDistrito(): boolean {
+    return this.tipoRegla === TipoReglaDelivery.DISTRITO_ESPECIFICO;
+  }
+
+  // Verificar si es una regla de envío gratis
+  esEnvioGratis(): boolean {
+    return this.tipoRegla === TipoReglaDelivery.ENVIO_GRATIS_500 || 
+           this.tipoRegla === TipoReglaDelivery.ENVIO_GRATIS_LIMA_350;
   }
 }
 
-// Constantes útiles
-export const TIPOS_FECHA_ENTREGA_OPTIONS = [
-  { value: TipoFechaEntrega.MISMO_DIA, label: 'Mismo día' },
-  { value: TipoFechaEntrega.DE_UN_DIA_PARA_OTRO, label: 'De un día para otro' }
+// Constantes para las opciones de tipo de regla
+export const TIPOS_REGLA_OPTIONS = [
+  { 
+    value: TipoReglaDelivery.ENVIO_GRATIS_500, 
+    label: 'Envío gratis >= S/ 500',
+    descripcion: 'Envío gratuito para compras de S/ 500 o más (aplica a todo el país)',
+    requiereDistrito: false,
+    tarifaFija: 0
+  },
+  { 
+    value: TipoReglaDelivery.ENVIO_GRATIS_LIMA_350, 
+    label: 'Envío gratis Lima >= S/ 350',
+    descripcion: 'Envío gratuito para Lima con compras de S/ 350 o más',
+    requiereDistrito: false,
+    tarifaFija: 0
+  },
+  { 
+    value: TipoReglaDelivery.DISTRITO_ESPECIFICO, 
+    label: 'Tarifa por distrito específico',
+    descripcion: 'Tarifa personalizada para un distrito en particular',
+    requiereDistrito: true,
+    tarifaFija: null
+  },
+  { 
+    value: TipoReglaDelivery.LIMA_GENERAL, 
+    label: 'Tarifa general para Lima',
+    descripcion: 'Tarifa estándar para todos los distritos de Lima (sin reglas específicas)',
+    requiereDistrito: false,
+    tarifaFija: null
+  },
+  { 
+    value: TipoReglaDelivery.PROVINCIA, 
+    label: 'Tarifa para provincia',
+    descripcion: 'Tarifa estándar para distritos fuera de Lima',
+    requiereDistrito: false,
+    tarifaFija: null
+  }
 ];
 
-export const PRIORIDADES_OPTIONS = [
-  { value: 1, label: 'Alta (1)' },
-  { value: 2, label: 'Media (2)' },
-  { value: 3, label: 'Baja (3)' },
-  { value: 4, label: 'Muy baja (4)' },
-  { value: 5, label: 'Mínima (5)' }
-];
+// Función helper para obtener la descripción de una regla
+export function obtenerDescripcionRegla(tipoRegla: TipoReglaDelivery | string): string {
+  const opcion = TIPOS_REGLA_OPTIONS.find(o => o.value === tipoRegla);
+  return opcion?.descripcion || 'Regla no definida';
+}
+
+// Función helper para verificar si una regla requiere distrito
+export function reglaRequiereDistrito(tipoRegla: TipoReglaDelivery | string): boolean {
+  const opcion = TIPOS_REGLA_OPTIONS.find(o => o.value === tipoRegla);
+  return opcion?.requiereDistrito || false;
+}

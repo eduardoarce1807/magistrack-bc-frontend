@@ -111,7 +111,7 @@ export class BandejaCalidadComponent implements OnInit {
 	) {}
 
 	ngOnInit(): void {
-		this.getProductosAll();
+		//this.getProductosAll();
 	}
 
 	// Funciones de utilidad para type guards

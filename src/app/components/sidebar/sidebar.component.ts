@@ -156,52 +156,61 @@ export class SidebarComponent implements OnInit, AfterViewInit {
 					command: () => this.irA('pages/atencion-cliente/bandeja-pedidos')
 				}
 			] : []),
-			...([1, 5].includes(user.rol.idRol) ? [
+			// Mantenedor Tarifas Delivery - Solo para administrador (rol 1)
+			...(user.rol.idRol === 1 ? [
 				{
 					key: '1_8',
+					label: 'Mantenedor Tarifas Delivery',
+					icon: 'pi pi-truck',
+					command: () => this.irA('pages/reportes/mantenedor-delivery')
+				}
+			] : []),
+			...([1, 5].includes(user.rol.idRol) ? [
+				{
+					key: '1_9',
 					label: 'Bandeja de Personalización',
 					icon: 'pi pi-palette',
 					command: () => this.irA('pages/atencion-cliente/bandeja-personalizacion')
 				},
 				// Reportes de Ventas & Pedidos
 				{
-					key: '1_9',
+					key: '1_10',
 					label: 'Consulta de Ventas',
 					icon: 'pi pi-search',
 					command: () => this.irA('pages/reportes/consulta-ventas')
 				},
 				{
-					key: '1_10',
+					key: '1_11',
 					label: 'Ventas por Producto',
 					icon: 'pi pi-box',
 					command: () => this.irA('pages/reportes/ventas-productos')
 				},
 				{
-					key: '1_11',
+					key: '1_12',
 					label: 'Ventas por Cliente',
 					icon: 'pi pi-users',
 					command: () => this.irA('pages/reportes/ventas-clientes')
 				},
 				{
-					key: '1_12',
+					key: '1_13',
 					label: 'Ventas por Tipo Cliente',
 					icon: 'pi pi-sitemap',
 					command: () => this.irA('pages/reportes/ventas-roles')
 				},
 				{
-					key: '1_13',
+					key: '1_14',
 					label: 'Ventas por Canal',
 					icon: 'pi pi-share-alt',
 					command: () => this.irA('pages/reportes/ventas-canales')
 				},
 				{
-					key: '1_14',
+					key: '1_15',
 					label: 'Top N',
 					icon: 'pi pi-star',
 					command: () => this.irA('pages/reportes/top-n')
 				},
 				{
-					key: '1_15',
+					key: '1_16',
 					label: 'Reporte de Ventas',
 					icon: 'pi pi-chart-bar',
 					command: () => this.irA('pages/atencion-cliente/reporte-ventas')
@@ -224,18 +233,12 @@ export class SidebarComponent implements OnInit, AfterViewInit {
 					label: 'Reporte de Despacho',
 					icon: 'pi pi-chart-line',
 					command: () => this.irA('pages/reportes/reporte-despacho')
-				},
-				{
-					key: '2_2',
-					label: 'Mantenedor Tarifas Delivery',
-					icon: 'pi pi-truck',
-					command: () => this.irA('pages/reportes/mantenedor-delivery')
 				}
 			] : []),
 			// Administrador, ventas y logística pueden ver visualizador de pagos
 			...([1, 5, 12].includes(user.rol.idRol) ? [
 				{
-					key: '2_3',
+					key: '2_2',
 					label: 'Visualizador de pagos',
 					icon: 'pi pi-credit-card',
 					command: () => this.irA('pages/atencion-cliente/visualizador-pagos')

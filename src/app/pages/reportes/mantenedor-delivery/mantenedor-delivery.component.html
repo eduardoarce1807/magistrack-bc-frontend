@@ -6,9 +6,9 @@
       <div class="d-flex justify-content-between align-items-center">
         <div>
           <h2 class="mb-1">
-            <i class="bi bi-truck me-2"></i>Mantenedor de Tarifas Delivery
+            <i class="bi bi-truck me-2"></i>Mantenedor de Tarifas de Delivery
           </h2>
-          <p class="text-muted mb-0">Gestión de costos de entrega por ubicación geográfica</p>
+          <p class="text-muted mb-0">Gestión simplificada de costos de delivery</p>
         </div>
         <div>
           <button 
@@ -30,7 +30,19 @@
     </div>
   </div>
 
-  <!-- Filtros y Búsqueda -->
+  <!-- Información del sistema simplificado -->
+  <!-- <div class="alert alert-info mb-4">
+    <h6 class="alert-heading mb-2">
+      <i class="bi bi-info-circle me-2"></i>Sistema Simplificado de Delivery
+    </h6>
+    <p class="mb-0 small">
+      El nuevo sistema evalúa automáticamente <strong>5 reglas en orden de prioridad</strong>: 
+      (1) Envío gratis ≥ S/ 500, (2) Lima gratis ≥ S/ 350, (3) Tarifas por distrito específico, 
+      (4) Lima general, (5) Provincias. Solo configure tarifas específicas según necesite.
+    </p>
+  </div> -->
+
+  <!-- Filtros simplificados -->
   <div class="card mb-4">
     <div class="card-header">
       <h5 class="mb-0">
@@ -39,15 +51,15 @@
     </div>
     <div class="card-body">
       
-      <!-- Búsqueda por texto -->
-      <div class="row mb-3">
-        <div class="col-md-6">
+      <div class="row">
+        <!-- Búsqueda por texto -->
+        <div class="col-md-4">
           <label class="form-label">Buscar</label>
           <div class="input-group">
             <input
               type="text"
               class="form-control"
-              placeholder="Buscar por ubicación, descripción, punto de encuentro..."
+              placeholder="Buscar por ubicación o descripción..."
               [(ngModel)]="textoBusqueda"
               (keyup.enter)="buscarTexto()">
             <button 
@@ -65,60 +77,30 @@
             </button>
           </div>
         </div>
-        <div class="col-md-6">
-          <label class="form-label">Tipo de Entrega</label>
+
+        <!-- Filtro por tipo de regla -->
+        <div class="col-md-4">
+          <label class="form-label">Tipo de Regla</label>
           <select 
             class="form-select"
-            [(ngModel)]="filtros.tipoFechaEntrega"
+            [(ngModel)]="filtros.tipoRegla"
             (change)="aplicarFiltros()">
-            <option [value]="undefined">Todos los tipos</option>
+            <option [value]="undefined">Todas las reglas</option>
             <option 
-              *ngFor="let tipo of tiposEntregaOptions" 
+              *ngFor="let tipo of tiposReglaOptions" 
               [value]="tipo.value">
               {{ tipo.label }}
             </option>
           </select>
         </div>
-      </div>
 
-      <!-- Filtros de ubicación -->
-      <div class="row mb-3">
-        <div class="col-md-4">
-          <label class="form-label">Departamento</label>
-          <select 
-            class="form-select"
-            [(ngModel)]="filtros.idDepartamento"
-            (change)="onDepartamentoChange()">
-            <option [value]="undefined">Todos los departamentos</option>
-            <option 
-              *ngFor="let dept of departamentos" 
-              [value]="dept.idDepartamento">
-              {{ dept.nombre }}
-            </option>
-          </select>
-        </div>
-        <div class="col-md-4">
-          <label class="form-label">Provincia</label>
-          <select 
-            class="form-select"
-            [(ngModel)]="filtros.idProvincia"
-            (change)="onProvinciaChange()"
-            [disabled]="!filtros.idDepartamento">
-            <option [value]="undefined">Todas las provincias</option>
-            <option 
-              *ngFor="let prov of provincias" 
-              [value]="prov.idProvincia">
-              {{ prov.nombre }}
-            </option>
-          </select>
-        </div>
-        <div class="col-md-4">
-          <label class="form-label">Distrito</label>
+        <!-- Filtro por distrito (solo para específicos) -->
+        <div class="col-md-4" *ngIf="filtros.tipoRegla === 'DISTRITO_ESPECIFICO'">
+          <label class="form-label">Distrito Específico</label>
           <select 
             class="form-select"
             [(ngModel)]="filtros.idDistrito"
-            (change)="aplicarFiltros()"
-            [disabled]="!filtros.idProvincia">
+            (change)="aplicarFiltros()">
             <option [value]="undefined">Todos los distritos</option>
             <option 
               *ngFor="let dist of distritos" 
@@ -127,10 +109,23 @@
             </option>
           </select>
         </div>
+
+        <!-- Estado -->
+        <div class="col-md-4" *ngIf="filtros.tipoRegla !== 'DISTRITO_ESPECIFICO'">
+          <label class="form-label">Estado</label>
+          <select 
+            class="form-select"
+            [(ngModel)]="filtros.activo"
+            (change)="aplicarFiltros()">
+            <option [value]="undefined">Todos los estados</option>
+            <option [value]="true">Activas</option>
+            <option [value]="false">Inactivas</option>
+          </select>
+        </div>
       </div>
 
       <!-- Botones de filtros -->
-      <div class="d-flex gap-2">
+      <div class="d-flex gap-2 mt-3">
         <button 
           type="button" 
           class="btn btn-primary btn-sm"
@@ -142,6 +137,13 @@
           class="btn btn-outline-secondary btn-sm"
           (click)="limpiarFiltros()">
           <i class="bi bi-x-circle me-1"></i>Limpiar Filtros
+        </button>
+        <button 
+          type="button" 
+          class="btn btn-outline-info btn-sm"
+          (click)="onTipoReglaChange()"
+          *ngIf="filtros.tipoRegla === 'DISTRITO_ESPECIFICO'">
+          <i class="bi bi-geo me-1"></i>Cargar Distritos
         </button>
       </div>
       
@@ -156,15 +158,14 @@
     <p class="mt-2 text-muted">Cargando tarifas de delivery...</p>
   </div>
 
-  <!-- Tabla de tarifas -->
+  <!-- Tabla de tarifas simplificada -->
   <div class="card" *ngIf="!cargando">
     <div class="card-header">
       <div class="d-flex justify-content-between align-items-center">
         <h5 class="mb-0">
-          <i class="bi bi-table me-2"></i>Tarifas de Delivery
+          <i class="bi bi-table me-2"></i>Tarifas Configuradas
         </h5>
         <div class="d-flex align-items-center gap-3">
-          <!-- Información de paginación -->
           <small class="text-muted" *ngIf="collectionSize > 0">
             Mostrando {{ (page - 1) * pageSize + 1 }} - {{ Math.min(page * pageSize, collectionSize) }} 
             de {{ collectionSize }} tarifas
@@ -180,80 +181,56 @@
       <!-- Tabla responsive -->
       <div class="table-responsive" *ngIf="collectionSize > 0">
         <table class="table table-hover mb-0">
-          <thead>
+          <thead class="table-light">
             <tr>
-              <th>Ubicación</th>
-              <th>Tipo Entrega</th>
-              <th>Precio Base</th>
-              <th>Prioridad</th>
+              <th>Tipo de Regla</th>
+              <th>Ubicación/Condición</th>
+              <th>Tarifa</th>
               <th>Estado</th>
-              <th>Condiciones</th>
+              <th>Última Modificación</th>
               <th class="text-center" *ngIf="puedeEditar()">Acciones</th>
             </tr>
           </thead>
           <tbody>
             <tr *ngFor="let tarifa of tarifasTable; trackBy: trackByTarifa">
               
-              <!-- Ubicación -->
-              <td>
-                <div class="fw-semibold">{{ tarifa.ubicacionCompleta || 'Nacional' }}</div>
-                <small class="text-muted" *ngIf="tarifa.puntoEncuentro">
-                  <i class="bi bi-geo-alt me-1"></i>{{ tarifa.puntoEncuentro }}
-                </small>
-              </td>
-
-              <!-- Tipo de Entrega -->
+              <!-- Tipo de Regla -->
               <td>
                 <span 
-                  class="badge" 
-                  [class]="tarifa.tipoFechaEntrega === 'MISMO_DIA' ? 'bg-warning' : 'bg-info'">
-                  {{ tarifa.tipoFechaEntregaDescripcion }}
+                  class="badge px-3 py-2" 
+                  [class]="'bg-' + getColorTipoRegla(tarifa.tipoRegla)">
+                  {{ getDescripcionRegla(tarifa.tipoRegla) }}
                 </span>
               </td>
 
-              <!-- Precio Base -->
+              <!-- Ubicación/Condición -->
               <td>
-                <div class="fw-bold text-success">{{ formatearPrecio(tarifa.precio) }}</div>
-                <small class="text-muted" *ngIf="tarifa.costoAgencia">
-                  Agencia: {{ formatearPrecio(tarifa.costoAgencia || 0) }}
-                  <span *ngIf="tarifa.aplicaCostoAgenciaSiMenosDe">
-                    (si &lt; {{ formatearPrecio(tarifa.aplicaCostoAgenciaSiMenosDe || 0) }})
-                  </span>
-                </small>
+                <div class="fw-semibold">{{ tarifa.ubicacionCompleta }}</div>
+                <small class="text-muted">{{ tarifa.descripcion }}</small>
               </td>
 
-              <!-- Prioridad -->
+              <!-- Tarifa -->
               <td>
-                <span 
-                  class="badge" 
-                  [class]="'bg-' + getColorPrioridad(tarifa.prioridad)">
-                  {{ tarifa.prioridad }}
-                </span>
+                <div 
+                  class="fw-bold fs-6"
+                  [class]="(tarifa.precio ?? tarifa.tarifa ?? 0) === 0 ? 'text-success' : 'text-primary'">
+                  {{ formatearPrecio(tarifa) }}
+                </div>
               </td>
 
               <!-- Estado -->
               <td>
                 <span 
-                  class="fw-semibold" 
-                  [class]="getClaseEstado(tarifa.activo)">
+                  class="badge" 
+                  [class]="tarifa.activo ? 'bg-success' : 'bg-secondary'">
                   {{ getTextoEstado(tarifa.activo) }}
                 </span>
               </td>
 
-              <!-- Condiciones -->
+              <!-- Fecha -->
               <td>
-                <div class="small" *ngIf="tarifa.montoMinimoPedido || tarifa.montoMaximoPedido">
-                  <strong>Rango:</strong>
-                  <span *ngIf="tarifa.montoMinimoPedido">
-                    desde {{ formatearPrecio(tarifa.montoMinimoPedido || 0) }}
-                  </span>
-                  <span *ngIf="tarifa.montoMinimoPedido && tarifa.montoMaximoPedido"> - </span>
-                  <span *ngIf="tarifa.montoMaximoPedido">
-                    hasta {{ formatearPrecio(tarifa.montoMaximoPedido || 0) }}
-                  </span>
-                </div>
-                <small class="text-muted" *ngIf="tarifa.descripcionCondicion">
-                  {{ tarifa.descripcionCondicion }}
+                <small class="text-muted">
+                  {{ formatearFecha(tarifa.fechaActualizacion || tarifa.fechaCreacion) }}
                 </small>
               </td>
 
@@ -301,19 +278,19 @@
         <i class="bi bi-inbox display-1 text-muted"></i>
         <h5 class="text-muted mt-3">No se encontraron tarifas</h5>
         <p class="text-muted">
-          <span *ngIf="textoBusqueda || filtros.idDepartamento || filtros.tipoFechaEntrega">
+          <span *ngIf="textoBusqueda || filtros.tipoRegla || filtros.activo !== undefined">
             Intente ajustar los filtros de búsqueda.
           </span>
-          <span *ngIf="!textoBusqueda && !filtros.idDepartamento && !filtros.tipoFechaEntrega">
-            No hay tarifas de delivery configuradas.
+          <span *ngIf="!textoBusqueda && !filtros.tipoRegla && filtros.activo === undefined">
+            No hay tarifas de delivery configuradas. El sistema aplicará las reglas por defecto.
           </span>
         </p>
         <button 
           type="button" 
           class="btn btn-success" 
           (click)="nuevaTarifa()"
-          *ngIf="puedeEditar() && !textoBusqueda && !filtros.idDepartamento && !filtros.tipoFechaEntrega">
-          <i class="bi bi-plus-circle me-2"></i>Crear Primera Tarifa
+          *ngIf="puedeEditar() && !textoBusqueda && !filtros.tipoRegla && filtros.activo === undefined">
+          <i class="bi bi-plus-circle me-2"></i>Configurar Primera Tarifa
         </button>
       </div>
 
@@ -346,7 +323,7 @@
 
 </div>
 
-<!-- Modal de Detalle -->
+<!-- Modal de Detalle Simplificado -->
 <ng-template #modalDetalle let-modal>
   <div class="modal-header">
     <h4 class="modal-title">
@@ -363,100 +340,75 @@
   <div class="modal-body" *ngIf="tarifaSeleccionada">
     <div class="container-fluid">
       
-      <!-- Información de Ubicación -->
+      <!-- Tipo de Regla -->
       <div class="row mb-4">
         <div class="col-12">
           <h6 class="text-primary mb-3">
-            <i class="bi bi-geo-alt me-2"></i>Información de Ubicación
+            <i class="bi bi-gear me-2"></i>Tipo de Regla
           </h6>
           <div class="mb-2">
-            <strong>Ubicación:</strong> {{ tarifaSeleccionada.ubicacionCompleta || 'Nacional' }}
-          </div>
-          <div class="mb-2" *ngIf="tarifaSeleccionada.puntoEncuentro">
-            <strong>Punto de Encuentro:</strong> {{ tarifaSeleccionada.puntoEncuentro }}
-          </div>
-          <div class="mb-2">
             <span 
-              class="badge" 
-              [class]="tarifaSeleccionada.tipoFechaEntrega === 'MISMO_DIA' ? 'bg-warning' : 'bg-info'">
-              {{ tarifaSeleccionada.tipoFechaEntregaDescripcion }}
+              class="badge px-3 py-2 fs-6" 
+              [class]="'bg-' + getColorTipoRegla(tarifaSeleccionada.tipoRegla)">
+              {{ getDescripcionRegla(tarifaSeleccionada.tipoRegla) }}
             </span>
+          </div>
+          <div class="small text-muted">
+            {{ tarifaSeleccionada.descripcionRegla }}
           </div>
         </div>
       </div>
 
-      <!-- Información de Precios -->
+      <!-- Información de Aplicación -->
       <div class="row mb-4">
-        <div class="col-12">
+        <div class="col-md-6">
           <h6 class="text-success mb-3">
-            <i class="bi bi-currency-dollar me-2"></i>Información de Precios
+            <i class="bi bi-geo-alt me-2"></i>Aplicación
           </h6>
           <div class="mb-2">
-            <strong>Precio Base:</strong> 
-            <span class="fw-bold text-success ms-1">{{ formatearPrecio(tarifaSeleccionada.precio) }}</span>
-          </div>
-          <div class="mb-2" *ngIf="tarifaSeleccionada.costoAgencia">
-            <strong>Costo Agencia:</strong> {{ formatearPrecio(tarifaSeleccionada.costoAgencia || 0) }}
-            <span *ngIf="tarifaSeleccionada.aplicaCostoAgenciaSiMenosDe" class="text-muted">
-              - Aplica si pedido &lt; {{ formatearPrecio(tarifaSeleccionada.aplicaCostoAgenciaSiMenosDe || 0) }}
-            </span>
+            <strong>Ubicación:</strong> {{ tarifaSeleccionada.ubicacionCompleta }}
           </div>
           <div class="mb-2">
-            <strong>Prioridad:</strong> 
+            <strong>Tarifa:</strong> 
             <span 
-              class="badge ms-1" 
-              [class]="'bg-' + getColorPrioridad(tarifaSeleccionada.prioridad)">
-              {{ tarifaSeleccionada.prioridad }}
+              class="fw-bold fs-5 ms-1"
+              [class]="(tarifaSeleccionada.precio ?? tarifaSeleccionada.tarifa ?? 0) === 0 ? 'text-success' : 'text-primary'">
+              {{ formatearPrecio(tarifaSeleccionada) }}
             </span>
           </div>
         </div>
-      </div>
-
-      <!-- Condiciones del Pedido -->
-      <div class="row mb-4" *ngIf="tarifaSeleccionada.montoMinimoPedido || tarifaSeleccionada.montoMaximoPedido">
-        <div class="col-12">
-          <h6 class="text-warning mb-3">
-            <i class="bi bi-list-check me-2"></i>Condiciones del Pedido
-          </h6>
-          <div class="mb-2" *ngIf="tarifaSeleccionada.montoMinimoPedido">
-            <strong>Monto Mínimo:</strong> {{ formatearPrecio(tarifaSeleccionada.montoMinimoPedido || 0) }}
-          </div>
-          <div class="mb-2" *ngIf="tarifaSeleccionada.montoMaximoPedido">
-            <strong>Monto Máximo:</strong> {{ formatearPrecio(tarifaSeleccionada.montoMaximoPedido || 0) }}
-          </div>
-          <div class="mb-2" *ngIf="tarifaSeleccionada.descripcionCondicion">
-            <strong>Descripción:</strong> {{ tarifaSeleccionada.descripcionCondicion }}
-          </div>
-        </div>
-      </div>
-
-      <!-- Información del Sistema -->
-      <div class="row">
         <div class="col-md-6">
           <h6 class="text-info mb-3">
-            <i class="bi bi-gear me-2"></i>Información del Sistema
+            <i class="bi bi-clock me-2"></i>Estado y Fechas
           </h6>
           <div class="mb-2">
             <strong>Estado:</strong> 
             <span 
-              class="fw-semibold ms-1" 
-              [class]="getClaseEstado(tarifaSeleccionada.activo)">
+              class="badge ms-1" 
+              [class]="tarifaSeleccionada.activo ? 'bg-success' : 'bg-secondary'">
               {{ getTextoEstado(tarifaSeleccionada.activo) }}
             </span>
           </div>
           <div class="mb-2">
-            <strong>Fecha Creación:</strong> {{ formatearFecha(tarifaSeleccionada.fechaCreacion) }}
+            <strong>Creada:</strong> {{ formatearFecha(tarifaSeleccionada.fechaCreacion) }}
           </div>
           <div class="mb-2" *ngIf="tarifaSeleccionada.fechaActualizacion">
-            <strong>Última Actualización:</strong> {{ formatearFecha(tarifaSeleccionada.fechaActualizacion) }}
+            <strong>Actualizada:</strong> {{ formatearFecha(tarifaSeleccionada.fechaActualizacion) }}
           </div>
         </div>
-        <div class="col-md-6" *ngIf="tarifaSeleccionada.resumenCondiciones">
-          <h6 class="text-secondary mb-3">
-            <i class="bi bi-card-text me-2"></i>Resumen
+      </div>
+
+      <!-- Información adicional para distrito específico -->
+      <div class="row" *ngIf="tarifaSeleccionada.tipoRegla === 'DISTRITO_ESPECIFICO' && tarifaSeleccionada.distrito">
+        <div class="col-12">
+          <h6 class="text-warning mb-3">
+            <i class="bi bi-map me-2"></i>Distrito Específico
           </h6>
           <div class="p-3 bg-light rounded">
-            <small>{{ tarifaSeleccionada.resumenCondiciones }}</small>
+            <div><strong>Distrito:</strong> {{ tarifaSeleccionada.distrito.nombre }}</div>
+            <div class="small text-muted mt-1">
+              Esta tarifa se aplica únicamente a entregas en este distrito específico.
+            </div>
           </div>
         </div>
       </div>

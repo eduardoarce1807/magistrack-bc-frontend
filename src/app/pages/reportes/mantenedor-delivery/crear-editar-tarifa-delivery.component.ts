@@ -10,8 +10,9 @@ import { DataService } from '../../../services/data.service';
 import { 
   TarifaDeliveryFormModel, 
   TarifaDelivery,
-  TIPOS_FECHA_ENTREGA_OPTIONS,
-  PRIORIDADES_OPTIONS 
+  TipoReglaDelivery,
+  TIPOS_REGLA_OPTIONS,
+  reglaRequiereDistrito
 } from '../../../model/deliveryModel';
 
 @Component({
@@ -23,7 +24,7 @@ import {
 })
 export class CrearEditarTarifaDeliveryComponent implements OnInit {
 
-  // Modelo del formulario
+  // Modelo del formulario simplificado
   tarifa = new TarifaDeliveryFormModel();
   
   // Estado del componente
@@ -36,15 +37,13 @@ export class CrearEditarTarifaDeliveryComponent implements OnInit {
   idTarifa: number | null = null;
   
   // Opciones para dropdowns
-  tiposEntregaOptions = TIPOS_FECHA_ENTREGA_OPTIONS;
-  prioridadesOptions = PRIORIDADES_OPTIONS;
+  tiposReglaOptions = TIPOS_REGLA_OPTIONS;
   
-  // Datos para ubicación
+  // Datos para ubicación en cascada (departamento → provincia → distrito)
   departamentos: any[] = [];
   provincias: any[] = [];
   distritos: any[] = [];
-  
-  // Flags de carga
+  cargandoDepartamentos = false;
   cargandoProvincias = false;
   cargandoDistritos = false;
   
@@ -60,8 +59,18 @@ export class CrearEditarTarifaDeliveryComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.cargarDepartamentos();
+    this.cargarDepartamentosPermitidos();
     this.verificarModoOperacion();
+    this.inicializarDescripcionPorDefecto();
+  }
+
+  /**
+   * Inicializa la descripción por defecto para tarifas nuevas
+   */
+  inicializarDescripcionPorDefecto(): void {
+    if (!this.isEditMode && !this.isDuplicateMode) {
+      this.tarifa.descripcion = this.getDescripcionRegla(this.tarifa.tipoRegla);
+    }
   }
 
   /**
@@ -99,7 +108,12 @@ export class CrearEditarTarifaDeliveryComponent implements OnInit {
     this.deliveryService.obtenerTarifaPorId(this.idTarifa).subscribe({
       next: (tarifaData: TarifaDelivery) => {
         this.tarifa.fromTarifa(tarifaData);
-        this.cargarUbicacionExistente(tarifaData);
+        
+        // Si la tarifa tiene ubicación definida, cargar las provincias y distritos manteniendo la selección
+        if (this.tarifa.idDepartamento) {
+          this.cargarProvinciasPorDepartamento(this.tarifa.idDepartamento, true);
+        }
+        
         this.cargando = false;
       },
       error: (error: any) => {
@@ -120,8 +134,13 @@ export class CrearEditarTarifaDeliveryComponent implements OnInit {
     this.deliveryService.obtenerTarifaPorId(this.idTarifa).subscribe({
       next: (tarifaData: TarifaDelivery) => {
         this.tarifa.fromTarifa(tarifaData);
-        this.tarifa.idTarifarioDelivery = null; // Limpiar ID para crear nuevo
-        this.cargarUbicacionExistente(tarifaData);
+        this.tarifa.id = null; // Limpiar ID para crear nuevo
+        
+        // Si la tarifa tiene ubicación definida, cargar las provincias y distritos manteniendo la selección
+        if (this.tarifa.idDepartamento) {
+          this.cargarProvinciasPorDepartamento(this.tarifa.idDepartamento, true);
+        }
+        
         this.cargando = false;
         
         Swal.fire({
@@ -137,19 +156,6 @@ export class CrearEditarTarifaDeliveryComponent implements OnInit {
         this.volverAlListado();
       }
     });
-  }
-
-  /**
-   * Carga la ubicación existente (departamento, provincia, distrito)
-   */
-  cargarUbicacionExistente(tarifaData: TarifaDelivery): void {
-    if (tarifaData.departamento?.idDepartamento) {
-      this.cargarProvincias(tarifaData.departamento.idDepartamento, () => {
-        if (tarifaData.provincia?.idProvincia) {
-          this.cargarDistritos(tarifaData.provincia.idProvincia);
-        }
-      });
-    }
   }
 
   /**
@@ -233,48 +239,119 @@ export class CrearEditarTarifaDeliveryComponent implements OnInit {
     }
   }
 
-  // ==================== MÉTODOS DE UBICACIÓN ====================
+  // ==================== MÉTODOS DE VALIDACIÓN Y UI ====================
 
   /**
-   * Cargar departamentos
+   * Manejo del cambio de tipo de regla
    */
-  cargarDepartamentos(): void {
-    this.ubigeoService.getDepartamentos().subscribe({
+  onTipoReglaChange(): void {
+    // Limpiar ubicación si no es necesario
+    if (!this.requiereDistrito()) {
+      this.tarifa.resetUbicacion();
+      this.provincias = [];
+      this.distritos = [];
+    }
+    
+    // Establecer tarifa automáticamente para reglas de envío gratis
+    if (this.tarifa.esEnvioGratis()) {
+      this.tarifa.tarifa = 0;
+    }
+
+    // Actualizar descripción por defecto si está vacía o es la descripción anterior
+    this.actualizarDescripcionPorDefecto();
+    
+    this.limpiarErrores();
+  }
+
+  /**
+   * Actualiza la descripción por defecto cuando cambia la regla
+   */
+  actualizarDescripcionPorDefecto(): void {
+    const nuevaDescripcion = this.getDescripcionRegla(this.tarifa.tipoRegla);
+    
+    // Solo actualizar si no hay descripción personalizada o si es una descripción automática previa
+    if (!this.tarifa.descripcion || this.esDescripcionAutomatica(this.tarifa.descripcion)) {
+      this.tarifa.descripcion = nuevaDescripcion;
+    }
+  }
+
+  /**
+   * Verifica si una descripción es una de las automáticas
+   */
+  esDescripcionAutomatica(descripcion: string): boolean {
+    return this.tiposReglaOptions.some(opcion => opcion.descripcion === descripcion);
+  }
+
+  /**
+   * Verificar si la regla actual requiere distrito
+   */
+  requiereDistrito(): boolean {
+    return this.tarifa.requiereDistrito();
+  }
+
+  /**
+   * Verificar si es una regla de envío gratis
+   */
+  esEnvioGratis(): boolean {
+    return this.tarifa.esEnvioGratis();
+  }
+
+  // ==================== MÉTODOS DE UBICACIÓN EN CASCADA ====================
+
+  /**
+   * Cargar departamentos permitidos: solo Lima (15) y Callao (7)
+   */
+  cargarDepartamentosPermitidos(): void {
+    this.cargandoDepartamentos = true;
+    
+    this.deliveryService.getDepartamentosPermitidos().subscribe({
       next: (departamentos: any[]) => {
         this.departamentos = departamentos;
+        this.cargandoDepartamentos = false;
       },
       error: (error: any) => {
         console.error('Error al cargar departamentos:', error);
-        Swal.fire('Error', 'No se pudieron cargar los departamentos', 'error');
+        this.cargandoDepartamentos = false;
       }
     });
   }
 
   /**
-   * Manejar cambio de departamento
+   * Manejo del cambio de departamento
    */
   onDepartamentoChange(): void {
-    this.tarifa.idProvincia = null;
-    this.tarifa.idDistrito = null;
-    this.provincias = [];
-    this.distritos = [];
-
-    if (this.tarifa.idDepartamento) {
-      this.cargarProvincias(this.tarifa.idDepartamento);
+    if (!this.tarifa.idDepartamento) {
+      this.tarifa.resetProvinciaYDistrito();
+      this.provincias = [];
+      this.distritos = [];
+      return;
     }
+
+    this.cargarProvinciasPorDepartamento(this.tarifa.idDepartamento);
   }
 
   /**
    * Cargar provincias por departamento
    */
-  cargarProvincias(idDepartamento: number, callback?: () => void): void {
+  cargarProvinciasPorDepartamento(idDepartamento: number, mantenerSeleccion: boolean = false): void {
     this.cargandoProvincias = true;
     
-    this.ubigeoService.getProvincias(idDepartamento).subscribe({
+    if (!mantenerSeleccion) {
+      this.tarifa.resetProvinciaYDistrito();
+    }
+    
+    this.provincias = [];
+    this.distritos = [];
+
+    this.deliveryService.getProvinciasPorDepartamento(idDepartamento).subscribe({
       next: (provincias: any[]) => {
         this.provincias = provincias;
         this.cargandoProvincias = false;
-        if (callback) callback();
+        
+        // Si estamos manteniendo la selección y hay una provincia seleccionada, cargar sus distritos
+        if (mantenerSeleccion && this.tarifa.idProvincia) {
+          this.cargarDistritosPorProvincia(this.tarifa.idProvincia, true);
+        }
       },
       error: (error: any) => {
         console.error('Error al cargar provincias:', error);
@@ -284,24 +361,31 @@ export class CrearEditarTarifaDeliveryComponent implements OnInit {
   }
 
   /**
-   * Manejar cambio de provincia
+   * Manejo del cambio de provincia
    */
   onProvinciaChange(): void {
-    this.tarifa.idDistrito = null;
-    this.distritos = [];
-
-    if (this.tarifa.idProvincia) {
-      this.cargarDistritos(this.tarifa.idProvincia);
+    if (!this.tarifa.idProvincia) {
+      this.tarifa.resetDistrito();
+      this.distritos = [];
+      return;
     }
+
+    this.cargarDistritosPorProvincia(this.tarifa.idProvincia);
   }
 
   /**
    * Cargar distritos por provincia
    */
-  cargarDistritos(idProvincia: number): void {
+  cargarDistritosPorProvincia(idProvincia: number, mantenerSeleccion: boolean = false): void {
     this.cargandoDistritos = true;
     
-    this.ubigeoService.getDistritos(idProvincia).subscribe({
+    if (!mantenerSeleccion) {
+      this.tarifa.resetDistrito();
+    }
+    
+    this.distritos = [];
+
+    this.deliveryService.getDistritosPorProvincia(idProvincia).subscribe({
       next: (distritos: any[]) => {
         this.distritos = distritos;
         this.cargandoDistritos = false;
@@ -342,11 +426,12 @@ export class CrearEditarTarifaDeliveryComponent implements OnInit {
    * Verifica si el formulario ha cambiado
    */
   formularioHaCambiado(): boolean {
-    // Implementar lógica para detectar cambios
-    // Por simplicidad, retornamos true si hay datos en el formulario
-    return this.tarifa.precio > 0 || 
-           this.tarifa.descripcionCondicion.trim().length > 0 ||
-           this.tarifa.idDepartamento !== null;
+    return this.tarifa.tarifa > 0 || 
+           this.tarifa.tipoRegla !== TipoReglaDelivery.DISTRITO_ESPECIFICO ||
+           this.tarifa.idDepartamento !== null ||
+           this.tarifa.idProvincia !== null ||
+           this.tarifa.idDistrito !== null ||
+           this.tarifa.descripcion.length > 0;
   }
 
   /**
@@ -381,47 +466,6 @@ export class CrearEditarTarifaDeliveryComponent implements OnInit {
   }
 
   /**
-   * Validar rango de montos
-   */
-  validarRangoMontos(): void {
-    if (this.tarifa.montoMinimoPedido && this.tarifa.montoMaximoPedido) {
-      if (this.tarifa.montoMinimoPedido >= this.tarifa.montoMaximoPedido) {
-        Swal.fire('Error de validación', 'El monto mínimo debe ser menor al monto máximo', 'warning');
-      }
-    }
-  }
-
-  /**
-   * Generar descripción automática basada en los campos
-   */
-  generarDescripcionAutomatica(): void {
-    if (!this.tarifa.descripcionCondicion.trim()) {
-      let descripcion = 'Tarifa ';
-      
-      // Agregar tipo de entrega
-      const tipoEntrega = this.tiposEntregaOptions.find(t => t.value === this.tarifa.tipoFechaEntrega);
-      if (tipoEntrega) {
-        descripcion += tipoEntrega.label.toLowerCase();
-      }
-      
-      // Agregar ubicación
-      const departamento = this.departamentos.find(d => d.idDepartamento === this.tarifa.idDepartamento);
-      if (departamento) {
-        descripcion += ` para ${departamento.nombre}`;
-        
-        const provincia = this.provincias.find(p => p.idProvincia === this.tarifa.idProvincia);
-        if (provincia) {
-          descripcion += `, ${provincia.nombre}`;
-        }
-      } else {
-        descripcion += ' nacional';
-      }
-      
-      this.tarifa.descripcionCondicion = descripcion;
-    }
-  }
-
-  /**
    * Resetear formulario
    */
   resetearFormulario(): void {
@@ -437,11 +481,44 @@ export class CrearEditarTarifaDeliveryComponent implements OnInit {
     }).then((result) => {
       if (result.isConfirmed) {
         this.tarifa.reset();
-        this.provincias = [];
-        this.distritos = [];
         this.limpiarErrores();
         Swal.fire('¡Reseteado!', 'El formulario ha sido limpiado', 'success');
       }
     });
+  }
+
+  /**
+   * Obtener descripción de la regla
+   */
+  getDescripcionRegla(tipoRegla: TipoReglaDelivery | string): string {
+    const opcion = this.tiposReglaOptions.find(o => o.value === tipoRegla);
+    return opcion?.descripcion || '';
+  }
+
+  /**
+   * Obtener nombre del distrito seleccionado
+   */
+  getNombreDistrito(): string {
+    if (!this.tarifa.idDistrito) return '';
+    const distrito = this.distritos.find(d => d.idDistrito === this.tarifa.idDistrito);
+    return distrito?.nombre || '';
+  }
+
+  /**
+   * Obtener nombre del departamento seleccionado
+   */
+  getNombreDepartamento(): string {
+    if (!this.tarifa.idDepartamento) return '';
+    const departamento = this.departamentos.find(d => d.idDepartamento === this.tarifa.idDepartamento);
+    return departamento?.nombre || '';
+  }
+
+  /**
+   * Obtener nombre de la provincia seleccionada
+   */
+  getNombreProvincia(): string {
+    if (!this.tarifa.idProvincia) return '';
+    const provincia = this.provincias.find(p => p.idProvincia === this.tarifa.idProvincia);
+    return provincia?.nombre || '';
   }
 }

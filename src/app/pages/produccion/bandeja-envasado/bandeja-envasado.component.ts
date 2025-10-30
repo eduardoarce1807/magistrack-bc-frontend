@@ -55,7 +55,7 @@ export class BandejaEnvasadoComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.getProductosAll();
+    //this.getProductosAll();
   }
 
   getProductosAll(): void {

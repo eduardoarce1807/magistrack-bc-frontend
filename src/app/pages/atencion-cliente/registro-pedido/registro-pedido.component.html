@@ -478,18 +478,43 @@
 										[disabled]="!lstDirecciones || lstDirecciones.length === 0 || pedido.estadoPedido.idEstadoPedido > 1"
 										(change)="guardarEntrega()"
 									>
-										<option value="0" disabled selected>Seleccione una dirección</option>
-										<option *ngFor="let direccion of lstDirecciones" [ngValue]="direccion.idDireccion">
+										<!-- Mostrar opción por defecto solo si no hay dirección del pedido y no hay direcciones disponibles -->
+										<option value="0" disabled [selected]="!pedido.direccion?.idDireccion && (!lstDirecciones || lstDirecciones.length === 0)">
+											@if (!lstDirecciones || lstDirecciones.length === 0) {
+												No hay direcciones disponibles
+											} @else {
+												Seleccione una dirección
+											}
+										</option>
+										<option *ngFor="let direccion of lstDirecciones" [ngValue]="direccion.idDireccion"
+											[selected]="pedido.direccion?.idDireccion === direccion.idDireccion">
 											{{ direccion.direccion }} - {{ direccion.distrito.nombre }} - {{ direccion.provincia.nombre }} - {{ direccion.departamento.nombre }}
 										</option>
 									</select>
 									<div class="form-text">
-										*La dirección se actualizará automáticamente al seleccionar un método de entrega.
+										@if (pedido.direccion?.idDireccion) {
+											*Dirección actual del pedido seleccionada automáticamente.
+										} @else if (lstDirecciones && lstDirecciones.length === 0) {
+											*No hay direcciones registradas. Agregue una nueva dirección.
+										} @else {
+											*La dirección se actualizará automáticamente al seleccionar un método de entrega.
+										}
 									</div>
 								</div>
-								@if (idMetodoEntregaSeleccionado == 2 && pedido.estadoPedido.idEstadoPedido == 1) {
+								@if ((idMetodoEntregaSeleccionado == 2 && pedido.estadoPedido.idEstadoPedido == 1) || (!lstDirecciones || lstDirecciones.length === 0)) {
 									<div class="col-md-2">
-										<button class="btn btn-dark w-100" (click)="openModal(agregarDireccion)"><i class="bi bi-plus-circle"></i> Agregar Dirección</button>
+										<button 
+											class="btn w-100" 
+											[ngClass]="(!lstDirecciones || lstDirecciones.length === 0) ? 'btn-primary' : 'btn-dark'"
+											(click)="openModal(agregarDireccion)"
+											[disabled]="pedido.estadoPedido.idEstadoPedido > 1">
+											<i class="bi bi-plus-circle"></i> 
+											@if (!lstDirecciones || lstDirecciones.length === 0) {
+												Agregar Primera Dirección
+											} @else {
+												Agregar Dirección
+											}
+										</button>
 									</div>
 								}
 							</div>
@@ -631,26 +656,38 @@
 										<h6 class="mb-0">Información de Entrega</h6>
 									</div>
 									<div class="card-body">
-										@if (idMetodoEntregaSeleccionado > 0) {
-											<p><strong>Método:</strong> 
-												@for (metodo of lstMetodosEntrega; track metodo.idMetodoEntrega) {
-													@if (metodo.idMetodoEntrega === idMetodoEntregaSeleccionado) {
-														{{metodo.descripcion}}
-													}
-												}
-											</p>
-											@if (idDireccionSeleccionada > 0) {
+										@if (pedido.metodoEntrega) {
+											<p><strong>Método:</strong> {{pedido.metodoEntrega.descripcion}}</p>
+											
+											@if (pedido.direccion) {
 												<p><strong>Dirección:</strong> 
-													@for (direccion of lstDirecciones; track direccion.idDireccion) {
-														@if (direccion.idDireccion === idDireccionSeleccionada) {
-															{{direccion.direccion}}, {{direccion.distrito.nombre}}, {{direccion.provincia.nombre}}
-														}
+													{{pedido.direccion.direccion}}, {{pedido.direccion.distrito.nombre}}, {{pedido.direccion.provincia.nombre}}, {{pedido.direccion.departamento.nombre}}
+												</p>
+												@if (pedido.direccion.referencia) {
+													<p><strong>Referencia:</strong> {{pedido.direccion.referencia}}</p>
+												}
+											}
+											
+											@if (pedido.aplicaDelivery) {
+												<p><strong>Costo Delivery:</strong> 
+													@if (pedido.costoDelivery === 0) {
+														<span class="text-success fw-bold"> GRATIS</span>
+													} @else {
+														<span class="fw-bold"> S/ {{pedido.costoDelivery?.toFixed(2) || '0.00'}}</span>
 													}
 												</p>
+												@if (pedido.metodoCalculoDelivery) {
+													<p><strong>Método de cálculo:</strong> 
+														<small class="text-muted"> {{pedido.metodoCalculoDelivery}}</small>
+													</p>
+												}
 											}
-											@if (notaDelivery && idMetodoEntregaSeleccionado == 2) {
-												<p><strong>Nota delivery:</strong> {{notaDelivery}}</p>
+											
+											@if (pedido.notaDelivery) {
+												<p><strong>Nota delivery:</strong> {{pedido.notaDelivery}}</p>
 											}
+										} @else {
+											<p class="text-muted"><em>No se ha seleccionado método de entrega</em></p>
 										}
 									</div>
 								</div>
@@ -731,7 +768,21 @@
 								
 								@if (pedido?.aplicaDelivery) {
 									<div class="alert alert-info">
-										<strong>Delivery aplicado:</strong> S/ {{pedido?.costoDelivery?.toFixed(2) || '0.00'}}
+										<div class="d-flex justify-content-between align-items-center">
+											<div>
+												<strong>Delivery aplicado:</strong> 
+												@if (pedido.costoDelivery === 0) {
+													<span class="text-success fw-bold">GRATIS</span>
+												} @else {
+													<span class="fw-bold">S/ {{pedido?.costoDelivery?.toFixed(2) || '0.00'}}</span>
+												}
+											</div>
+										</div>
+										@if (pedido.metodoCalculoDelivery) {
+											<small class="text-muted">
+												<i class="bi bi-info-circle me-1"></i>{{pedido.metodoCalculoDelivery}}
+											</small>
+										}
 									</div>
 								}
 								
