@@ -542,8 +542,19 @@ export class RegistroPedidoComponent implements OnInit, OnDestroy {
     this.direccionService.getDireccionesByClienteId(idCliente).subscribe(
       (direcciones) => {
         this.lstDirecciones = direcciones;
-        this.idDireccionSeleccionada = this.lstDirecciones[0]?.idDireccion || 0; // Seleccionar la primera dirección por defecto
+        
+        // Verificar si el pedido ya tiene una dirección asignada
+        if (this.pedido.direccion?.idDireccion) {
+          // Si el pedido ya tiene dirección, mantenerla seleccionada
+          this.idDireccionSeleccionada = this.pedido.direccion.idDireccion;
+        } else {
+          // Si no hay dirección en el pedido, seleccionar la primera disponible
+          this.idDireccionSeleccionada = this.lstDirecciones[0]?.idDireccion || 0;
+        }
+        
         console.log('Direcciones del cliente:', direcciones);
+        console.log('Dirección seleccionada:', this.idDireccionSeleccionada);
+        
         if (!firstRequest && this.lstDirecciones.length > 0) {
           this.guardarEntrega(); // Llamar al método de entrega después de obtener las direcciones
         }
@@ -558,8 +569,19 @@ export class RegistroPedidoComponent implements OnInit, OnDestroy {
     this.direccionService.getDireccionesByTiendaId(idTienda).subscribe(
       (direcciones) => {
         this.lstDirecciones = direcciones;
-        this.idDireccionSeleccionada = this.lstDirecciones[0]?.idDireccion || 0; // Seleccionar la primera dirección por defecto
+        
+        // Verificar si el pedido ya tiene una dirección asignada
+        if (this.pedido.direccion?.idDireccion) {
+          // Si el pedido ya tiene dirección, mantenerla seleccionada
+          this.idDireccionSeleccionada = this.pedido.direccion.idDireccion;
+        } else {
+          // Si no hay dirección en el pedido, seleccionar la primera disponible
+          this.idDireccionSeleccionada = this.lstDirecciones[0]?.idDireccion || 0;
+        }
+        
         console.log('Direcciones de la tienda:', direcciones);
+        console.log('Dirección seleccionada:', this.idDireccionSeleccionada);
+        
         if (!firstRequest) {
           this.guardarEntrega(); // Llamar al método de entrega después de obtener las direcciones
         }
@@ -933,6 +955,8 @@ export class RegistroPedidoComponent implements OnInit, OnDestroy {
                             showConfirmButton: true
                           });
                           this.cargarProductosByIdPedido(this.idPedido!);
+                          // Actualizar información completa del pedido para refrescar el costo de delivery
+                          this.getPedidoById(this.idPedido!);
                         }else{
                           Swal.fire({
                             icon: 'error',
@@ -1043,6 +1067,8 @@ export class RegistroPedidoComponent implements OnInit, OnDestroy {
 
               // Recargar productos para reflejar los cambios (quitar descuentos)
               this.cargarProductosByIdPedido(this.idPedido!);
+              // Actualizar información completa del pedido para refrescar el costo de delivery
+              this.getPedidoById(this.idPedido!);
             } else {
               Swal.fire({
                 icon: 'error',
@@ -1105,6 +1131,8 @@ export class RegistroPedidoComponent implements OnInit, OnDestroy {
             this.query = '';
             this.cantidad = 1;
             this.cargarProductosByIdPedido(this.idPedido!);
+            // Actualizar información completa del pedido para refrescar el costo de delivery
+            this.getPedidoById(this.idPedido!);
           }
         },
         (error) => {
@@ -1183,6 +1211,8 @@ export class RegistroPedidoComponent implements OnInit, OnDestroy {
         if(data){
           this.showSuccess(this.successTpl);
           this.cargarProductosByIdPedido(this.idPedido!);
+          // Actualizar información completa del pedido para refrescar el costo de delivery
+          this.getPedidoById(this.idPedido!);
           this.isLoading = false;
         }
       },
@@ -1250,6 +1280,8 @@ export class RegistroPedidoComponent implements OnInit, OnDestroy {
             console.log('Cantidad de preparado magistral actualizada:', response);
             this.showSuccess(this.successTpl);
             this.cargarProductosByIdPedido(this.idPedido!);
+            // Actualizar información completa del pedido para refrescar el costo de delivery
+            this.getPedidoById(this.idPedido!);
             this.isLoading = false;
           }
         },
@@ -1299,6 +1331,8 @@ export class RegistroPedidoComponent implements OnInit, OnDestroy {
                 showConfirmButton: true
               });
               this.cargarProductosByIdPedido(this.idPedido!);
+              // Actualizar información completa del pedido para refrescar el costo de delivery
+              this.getPedidoById(this.idPedido!);
               if(this.codigoCupon && this.codigoCupon.trim() !== '') {
                 this.validarCodigoCupon();
               }
@@ -1340,6 +1374,8 @@ export class RegistroPedidoComponent implements OnInit, OnDestroy {
                 showConfirmButton: true
               });
               this.cargarProductosByIdPedido(this.idPedido!);
+              // Actualizar información completa del pedido para refrescar el costo de delivery
+              this.getPedidoById(this.idPedido!);
               if(this.codigoCupon && this.codigoCupon.trim() !== '') {
                 this.validarCodigoCupon();
               }
@@ -1601,10 +1637,24 @@ export class RegistroPedidoComponent implements OnInit, OnDestroy {
   // Método para obtener el total del pedido incluyendo delivery
   getTotalPedidoConDelivery(): number {
     let total = this.totalPedido;
-    if (this.pedido?.aplicaDelivery && this.pedido?.costoDelivery) {
-      total += this.pedido.costoDelivery;
+    if (this.pedido?.aplicaDelivery) {
+      const costoDelivery = this.obtenerCostoDelivery();
+      total += costoDelivery;
     }
     return total;
+  }
+
+  /**
+   * Obtiene el costo de delivery desde la nueva estructura o la antigua para compatibilidad
+   */
+  private obtenerCostoDelivery(): number {
+    // Primero intentar obtener desde la nueva estructura tarifaDelivery
+    if (this.pedido?.tarifaDelivery?.precio) {
+      return this.pedido.tarifaDelivery.precio;
+    }
+    
+    // Fallback a la estructura antigua costoDelivery
+    return this.pedido?.costoDelivery || 0;
   }
 
 }

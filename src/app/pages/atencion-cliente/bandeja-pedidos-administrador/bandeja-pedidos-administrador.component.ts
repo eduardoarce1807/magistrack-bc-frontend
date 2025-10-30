@@ -524,8 +524,11 @@ export class BandejaPedidosAdministradorComponent implements OnInit {
 			}
 		});
 
+		// Obtener el costo de delivery desde la nueva estructura o la antigua para compatibilidad
+		const costoDelivery = this.obtenerCostoDelivery(pedido);
+		
 		// Calcular subtotal (total menos delivery si aplica)
-		const subtotal = pedido.aplicaDelivery ? (pedido.montoTotal - (pedido.costoDelivery || 0)) : pedido.montoTotal;
+		const subtotal = pedido.aplicaDelivery ? (pedido.montoTotal - costoDelivery) : pedido.montoTotal;
 		
 		// Agregar fila de subtotal de productos
 		itemsHTML += `
@@ -536,11 +539,11 @@ export class BandejaPedidosAdministradorComponent implements OnInit {
 		`;
 		
 		// Agregar fila de delivery si aplica
-		if (pedido.aplicaDelivery && pedido.costoDelivery) {
+		if (pedido.aplicaDelivery && costoDelivery > 0) {
 			itemsHTML += `
 				<tr>
 					<td colspan="2" style="padding: 8px; border: 1px solid #ddd; text-align: right;">Costo de Delivery:</td>
-					<td style="padding: 8px; border: 1px solid #ddd; text-align: right;">S/ ${(pedido.costoDelivery).toFixed(2)}</td>
+					<td style="padding: 8px; border: 1px solid #ddd; text-align: right;">S/ ${costoDelivery.toFixed(2)}</td>
 				</tr>
 			`;
 		}
@@ -669,9 +672,9 @@ export class BandejaPedidosAdministradorComponent implements OnInit {
 					<div class="section">
 						<div class="section-title">Información de Delivery:</div>
 						<div style="margin-left: 15px;">
-							<strong>Costo:</strong> S/ ${(pedido.costoDelivery || 0).toFixed(2)}<br>
+							<strong>Costo:</strong> S/ ${this.obtenerCostoDelivery(pedido).toFixed(2)}<br>
 							<strong>Método de cálculo:</strong> ${pedido.metodoCalculoDelivery || 'No especificado'}<br>
-							${pedido.tarifarioDelivery ? `<strong>Tarifa aplicada:</strong> ${pedido.tarifarioDelivery.descripcionCondicion || 'Tarifa estándar'}<br>` : ''}
+							${this.obtenerDescripcionTarifaDelivery(pedido) ? `<strong>Tarifa aplicada:</strong> ${this.obtenerDescripcionTarifaDelivery(pedido)}<br>` : ''}
 							${pedido.notaDelivery ? `<strong>Nota:</strong> ${pedido.notaDelivery}<br>` : ''}
 						</div>
 					</div>
@@ -791,5 +794,43 @@ export class BandejaPedidosAdministradorComponent implements OnInit {
 				});
 			}
 		});
+	}
+
+	/**
+	 * Obtiene el costo de delivery desde la nueva estructura o la antigua para compatibilidad
+	 */
+	private obtenerCostoDelivery(pedido: any): number {
+		// Primero intentar obtener desde la nueva estructura tarifaDelivery
+		if (pedido.tarifaDelivery?.precio) {
+			return pedido.tarifaDelivery.precio;
+		}
+		
+		// Fallback a la estructura antigua costoDelivery
+		return pedido.costoDelivery || 0;
+	}
+
+	/**
+	 * Obtiene la descripción de la tarifa de delivery aplicada
+	 */
+	private obtenerDescripcionTarifaDelivery(pedido: any): string {
+		// Primero intentar obtener desde la nueva estructura tarifaDelivery
+		if (pedido.tarifaDelivery) {
+			if (pedido.tarifaDelivery.tipoReglaDescripcion) {
+				return pedido.tarifaDelivery.tipoReglaDescripcion;
+			}
+			if (pedido.tarifaDelivery.descripcion) {
+				return pedido.tarifaDelivery.descripcion;
+			}
+			if (pedido.tarifaDelivery.ubicacionCompleta) {
+				return `${pedido.tarifaDelivery.tipoRegla || 'Regla'}: ${pedido.tarifaDelivery.ubicacionCompleta}`;
+			}
+		}
+		
+		// Fallback a la estructura antigua tarifarioDelivery
+		if (pedido.tarifarioDelivery?.descripcionCondicion) {
+			return pedido.tarifarioDelivery.descripcionCondicion;
+		}
+		
+		return 'Tarifa estándar';
 	}
 }

@@ -11,7 +11,8 @@ import { DataService } from '../../../services/data.service';
 import { 
   TarifaDelivery, 
   FiltrosBusquedaTarifas,
-  TIPOS_FECHA_ENTREGA_OPTIONS 
+  TipoReglaDelivery,
+  TIPOS_REGLA_OPTIONS
 } from '../../../model/deliveryModel';
 
 @Component({
@@ -46,19 +47,16 @@ export class MantenedorDeliveryComponent implements OnInit {
   
   // Filtros de búsqueda
   filtros: FiltrosBusquedaTarifas = {
-    idDepartamento: undefined,
-    idProvincia: undefined,
+    tipoRegla: undefined,
     idDistrito: undefined,
-    tipoFechaEntrega: undefined
+    activo: undefined
   };
   
   // Datos para dropdowns
-  departamentos: any[] = [];
-  provincias: any[] = [];
   distritos: any[] = [];
   
-  // Opciones de tipos de entrega
-  tiposEntregaOptions = TIPOS_FECHA_ENTREGA_OPTIONS;
+  // Opciones de tipos de regla
+  tiposReglaOptions = TIPOS_REGLA_OPTIONS;
   
   // Modal service
   private modalService = inject(NgbModal);
@@ -78,7 +76,7 @@ export class MantenedorDeliveryComponent implements OnInit {
 
   ngOnInit(): void {
     this.cargarTarifas();
-    this.cargarDepartamentos();
+    // Los distritos se cargan solo cuando se necesiten para filtrar
   }
 
   /**
@@ -87,12 +85,12 @@ export class MantenedorDeliveryComponent implements OnInit {
   cargarTarifas(): void {
     this.cargando = true;
     
-    this.deliveryService.listarTarifasActivas().subscribe({
+    this.deliveryService.listarTarifas().subscribe({
       next: (tarifas: TarifaDelivery[]) => {
         this.tarifas = tarifas.map(tarifa => ({
           ...tarifa,
           ubicacionCompleta: this.deliveryService.formatearUbicacionCompleta(tarifa),
-          resumenCondiciones: this.deliveryService.formatearResumenCondiciones(tarifa)
+          descripcionRegla: this.deliveryService.formatearResumenCondiciones(tarifa)
         }));
         this.actualizarPaginacion();
         this.cargando = false;
@@ -116,21 +114,15 @@ export class MantenedorDeliveryComponent implements OnInit {
       const texto = this.textoBusqueda.toLowerCase();
       tarifasFiltradas = tarifasFiltradas.filter(tarifa =>
         tarifa.ubicacionCompleta?.toLowerCase().includes(texto) ||
-        tarifa.descripcionCondicion?.toLowerCase().includes(texto) ||
-        tarifa.tipoFechaEntregaDescripcion?.toLowerCase().includes(texto) ||
-        tarifa.puntoEncuentro?.toLowerCase().includes(texto)
+        tarifa.descripcionRegla?.toLowerCase().includes(texto) ||
+        tarifa.tipoRegla.toLowerCase().includes(texto)
       );
     }
     
     // Aplicar filtros
-    if (this.filtros.idDepartamento) {
+    if (this.filtros.tipoRegla) {
       tarifasFiltradas = tarifasFiltradas.filter(t => 
-        t.departamento?.idDepartamento == this.filtros.idDepartamento);
-    }
-    
-    if (this.filtros.idProvincia) {
-      tarifasFiltradas = tarifasFiltradas.filter(t => 
-        t.provincia?.idProvincia == this.filtros.idProvincia);
+        t.tipoRegla === this.filtros.tipoRegla);
     }
     
     if (this.filtros.idDistrito) {
@@ -138,9 +130,9 @@ export class MantenedorDeliveryComponent implements OnInit {
         t.distrito?.idDistrito == this.filtros.idDistrito);
     }
     
-    if (this.filtros.tipoFechaEntrega) {
+    if (this.filtros.activo !== undefined) {
       tarifasFiltradas = tarifasFiltradas.filter(t => 
-        t.tipoFechaEntrega == this.filtros.tipoFechaEntrega);
+        t.activo === this.filtros.activo);
     }
     
     // Actualizar colección
@@ -188,12 +180,10 @@ export class MantenedorDeliveryComponent implements OnInit {
    */
   limpiarFiltros(): void {
     this.filtros = {
-      idDepartamento: undefined,
-      idProvincia: undefined,
+      tipoRegla: undefined,
       idDistrito: undefined,
-      tipoFechaEntrega: undefined
+      activo: undefined
     };
-    this.provincias = [];
     this.distritos = [];
     this.aplicarFiltros();
   }
@@ -209,20 +199,20 @@ export class MantenedorDeliveryComponent implements OnInit {
    * Navegar a editar tarifa
    */
   editarTarifa(tarifa: TarifaDelivery): void {
-    if (tarifa.idTarifarioDelivery) {
-      this.router.navigate(['/pages/reportes/mantenedor-delivery/editar', tarifa.idTarifarioDelivery]);
+    if (tarifa.id) {
+      this.router.navigate(['/pages/reportes/mantenedor-delivery/editar', tarifa.id]);
     }
   }
 
   /**
-   * Eliminar (desactivar) tarifa
+   * Eliminar tarifa
    */
   eliminarTarifa(tarifa: TarifaDelivery): void {
-    if (!tarifa.idTarifarioDelivery) return;
+    if (!tarifa.id) return;
 
     Swal.fire({
       title: '¿Confirmar eliminación?',
-      text: `¿Está seguro de eliminar la tarifa para "${tarifa.ubicacionCompleta}"?`,
+      text: `¿Está seguro de eliminar la tarifa "${tarifa.ubicacionCompleta}"?`,
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#d33',
@@ -230,12 +220,12 @@ export class MantenedorDeliveryComponent implements OnInit {
       confirmButtonText: 'Sí, eliminar',
       cancelButtonText: 'Cancelar'
     }).then((result) => {
-      if (result.isConfirmed && tarifa.idTarifarioDelivery) {
+      if (result.isConfirmed && tarifa.id) {
         this.cargando = true;
         
-        this.deliveryService.eliminarTarifa(tarifa.idTarifarioDelivery).subscribe({
-          next: (response: any) => {
-            Swal.fire('¡Eliminado!', response.mensaje, 'success');
+        this.deliveryService.eliminarTarifa(tarifa.id).subscribe({
+          next: () => {
+            Swal.fire('¡Eliminado!', 'Tarifa eliminada correctamente', 'success');
             this.cargarTarifas(); // Recargar la lista
           },
           error: (error: any) => {
@@ -260,8 +250,8 @@ export class MantenedorDeliveryComponent implements OnInit {
    * Duplicar tarifa (crear nueva basada en existente)
    */
   duplicarTarifa(tarifa: TarifaDelivery): void {
-    if (tarifa.idTarifarioDelivery) {
-      this.router.navigate(['/pages/reportes/mantenedor-delivery/duplicar', tarifa.idTarifarioDelivery]);
+    if (tarifa.id) {
+      this.router.navigate(['/pages/reportes/mantenedor-delivery/duplicar', tarifa.id]);
     }
   }
 
@@ -272,15 +262,30 @@ export class MantenedorDeliveryComponent implements OnInit {
     this.cargarTarifas();
   }
 
-  // ==================== MÉTODOS PARA DROPDOWNS ====================
+  // ==================== MÉTODOS PARA DROPDOWNS SIMPLIFICADOS ====================
 
   /**
-   * Cargar departamentos
+   * Cargar todos los distritos (solo cuando se necesita filtrar)
    */
-  cargarDepartamentos(): void {
+  cargarTodosLosDistritos(): void {
+    // Obtener distritos de Lima (departamento 15)
     this.ubigeoService.getDepartamentos().subscribe({
       next: (departamentos: any[]) => {
-        this.departamentos = departamentos;
+        const lima = departamentos.find(d => d.nombre.toLowerCase().includes('lima'));
+        if (lima) {
+          this.ubigeoService.getProvincias(lima.idDepartamento).subscribe({
+            next: (provincias: any[]) => {
+              // Obtener todos los distritos de todas las provincias de Lima
+              const promises = provincias.map(p => 
+                this.ubigeoService.getDistritos(p.idProvincia).toPromise()
+              );
+              Promise.all(promises).then((distritosArrays: any[]) => {
+                this.distritos = distritosArrays.flat();
+              });
+            },
+            error: (error: any) => console.error('Error al cargar provincias:', error)
+          });
+        }
       },
       error: (error: any) => {
         console.error('Error al cargar departamentos:', error);
@@ -289,87 +294,46 @@ export class MantenedorDeliveryComponent implements OnInit {
   }
 
   /**
-   * Manejar cambio de departamento
+   * Manejar cambio en el filtro de tipo de regla
    */
-  onDepartamentoChange(): void {
-    this.filtros.idProvincia = undefined;
-    this.filtros.idDistrito = undefined;
-    this.provincias = [];
-    this.distritos = [];
-
-    if (this.filtros.idDepartamento) {
-      this.cargarProvincias(this.filtros.idDepartamento);
+  onTipoReglaChange(): void {
+    // Si cambia a distrito específico, cargar distritos
+    if (this.filtros.tipoRegla === TipoReglaDelivery.DISTRITO_ESPECIFICO) {
+      this.cargarTodosLosDistritos();
     }
-  }
-
-  /**
-   * Cargar provincias por departamento
-   */
-  cargarProvincias(idDepartamento: number): void {
-    this.ubigeoService.getProvincias(idDepartamento).subscribe({
-      next: (provincias: any[]) => {
-        this.provincias = provincias;
-      },
-      error: (error: any) => {
-        console.error('Error al cargar provincias:', error);
-      }
-    });
-  }
-
-  /**
-   * Manejar cambio de provincia
-   */
-  onProvinciaChange(): void {
-    this.filtros.idDistrito = undefined;
-    this.distritos = [];
-
-    if (this.filtros.idProvincia) {
-      this.cargarDistritos(this.filtros.idProvincia);
-    }
-  }
-
-  /**
-   * Cargar distritos por provincia
-   */
-  cargarDistritos(idProvincia: number): void {
-    this.ubigeoService.getDistritos(idProvincia).subscribe({
-      next: (distritos: any[]) => {
-        this.distritos = distritos;
-      },
-      error: (error: any) => {
-        console.error('Error al cargar distritos:', error);
-      }
-    });
+    this.aplicarFiltros();
   }
 
   // ==================== MÉTODOS AUXILIARES ====================
 
   /**
-   * Obtiene el color del badge de prioridad
+   * Obtiene el color del badge según el tipo de regla
    */
-  getColorPrioridad(prioridad: number): string {
-    return this.deliveryService.obtenerColorPrioridad(prioridad);
+  getColorTipoRegla(tipoRegla: TipoReglaDelivery | string): string {
+    return this.deliveryService.obtenerColorTipoRegla(tipoRegla);
   }
 
   /**
    * Formatea el precio para mostrar
    */
-  formatearPrecio(precio: number): string {
-    return `S/ ${precio.toFixed(2)}`;
+  formatearPrecio(tarifa: TarifaDelivery): string {
+    // Usar el campo precio del backend o tarifa como fallback
+    const precio = tarifa.precio ?? tarifa.tarifa ?? 0;
+    return this.deliveryService.formatearPrecio(precio);
   }
 
   /**
    * Obtiene el texto del estado activo/inactivo
    */
   getTextoEstado(activo: boolean): string {
-    return activo ? 'Activa' : 'Inactiva';
+    return this.deliveryService.getTextoEstado(activo);
   }
 
   /**
    * Obtiene la clase CSS para el estado
    */
   getClaseEstado(activo: boolean): string {
-    return activo ? 'text-success' : 'text-danger';
+    return this.deliveryService.getClaseEstado(activo);
   }
 
   /**
@@ -393,6 +357,14 @@ export class MantenedorDeliveryComponent implements OnInit {
   }
 
   /**
+   * Obtiene la descripción de la regla
+   */
+  getDescripcionRegla(tipoRegla: TipoReglaDelivery | string): string {
+    const opcion = TIPOS_REGLA_OPTIONS.find(o => o.value === tipoRegla);
+    return opcion?.label || 'Regla no definida';
+  }
+
+  /**
    * Verifica si el usuario tiene permisos de edición
    */
   puedeEditar(): boolean {
@@ -407,6 +379,6 @@ export class MantenedorDeliveryComponent implements OnInit {
    * TrackBy function para optimización de NgFor
    */
   trackByTarifa(index: number, tarifa: TarifaDelivery): number {
-    return tarifa.idTarifarioDelivery || index;
+    return tarifa.id || index;
   }
 }

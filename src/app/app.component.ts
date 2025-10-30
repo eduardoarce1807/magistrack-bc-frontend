@@ -4,6 +4,7 @@ import { AuthService } from './services/auth.service';
 import { DataService } from './services/data.service';
 import { PrimeNGConfig } from 'primeng/api';
 import { WhatsappFloatComponent } from './components/whatsapp-float/whatsapp-float.component';
+import { PedidoNotificationService, PedidoPago } from './services/pedido-notification.service';
 
 @Component({
   selector: 'app-root',
@@ -35,12 +36,16 @@ export class AppComponent implements OnInit, OnDestroy {
     private auth: AuthService, 
     private router: Router, 
     private dataService: DataService,
-    private primengConfig: PrimeNGConfig
+    private primengConfig: PrimeNGConfig,
+    private pedidoNotificationService: PedidoNotificationService
   ) {
     this.initInactivityMonitoring();
   }
 
   ngOnInit() {
+    // Inicializar sistema global de notificaciones de pedidos pagados
+    this.initGlobalPedidoNotifications();
+    
     this.primengConfig.setTranslation({
       accept: 'Aceptar',
       reject: 'Rechazar',
@@ -95,9 +100,13 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    // Detener el sistema de inactividad
     if (this.inactivityTimer) {
       clearInterval(this.inactivityTimer);
     }
+    
+    // Detener el sistema global de notificaciones
+    this.pedidoNotificationService.stopPolling();
   }
 
   /**
@@ -147,5 +156,57 @@ export class AppComponent implements OnInit, OnDestroy {
     // Opcional: Mostrar notificación al usuario
     // Puedes usar SweetAlert2 o cualquier sistema de notificaciones que tengas
     alert('Su sesión ha expirado por inactividad. Por favor, inicie sesión nuevamente.');
+  }
+
+  // ==================== SISTEMA GLOBAL DE NOTIFICACIONES DE PEDIDOS ====================
+
+  /**
+   * Inicializar el sistema global de notificaciones de pedidos pagados
+   * Este sistema funcionará en toda la aplicación, no solo en componentes específicos
+   */
+  private initGlobalPedidoNotifications(): void {
+    // Solo inicializar si el usuario está autenticado
+    if (this.auth.isAuthenticated()) {
+      console.log('🔔 Iniciando sistema global de notificaciones de pedidos pagados');
+      
+      // Verificar rol del usuario antes de iniciar
+      const user = this.dataService.getLoggedUser();
+      const userRole = user?.rol?.idRol;
+      const allowedRoles = [1, 5]; // Admin (1) y Ventas (5)
+      
+      if (userRole && allowedRoles.includes(Number(userRole))) {
+        console.log(`✅ Usuario con rol ${userRole} autorizado - Iniciando notificaciones`);
+        
+        // Iniciar el polling del servicio
+        this.pedidoNotificationService.startPolling();
+
+        // Suscribirse a las notificaciones de nuevos pedidos pagados
+        this.pedidoNotificationService.getNuevosPedidosPagados().subscribe({
+          next: (nuevosPedidos) => {
+            if (nuevosPedidos.length > 0) {
+              this.onGlobalNuevosPedidosPagados(nuevosPedidos);
+            }
+          },
+          error: (error) => {
+            console.error('Error en notificaciones globales de pedidos:', error);
+          }
+        });
+      } else {
+        console.log(`🚫 Usuario con rol ${userRole} no autorizado para notificaciones - Solo Admin (1) y Ventas (5)`);
+      }
+    }
+  }
+
+  /**
+   * Manejar la detección global de nuevos pedidos pagados
+   */
+  private onGlobalNuevosPedidosPagados(nuevosPedidos: PedidoPago[]): void {
+    console.log('🎉 Nuevos pedidos pagados detectados globalmente:', nuevosPedidos);
+    
+    // Aquí puedes agregar lógica adicional global si es necesario
+    // Por ejemplo, mostrar una notificación toast, actualizar contadores globales, etc.
+    
+    // El sonido y el cambio de título ya se manejan automáticamente en el servicio
+    // Pero podrías agregar aquí notificaciones visuales adicionales
   }
 }

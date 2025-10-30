@@ -19,6 +19,8 @@ import { KardexService } from '../../../services/inventario/kardex.service';
 import { kardexModel } from '../../../model/kardexModel';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
+import { BulkService } from '../../../services/bulk.service';
+import { UsuarioService } from '../../../services/usuario.service';
 import JsBarcode from 'jsbarcode';
 
 // Interfaces para los nuevos tipos de datos
@@ -149,6 +151,8 @@ export class BandejaProduccionComponent implements OnInit {
 		private dataService: DataService,
 		private productoService: ProductoService,
 		private kardexService: KardexService,
+		private bulkService: BulkService,
+		private usuarioService: UsuarioService,
 		public router: Router
 	) {}
 
@@ -205,6 +209,13 @@ export class BandejaProduccionComponent implements OnInit {
 	@ViewChild('codigoBarraMasivo', { static: true }) codigoBarraMasivo: TemplateRef<any> | null = null;
 	itemCodigoBarras: any = null;
 	productosCodigoBarrasMasivo: any[] = [];
+
+	// Para modal de asignación de usuario
+	@ViewChild('asignarUsuarioModal', { static: true }) asignarUsuarioModal: TemplateRef<any> | null = null;
+	usuarios: any[] = [];
+	usuarioSeleccionado: any = null;
+	itemParaAsignar: ItemBandeja | null = null;
+	loadingUsuarios: boolean = false;
 
 	openModalCodigoBarraIndividual(item: any) {
 		if (!item.idBulk) {
@@ -414,6 +425,280 @@ export class BandejaProduccionComponent implements OnInit {
 		});
 	}
 
+	// ==================== MÉTODOS PARA NOTIFICACIONES DE PEDIDOS PAGADOS ====================
+
+
+
+	// ==================== MÉTODOS PARA ASIGNACIÓN DE USUARIO ====================
+
+	/**
+	 * Mostrar modal inicial de éxito y preguntar sobre asignación de usuario
+	 */
+	mostrarModalAsignacionUsuario(item: ItemBandeja): void {
+		const itemNombre = this.getItemNombre(item);
+		const itemTipo = this.getItemTipo(item);
+
+		Swal.fire({
+			icon: 'success',
+			title: '¡Producto Recibido!',
+			text: `${itemTipo} "${itemNombre}" recibido en producción correctamente.`,
+			showCancelButton: true,
+			confirmButtonText: 'Asignar a Usuario',
+			cancelButtonText: 'Continuar sin Asignar',
+			allowOutsideClick: false
+		}).then((result) => {
+			if (result.isConfirmed) {
+				this.abrirModalAsignacionUsuario(item);
+			} else {
+				this.continuarSinAsignacion(item);
+			}
+		});
+	}
+
+	/**
+	 * Abrir el modal de asignación de usuario
+	 */
+	abrirModalAsignacionUsuario(item: ItemBandeja): void {
+		this.itemParaAsignar = item;
+		this.usuarioSeleccionado = null;
+		this.cargarUsuarios();
+		
+		if (this.asignarUsuarioModal) {
+			this.modalService.open(this.asignarUsuarioModal, { 
+				size: 'lg',
+				backdrop: 'static',
+				keyboard: false 
+			});
+		}
+	}
+
+	/**
+	 * Cargar usuarios con rol de producción (rol 6)
+	 */
+	cargarUsuarios(): void {
+		this.loadingUsuarios = true;
+		this.usuarioService.getUsuarios().subscribe({
+			next: (usuarios: any[]) => {
+				this.usuarios = usuarios || [];
+				// Filtrar usuarios con rol de producción (rol 6)
+				this.usuarios = this.usuarios.filter(usuario => 
+					usuario.rol && usuario.rol.idRol === 6
+				);
+				this.loadingUsuarios = false;
+				console.log('Usuarios de producción cargados:', this.usuarios);
+			},
+			error: (error) => {
+				console.error('Error al cargar usuarios:', error);
+				this.loadingUsuarios = false;
+				this.usuarios = [];
+				
+				Swal.fire({
+					icon: 'error',
+					title: 'Error al cargar usuarios',
+					text: 'No se pudieron cargar los usuarios. Por favor, intente nuevamente.',
+					showConfirmButton: true,
+				});
+			}
+		});
+	}
+
+	/**
+	 * Asignar el bulk al usuario seleccionado
+	 */
+	asignarUsuarioSeleccionado(): void {
+		if (!this.usuarioSeleccionado || !this.itemParaAsignar) {
+			Swal.fire({
+				icon: 'warning',
+				title: '¡Atención!',
+				text: 'Por favor seleccione un usuario.',
+				showConfirmButton: true,
+			});
+			return;
+		}
+
+		// Buscar el producto actualizado para obtener el idBulk
+		this.recargarProductosAsync().then(() => {
+			const itemActualizado = this.encontrarItemActualizado(this.itemParaAsignar!);
+			
+			if (!itemActualizado || !itemActualizado.idBulk) {
+				Swal.fire({
+					icon: 'error',
+					title: 'Error',
+					text: 'No se pudo encontrar el bulk asociado al producto.',
+					showConfirmButton: true,
+				});
+				return;
+			}
+
+			const data = {
+				idBulk: this.isProducto(itemActualizado) ? itemActualizado.idBulk : undefined,
+				idBulkPreparadoMagistral: this.isPreparado(itemActualizado) ? itemActualizado.idBulk : undefined,
+				idUsuario: this.usuarioSeleccionado.idUsuario
+			};
+
+			this.bulkService.asignarBulkAUsuario(data).subscribe({
+				next: (response: any) => {
+					console.log('Respuesta asignación:', response);
+					
+					if (response && response.idResultado === 1) {
+						const nombreUsuario = this.getNombreCompletoUsuario(this.usuarioSeleccionado);
+						Swal.fire({
+							icon: 'success',
+							title: '¡Asignación Exitosa!',
+							text: `Bulk asignado a ${nombreUsuario} correctamente.`,
+							showConfirmButton: true,
+						}).then(() => {
+							this.modalService.dismissAll();
+							this.continuarConCodigoBarras(itemActualizado);
+						});
+					} else {
+						Swal.fire({
+							icon: 'error',
+							title: 'Error en la asignación',
+							text: response.mensaje || 'No se pudo asignar el bulk.',
+							showConfirmButton: true,
+						});
+					}
+				},
+				error: (error) => {
+					console.error('Error al asignar bulk:', error);
+					
+					let errorMessage = 'No se pudo asignar el bulk. Por favor, intente nuevamente.';
+					if (error.error && error.error.mensaje) {
+						errorMessage = error.error.mensaje;
+					}
+					
+					Swal.fire({
+						icon: 'error',
+						title: 'Error',
+						text: errorMessage,
+						showConfirmButton: true,
+					});
+				}
+			});
+		});
+	}
+
+	/**
+	 * Continuar sin asignación de usuario
+	 */
+	continuarSinAsignacion(item: ItemBandeja): void {
+		this.recargarProductosAsync().then(() => {
+			const itemActualizado = this.encontrarItemActualizado(item);
+			if (itemActualizado) {
+				this.continuarConCodigoBarras(itemActualizado);
+			}
+		});
+	}
+
+	/**
+	 * Encontrar el item actualizado después de la recarga
+	 */
+	encontrarItemActualizado(itemOriginal: ItemBandeja): ItemBandeja | null {
+		if (this.isProducto(itemOriginal)) {
+			const productosConBulk = this.productosTable.filter(p => 
+				this.isProducto(p) && (p as ProductoBandeja).idProductoMaestro === itemOriginal.idProductoMaestro && 
+				p.idEstadoProducto === 3 && 
+				p.fechaCreacionBulk
+			);
+				
+			if (productosConBulk.length > 0) {
+				// Ordenar por fechaCreacionBulk descendente y tomar el más reciente
+				return productosConBulk.sort((a, b) => {
+					const fechaA = a.fechaCreacionBulk ? new Date(a.fechaCreacionBulk).getTime() : 0;
+					const fechaB = b.fechaCreacionBulk ? new Date(b.fechaCreacionBulk).getTime() : 0;
+					return fechaB - fechaA;
+				})[0];
+			} else {
+				// Fallback: buscar por idProductoMaestro
+				return this.productosTable.find(p => 
+					this.isProducto(p) && (p as ProductoBandeja).idProductoMaestro === itemOriginal.idProductoMaestro && p.idEstadoProducto === 3
+				) || null;
+			}
+		} else {
+			// Para preparados magistrales
+			const preparadosConBulk = this.productosTable.filter(p => 
+				this.isPreparado(p) && (p as PreparadoMagistralBandeja).idPreparadoMagistral === itemOriginal.idPreparadoMagistral && 
+				p.idEstadoProducto === 3 && 
+				p.fechaCreacionBulk
+			);
+				
+			if (preparadosConBulk.length > 0) {
+				// Ordenar por fechaCreacionBulk descendente y tomar el más reciente
+				return preparadosConBulk.sort((a, b) => {
+					const fechaA = a.fechaCreacionBulk ? new Date(a.fechaCreacionBulk).getTime() : 0;
+					const fechaB = b.fechaCreacionBulk ? new Date(b.fechaCreacionBulk).getTime() : 0;
+					return fechaB - fechaA;
+				})[0];
+			} else {
+				// Fallback: buscar por idPreparadoMagistral
+				return this.productosTable.find(p => 
+					this.isPreparado(p) && (p as PreparadoMagistralBandeja).idPreparadoMagistral === itemOriginal.idPreparadoMagistral && p.idEstadoProducto === 3
+				) || null;
+			}
+		}
+	}
+
+	/**
+	 * Continuar con la impresión del código de barras
+	 */
+	continuarConCodigoBarras(item: ItemBandeja): void {
+		this.lstProductosSeleccionados = [];
+		if (item && item.idBulk) {
+			this.openModalCodigoBarraIndividual(item);
+		}
+	}
+
+	/**
+	 * Obtener nombre completo del usuario
+	 */
+	getNombreCompletoUsuario(usuario: any): string {
+		if (usuario.cliente) {
+			return `${usuario.cliente.nombres} ${usuario.cliente.apellidos}`;
+		}
+		return usuario.usuario || 'Usuario';
+	}
+
+	/**
+	 * Versión asíncrona de getProductosAll que retorna una Promise
+	 */
+	private recargarProductosAsync(): Promise<void> {
+		return new Promise((resolve, reject) => {
+			const usuario = this.dataService.getLoggedUser();
+			if (!usuario || !usuario.idUsuario) {
+				console.error('Usuario no encontrado');
+				reject('Usuario no encontrado');
+				return;
+			}
+
+			this.productoService.getBandejaProduccion(usuario.idUsuario).subscribe(
+				(response: any) => {
+					console.log('Response obtenido:', response);
+					
+					// Verificar si la respuesta tiene la nueva estructura
+					if (response && response.productos && response.preparadosMagistrales) {
+						// Nueva estructura con productos y preparados magistrales separados
+						const productosConTipo: ProductoBandeja[] = response.productos.map((p: any) => ({ ...p, tipo: 'producto' as const }));
+						const preparadosConTipo: PreparadoMagistralBandeja[] = response.preparadosMagistrales.map((p: any) => ({ ...p, tipo: 'preparado' as const }));
+						
+						this.productosTable = [...productosConTipo, ...preparadosConTipo];
+					} else {
+						// Estructura antigua - tratar como productos
+						this.productosTable = response.map((p: any) => ({ ...p, tipo: 'producto' as const }));
+					}
+					
+					this.collectionSize = this.productosTable.length;
+					this.refreshProductos();
+					resolve();
+				},
+				(error) => {
+					console.error('Error al obtener productos', error);
+					reject(error);
+				}
+			);
+		});
+	}
+
 	getProductosAll(): void {
 		// Obtener el usuario loggeado
 		const usuario = this.dataService.getLoggedUser();
@@ -572,43 +857,8 @@ export class BandejaProduccionComponent implements OnInit {
 								// After the product state is updated successfully, get production sheet and update kardex
 								this.procesarHojaProduccionYKardex(item);
 								
-								Swal.fire({
-									icon: 'success',
-									title: '¡Listo!',
-									text: 'Producto recibido en producción correctamente.',
-									showConfirmButton: true,
-								}).then(() => {
-									this.getProductosAll();
-									this.lstProductosSeleccionados = [];
-									// Después de actualizar la lista, abrir automáticamente el modal de código de barras
-									setTimeout(() => {
-										// Buscar el producto con la fechaCreacionBulk más reciente
-										const productosConBulk = this.productosTable.filter(p => 
-											this.isProducto(p) && (p as ProductoBandeja).idProductoMaestro === item.idProductoMaestro && 
-											p.idEstadoProducto === 3 && 
-											p.fechaCreacionBulk
-										);
-											
-										if (productosConBulk.length > 0) {
-											// Ordenar por fechaCreacionBulk descendente y tomar el más reciente
-											const productoMasReciente = productosConBulk.sort((a, b) => {
-												const fechaA = a.fechaCreacionBulk ? new Date(a.fechaCreacionBulk).getTime() : 0;
-												const fechaB = b.fechaCreacionBulk ? new Date(b.fechaCreacionBulk).getTime() : 0;
-												return fechaB - fechaA;
-											})[0];
-												
-											this.openModalCodigoBarraIndividual(productoMasReciente);
-										} else {
-											// Si no se encuentra producto con fechaCreacionBulk, buscar por idProductoMaestro como fallback
-											const productoActualizado = this.productosTable.find(p => 
-												this.isProducto(p) && (p as ProductoBandeja).idProductoMaestro === item.idProductoMaestro && p.idEstadoProducto === 3
-											);
-											if (productoActualizado) {
-												this.openModalCodigoBarraIndividual(productoActualizado);
-											}
-										}
-									}, 500); // Delay para asegurar que la lista se haya actualizado
-								});
+								// Mostrar modal de éxito y preguntar sobre asignación de usuario
+								this.mostrarModalAsignacionUsuario(item);
 							},
 							(error) => {
 								console.error('Error al recibir producto en producción', error);
@@ -638,43 +888,8 @@ export class BandejaProduccionComponent implements OnInit {
 								// After the preparado magistral state is updated successfully, get production sheet and update kardex
 								this.procesarHojaProduccionYKardex(item);
 								
-								Swal.fire({
-									icon: 'success',
-									title: '¡Listo!',
-									text: 'Preparado magistral recibido en producción correctamente.',
-									showConfirmButton: true,
-								}).then(() => {
-									this.getProductosAll();
-									this.lstProductosSeleccionados = [];
-									// Después de actualizar la lista, abrir automáticamente el modal de código de barras
-									setTimeout(() => {
-										// Buscar el preparado magistral con la fechaCreacionBulk más reciente
-										const preparadosConBulk = this.productosTable.filter(p => 
-											this.isPreparado(p) && (p as PreparadoMagistralBandeja).idPreparadoMagistral === item.idPreparadoMagistral && 
-											p.idEstadoProducto === 3 && 
-											p.fechaCreacionBulk
-										);
-											
-										if (preparadosConBulk.length > 0) {
-											// Ordenar por fechaCreacionBulk descendente y tomar el más reciente
-											const preparadoMasReciente = preparadosConBulk.sort((a, b) => {
-												const fechaA = a.fechaCreacionBulk ? new Date(a.fechaCreacionBulk).getTime() : 0;
-												const fechaB = b.fechaCreacionBulk ? new Date(b.fechaCreacionBulk).getTime() : 0;
-												return fechaB - fechaA;
-											})[0];
-												
-											this.openModalCodigoBarraIndividual(preparadoMasReciente);
-										} else {
-											// Si no se encuentra preparado con fechaCreacionBulk, buscar por idPreparadoMagistral como fallback
-											const preparadoActualizado = this.productosTable.find(p => 
-												this.isPreparado(p) && (p as PreparadoMagistralBandeja).idPreparadoMagistral === item.idPreparadoMagistral && p.idEstadoProducto === 3
-											);
-											if (preparadoActualizado) {
-												this.openModalCodigoBarraIndividual(preparadoActualizado);
-											}
-										}
-									}, 500); // Delay para asegurar que la lista se haya actualizado
-								});
+								// Mostrar modal de éxito y preguntar sobre asignación de usuario
+								this.mostrarModalAsignacionUsuario(item);
 							},
 							(error) => {
 								console.error('Error al recibir preparado magistral en producción', error);
