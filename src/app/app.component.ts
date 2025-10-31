@@ -6,6 +6,7 @@ import { PrimeNGConfig } from 'primeng/api';
 import { WhatsappFloatComponent } from './components/whatsapp-float/whatsapp-float.component';
 import { PedidoNotificationService, PedidoPago } from './services/pedido-notification.service';
 import { SolicitudPreparadoNotificationService, SolicitudPreparadoMagistral } from './services/solicitud-preparado-notification.service';
+import { NotificationManagerService } from './services/notification-manager.service';
 
 @Component({
   selector: 'app-root',
@@ -39,15 +40,15 @@ export class AppComponent implements OnInit, OnDestroy {
     private dataService: DataService,
     private primengConfig: PrimeNGConfig,
     private pedidoNotificationService: PedidoNotificationService,
-    private solicitudPreparadoNotificationService: SolicitudPreparadoNotificationService
+    private solicitudPreparadoNotificationService: SolicitudPreparadoNotificationService,
+    private notificationManager: NotificationManagerService
   ) {
     this.initInactivityMonitoring();
   }
 
   ngOnInit() {
-    // Inicializar sistemas globales de notificaciones
-    this.initGlobalPedidoNotifications();
-    this.initGlobalSolicitudPreparadoNotifications();
+    // Inicializar sistemas globales de notificaciones usando el manager centralizado
+    this.notificationManager.initializeNotifications();
     
     this.primengConfig.setTranslation({
       accept: 'Aceptar',
@@ -153,6 +154,10 @@ export class AppComponent implements OnInit, OnDestroy {
    */
   private logoutDueToInactivity(): void {
     this.dataService.clearLoggedUser();
+    
+    // Resetear el estado de notificaciones al cerrar sesión
+    this.notificationManager.reset();
+    
     this.router.navigate(['/auth/login'], { 
       queryParams: { reason: 'inactivity' } 
     });

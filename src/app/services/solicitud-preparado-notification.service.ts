@@ -33,7 +33,7 @@ export class SolicitudPreparadoNotificationService {
   private nuevasSolicitudes$ = new BehaviorSubject<SolicitudPreparadoMagistral[]>([]);
   
   // Configuración del polling
-  private readonly POLLING_INTERVAL = 25000; // 25 segundos
+  private readonly POLLING_INTERVAL = 3000; // 3 segundos
   private readonly SOUND_PATH = 'assets/mp3/sound_solicitud_preparado.mp3';
   private readonly TITLE_BLINK_DURATION = 3000; // 3 segundos parpadeando
   private readonly API_URL = `${environment.apiUrl}/solicitud-preparado-magistral`;
