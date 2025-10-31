@@ -5,6 +5,7 @@ import { Router } from '@angular/router';
 import { UsuarioService } from '../../../services/usuario.service';
 import { AnuncioService } from '../../../services/anuncio.service';
 import { GoogleDriveImagePipe } from '../../../pipes/google-drive-image.pipe';
+import { NotificationManagerService } from '../../../services/notification-manager.service';
 import Swal from 'sweetalert2';
 
 declare const grecaptcha: any;
@@ -40,7 +41,8 @@ export class LoginComponent implements OnInit, OnDestroy {
     private fb: FormBuilder,
     private router: Router,
     private usuarioService: UsuarioService,
-    private anuncioService: AnuncioService
+    private anuncioService: AnuncioService,
+    private notificationManager: NotificationManagerService
   ) {
     this.loginForm = this.fb.group({
       usuario: ['', [Validators.required]],
@@ -128,6 +130,10 @@ export class LoginComponent implements OnInit, OnDestroy {
           if (response.recaptcha_score) {
             console.log('reCAPTCHA Score:', response.recaptcha_score);
           }
+          
+          // Inicializar notificaciones después de un login exitoso
+          // El timeout asegura que el localStorage se haya actualizado
+          this.notificationManager.initializeNotifications();
           
           this.router.navigate(['/pages/home']);
         } else {

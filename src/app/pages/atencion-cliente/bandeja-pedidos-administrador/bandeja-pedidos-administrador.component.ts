@@ -47,7 +47,7 @@ export class BandejaPedidosAdministradorComponent implements OnInit, OnDestroy {
 
 	// ==================== SISTEMA DE POLLING AUTOMÁTICO ====================
 	private pollingSubscription?: Subscription;
-	private readonly POLLING_INTERVAL = 30000; // 30 segundos
+	private readonly POLLING_INTERVAL = 3000; // 3 segundos
 
 	constructor(
 		private pedidoService: PedidoService,

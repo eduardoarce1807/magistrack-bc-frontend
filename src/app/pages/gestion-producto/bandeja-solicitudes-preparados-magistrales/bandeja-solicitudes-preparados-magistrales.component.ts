@@ -51,7 +51,7 @@ export class BandejaSolicitudesPreparadosMagistralesComponent implements OnInit,
 
   // ==================== SISTEMA DE POLLING AUTOMÁTICO ====================
   private pollingSubscription?: Subscription;
-  private readonly POLLING_INTERVAL = 30000; // 30 segundos
+  private readonly POLLING_INTERVAL = 3000; // 3 segundos
 
   constructor(
     public router: Router,
